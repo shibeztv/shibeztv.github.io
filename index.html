@@ -2137,7 +2137,7 @@ let autoScroll = true;
 function resetChatSync() {
   // Re-seek chat to current video position with new delay
   if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
-  const pos = ytPlayer.getCurrentTime() + chatDelay;
+  const pos = ytPlayer.getCurrentTime() - 15 + chatDelay;
   chatPointer = chatMessages.findIndex(m => m.offset >= pos);
   if (chatPointer < 0) chatPointer = chatMessages.length;
   const box = document.getElementById('chatMessages');
@@ -2158,7 +2158,7 @@ function startChatSync() {
   if (el) el.textContent = '▶ replaying';
   chatSyncInterval = setInterval(() => {
     if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
-    const pos = ytPlayer.getCurrentTime() + chatDelay;
+    const pos = ytPlayer.getCurrentTime() - 15 + chatDelay;
 
     // Detect seek backwards — reset pointer and clear chat
     if (pos < lastSyncPos - 2) {
@@ -2295,7 +2295,7 @@ async function renderChat(stream) {
             const t = new Date(tsNorm).getTime();
             if (!isNaN(t)) {
               botMsgTs = t;
-              vodStart = t - 15000; // stream started ~15s before bot fires
+              vodStart = t; // bot message = offset 0
               console.log('vodStart = bot live message:', new Date(vodStart).toISOString());
               break;
             }
