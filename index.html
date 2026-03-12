@@ -2226,14 +2226,55 @@ async function renderChat(stream) {
     vodStart = new Date(twitchVodDetails[vodId].created_at).getTime();
     console.log('vodStart from Twitch:', new Date(vodStart).toISOString());
   }
+
+  const channel = config.twitch || 'shlbez';
+  const BOT_NAME = 'shibez_bot';
+
+  // Try to find stream start from bot's first message on the stream day
+  // Bot sends the same message at the very start of every stream
+  if (!vodStart) {
+    try {
+      const day = stream.day; // YYYY-MM-DD
+      const y = day.slice(0,4), mo = day.slice(5,7), d = day.slice(8,10);
+      // Fetch prev day too in case stream started just before midnight UTC
+      const botUrls = [
+        `https://logs.ivr.fi/channel/${channel}/${y}/${mo}/${d}?json=true&username=${BOT_NAME}`,
+        `https://logs.ivr.fi/channel/${channel}/${y}/${mo}/${String(parseInt(d)-1).padStart(2,'0')}?json=true&username=${BOT_NAME}`,
+      ];
+      let botStart = null;
+      for (const burl of botUrls) {
+        const br = await fetch(burl);
+        if (!br.ok) continue;
+        const bdata = await br.json();
+        const bmsgs = Array.isArray(bdata) ? bdata : (bdata.messages || []);
+        // Only match the specific "gone live" message the bot sends at stream start
+        const LIVE_MSG = 'has gone live';
+        const liveMsg = bmsgs.find(m => (m.text || m.message || '').toLowerCase().includes(LIVE_MSG));
+        if (liveMsg) {
+          const firstBotTs = liveMsg.timestamp || liveMsg.ts || '';
+          if (firstBotTs) {
+            let tsNorm = firstBotTs.trim().replace(' UTC','').replace(' +0000','').replace(' ','T');
+            if (!/[Z+\-]\d*$/.test(tsNorm)) tsNorm += 'Z';
+            const t = new Date(tsNorm).getTime();
+            if (!isNaN(t)) { botStart = t; break; }
+          }
+        }
+      }
+      if (botStart) {
+        vodStart = botStart;
+        console.log('vodStart from bot first message:', new Date(vodStart).toISOString());
+      }
+    } catch(e) {
+      console.warn('Bot start fetch failed:', e.message);
+    }
+  }
+
   if (!vodStart) {
     const lastVid = stream.vids[stream.vids.length - 1];
     vodStart = new Date(lastVid.publishedAt).getTime() - (stream.totalDuration * 1000);
-    console.log('vodStart estimated:', new Date(vodStart).toISOString());
+    console.log('vodStart estimated (fallback):', new Date(vodStart).toISOString());
   }
   vodStartTime = vodStart;
-
-  const channel = config.twitch || 'shlbez';
 
   // Fetch rustlog by calendar day — always fetch prev, current and next day
   // so we never miss messages regardless of timezone offsets
@@ -2279,6 +2320,25 @@ async function renderChat(stream) {
     const [prev, curr, next] = await Promise.all([fetchDay(prevDay), fetchDay(startDay), fetchDay(nextDay)]);
     const rawMsgs = [...prev, ...curr, ...next];
     console.log('Total raw messages:', rawMsgs.length, '| sample:', JSON.stringify(rawMsgs[0]).slice(0,200));
+
+    // If we didn't get vodStart from Twitch, use the earliest chat message timestamp
+    // This is much more accurate than estimating from YouTube publish time
+    if (!twitchVodMap[stream.day] && rawMsgs.length) {
+      const firstTs = rawMsgs.map(m => {
+        const rawTs = m.timestamp || m.ts || m.createdAt || '';
+        if (!rawTs) return Infinity;
+        let tsNorm = rawTs.trim().replace(' UTC','').replace(' +0000','');
+        tsNorm = tsNorm.replace(' ','T');
+        if (!/[Z+\-]\d*$/.test(tsNorm)) tsNorm += 'Z';
+        return new Date(tsNorm).getTime();
+      }).filter(t => !isNaN(t) && isFinite(t));
+      if (firstTs.length) {
+        const chatStart = Math.min(...firstTs);
+        console.log('vodStart recalculated from first chat msg:', new Date(chatStart).toISOString(), '(was:', new Date(vodStart).toISOString() + ')');
+        vodStart = chatStart;
+        vodStartTime = vodStart;
+      }
+    }
 
     if (!rawMsgs.length) {
       const d0 = new Date(vodStart);
