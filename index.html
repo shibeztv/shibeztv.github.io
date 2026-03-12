@@ -1201,7 +1201,7 @@
   </a>
   <div class="topbar-divider"></div>
   <div id="streamStatus" class="stream-status offline-status">
-    <span id="streamStatusText">Shibez is currently offline</span>
+    <span id="streamStatusText">Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt=""></span>
   </div>
   <div class="topbar-spacer"></div>
   <div class="topbar-socials">
@@ -2775,7 +2775,7 @@ async function demoLiveAsBadgeInsider() {
     if (dot) dot.classList.remove('live');
     if (banner) banner.style.display = 'none';
     if (statusEl) statusEl.className = 'stream-status offline-status';
-    if (statusText) statusText.innerHTML = 'Shibez is currently offline';
+    if (statusText) statusText.innerHTML = 'Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt="">';
   }
 }
 
