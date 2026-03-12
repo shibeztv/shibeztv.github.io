@@ -2137,7 +2137,7 @@ let autoScroll = true;
 function resetChatSync() {
   // Re-seek chat to current video position with new delay
   if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
-  const pos = ytPlayer.getCurrentTime() - chatDelay;
+  const pos = ytPlayer.getCurrentTime() + chatDelay;
   chatPointer = chatMessages.findIndex(m => m.offset >= pos);
   if (chatPointer < 0) chatPointer = chatMessages.length;
   const box = document.getElementById('chatMessages');
@@ -2158,7 +2158,7 @@ function startChatSync() {
   if (el) el.textContent = '▶ replaying';
   chatSyncInterval = setInterval(() => {
     if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
-    const pos = ytPlayer.getCurrentTime() - chatDelay;
+    const pos = ytPlayer.getCurrentTime() + chatDelay;
 
     // Detect seek backwards — reset pointer and clear chat
     if (pos < lastSyncPos - 2) {
