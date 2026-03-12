@@ -2300,8 +2300,8 @@ async function renderChat(stream) {
         }
       }
       if (botStart) {
-        vodStart = botStart;
-        console.log('vodStart from bot first message:', new Date(vodStart).toISOString());
+        vodStart = botStart - 15000; // stream started ~15s before bot fires
+        console.log('vodStart from bot first message (shifted -15s):', new Date(vodStart).toISOString());
       }
     } catch(e) {
       console.warn('Bot start fetch failed:', e.message);
@@ -2415,7 +2415,7 @@ async function renderChat(stream) {
     console.log(`Parsed ${msgs.length} messages, offset range: ${msgs[0]?.offset?.toFixed(0)}s to ${msgs[msgs.length-1]?.offset?.toFixed(0)}s`);
 
     // Inject a synthetic stream-start marker at offset 0
-    const liveMarker = { offset: -15, user: '📡', text: 'Shibez went live!', color: '#ff4444', isSystem: true };
+    const liveMarker = { offset: 0, user: '📡', text: 'Shibez went live!', color: '#ff4444', isSystem: true };
     chatMessages = [liveMarker, ...msgs];
     box.innerHTML = '';
 
