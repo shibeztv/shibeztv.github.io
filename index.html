@@ -1778,6 +1778,14 @@ function renderStreamList(streams) {
     return;
   }
   renderPage();
+  // Restore stream from URL hash on page load/refresh
+  const hash = location.hash; // e.g. "#stream-3"
+  if (hash && hash.startsWith('#stream-')) {
+    const idx = parseInt(hash.replace('#stream-',''));
+    if (!isNaN(idx) && idx >= 0 && idx < allStreams.length) {
+      selectStream(idx, false);
+    }
+  }
 }
 
 function goBack(pushHistory=true) {
@@ -2248,7 +2256,7 @@ async function renderChat(stream) {
         const bdata = await br.json();
         const bmsgs = Array.isArray(bdata) ? bdata : (bdata.messages || []);
         // Only match the specific "gone live" message the bot sends at stream start
-        const LIVE_MSG = 'has gone live';
+        const LIVE_MSG = 'hasanefe123123';
         const liveMsg = bmsgs.find(m => (m.text || m.message || '').toLowerCase().includes(LIVE_MSG));
         if (liveMsg) {
           const firstBotTs = liveMsg.timestamp || liveMsg.ts || '';
@@ -2606,7 +2614,7 @@ async function refreshStreams(showErrors) {
 document.addEventListener('DOMContentLoaded', () => {
   const sn = document.getElementById('siteName');
   if (sn) sn.textContent = config.siteName;
-  try { history.replaceState({ grid: true }, '', location.pathname); } catch(e) {}
+  // Don't wipe hash on init — we read it after streams load to restore state
   loadStreams();
   demoLiveAsBadgeInsider();
   setInterval(demoLiveAsBadgeInsider, 120000);
