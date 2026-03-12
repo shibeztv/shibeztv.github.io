@@ -2278,7 +2278,7 @@ async function renderChat(stream) {
 
     const [prev, curr, next] = await Promise.all([fetchDay(prevDay), fetchDay(startDay), fetchDay(nextDay)]);
     const rawMsgs = [...prev, ...curr, ...next];
-    console.log('Total raw messages:', rawMsgs.length);
+    console.log('Total raw messages:', rawMsgs.length, '| sample:', JSON.stringify(rawMsgs[0]).slice(0,200));
 
     if (!rawMsgs.length) {
       const d0 = new Date(vodStart);
@@ -2299,16 +2299,14 @@ async function renderChat(stream) {
 
     // Parse messages — rustlog uses "2025-11-20 18:32:11" or ISO format
     const msgs = rawMsgs.map(m => {
-      // rustlog fields: timestamp/ts, text/message/content, username/displayName/user
+      // rustlog fields: timestamp is ISO "2025-12-29T01:44:55.420Z" or "2025-12-29 01:44:55 UTC"
       const rawTs = m.timestamp || m.ts || m.createdAt || '';
-      let ts;
-      if (rawTs.includes(' UTC')) {
-        // Rustlog format: "2024-01-15 18:32:11.123 +0000 UTC"
-        ts = new Date(rawTs.replace(' UTC','').replace(/\s\+0000$/,'Z').replace(' ','T')).getTime();
-      } else {
-        const tsStr = rawTs.replace(' ','T').replace(/([+-]\d{2}:\d{2})?$/,s=>s||'Z');
-        ts = new Date(tsStr).getTime();
-      }
+      if (!rawTs) return null;
+      // Normalize to ISO — replace space with T, strip " UTC", ensure Z suffix if no tz
+      let tsNorm = rawTs.trim().replace(' UTC','').replace(' +0000','');
+      tsNorm = tsNorm.replace(' ','T'); // space → T if not already ISO
+      if (!/[Z+\-]\d*$/.test(tsNorm)) tsNorm += 'Z'; // only add Z if no tz present
+      const ts = new Date(tsNorm).getTime();
       if (isNaN(ts)) return null;
       const offset = (ts - vodStart) / 1000;
       const text = m.text || m.message || m.content || '';
@@ -2331,7 +2329,7 @@ async function renderChat(stream) {
       }
 
       return { offset, user: username, text, color };
-    }).filter(m => m !== null && !isNaN(m.offset)).sort((a,b) => a.offset - b.offset);
+    }).filter(m => m !== null && !isNaN(m.offset) && m.offset > -86400 && m.offset < 86400 * 3).sort((a,b) => a.offset - b.offset);
 
     console.log(`Parsed ${msgs.length} messages, offset range: ${msgs[0]?.offset?.toFixed(0)}s to ${msgs[msgs.length-1]?.offset?.toFixed(0)}s`);
 
@@ -2339,8 +2337,9 @@ async function renderChat(stream) {
     box.innerHTML = '';
 
     if (!msgs.length) {
-      box.innerHTML = '<div class="chat-placeholder"><div class="chat-placeholder-icon" style="font-size:24px;opacity:0.3">💬</div><div>No chat found<br>for this stream</div></div>';
-      if (note) { note.textContent = 'no logs'; note.style.color = 'var(--muted)'; }
+      const raw0 = rawMsgs[0] || {};
+      box.innerHTML = `<div class="chat-placeholder" style="padding:12px;align-items:flex-start;text-align:left"><div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px">💬 Messages fetched but timestamps don't match</div><div style="font-size:9px;color:var(--muted);line-height:1.8;word-break:break-all">Raw msgs: ${rawMsgs.length}<br>vodStart: ${new Date(vodStart).toISOString()}<br>First msg keys: ${Object.keys(raw0).join(', ')}<br>First msg ts field: ${raw0.timestamp || raw0.ts || raw0.createdAt || '?'}</div></div>`;
+      if (note) { note.textContent = 'ts mismatch'; note.style.color = '#f99'; }
       return;
     }
 
