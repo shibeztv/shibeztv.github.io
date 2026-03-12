@@ -2295,7 +2295,7 @@ async function renderChat(stream) {
             const t = new Date(tsNorm).getTime();
             if (!isNaN(t)) {
               botMsgTs = t;
-              vodStart = t; // bot message IS 0:00
+              vodStart = t - 15000; // stream started ~15s before bot fires
               console.log('vodStart = bot live message:', new Date(vodStart).toISOString());
               break;
             }
