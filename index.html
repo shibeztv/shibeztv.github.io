@@ -2321,24 +2321,6 @@ async function renderChat(stream) {
     const rawMsgs = [...prev, ...curr, ...next];
     console.log('Total raw messages:', rawMsgs.length, '| sample:', JSON.stringify(rawMsgs[0]).slice(0,200));
 
-    // If we didn't get vodStart from Twitch, use the earliest chat message timestamp
-    // This is much more accurate than estimating from YouTube publish time
-    if (!twitchVodMap[stream.day] && rawMsgs.length) {
-      const firstTs = rawMsgs.map(m => {
-        const rawTs = m.timestamp || m.ts || m.createdAt || '';
-        if (!rawTs) return Infinity;
-        let tsNorm = rawTs.trim().replace(' UTC','').replace(' +0000','');
-        tsNorm = tsNorm.replace(' ','T');
-        if (!/[Z+\-]\d*$/.test(tsNorm)) tsNorm += 'Z';
-        return new Date(tsNorm).getTime();
-      }).filter(t => !isNaN(t) && isFinite(t));
-      if (firstTs.length) {
-        const chatStart = Math.min(...firstTs);
-        console.log('vodStart recalculated from first chat msg:', new Date(chatStart).toISOString(), '(was:', new Date(vodStart).toISOString() + ')');
-        vodStart = chatStart;
-        vodStartTime = vodStart;
-      }
-    }
 
     if (!rawMsgs.length) {
       const d0 = new Date(vodStart);
