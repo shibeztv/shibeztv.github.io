@@ -1,0 +1,2711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shibez VOD Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600&family=DM+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141417;
+    --surface2: #1a1a1e;
+    --border: #2a2a30;
+    --accent: #7c5cfc;
+    --accent2: #fc5c7d;
+    --text: #e8e8f0;
+    --muted: #6b6b7a;
+    --live: #ff4444;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Syne', sans-serif;
+    --sidebar-w: 340px;
+    --topbar-h: 54px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    height: var(--topbar-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo span {
+    color: var(--accent);
+  }
+  .logo-dot.live { background: #ff4040 !important; box-shadow: 0 0 5px #ff4040 !important; animation: pulse 2s infinite; }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: #555;
+    border-radius: 50%;
+    box-shadow: none;
+    display: inline-block;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,64,64,0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(255,64,64,0); }
+  }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  
+
+  /* LAYOUT */
+  .layout {
+    display: flex;
+    flex-direction: column;
+    margin-top: var(--topbar-h);
+    height: calc(100vh - var(--topbar-h));
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-section {
+    padding: 14px 12px 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .stream-item {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    position: relative;
+  }
+  .stream-item:hover { background: var(--surface2); }
+  .stream-item.active { background: #1e1a2e; }
+  .stream-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+  }
+
+  .stream-thumb-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: #111;
+  }
+  .stream-thumb-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .stream-thumb-wrap .thumb-fallback {
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    font-size: 28px;
+  }
+  .stream-duration {
+    position: absolute;
+    bottom: 4px; right: 4px;
+    background: rgba(0,0,0,0.85);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 2px;
+    color: #fff;
+  }
+
+  .stream-info {
+    padding: 8px 10px;
+  }
+  .stream-date {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+  .stream-title {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .stream-games-mini {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+  .game-tag-mini {
+    font-family: var(--mono);
+    font-size: 9px;
+    background: rgba(124,92,252,0.15);
+    border: 1px solid rgba(124,92,252,0.3);
+    color: var(--accent);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  /* MAIN CONTENT */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .main::-webkit-scrollbar { width: 4px; }
+  .main::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* VIDEO AREA */
+  .video-section {
+    background: #000;
+    position: relative;
+  }
+
+  .video-wrapper {
+    position: relative;
+    padding-bottom: 46%;
+    height: 0;
+  }
+  .video-wrapper iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+  }
+
+  .no-video {
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    background: #080810;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .no-video .icon { font-size: 40px; opacity: 0.3; }
+
+  /* VIDEO META */
+  .video-meta {
+    padding: 16px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .video-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .video-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .video-date-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    padding-top: 3px;
+  }
+
+  .video-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .stat {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #bbbd);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .stat b { color: var(--text); }
+
+  /* GAME SEGMENTS */
+  .segments-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
+    margin-bottom: 8px;
+  }
+
+  .segments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .segment-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .segment-btn:hover {
+    border-color: var(--accent);
+    background: rgba(124,92,252,0.1);
+  }
+  .segment-btn.active {
+    border-color: var(--accent);
+    background: rgba(124,92,252,0.18);
+    color: var(--accent);
+  }
+  .segment-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    background: rgba(0,0,0,0.3);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+  .segment-btn.active .segment-time { color: rgba(124,92,252,0.7); }
+
+  /* TIMELINE BAR */
+  .timeline-wrap {
+    padding: 0 20px 0;
+    background: var(--surface);
+    padding-bottom: 14px;
+  }
+  .timeline-bar {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    display: flex;
+    overflow: hidden;
+    gap: 1px;
+    cursor: pointer;
+  }
+  .timeline-seg {
+    height: 100%;
+    transition: filter 0.2s;
+    border-radius: 1px;
+  }
+  .timeline-seg:hover { filter: brightness(1.4); }
+
+  /* MULTI-PART */
+  .parts-section {
+    padding: 12px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: none;
+  }
+  .parts-section.visible { display: block; }
+  .parts-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .parts-list {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .part-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .part-btn:hover { border-color: var(--accent2); color: var(--text); }
+  .part-btn.active {
+    border-color: var(--accent2);
+    background: rgba(252,92,125,0.1);
+    color: var(--accent2);
+  }
+
+  /* TWITCH CHAT PANEL */
+  .chat-panel {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    height: 100%;
+  }
+
+  .chat-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .chat-header-icon { font-size: 14px; }
+  .chat-header-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    flex: 1;
+  }
+  .chat-mode-toggle {
+    font-family: var(--mono);
+    font-size: 9px;
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .chat-mode-btn {
+    padding: 4px 8px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 9px;
+    transition: all 0.1s;
+  }
+  .chat-mode-btn.active { background: var(--accent); color: white; }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    scroll-behavior: smooth;
+  }
+  .chat-messages::-webkit-scrollbar { width: 3px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .chat-msg {
+    padding: 3px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: break-word;
+    transition: background 0.1s;
+  }
+  .chat-msg:hover { background: rgba(255,255,255,0.03); }
+  .chat-msg-time {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    margin-right: 4px;
+    cursor: pointer;
+    transition: color 0.12s;
+  }
+  .chat-msg-time:hover { color: var(--accent); }
+  .chat-msg-user {
+    font-weight: 700;
+    margin-right: 4px;
+    cursor: pointer;
+  }
+  .chat-msg-text { color: var(--text); }
+
+  /* EMOTES */
+  .chat-emote {
+    display: inline-block;
+    vertical-align: middle;
+    height: 22px;
+    width: auto;
+    margin: 0 1px;
+    image-rendering: auto;
+  }
+  .chat-emote-animated {
+    height: 22px;
+  }
+  .chat-msg-text a { color: var(--accent); text-decoration: none; }
+
+
+  .chat-footer {
+    padding: 6px 10px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .chat-placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 20px;
+    text-align: center;
+  }
+  .chat-placeholder-icon { font-size: 32px; opacity: 0.3; }
+
+  /* CONFIG MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    backdrop-filter: blur(3px);
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 460px;
+    max-width: 95vw;
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title {
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .modal-close {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 18px; line-height: 1;
+    transition: color 0.1s;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body { padding: 20px; }
+
+  .field {
+    margin-bottom: 16px;
+  }
+  .field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .field input::placeholder { color: var(--muted); }
+
+  .field-help {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-ghost {
+    background: none;
+    color: var(--muted);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+
+  /* STATUS BAR */
+  .status-bar {
+    padding: 6px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    display: inline-block;
+  }
+  .status-dot.ok { background: #4ade80; }
+  .status-dot.error { background: var(--live); }
+
+  /* SCROLLBAR */
+  .main::-webkit-scrollbar { width: 4px; }
+  .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .chat-panel { display: none; }
+  }
+  @media (max-width: 700px) {
+    .sidebar { width: 180px; }
+  }
+
+  /* LOADING */
+  .loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    gap: 20px;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .loader-dots {
+    display: flex;
+    gap: 8px;
+  }
+  .loader-dots span {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: dotBounce 1.2s ease-in-out infinite;
+  }
+  .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-10px); opacity: 1; }
+  }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .empty-state .big { font-size: 40px; margin-bottom: 12px; }
+
+  .streak-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    background: rgba(252,92,125,0.15);
+    border: 1px solid rgba(252,92,125,0.3);
+    color: var(--accent2);
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin-left: 6px;
+  }
+
+  /* THEATER MODE */
+  .theater-btn-wrap {
+    display: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 20;
+  }
+  .theater-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: var(--surface2);
+    border: 1px solid #444;
+    color: var(--text);
+    padding: 7px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .theater-btn:hover { border-color: var(--accent); background: rgba(124,92,252,0.15); color: var(--accent); }
+  .theater-btn.active { border-color: var(--accent); background: rgba(124,92,252,0.2); color: var(--accent); }
+  .theater-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* Theater mode — video fills left, chat pinned right */
+  body.theater .topbar { display: none; }
+  body.theater .layout { height: 100vh; margin-top: 0; display: flex; flex-direction: column; }
+  body.theater #gridView { display: none !important; }
+  body.theater .player-view { flex: 1; display: flex !important; flex-direction: column; overflow: hidden; }
+  body.theater .player-topbar { display: none !important; }
+  body.theater #theaterBtnWrap { display: none !important; }
+  body.theater #theaterBarWrap { display: none !important; }
+  body.theater .player-view > div[style*="display:flex"] { flex: 1; overflow: hidden; }
+
+  .player-view.active { display: flex; }
+
+  body.theater .main {
+    flex: 1; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  body.theater .video-content-wrap {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  }
+  body.theater .video-section {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  }
+  body.theater .video-wrapper {
+    flex: 1; padding-bottom: 0 !important; height: 100% !important; position: relative !important;
+  }
+  body.theater .video-wrapper iframe,
+  body.theater #ytPlayerEl,
+  body.theater #ytPlayerEl iframe {
+    position: absolute !important;
+    top: 0; left: 0;
+    width: 100% !important; height: 100% !important;
+  }
+  body.theater .video-meta { display: none !important; }
+  body.theater .timeline-wrap { display: none !important; }
+  body.theater .parts-section { display: none !important; }
+  body.theater .status-bar { display: none !important; }
+  body.theater .chat-panel { display: flex !important; width: 320px; flex-shrink: 0; }
+  body.theater .resize-handle { display: block; }
+
+  /* ── GRID HOME ─────────────────────────────────────────────────── */
+  .grid-view {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    background: var(--bg);
+  }
+  .grid-view::-webkit-scrollbar { width: 4px; }
+  .grid-view::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .grid-header {
+    margin-top: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .grid-header-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+  .grid-header-count {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: #bbb;
+  }
+
+  .stream-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+  }
+
+  .grid-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+  }
+  .grid-card:hover {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+  .grid-card-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #080810;
+    overflow: hidden;
+  }
+  .grid-card-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s;
+  }
+  .grid-card:hover .grid-card-thumb img { transform: scale(1.03); }
+  .grid-card-thumb .thumb-fallback {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0e0e1a 100%);
+  }
+  .grid-card-dur {
+    position: absolute; bottom: 5px; right: 5px;
+    background: rgba(0,0,0,0.85);
+    font-family: var(--mono); font-size: 13px;
+    padding: 3px 8px; border-radius: 2px; color: #fff;
+  }
+  .grid-card-parts {
+    position: absolute; top: 5px; left: 5px;
+    background: rgba(145,70,255,0.9);
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    padding: 3px 8px; border-radius: 3px; color: #fff;
+  }
+  .grid-card-
+  .grid-card-date {
+    font-family: var(--mono); font-size: 9px;
+    color: var(--accent); margin-bottom: 4px;
+  }
+  .grid-card-title {
+    font-size: 12px; font-weight: 700;
+    line-height: 1.4; color: var(--text);
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .grid-card-games {
+    display: flex; flex-wrap: wrap; gap: 3px;
+  }
+  .grid-game-tag {
+    font-family: var(--mono); font-size: 9px;
+    background: rgba(145,70,255,0.1);
+    border: 1px solid rgba(145,70,255,0.25);
+    color: rgba(145,70,255,0.9);
+    padding: 1px 5px; border-radius: 2px;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 24px 0 20px;
+    flex-shrink: 0;
+  }
+  .page-numbers { display: flex; align-items: center; gap: 4px; }
+  .page-btn {
+    font-family: var(--mono); font-size: 11px;
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); min-width: 32px; height: 32px;
+    padding: 0 8px; border-radius: 4px;
+    cursor: pointer; transition: all 0.12s;
+  }
+  .page-btn.page-arrow { font-size: 16px; border: none; background: none; color: var(--muted); }
+  .page-btn.page-arrow:hover:not(:disabled) { color: var(--text); background: none; border: none; }
+  .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+  .page-btn:disabled { opacity: 0.2; cursor: default; }
+  .page-btn.active {
+    background: var(--accent); border-color: var(--accent);
+    color: #fff; font-weight: 700;
+  }
+  .page-ellipsis { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 0 4px; }
+
+  .site-footer {
+    text-align: center;
+    padding: 24px 0 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .footer-emote {
+    height: 28px;
+    width: auto;
+    vertical-align: middle;
+    image-rendering: auto;
+  }
+
+  /* ── PLAYER VIEW ────────────────────────────────────────────────── */
+  .player-view { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+  .player-view.active { display: flex; }
+  .player-topbar {
+    padding: 8px 14px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+  }
+  .back-btn {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    background: none; border: 1px solid #aaa;
+    color: #fff; padding: 5px 14px;
+    border-radius: 3px; cursor: pointer; transition: all 0.12s;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--text); }
+  .player-topbar-title {
+    font-size: 12px; font-weight: 700;
+    color: var(--text); flex: 1;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .player-topbar-date {
+    font-family: var(--mono); font-size: 10px; color: var(--text);
+  }
+
+  /* hide old sidebar in grid mode */
+  .sidebar { display: none; }
+
+
+  /* ── TOPBAR SOCIALS ─────────────────────────────────────────── */
+  .topbar-divider {
+    width: 2px; height: 18px;
+    background: #666;
+    margin: 0 14px;
+    flex-shrink: 0;
+  }
+  .topbar-spacer { flex: 1; }
+  .topbar-socials {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    color: var(--text);
+    opacity: 0.7;
+    text-decoration: none;
+    border-radius: 3px;
+    transition: opacity 0.12s;
+    position: relative;
+  }
+  .social-link:hover { opacity: 1; }
+  .social-link svg { width: 18px; height: 18px; display: block; flex-shrink: 0; }
+  .social-vod-badge {
+    position: absolute; bottom: 1px; right: 0px;
+    font-size: 6px; font-family: var(--mono); font-weight: 800;
+    background: var(--accent); color: #fff;
+    padding: 0 2px; border-radius: 2px; line-height: 1.4;
+    pointer-events: none;
+  }
+  .topbar-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    overflow: hidden; border: 1px solid #444;
+    margin-left: 6px; flex-shrink: 0;
+    transition: border-color 0.15s; text-decoration: none;
+    display: block;
+  }
+  .topbar-avatar:hover { border-color: #9146ff; }
+  .topbar-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .status-emote { height: 30px; width: 30px; object-fit: cover; border-radius: 50%; vertical-align: middle; margin-left: 4px; }
+
+
+  /* Mobile base */
+  @media (max-width: 768px) {
+    :root { --sidebar-w: 280px; }
+    .topbar { padding: 0 10px; }
+    .stream-status { display: none; }
+    #playerView > div { flex-direction: column; }
+    .chat-panel { width: 100%; height: 300px; border-left: none; border-top: 1px solid var(--border); }
+    .stream-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Theater mode — mobile: video top, chat below */
+  @media (max-width: 768px) {
+    body.theater .topbar { display: none; }
+    body.theater .layout { height: 100vh; }
+    body.theater .player-view { flex-direction: column; }
+    body.theater #playerView > div { flex-direction: column; }
+    body.theater .main { flex: none; height: 50vh; }
+    body.theater .video-section { height: 100%; }
+    body.theater .chat-panel { flex: 1; width: 100%; height: auto; border-top: 1px solid var(--border); }
+  }
+
+  /* Theater mode — desktop: video left, chat right, full screen */
+  @media (min-width: 769px) {
+    body.theater .topbar { display: none; }
+    body.theater .layout { height: 100vh; margin-top: 0; }
+    body.theater .player-topbar { display: none !important; }
+    body.theater .theater-btn-wrap { display: none !important; }
+    body.theater .video-meta { display: none !important; }
+    body.theater .timeline-wrap { display: none !important; }
+    body.theater .parts-section { display: none !important; }
+    body.theater .status-bar { display: none !important; }
+    body.theater #gridView { display: none !important; }
+    body.theater .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+    body.theater .video-section { flex: 1; display: flex; flex-direction: column; }
+    body.theater .video-wrapper { flex: 1; padding-bottom: 0 !important; height: 100% !important; }
+    body.theater .video-wrapper iframe,
+    body.theater #ytPlayerEl,
+    body.theater #ytPlayerEl iframe { position: relative !important; width: 100% !important; height: 100% !important; }
+    body.theater .chat-panel { display: flex !important; width: 320px; }
+  }
+
+
+  /* Chat toggle */
+  .chat-toggle-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); padding: 2px; display: flex;
+    align-items: center; transition: color 0.12s; margin-left: 4px;
+  }
+  .chat-toggle-btn:hover { color: var(--text); }
+  .chat-toggle-btn svg { width: 14px; height: 14px; }
+
+  .chat-open-btn {
+    position: absolute; right: 0; top: 50%;
+    transform: translateY(-50%);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-right: none; border-radius: 4px 0 0 4px;
+    color: var(--muted); cursor: pointer; padding: 8px 4px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 2px; transition: color 0.12s, background 0.12s; z-index: 10;
+  }
+  .chat-open-btn:hover { color: var(--text); background: var(--surface); }
+  .chat-open-btn svg { width: 14px; height: 14px; }
+
+  /* Theater back button — floating, only visible in theater mode */
+  .theater-back-btn {
+    display: none;
+    position: fixed; top: 12px; left: 12px; z-index: 999;
+    background: rgba(0,0,0,0.7); border: 1px solid #666;
+    color: #fff; font-family: var(--mono); font-size: 10px;
+    padding: 6px 12px; border-radius: 4px; cursor: pointer;
+    opacity: 1; transition: opacity 0.4s ease, all 0.15s; backdrop-filter: blur(4px);
+  }
+  .theater-back-btn:hover { color: var(--text); border-color: var(--accent); }
+  body.theater .theater-back-btn { display: block; }
+  .theater-exit-btn {
+    display: none;
+    position: fixed; bottom: 16px; right: 16px; z-index: 999;
+    background: rgba(0,0,0,0.7); border: 1px solid #666;
+    color: #fff; font-family: var(--mono); font-size: 10px; font-weight: 700;
+    padding: 6px 14px; border-radius: 4px; cursor: pointer;
+    opacity: 1; transition: opacity 0.4s ease, all 0.15s; backdrop-filter: blur(4px);
+    letter-spacing: 0.5px;
+  }
+  .theater-exit-btn:hover { border-color: var(--accent); color: var(--accent); }
+  body.theater .theater-exit-btn { display: block; }
+
+
+  /* Live banner on grid */
+  .live-banner {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 24px 16px;
+    background: linear-gradient(180deg, rgba(255,40,40,0.10) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(255,64,64,0.2);
+    margin-bottom: 0;
+  }
+  .live-banner.visible { display: flex; }
+  .live-banner-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .live-banner-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #ff4040;
+    box-shadow: 0 0 6px #ff4040;
+    animation: pulse 1.2s infinite;
+    flex-shrink: 0;
+  }
+  .live-banner-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+  .live-banner-game {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #ff6060;
+    margin-left: auto;
+  }
+  .live-banner-embed {
+    width: 32%;
+    max-width: none;
+    aspect-ratio: 16/9;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(255,64,64,0.3);
+    box-shadow: 0 4px 32px rgba(255,40,40,0.15);
+  }
+  .live-banner-embed iframe {
+    width: 100%; height: 100%; border: none; display: block;
+  }
+
+
+  /* Drag resize handle between video and chat */
+  .resize-handle {
+    width: 4px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background 0.15s, width 0.15s;
+    position: relative;
+    z-index: 10;
+    display: none;
+  }
+  body.theater .resize-handle { display: block; }
+  .resize-handle:hover,
+  .resize-handle.dragging { background: #fff; width: 4px; }
+  .resize-handle::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: -6px; right: -6px;
+  }
+
+
+  /* Dates use DM Mono for uniform-height digits (no 6/9 ascenders) */
+  .card-date, .video-date-badge, .player-topbar-date,
+  .seg-time, .chat-msg-time, .stat,
+  .grid-header-count, #statusText {
+    font-family: 'DM Mono', monospace;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+</style>
+<script src="https://www.youtube.com/iframe_api"></script>
+  <link rel="icon" type="image/png" href="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-70x70.png">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <a class="logo" href="#" onclick="goHome(); return false;">
+    <span class="logo-dot"></span>
+    <span id="siteName">Shibez VOD Archive</span>
+  </a>
+  <div class="topbar-divider"></div>
+  <div id="streamStatus" class="stream-status offline-status">
+    <span id="streamStatusText">Shibez is currently offline</span>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-socials">
+    <a href="https://www.youtube.com/@ShibezYT" target="_blank" class="social-link" title="YouTube Main">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+    </a>
+    <a href="https://www.youtube.com/@ShibezVods" target="_blank" class="social-link" title="YouTube VODs">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+      <span class="social-vod-badge">VOD</span>
+    </a>
+    <a href="https://x.com/shibez2" target="_blank" class="social-link" title="X / Twitter">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+    <a href="https://discord.com/invite/QK7kbPJDut" target="_blank" class="social-link" title="Discord">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.032.054a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.11 13.11 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+    </a>
+    <a href="https://twitch.tv/shlbez" target="_blank" class="social-link" title="Twitch">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+    </a>
+    <a href="https://twitch.tv/shlbez" target="_blank" class="topbar-avatar" title="shlbez on Twitch">
+      <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-70x70.png" alt="shlbez">
+    </a>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="layout" id="mainLayout">
+
+  <!-- GRID VIEW -->
+  <div class="grid-view" id="gridView">
+    <div class="live-banner" id="liveBanner">
+      <div class="live-banner-header">
+        <span class="live-banner-dot"></span>
+        <span class="live-banner-title"><a href="https://twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:1px;cursor:pointer;">Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" style="height:22px;vertical-align:middle;margin-left:2px" alt=""></a></span>
+      </div>
+      <div class="live-banner-meta" id="liveBannerMeta" style="font-family:var(--mono);font-size:12px;color:#ccc;display:none"></div>
+      <div class="live-banner-embed" id="liveBannerEmbed"></div>
+    </div>
+    <div class="grid-header">
+      <span class="grid-header-title">ALL STREAMS <span class="grid-header-count" id="gridCount"></span></span>
+    </div>
+    <div class="stream-grid" id="streamGrid">
+      <div class="loader"><span>Loading streams</span><div class="loader-dots"><span></span><span></span><span></span></div></div>
+    </div>
+    <div class="pagination" id="pagination" style="display:none">
+      <button class="page-btn page-arrow" id="pageFirst" onclick="goToPage(0)" title="First page">«</button>
+      <button class="page-btn page-arrow" id="pagePrev" onclick="goToPage(currentPage-1)">‹</button>
+      <div class="page-numbers" id="pageNumbers"></div>
+      <button class="page-btn page-arrow" id="pageNext" onclick="goToPage(currentPage+1)">›</button>
+      <button class="page-btn page-arrow" id="pageLast" onclick="goToPage(totalPages-1)" title="Last page">»</button>
+    </div>
+    <div class="site-footer">
+      <span>Made by Shibez</span>
+      <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="">
+    </div>
+  </div>
+
+  <!-- PLAYER VIEW -->
+  <div class="player-view" id="playerView">
+    <div class="theater-back-btn" id="theaterBackBtn" onclick="goBack()">
+      ← BACK TO STREAMS
+    </div>
+    <button class="theater-exit-btn" onclick="toggleTheater()" title="Exit theater mode">✕ EXIT THEATER MODE</button>
+    <div id="theaterBtnWrap" style="display:none"></div>
+    <div class="player-topbar">
+      <button class="back-btn" onclick="goBack()">← All Streams</button>
+      <span class="player-topbar-title" id="playerTopTitle"></span>
+      <span class="player-topbar-date" id="playerTopDate"></span>
+
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;position:relative;">
+      <button class="chat-open-btn" id="chatOpenBtn" style="display:none" onclick="toggleChat()" title="Show chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        <span style="font-family:var(--mono);font-size:9px;writing-mode:vertical-rl;margin-top:4px">CHAT</span>
+      </button>
+      <main class="main" id="mainArea">
+        <div class="status-bar" id="statusBar" style="display:none">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText"></span>
+        </div>
+        <div class="video-content-wrap" style="position:relative;">
+        <div class="video-section" id="videoSection">
+          <div class="no-video"><div class="icon">📺</div><div>Loading…</div></div>
+        </div>
+
+        <div id="theaterBarWrap" style="display:none;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end">
+          <button id="theaterToggleBtn" class="theater-btn" onclick="toggleTheater()" title="Theater mode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M8 19v2M16 19v2"/></svg>
+            THEATER MODE
+          </button>
+        </div>
+        <div class="video-meta" id="videoMeta" style="display:none">
+          <div class="video-top">
+            <div class="video-title" id="videoTitle"></div>
+            <div class="video-date-badge" id="videoDateBadge"></div>
+          </div>
+          <div class="video-stats" id="videoStats"></div>
+          <div class="timeline-wrap" id="timelineWrap" style="display:none">
+            <div class="timeline-bar" id="timelineBar"></div>
+            <div class="timeline-labels" id="timelineLabels"></div>
+          </div>
+          <div class="segments-label">Jump to game</div>
+          <div class="segments" id="segmentBtns"></div>
+        </div>
+        <div class="parts-section" id="partsSection">
+          <div class="parts-label">Stream parts</div>
+          <div class="parts-list" id="partsList"></div>
+        </div>
+      </main>
+      <div class="resize-handle" id="resizeHandle"></div>
+      <aside class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+          <span class="chat-header-icon">💬</span>
+          <span class="chat-header-title">CHAT REPLAY</span>
+          <span id="chatHeaderNote" style="font-family:var(--mono);font-size:9px;color:var(--muted)">—</span>
+          <button class="chat-toggle-btn" onclick="toggleChat()" title="Hide chat" id="chatToggleBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-placeholder">
+            <div class="chat-placeholder-icon">💬</div>
+            <div>Select a stream to load chat</div>
+          </div>
+        </div>
+        <div class="chat-footer" id="chatFooter" style="display:none">
+          <span id="chatSyncStatus">⏸ paused</span>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+</div>
+<script>
+// ─── CONFIG ────────────────────────────────────────────────────────────────
+const DEFAULTS = {
+  ytChannel: 'UCrwj-hnVmzkoEQVSgaXyP2g',
+  ytApiKey: 'AIzaSyCxM-VePCY9SuAx3NwoXvgILlC0zFvpTbk',
+  twitch: 'shlbez',
+  siteName: 'Shibez VOD Archive',
+  twitchClientId: '61x4q55vai9w0lwsc1enqw9vktqzee',
+  twitchClientSecret: 'ihetv1d2e2uknniplqol4wct42jxta',
+};
+
+// ── Twitch VOD matching ────────────────────────────────────────────────────
+// Map of stream day (YYYY-MM-DD) → Twitch VOD ID, populated on load
+let twitchVodMap = {};
+let twitchVodDetails = {}; // vodId → full VOD object (has created_at)
+
+// ── Emote Engine ──────────────────────────────────────────────────────────
+// Map of emote name → image url, loaded once on startup
+let emoteMap = {}; // { 'KEKW': { url: '...', animated: false } }
+
+async function loadEmotes() {
+  const promises = [];
+
+  // 1. 7TV specific emote set (shlbez's set)
+  promises.push(
+    fetch('https://7tv.io/v3/emote-sets/01F6YHT8TG0003S6SNNTMYB87P')
+      .then(r => r.json())
+      .then(d => {
+        (d.emotes || []).forEach(e => {
+          const name = e.name;
+          const id = e.id;
+          const animated = e.data?.animated || false;
+          const ext = animated ? 'gif' : 'webp';
+          emoteMap[name] = {
+            url: `https://cdn.7tv.app/emote/${id}/2x.${ext}`,
+            animated,
+            source: '7tv'
+          };
+        });
+        console.log('7TV set loaded:', Object.keys(emoteMap).length, 'emotes');
+      })
+      .catch(e => console.warn('7TV set failed:', e.message))
+  );
+
+  // 2. 7TV global emotes
+  promises.push(
+    fetch('https://7tv.io/v3/emote-sets/global')
+      .then(r => r.json())
+      .then(d => {
+        (d.emotes || []).forEach(e => {
+          if (emoteMap[e.name]) return; // channel set takes priority
+          const animated = e.data?.animated || false;
+          const ext = animated ? 'gif' : 'webp';
+          emoteMap[e.name] = {
+            url: `https://cdn.7tv.app/emote/${e.id}/2x.${ext}`,
+            animated,
+            source: '7tv-global'
+          };
+        });
+        console.log('7TV globals loaded');
+      })
+      .catch(e => console.warn('7TV globals failed:', e.message))
+  );
+
+  // 3. BTTV global emotes
+  promises.push(
+    fetch('https://api.betterttv.net/3/cached/emotes/global')
+      .then(r => r.json())
+      .then(emotes => {
+        emotes.forEach(e => {
+          if (emoteMap[e.code]) return;
+          const animated = e.imageType === 'gif';
+          emoteMap[e.code] = {
+            url: `https://cdn.betterttv.net/emote/${e.id}/2x`,
+            animated,
+            source: 'bttv'
+          };
+        });
+        console.log('BTTV globals loaded');
+      })
+      .catch(e => console.warn('BTTV failed:', e.message))
+  );
+
+  // 4. BTTV channel emotes for shlbez (need Twitch user ID)
+  // shlbez Twitch ID - we'll try to get it after token fetch, skip silently if not
+  promises.push(
+    fetch('https://api.betterttv.net/3/cached/users/twitch/shlbez')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d) return;
+        [...(d.channelEmotes||[]), ...(d.sharedEmotes||[])].forEach(e => {
+          if (emoteMap[e.code]) return;
+          emoteMap[e.code] = {
+            url: `https://cdn.betterttv.net/emote/${e.id}/2x`,
+            animated: e.imageType === 'gif',
+            source: 'bttv-channel'
+          };
+        });
+      })
+      .catch(() => {})
+  );
+
+  await Promise.allSettled(promises);
+  console.log('Total emotes loaded:', Object.keys(emoteMap).length);
+}
+
+function parseMessageText(text) {
+  // Split on spaces, replace known emote words with <img> tags
+  const words = text.split(' ');
+  const parts = words.map(word => {
+    const emote = emoteMap[word];
+    if (emote) {
+      return `<img class="chat-emote${emote.animated ? ' chat-emote-animated' : ''}" src="${emote.url}" alt="${escHtml(word)}" title="${escHtml(word)}" loading="lazy">`;
+    }
+    // Escape HTML for non-emote words
+    return escHtml(word);
+  });
+  return parts.join(' ');
+}
+
+
+async function fetchTwitchToken() {
+  const r = await fetch(
+    `https://id.twitch.tv/oauth2/token?client_id=${DEFAULTS.twitchClientId}&client_secret=${DEFAULTS.twitchClientSecret}&grant_type=client_credentials`,
+    { method: 'POST' }
+  );
+  const d = await r.json();
+  if (!d.access_token) throw new Error('Twitch token failed');
+  return d.access_token;
+}
+
+async function fetchTwitchVods(token) {
+  // Get user ID first
+  const ur = await fetch('https://api.twitch.tv/helix/users?login=shlbez', {
+    headers: { 'Client-ID': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + token }
+  });
+  const ud = await ur.json();
+  if (!ud.data || !ud.data.length) throw new Error('Twitch user not found');
+  const userId = ud.data[0].id;
+
+  // Fetch all VODs (paginate)
+  let vods = [], cursor = '';
+  while (true) {
+    const url = `https://api.twitch.tv/helix/videos?user_id=${userId}&first=100&type=archive${cursor ? '&after=' + cursor : ''}`;
+    const vr = await fetch(url, {
+      headers: { 'Client-ID': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + token }
+    });
+    const vd = await vr.json();
+    if (!vd.data || !vd.data.length) break;
+    vods.push(...vd.data);
+    cursor = vd.pagination?.cursor || '';
+    if (!cursor) break;
+  }
+
+  // Build map: YYYY-MM-DD → twitch VOD id
+  // Index BOTH the stream-start day AND the next day (for streams that started
+  // late at night — YouTube publishedAt may be the following calendar day)
+  const map = {};
+  const details = {};
+  vods.forEach(v => {
+    const startDay = v.created_at.slice(0, 10);
+    const nextDay = new Date(new Date(v.created_at).getTime() + 86400000).toISOString().slice(0, 10);
+    if (!map[startDay]) { map[startDay] = v.id; details[v.id] = v; }
+    if (!map[nextDay])  { map[nextDay]  = v.id; details[v.id] = v; }
+  });
+  return { map, details };
+}
+// Config is hardcoded - no localStorage
+const config = { ...DEFAULTS };
+let allStreams = [];
+let currentStream = null;
+let currentPartIdx = 0;
+let chatMode = 'vod';
+
+
+
+
+
+// ─── YOUTUBE API ────────────────────────────────────────────────────────────
+async function resolveChannelId(channelInput, apiKey) {
+  if (channelInput.startsWith('UC')) return channelInput;
+  const handle = channelInput.replace('@','');
+  const url = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${handle}&key=${apiKey}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`API error ${r.status}: ${r.statusText} — check API key restrictions in Google Console`);
+  const d = await r.json();
+  if (d.error) throw new Error(`YouTube API: ${d.error.message}`);
+  if (d.items && d.items.length) return d.items[0].id;
+  const url2 = `https://www.googleapis.com/youtube/v3/channels?part=id&forUsername=${handle}&key=${apiKey}`;
+  const r2 = await fetch(url2);
+  const d2 = await r2.json();
+  if (d2.error) throw new Error(`YouTube API: ${d2.error.message}`);
+  if (d2.items && d2.items.length) return d2.items[0].id;
+  throw new Error('Channel not found — check the channel handle');
+}
+
+// Smart fetch — tries direct first, falls back to CORS proxy if network-blocked
+let _useProxy = false;
+async function apiFetch(url) {
+  const PROXY = 'https://corsproxy.io/?';
+  if (_useProxy) return fetch(PROXY + encodeURIComponent(url));
+  try {
+    const r = await fetch(url);
+    return r;
+  } catch(e) {
+    // "Failed to fetch" = network/CORS block — retry via proxy
+    console.warn('Direct fetch blocked, switching to CORS proxy:', e.message);
+    _useProxy = true;
+    return fetch(PROXY + encodeURIComponent(url));
+  }
+}
+
+async function fetchAllVideos(channelId, apiKey) {
+  // Get uploads playlist
+  const r = await apiFetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${channelId}&key=${apiKey}`);
+  if (!r.ok) throw new Error(`API error ${r.status} — check your API key is unrestricted or allows localhost`);
+  const d = await r.json();
+  if (d.error) throw new Error(`YouTube API: ${d.error.message}`);
+  if (!d.items || !d.items.length) throw new Error('Channel not found');
+  const uploadsId = d.items[0].contentDetails.relatedPlaylists.uploads;
+
+  let videos = [];
+  let pageToken = '';
+  while (true) {
+    const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${uploadsId}&maxResults=50&key=${apiKey}${pageToken ? '&pageToken='+pageToken : ''}`;
+    const pr = await apiFetch(url);
+    const pd = await pr.json();
+    if (!pd.items) break;
+    // Get video IDs for duration
+    const ids = pd.items.map(i => i.contentDetails.videoId).join(',');
+    const vr = await apiFetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids}&key=${apiKey}`);
+    const vd = await vr.json();
+    const detailMap = {};
+    (vd.items || []).forEach(v => { detailMap[v.id] = v; });
+
+    pd.items.forEach(item => {
+      const sn = item.snippet;
+      const vid = item.contentDetails.videoId;
+      const detail = detailMap[vid] || {};
+      videos.push({
+        id: vid,
+        title: sn.title,
+        publishedAt: sn.publishedAt,
+        thumb: (sn.thumbnails.maxres || sn.thumbnails.high || sn.thumbnails.medium || {url:''}).url,
+        duration: detail.contentDetails ? parseISO8601(detail.contentDetails.duration) : 0,
+        views: detail.statistics ? parseInt(detail.statistics.viewCount||0) : 0,
+        description: sn.description || '',
+      });
+    });
+    pageToken = pd.nextPageToken || '';
+    if (!pageToken) break;
+  }
+  return videos;
+}
+
+function parseISO8601(s) {
+  // PT4H23M12S
+  const m = s.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return 0;
+  return (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
+}
+
+function formatDuration(secs) {
+  const h = Math.floor(secs/3600);
+  const m = Math.floor((secs%3600)/60);
+  const s = secs%60;
+  if (h) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+// ─── GROUP VIDEOS INTO STREAMS ─────────────────────────────────────────────
+// A "stream" = same calendar day. Multiple videos on same day = parts of same stream.
+function groupIntoStreams(videos) {
+  // Filter out videos under 10 minutes
+  videos = videos.filter(v => v.duration >= 600);
+  const byDay = {};
+  videos.forEach(v => {
+    const day = v.publishedAt.slice(0,10); // YYYY-MM-DD
+    if (!byDay[day]) byDay[day] = [];
+    byDay[day].push(v);
+  });
+  return Object.entries(byDay)
+    .sort((a,b) => b[0].localeCompare(a[0]))
+    .map(([day, vids]) => {
+      vids.sort((a,b) => a.publishedAt.localeCompare(b.publishedAt));
+      const totalDuration = vids.reduce((s,v) => s + v.duration, 0);
+      const games = parseGamesFromDescriptions(vids);
+      return {
+        day,
+        vids,
+        totalDuration,
+        games,
+        thumb: vids[0].thumb,
+        title: buildStreamTitle(vids, day),
+      };
+    });
+}
+
+function buildStreamTitle(vids, day) {
+  // Use first video's title, strip part indicators
+  let t = vids[0].title.replace(/\s*[\[\(]?part\s*\d+[\]\)]?/gi,'').replace(/\s+VOD\s*/gi,' ').trim();
+  return t || `Stream — ${formatDay(day)}`;
+}
+
+function formatDay(day) {
+  return new Date(day+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ─── GAME PARSING ───────────────────────────────────────────────────────────
+// Look for lines like "00:00 Game Name" or "[Game] Timestamp" in descriptions
+function parseGamesFromDescriptions(vids) {
+  const segments = [];
+  let offset = 0;
+  vids.forEach((v, pi) => {
+    const lines = v.description.split('\n');
+    const tsLines = [];
+    lines.forEach(line => {
+      // Match "HH:MM:SS Game" or "MM:SS Game" or "0:00 - Game"
+      const m = line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s*[-–]?\s*(.+)/);
+      if (m) {
+        const t = parseTimestamp(m[1]);
+        const label = m[2].trim();
+        if (label.length > 0 && label.length < 80) {
+          tsLines.push({t: offset + t, label, partIdx: pi});
+        }
+      }
+    });
+    if (tsLines.length) segments.push(...tsLines);
+    offset += v.duration;
+  });
+  return segments;
+}
+
+function parseTimestamp(s) {
+  const parts = s.split(':').map(Number);
+  if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+  return parts[0]*60 + parts[1];
+}
+
+// ─── PALETTE for game colors ────────────────────────────────────────────────
+const PALETTE = ['#7c5cfc','#fc5c7d','#5cf0fc','#fcb55c','#5cfc8a','#c05cfc','#fc5c5c','#5c8afc'];
+function colorFor(i) { return PALETTE[i % PALETTE.length]; }
+
+// ─── RENDER SIDEBAR ─────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 20;
+let currentPage = 0;
+let totalPages = 1;
+
+function goToPage(page) {
+  if (page < 0 || page >= totalPages) return;
+  currentPage = page;
+  renderPage();
+  document.getElementById('gridView').scrollTop = 0;
+}
+
+function renderPage() {
+  const grid = document.getElementById('streamGrid');
+  const start = currentPage * PAGE_SIZE;
+  const pageStreams = allStreams.slice(start, start + PAGE_SIZE);
+
+  grid.innerHTML = pageStreams.map((s, i) => {
+    const idx = start + i;
+    const date = new Date(s.day+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const games = [...new Set(s.games.map(g=>g.label))].slice(0,3).map(g=>`<span class="grid-game-tag">${escHtml(g)}</span>`).join('');
+    const parts = s.vids.length > 1 ? `<span class="grid-card-parts">${s.vids.length} PARTS</span>` : '';
+    return `<div class="grid-card" onclick="selectStream(${idx})">
+      <div class="grid-card-thumb">
+        <img src="${s.thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="thumb-fallback" style="display:none">ðº</div>
+        <span class="grid-card-dur">${formatDuration(s.totalDuration)}</span>
+        ${parts}
+      </div>
+      <div class="grid-card-body">
+        <div class="grid-card-date">${date}</div>
+        <div class="grid-card-title">${escHtml(s.title)}</div>
+        <div class="grid-card-games">${games}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const pg = document.getElementById('pagination');
+  pg.style.display = totalPages > 1 ? 'flex' : 'none';
+  document.getElementById('pagePrev').disabled = currentPage === 0;
+  document.getElementById('pageNext').disabled = currentPage === totalPages - 1;
+  const pf = document.getElementById('pageFirst'); if (pf) pf.disabled = currentPage === 0;
+  const pl = document.getElementById('pageLast'); if (pl) pl.disabled = currentPage === totalPages - 1;
+
+  // Build numbered page buttons (show up to 7 with ellipsis)
+  const nums = document.getElementById('pageNumbers');
+  if (nums) {
+    const pages = [];
+    for (let i = 0; i < totalPages; i++) {
+      if (i === 0 || i === totalPages-1 || Math.abs(i - currentPage) <= 2) {
+        pages.push(i);
+      }
+    }
+    // Insert ellipsis
+    const withEllipsis = [];
+    let prev = -1;
+    pages.forEach(p => {
+      if (prev !== -1 && p - prev > 1) withEllipsis.push('...');
+      withEllipsis.push(p);
+      prev = p;
+    });
+    nums.innerHTML = withEllipsis.map(p =>
+      p === '...'
+        ? '<span class="page-ellipsis">…</span>'
+        : `<button class="page-btn${p === currentPage ? ' active' : ''}" onclick="goToPage(${p})">${p+1}</button>`
+    ).join('');
+  }
+}
+
+function renderStreamList(streams) {
+  const countEl = document.getElementById('gridCount');
+  if (countEl) countEl.textContent = '(' + streams.length + ' streams)';
+  totalPages = Math.ceil(streams.length / PAGE_SIZE);
+  currentPage = 0;
+  if (!streams.length) {
+    document.getElementById('streamGrid').innerHTML = '<div class="empty-state">No streams found.</div>';
+    return;
+  }
+  renderPage();
+}
+
+function goBack(pushHistory=true) {
+  stopChatSync();
+  if (ytPlayer) { try { ytPlayer.stopVideo(); } catch(e){} }
+  if (typeof theaterMode !== 'undefined' && theaterMode && typeof toggleTheater === 'function') toggleTheater();
+  document.getElementById('gridView').style.display = '';
+  document.getElementById('playerView').classList.remove('active');
+  const tbw = document.getElementById('theaterBtnWrap'); if (tbw) tbw.style.display = 'none';
+  currentStream = null;
+  if (pushHistory) try { history.pushState({}, '', location.pathname); } catch(e) {}
+}
+
+function goHome() {
+  if (currentStream) goBack();
+  else {
+    document.getElementById('gridView').style.display = '';
+    document.getElementById('playerView').classList.remove('active');
+  }
+  goToPage(0);
+  document.getElementById('gridView').scrollTop = 0;
+}
+
+function selectStream(idx, pushHistory=true) {
+  currentStream = allStreams[idx];
+  currentPartIdx = 0;
+  if (pushHistory) try { history.pushState({ streamIdx: idx }, '', '#stream-' + idx); } catch(e) {}
+  document.getElementById('gridView').style.display = 'none';
+  document.getElementById('playerView').classList.add('active');
+  const s = allStreams[idx];
+  document.getElementById('playerTopTitle').textContent = s.title;
+  document.getElementById('playerTopDate').textContent = 'Streamed ' + new Date(s.day+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('theaterBtnWrap').style.display = 'flex';
+  const tbw2 = document.getElementById('theaterBarWrap'); if (tbw2) tbw2.style.display = 'flex';
+  renderVideoPlayer(currentStream, 0);
+  renderVideoMeta(currentStream);
+  renderChat(currentStream);
+}
+
+let theaterMode = false;
+function toggleTheater() {
+  theaterMode = !theaterMode;
+  document.body.classList.toggle('theater', theaterMode);
+  const btn = document.getElementById('theaterToggleBtn');
+  if (btn) btn.classList.toggle('active', theaterMode);
+}
+
+let ytPlayer = null;
+let ytReady = false;
+
+function renderVideoPlayer(stream, partIdx) {
+  const video = stream.vids[partIdx];
+  const section = document.getElementById('videoSection');
+  section.innerHTML = '<div class="video-wrapper"><div id="ytPlayerEl"></div></div>';
+  if (ytPlayer) { try { ytPlayer.destroy(); } catch(e){} ytPlayer = null; }
+
+  function createPlayer() {
+    ytPlayer = new YT.Player('ytPlayerEl', {
+      videoId: video.id,
+      width: '100%',
+      height: '100%',
+      playerVars: { autoplay: 0, rel: 0, modestbranding: 1 },
+      events: {
+        onReady: () => { startChatSync(); },
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.PLAYING) {
+            startChatSync();
+            scheduleHideTheaterBtn();
+          }
+          if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+            stopChatSync();
+            const btn = document.getElementById('theaterBackBtn');
+            if (btn) btn.style.opacity = '1';
+            clearTimeout(theaterHideTimer);
+          }
+        }
+      }
+    });
+  }
+
+  if (typeof YT !== 'undefined' && YT.Player) {
+    createPlayer();
+  } else {
+    // YT API not loaded yet — wait for onYouTubeIframeAPIReady callback
+    window._pendingPlayer = createPlayer;
+  }
+}
+
+function onYouTubeIframeAPIReady() {
+  ytReady = true;
+  if (window._pendingPlayer) {
+    window._pendingPlayer();
+    window._pendingPlayer = null;
+  }
+}
+
+
+// Fetch Twitch VOD chapters via GQL (game categories with timestamps)
+async function fetchTwitchChapters(vodId) {
+  // Try GQL persisted query for chapters
+  const queries = [
+    // Query 1: VideoPlayer_ChapterSelectButtonVideo (common)
+    { operationName: 'VideoPlayer_ChapterSelectButtonVideo',
+      variables: { includePrivate: false, videoID: vodId },
+      extensions: { persistedQuery: { version: 1, sha256Hash: '8d2793384aac3773beab5e59bd5d6f585aedb923d292800119e03d40cd0f9b41' } } },
+    // Query 2: VideoMoments (alternative)
+    { operationName: 'VideoMoments',
+      variables: { videoId: vodId },
+      extensions: { persistedQuery: { version: 1, sha256Hash: '0194b619bc0bc8490ee6e7f9e59fa8e09b05a9c9c48a8d04f5ac7d6b2c98dcf2' } } },
+  ];
+
+  for (const query of queries) {
+    try {
+      const resp = await fetch('https://gql.twitch.tv/gql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Client-Id': 'kimne78kx3ncx6brgo4mv6wki5h1ko' },
+        body: JSON.stringify([query])
+      });
+      const data = await resp.json();
+      console.log('Chapters GQL response for', query.operationName, ':', JSON.stringify(data).slice(0, 300));
+
+      // Try various response shapes
+      const video = data?.[0]?.data?.video;
+      if (!video) continue;
+
+      // Shape 1: moments.edges
+      const edges = video?.moments?.edges || video?.moments?.nodes?.map(n=>({node:n})) || [];
+      if (edges.length) {
+        return edges.map(e => ({
+          label: e.node?.details?.game?.displayName || e.node?.game?.displayName || e.node?.description || 'Unknown',
+          t: Math.floor((e.node?.positionMilliseconds || 0) / 1000),
+        })).filter(c => c.label !== 'Unknown' || c.t > 0);
+      }
+
+      // Shape 2: game directly on video
+      if (video?.game?.displayName) {
+        return [{ label: video.game.displayName, t: 0 }];
+      }
+    } catch(e) {
+      console.warn('Chapter query failed:', query.operationName, e.message);
+    }
+  }
+  console.warn('No chapters found for VOD', vodId);
+  return [];
+}
+
+function renderVideoMeta(stream) {
+  const meta = document.getElementById('videoMeta');
+  meta.style.display = 'block';
+  document.getElementById('videoTitle').textContent = stream.title;
+  document.getElementById('videoDateBadge').textContent = formatDay(stream.day);
+
+  // Stats
+  const totalViews = stream.vids.reduce((s,v)=>s+v.views,0);
+  document.getElementById('videoStats').innerHTML = `
+    <span class="stat">⏱ ${formatDuration(stream.totalDuration)}</span>
+    ${stream.vids.length > 1 ? `<span class="stat">🎬 ${stream.vids.length} parts</span>` : ''}
+    ${totalViews ? `<span class="stat">👁 ${totalViews.toLocaleString()} views</span>` : ''}
+  `;
+
+  // Game segments — fetch from Twitch GQL async
+  const segs = document.getElementById('segmentBtns');
+  const timelineWrap = document.getElementById('timelineWrap');
+  segs.innerHTML = '<span style="font-family:var(--mono);font-size:11px;color:#999">Loading chapters…</span>';
+  timelineWrap.style.display = 'none';
+
+  const vodId = twitchVodMap[stream.day];
+  console.log('Stream day:', stream.day, '| Twitch vodId:', vodId, '| twitchVodMap keys:', Object.keys(twitchVodMap).slice(0,5));
+  if (vodId) {
+    fetchTwitchChapters(vodId).then(chapters => {
+      if (chapters.length) {
+        stream.games = chapters.map(c => ({ label: c.label, t: c.t }));
+        renderSegments(stream);
+      } else {
+        segs.innerHTML = '';
+        document.querySelector('.segments-label').style.display = 'none';
+      }
+    });
+  } else {
+    if (stream.games && stream.games.length) {
+      renderSegments(stream);
+    } else {
+      segs.innerHTML = '';
+      document.querySelector('.segments-label').style.display = 'none';
+    }
+  }
+
+  // Multi-part
+  const partsSection = document.getElementById('partsSection');
+  const partsList = document.getElementById('partsList');
+  if (stream.vids.length > 1) {
+    partsSection.classList.add('visible');
+    partsList.innerHTML = stream.vids.map((v,i) => `
+      <button class="part-btn ${i===0?'active':''}" id="pb-${i}" onclick="selectPart(${i})">
+        Part ${i+1} · ${formatDuration(v.duration)}
+      </button>
+    `).join('');
+  } else {
+    partsSection.classList.remove('visible');
+  }
+
+  const sb = document.getElementById('statusBar'); if (sb) sb.style.display = 'flex';
+  const sd = document.getElementById('statusDot'); if (sd) sd.className = 'status-dot ok';
+  const stxt = document.getElementById('statusText'); if (stxt) stxt.textContent = `Stream: ${stream.day} · ${stream.vids.length} video(s)${stream.games.length ? ' · ' + stream.games.length + ' chapters' : ''}`;
+}
+
+
+function renderSegments(stream) {
+  const segLabel = document.querySelector('.segments-label');
+  if (segLabel) segLabel.style.display = '';
+  const segsEl = document.getElementById('segmentBtns');
+  const timelineWrap = document.getElementById('timelineWrap');
+  const total = stream.totalDuration;
+  const games = stream.games;
+
+  // Segment buttons
+  segsEl.innerHTML = games.map((g, i) => {
+    const color = colorFor(i);
+    const end = (games[i+1]?.t) || total;
+    const durSec = end - g.t;
+    const pct = total ? Math.round((durSec / total) * 100) : 0;
+    return `<button class="segment-btn" onclick="jumpToSegment(${i})" title="Jump to ${escHtml(g.label)} at ${formatDuration(g.t)}" style="--seg-color:${color}">
+      <span class="seg-dot" style="background:${color}"></span>
+      <span class="seg-label">${escHtml(g.label)}</span>
+      <span class="seg-pct">${pct}%</span>
+      <span class="seg-time">${formatDuration(g.t)}</span>
+    </button>`;
+  }).join('');
+
+  // Timeline bar
+  const bar = document.getElementById('timelineBar');
+  bar.innerHTML = games.map((g, i) => {
+    const start = g.t;
+    const end = (games[i+1]?.t) || total;
+    const pct = ((end - start) / total * 100).toFixed(2);
+    const color = colorFor(i);
+    return `<div class="timeline-seg" style="width:${pct}%;background:${color}" title="${escHtml(g.label)} · ${formatDuration(start)} → ${formatDuration(end)}" onclick="jumpToSegment(${i})"></div>`;
+  }).join('');
+
+  // Timeline labels row below bar
+  const labelsEl = document.getElementById('timelineLabels');
+  if (labelsEl) {
+    labelsEl.innerHTML = games.map((g, i) => {
+      const start = g.t;
+      const end = (games[i+1]?.t) || total;
+      const pct = ((end - start) / total * 100).toFixed(2);
+      const color = colorFor(i);
+      return `<div class="timeline-label" style="width:${pct}%;color:${color}" onclick="jumpToSegment(${i})" title="${formatDuration(start)}">${escHtml(g.label)}</div>`;
+    }).join('');
+  }
+
+  timelineWrap.style.display = 'block';
+}
+
+function renderTimeline(stream) {
+  const bar = document.getElementById('timelineBar');
+  const total = stream.totalDuration;
+  if (!total || !stream.games.length) { bar.innerHTML=''; return; }
+  const segs = stream.games;
+  let html = '';
+  segs.forEach((g, i) => {
+    const start = g.t;
+    const end = (segs[i+1]?.t) || total;
+    const pct = ((end - start) / total * 100).toFixed(2);
+    const color = colorFor(i);
+    html += `<div class="timeline-seg" style="width:${pct}%;background:${color}" title="${escHtml(g.label)} @ ${formatDuration(g.t)}" onclick="jumpToSegment(${i})"></div>`;
+  });
+  bar.innerHTML = html;
+}
+
+function selectPart(partIdx) {
+  currentPartIdx = partIdx;
+  document.querySelectorAll('.part-btn').forEach((el,i) => el.classList.toggle('active', i===partIdx));
+  renderVideoPlayer(currentStream, partIdx);
+  renderChat(currentStream, partIdx);
+}
+
+function jumpToSegment(segIdx) {
+  const seg = currentStream.games[segIdx];
+  if (!seg) return;
+
+  // Compute which video part this timestamp falls in
+  let cumulative = 0;
+  let partIdx = 0;
+  for (let i = 0; i < currentStream.vids.length; i++) {
+    const partEnd = cumulative + currentStream.vids[i].duration;
+    if (seg.t < partEnd || i === currentStream.vids.length - 1) {
+      partIdx = i;
+      break;
+    }
+    cumulative += currentStream.vids[i].duration;
+  }
+
+  const startSec = Math.max(0, seg.t - cumulative);
+
+  // If we need to switch parts, load that part first
+  if (partIdx !== currentPartIdx) {
+    currentPartIdx = partIdx;
+    renderVideoPlayer(currentStream, partIdx);
+    // Wait for player to be ready then seek
+    const waitAndSeek = setInterval(() => {
+      if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+        clearInterval(waitAndSeek);
+        ytPlayer.seekTo(startSec, true);
+        ytPlayer.playVideo();
+        // Reset chat pointer
+        chatPointer = chatMessages.findIndex(m => m.offset >= seg.t);
+        if (chatPointer < 0) chatPointer = 0;
+        const box = document.getElementById('chatMessages');
+        if (box) box.innerHTML = '';
+      }
+    }, 200);
+  } else {
+    // Same part — just seek
+    if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+      ytPlayer.seekTo(startSec, true);
+      ytPlayer.playVideo();
+      // Reset chat to this position
+      chatPointer = chatMessages.findIndex(m => m.offset >= seg.t);
+      if (chatPointer < 0) chatPointer = 0;
+      const box = document.getElementById('chatMessages');
+      if (box) box.innerHTML = '';
+    }
+  }
+
+  document.querySelectorAll('.segment-btn').forEach((el,i) => el.classList.toggle('active', i===segIdx));
+  document.querySelectorAll('.timeline-seg').forEach((el,i) => el.style.filter = i===segIdx ? 'brightness(1.4)' : '');
+}
+
+// ─── CHAT ───────────────────────────────────────────────────────────────────
+// ── Chat Replay Engine ────────────────────────────────────────────────────
+let chatMessages = [];       // all messages for current stream sorted by offset
+let chatPointer = 0;         // index of next message to show
+let chatSyncInterval = null;
+let vodStartTime = null;     // unix ms when VOD started
+let autoScroll = true;
+
+function stopChatSync() {
+  if (chatSyncInterval) { clearInterval(chatSyncInterval); chatSyncInterval = null; }
+  const el = document.getElementById('chatSyncStatus');
+  if (el) el.textContent = '⏸ paused';
+}
+
+let lastSyncPos = -1;
+function startChatSync() {
+  stopChatSync();
+  if (!chatMessages.length || !ytPlayer) return;
+  const el = document.getElementById('chatSyncStatus');
+  if (el) el.textContent = '▶ replaying';
+  chatSyncInterval = setInterval(() => {
+    if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
+    const pos = ytPlayer.getCurrentTime();
+
+    // Detect seek backwards — reset pointer and clear chat
+    if (pos < lastSyncPos - 2) {
+      const box = document.getElementById('chatMessages');
+      if (box) box.innerHTML = '';
+      chatPointer = 0;
+      // Fast-forward pointer to correct position
+      while (chatPointer < chatMessages.length && chatMessages[chatPointer].offset < pos - 0.5) {
+        chatPointer++;
+      }
+    }
+    lastSyncPos = pos;
+
+    // Render messages up to current position
+    let rendered = 0;
+    while (chatPointer < chatMessages.length && chatMessages[chatPointer].offset <= pos) {
+      appendChatMsg(chatMessages[chatPointer]);
+      chatPointer++;
+      rendered++;
+    }
+    if (rendered > 0 && autoScroll) scrollChatToBottom();
+  }, 500);
+}
+
+function appendChatMsg(msg) {
+  const box = document.getElementById('chatMessages');
+  if (!box) return;
+  // Remove placeholder if present
+  const ph = box.querySelector('.chat-placeholder');
+  if (ph) ph.remove();
+
+  const div = document.createElement('div');
+  div.className = 'chat-msg';
+  const displayOffset = Math.max(0, msg.offset);
+  const h = Math.floor(displayOffset / 3600);
+  const mins = Math.floor((displayOffset % 3600) / 60);
+  const secs = Math.floor(displayOffset % 60);
+  const timeStr = h > 0
+    ? `${h}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`
+    : `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  div.innerHTML = `<span class="chat-msg-time" title="Jump to ${timeStr}">${timeStr}</span><span class="chat-msg-user" style="color:${msg.color||'#9146ff'}">${escHtml(msg.user)}</span><span class="chat-msg-text">: ${parseMessageText(msg.text)}</span>`;
+  // Click TIMESTAMP to seek
+  div.querySelector('.chat-msg-time').addEventListener('click', () => {
+    if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+      ytPlayer.seekTo(displayOffset, true);
+      ytPlayer.playVideo();
+    }
+  });
+  // Click username to seek
+  div.querySelector('.chat-msg-user').addEventListener('click', () => {
+    if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+      ytPlayer.seekTo(msg.offset, true);
+      chatPointer = chatMessages.findIndex(m => m.offset >= msg.offset);
+      if (chatPointer < 0) chatPointer = 0;
+    }
+  });
+  box.appendChild(div);
+  // Keep max 300 messages in DOM
+  while (box.children.length > 300) box.removeChild(box.firstChild);
+}
+
+function scrollChatToBottom() {
+  const box = document.getElementById('chatMessages');
+  if (box) box.scrollTop = box.scrollHeight;
+}
+
+// Detect manual scroll = disable autoscroll
+document.addEventListener('DOMContentLoaded', () => {
+  const box = document.getElementById('chatMessages');
+  if (box) {
+    box.addEventListener('scroll', () => {
+      autoScroll = box.scrollTop + box.clientHeight >= box.scrollHeight - 40;
+    });
+  }
+});
+
+async function renderChat(stream) {
+  stopChatSync();
+  chatMessages = [];
+  chatPointer = 0;
+  autoScroll = true;
+
+  const box = document.getElementById('chatMessages');
+  const note = document.getElementById('chatHeaderNote');
+  const footer = document.getElementById('chatFooter');
+
+  box.innerHTML = '<div class="chat-placeholder"><div class="chat-placeholder-icon" style="font-size:24px;opacity:0.3">⏳</div><div>Loading chat…</div></div>';
+  if (footer) footer.style.display = 'none';
+
+  // Determine vodStart — prefer Twitch VOD created_at for accuracy
+  let vodStart = null;
+  const vodId = twitchVodMap[stream.day];
+  if (vodId && twitchVodDetails && twitchVodDetails[vodId]) {
+    vodStart = new Date(twitchVodDetails[vodId].created_at).getTime();
+    console.log('vodStart from Twitch:', new Date(vodStart).toISOString());
+  }
+  if (!vodStart) {
+    const lastVid = stream.vids[stream.vids.length - 1];
+    vodStart = new Date(lastVid.publishedAt).getTime() - (stream.totalDuration * 1000);
+    console.log('vodStart estimated:', new Date(vodStart).toISOString());
+  }
+  vodStartTime = vodStart;
+
+  const channel = config.twitch || 'shlbez';
+
+  // Fetch rustlog by calendar day — always fetch prev, current and next day
+  // so we never miss messages regardless of timezone offsets
+  const fetchDay = async (date) => {
+    const y = date.getUTCFullYear();
+    const mo = String(date.getUTCMonth()+1).padStart(2,'0');
+    const d = String(date.getUTCDate()).padStart(2,'0');
+    const url = `https://logs.ivr.fi/channel/${channel}/${y}/${mo}/${d}?json=true`;
+    console.log('Fetching rustlog:', url);
+    try {
+      const r = await fetch(url);
+      console.log('Rustlog status:', r.status, 'for', url);
+      if (!r.ok) return [];
+      const text = await r.text();
+      console.log('Rustlog raw (first 200):', text.slice(0, 200));
+      if (!text || !text.trim()) return [];
+      try {
+        const data = JSON.parse(text);
+        const msgs = Array.isArray(data) ? data : (data.messages || data.logs || []);
+        console.log(`Rustlog ${y}-${mo}-${d}: ${msgs.length} messages`);
+        return msgs;
+      } catch(parseErr) {
+        // Try parsing as newline-delimited JSON (some rustlog versions)
+        const lines = text.trim().split('\n').filter(Boolean);
+        const msgs = [];
+        for (const line of lines) {
+          try { msgs.push(JSON.parse(line)); } catch(e) {}
+        }
+        console.log(`Rustlog NDJSON ${y}-${mo}-${d}: ${msgs.length} messages`);
+        return msgs;
+      }
+    } catch(e) {
+      console.warn('Rustlog fetch error:', e.message, url);
+      return [];
+    }
+  };
+
+  try {
+    const prevDay  = new Date(vodStart - 86400000);
+    const startDay = new Date(vodStart);
+    const nextDay  = new Date(vodStart + 86400000);
+
+    const [prev, curr, next] = await Promise.all([fetchDay(prevDay), fetchDay(startDay), fetchDay(nextDay)]);
+    const rawMsgs = [...prev, ...curr, ...next];
+    console.log('Total raw messages:', rawMsgs.length);
+
+    if (!rawMsgs.length) {
+      const debugDate = new Date(vodStart).toISOString().slice(0,10);
+      box.innerHTML = `<div class="chat-placeholder"><div class="chat-placeholder-icon" style="font-size:20px;opacity:0.3">💬</div><div style="font-size:10px;line-height:1.6">No chat found<br><span style="opacity:0.5">Channel: ${channel}<br>${debugDate}</span></div></div>`;
+      if (note) { note.textContent = 'no logs'; note.style.color = 'var(--muted)'; }
+      return;
+    }
+
+    // Parse messages — rustlog uses "2025-11-20 18:32:11" or ISO format
+    const msgs = rawMsgs.map(m => {
+      // rustlog fields: timestamp/ts, text/message/content, username/displayName/user
+      const rawTs = m.timestamp || m.ts || m.createdAt || '';
+      let ts;
+      if (rawTs.includes(' UTC')) {
+        // Rustlog format: "2024-01-15 18:32:11.123 +0000 UTC"
+        ts = new Date(rawTs.replace(' UTC','').replace(/\s\+0000$/,'Z').replace(' ','T')).getTime();
+      } else {
+        const tsStr = rawTs.replace(' ','T').replace(/([+-]\d{2}:\d{2})?$/,s=>s||'Z');
+        ts = new Date(tsStr).getTime();
+      }
+      if (isNaN(ts)) return null;
+      const offset = (ts - vodStart) / 1000;
+      const text = m.text || m.message || m.content || '';
+      const username = m.username || m.displayName || m.user || m.login || '?';
+      const color = (m.tags && m.tags.color) || m.color || generateColor(username);
+
+      // Register Twitch emotes
+      if (m.tags && m.tags.emotes && typeof m.tags.emotes === 'string') {
+        m.tags.emotes.split('/').forEach(part => {
+          const [id, positions] = part.split(':');
+          if (!positions) return;
+          positions.split(',').forEach(pos => {
+            const [start, end] = pos.split('-').map(Number);
+            const word = text.slice(start, end + 1);
+            if (word && !emoteMap[word]) {
+              emoteMap[word] = { url: `https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/2.0`, animated: false, source: 'twitch' };
+            }
+          });
+        });
+      }
+
+      return { offset, user: username, text, color };
+    }).filter(m => m !== null && !isNaN(m.offset)).sort((a,b) => a.offset - b.offset);
+
+    console.log(`Parsed ${msgs.length} messages, offset range: ${msgs[0]?.offset?.toFixed(0)}s to ${msgs[msgs.length-1]?.offset?.toFixed(0)}s`);
+
+    chatMessages = msgs;
+    box.innerHTML = '';
+
+    if (!msgs.length) {
+      box.innerHTML = '<div class="chat-placeholder"><div class="chat-placeholder-icon" style="font-size:24px;opacity:0.3">💬</div><div>No chat found<br>for this stream</div></div>';
+      if (note) { note.textContent = 'no logs'; note.style.color = 'var(--muted)'; }
+      return;
+    }
+
+    if (note) {
+      note.textContent = msgs.length + ' messages';
+      note.style.color = 'var(--muted)';
+    }
+    if (footer) footer.style.display = '';
+
+    // Show messages up to current video time immediately, then start sync
+    const pos = (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') ? ytPlayer.getCurrentTime() : 0;
+    chatPointer = 0;
+    while (chatPointer < chatMessages.length && chatMessages[chatPointer].offset <= pos) {
+      appendChatMsg(chatMessages[chatPointer]);
+      chatPointer++;
+    }
+    scrollChatToBottom();
+    startChatSync();
+
+  } catch(e) {
+    console.warn('Chat load failed:', e);
+    box.innerHTML = `<div class="chat-placeholder"><div style="color:#f66;font-size:11px;line-height:1.6">Chat error:<br>${escHtml(e.message)}</div></div>`;
+  }
+}
+// ── Resizable chat panel ──────────────────────────────
+(function() {
+  let dragging = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  document.addEventListener('mousedown', e => {
+    const handle = document.getElementById('resizeHandle');
+    if (!handle || e.target !== handle) return;
+    dragging = true;
+    startX = e.clientX;
+    const panel = document.getElementById('chatPanel');
+    startWidth = panel ? panel.offsetWidth : 320;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const panel = document.getElementById('chatPanel');
+    if (!panel) return;
+    const delta = startX - e.clientX; // moving left = wider chat
+    const newWidth = Math.min(600, Math.max(200, startWidth + delta));
+    panel.style.width = newWidth + 'px';
+    panel.style.flexShrink = '0';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    const handle = document.getElementById('resizeHandle');
+    if (handle) handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+
+  // Touch support for mobile
+  document.addEventListener('touchstart', e => {
+    const handle = document.getElementById('resizeHandle');
+    if (!handle || e.target !== handle) return;
+    dragging = true;
+    startX = e.touches[0].clientX;
+    const panel = document.getElementById('chatPanel');
+    startWidth = panel ? panel.offsetWidth : 320;
+    handle.classList.add('dragging');
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const panel = document.getElementById('chatPanel');
+    if (!panel) return;
+    const delta = startX - e.touches[0].clientX;
+    const newWidth = Math.min(600, Math.max(120, startWidth + delta));
+    panel.style.width = newWidth + 'px';
+    panel.style.flexShrink = '0';
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    const handle = document.getElementById('resizeHandle');
+    if (handle) handle.classList.remove('dragging');
+  });
+})();
+
+
+// Theater back button auto-hide
+let theaterHideTimer = null;
+function scheduleHideTheaterBtn() {
+  if (!theaterMode) return;
+  clearTimeout(theaterHideTimer);
+  theaterHideTimer = setTimeout(() => {
+    if (!theaterMode) return;
+    const b1 = document.getElementById('theaterBackBtn');
+    const b2 = document.querySelector('.theater-exit-btn');
+    if (b1) b1.style.opacity = '0';
+    if (b2) b2.style.opacity = '0';
+  }, 500);
+}
+document.addEventListener('mousemove', () => {
+  if (!theaterMode) return;
+  const b1 = document.getElementById('theaterBackBtn');
+  const b2 = document.querySelector('.theater-exit-btn');
+  if (b1) b1.style.opacity = '1';
+  if (b2) b2.style.opacity = '1';
+  clearTimeout(theaterHideTimer);
+  theaterHideTimer = setTimeout(() => {
+    if (!theaterMode) return;
+    if (b1) b1.style.opacity = '0';
+    if (b2) b2.style.opacity = '0';
+  }, 1500);
+});
+
+
+
+// ─── STREAM LOADING ──────────────────────────────────────────────────────────
+const CACHE_KEY = 'shibez_streams_v1';
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+async function loadStreams() {
+  const grid = document.getElementById('streamGrid');
+  if (!config.ytApiKey || !config.ytChannel) {
+    if (grid) grid.innerHTML = '<div class="loader"><span>Missing API config</span></div>';
+    return;
+  }
+
+  // Load emotes in background
+  loadEmotes();
+
+  // Try cache first — show instantly, then refresh in background
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (cached && cached.streams && (Date.now() - cached.ts) < CACHE_TTL) {
+      allStreams = cached.streams;
+      twitchVodMap = cached.vodMap || {};
+      twitchVodDetails = cached.vodDetails || {};
+      renderStreamList(allStreams);
+      refreshStreams(false); // silent background refresh
+      return;
+    }
+  } catch(e) {}
+
+  if (grid) grid.innerHTML = '<div class="loader"><span>Loading streams</span><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  await refreshStreams(true);
+}
+
+async function refreshStreams(showErrors) {
+  const grid = document.getElementById('streamGrid');
+  const setStatus = msg => { if (grid) grid.innerHTML = `<div class="loader"><span>${msg}</span><div class="loader-dots"><span></span><span></span><span></span></div></div>`; };
+  try {
+    setStatus('Resolving channel…');
+    const channelId = config.ytChannel.startsWith('UC') ? config.ytChannel : await resolveChannelId(config.ytChannel, config.ytApiKey);
+    console.log('Channel ID:', channelId);
+
+    setStatus('Fetching videos…');
+    const videos = await fetchAllVideos(channelId, config.ytApiKey);
+    console.log('Videos fetched:', videos.length);
+
+    setStatus('Grouping streams…');
+    allStreams = groupIntoStreams(videos);
+    console.log('Streams grouped:', allStreams.length);
+
+    // Fetch Twitch VODs
+    try {
+      const token = await fetchTwitchToken();
+      const { map, details } = await fetchTwitchVods(token);
+      twitchVodMap = map;
+      twitchVodDetails = details;
+    } catch(te) {
+      console.warn('Twitch VOD fetch failed:', te.message);
+    }
+
+    // Cache result
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        ts: Date.now(), streams: allStreams,
+        vodMap: twitchVodMap, vodDetails: twitchVodDetails,
+      }));
+    } catch(e) {}
+
+    renderStreamList(allStreams);
+  } catch(e) {
+    console.error('Load error:', e);
+    if (!showErrors || !grid) return;
+
+    const testUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${config.ytChannel}&key=${config.ytApiKey}`;
+    let errMsg = e && e.message ? e.message : String(e);
+    let hint = '';
+
+    if (errMsg === 'Failed to fetch' || errMsg.includes('NetworkError') || errMsg.includes('network')) {
+      hint = `<div style="margin-top:10px;font-size:10px;color:#aaa;line-height:1.8">
+        This usually means:<br>
+        • YouTube Data API v3 is not enabled for this API key<br>
+        • The API key was deleted or regenerated<br>
+        • A browser extension is blocking the request<br><br>
+        <a href="${testUrl}" target="_blank" rel="noopener"
+           style="color:var(--accent);text-decoration:underline;font-size:10px">
+          ▶ Open API test URL in new tab
+        </a><br>
+        <span style="opacity:0.5">(should return JSON with channel info)</span>
+      </div>`;
+    }
+
+    grid.innerHTML = `<div class="empty-state">
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px">I dont know what's wrong - Shibez</div>
+      <img src="https://cdn.7tv.app/emote/01HSRVXPM8000A6C0AM9PT5M0A/2x.webp" alt="" style="height:64px;margin-bottom:10px">
+      <div style="font-size:10px;color:#f99;font-family:var(--mono);max-width:380px;line-height:1.6">${escHtml(errMsg)}</div>
+      ${hint}
+    </div>`;
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const sn = document.getElementById('siteName');
+  if (sn) sn.textContent = config.siteName;
+  try { history.replaceState({ grid: true }, '', location.pathname); } catch(e) {}
+  loadStreams();
+  demoLiveAsBadgeInsider();
+  setInterval(demoLiveAsBadgeInsider, 120000);
+});
+
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.streamIdx != null) {
+    selectStream(e.state.streamIdx, false);
+  } else {
+    goBack(false);
+  }
+});
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function generateColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return `hsl(${Math.abs(h) % 360},65%,60%)`;
+}
+
+let chatVisible = true;
+function toggleChat() {
+  chatVisible = !chatVisible;
+  const panel = document.getElementById('chatPanel');
+  const openBtn = document.getElementById('chatOpenBtn');
+  const toggleBtn = document.getElementById('chatToggleBtn');
+  if (chatVisible) {
+    if (panel) panel.style.display = '';
+    if (openBtn) openBtn.style.display = 'none';
+    if (toggleBtn) { toggleBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>'; toggleBtn.title = 'Hide chat'; }
+  } else {
+    if (panel) panel.style.display = 'none';
+    if (openBtn) openBtn.style.display = 'flex';
+    if (toggleBtn) { toggleBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>'; toggleBtn.title = 'Show chat'; }
+  }
+}
+
+async function checkLiveStatus() {
+  try {
+    const token = await fetchTwitchToken();
+    const [userResp, streamResp] = await Promise.all([
+      fetch('https://api.twitch.tv/helix/users?login=badge_insider', {
+        headers: { 'Client-ID': config.twitchClientId, 'Authorization': 'Bearer ' + token }
+      }),
+      fetch('https://api.twitch.tv/helix/streams?user_login=badge_insider', {
+        headers: { 'Client-ID': config.twitchClientId, 'Authorization': 'Bearer ' + token }
+      })
+    ]);
+    const userData = await userResp.json();
+    const streamData = await streamResp.json();
+
+    if (userData.data && userData.data.length > 0) {
+      const pfp = userData.data[0].profile_image_url;
+      const img = document.getElementById('topbarAvatarImg');
+      if (img) { img.src = pfp; img.style.display = 'block'; }
+    }
+
+    const statusEl = document.getElementById('streamStatus');
+    const statusText = document.getElementById('streamStatusText');
+    const dot = document.querySelector('.logo-dot');
+    const banner = document.getElementById('liveBanner');
+    const bannerGame = document.getElementById('liveBannerGame');
+    const bannerEmbed = document.getElementById('liveBannerEmbed');
+
+    if (streamData.data && streamData.data.length > 0) {
+      const stream = streamData.data[0];
+      if (statusEl) statusEl.className = 'stream-status live-status';
+      if (statusText) statusText.innerHTML = `<a href="https://www.twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><span class="live-dot"></span>Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" class="status-emote" alt=""></a>`;
+      const meta1 = document.getElementById('liveBannerMeta');
+      if (meta1) {
+        const g1 = stream.game_name || 'streaming';
+        const slug1 = g1.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        meta1.innerHTML = `<a href="https://www.twitch.tv/directory/category/${slug1}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${g1}</a> · ⏱ ${formatUptime(stream.started_at)}`;
+        meta1.style.display = 'block';
+      }
+      if (dot) dot.classList.add('live');
+      if (banner && !banner.classList.contains('visible')) {
+        banner.classList.add('visible');
+        if (bannerGame) bannerGame.textContent = stream.game_name || '';
+        if (bannerEmbed) {
+          const parent = location.hostname || 'localhost';
+          bannerEmbed.innerHTML = `<iframe src="https://player.twitch.tv/?channel=badge_insider&parent=${parent}&autoplay=false" allowfullscreen></iframe>`;
+        }
+      }
+    } else {
+      if (statusEl) statusEl.className = 'stream-status offline-status';
+      if (statusText) statusText.innerHTML = 'Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt="">';
+      if (dot) dot.classList.remove('live');
+      if (banner) { banner.classList.remove('visible'); if (bannerEmbed) bannerEmbed.innerHTML = ''; }
+    }
+  } catch(e) {
+    console.warn('Live check failed:', e.message);
+  }
+}
+
+
+
+
+// ── Uptime helper ──────────────────────────────────────────────────────────────
+function formatUptime(startedAt) {
+  const secs = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+// ── Check if shlbez is live ──────────────────────────────────────────────────
+async function demoLiveAsBadgeInsider() {
+  const banner      = document.getElementById('liveBanner');
+  const bannerGame  = document.getElementById('liveBannerGame');
+  const bannerEmbed = document.getElementById('liveBannerEmbed');
+  const dot         = document.querySelector('.logo-dot');
+  const statusText  = document.getElementById('streamStatusText');
+  const statusEl    = document.getElementById('streamStatus');
+
+  try {
+    const token = await fetchTwitchToken();
+    const r = await fetch('https://api.twitch.tv/helix/streams?user_login=badge_insider', {
+      headers: { 'Client-ID': config.twitchClientId, 'Authorization': 'Bearer ' + token }
+    });
+    const d = await r.json();
+
+    if (d.data && d.data.length > 0) {
+      const stream = d.data[0];
+      const game = escHtml(stream.game_name || 'streaming');
+
+      // Topbar dot + status
+      if (dot) dot.classList.add('live');
+      if (statusEl) statusEl.className = 'stream-status live-status';
+      if (statusText) statusText.innerHTML =
+        `<a href="https://www.twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><span class="live-dot"></span>Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" class="status-emote" alt=""></a>`;
+      const meta2 = document.getElementById('liveBannerMeta');
+      if (meta2) {
+        const catSlug = game.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        meta2.innerHTML = `<a href="https://www.twitch.tv/directory/category/${catSlug}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${game}</a> · ⏱ ${formatUptime(stream.started_at)}`;
+        meta2.style.display = 'block';
+      }
+
+      // Live banner
+      if (banner) {
+        banner.style.display = 'flex';
+        if (bannerGame) bannerGame.textContent = game;
+        if (bannerEmbed && !bannerEmbed.querySelector('iframe')) {
+          const parent = location.hostname || 'localhost';
+          bannerEmbed.innerHTML =
+            `<iframe src="https://player.twitch.tv/?channel=badge_insider&parent=${parent}&autoplay=false"` +
+            ` frameborder="0" allowfullscreen></iframe>`;
+        }
+      }
+    } else {
+      // offline
+      if (dot) dot.classList.remove('live');
+      if (banner) banner.style.display = 'none';
+      const metaOff = document.getElementById('liveBannerMeta');
+      if (metaOff) metaOff.style.display = 'none';
+      if (statusEl) statusEl.className = 'stream-status offline-status';
+      if (statusText) statusText.innerHTML =
+        'Shibez is currently offline ' +
+        '<img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt="">';
+    }
+  } catch(e) {
+    console.warn('Live check failed:', e.message);
+    if (dot) dot.classList.remove('live');
+    if (banner) banner.style.display = 'none';
+    if (statusEl) statusEl.className = 'stream-status offline-status';
+    if (statusText) statusText.innerHTML = 'Shibez is currently offline';
+  }
+}
+
+</script>
+</body>
+</html>
