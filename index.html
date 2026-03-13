@@ -1346,13 +1346,13 @@
             <button onclick="closeFlappy()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
-        <canvas id="flappyCanvas" width="400" height="550" style="display:block;cursor:pointer"></canvas>
+        <canvas id="flappyCanvas" width="480" height="620" style="display:block;cursor:pointer"></canvas>
       </div>
     </div>
 
     <!-- SHIB.LE MODAL -->
     <div id="shibleModal" style="display:none;position:fixed;inset:0;z-index:9001;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;padding:20px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:680px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:700px;overflow:hidden;position:relative;display:flex;flex-direction:column">
 
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
@@ -1366,30 +1366,73 @@
           </div>
         </div>
 
-        <!-- Thumbnail -->
-        <div style="position:relative;background:#111">
-          <img id="shibleThumb" src="" alt="VOD thumbnail" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;filter:brightness(1)">
-          <div id="shibleReveal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px">
+        <!-- Thumbnail with blur overlay bottom-right + zoom on click -->
+        <div style="position:relative;background:#111;cursor:zoom-in" id="shibleThumbWrap" onclick="shibleZoomToggle()">
+          <img id="shibleThumb" src="" alt="VOD thumbnail" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">
+          <!-- Blur bottom-right corner to hide system clock -->
+          <div style="position:absolute;bottom:0;right:0;width:18%;height:12%;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(0,0,0,0.25);pointer-events:none"></div>
+          <!-- Zoom hint -->
+          <div id="shibleZoomHint" style="position:absolute;bottom:6px;left:8px;font-family:var(--mono);font-size:9px;color:rgba(255,255,255,0.5);pointer-events:none">🔍 click to zoom</div>
+          <!-- Reveal overlay -->
+          <div id="shibleReveal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;flex-direction:column;gap:8px">
             <div style="font-family:var(--mono);font-size:28px;font-weight:900;color:#fff" id="shibleResultText"></div>
             <div style="font-family:var(--mono);font-size:14px;color:#bbb" id="shibleResultDate"></div>
           </div>
         </div>
 
-        <!-- Guess history -->
-        <div id="shibleHistory" style="padding:8px 16px;display:flex;flex-direction:column;gap:4px;min-height:32px"></div>
+        <!-- Zoom overlay (fullscreen) -->
+        <div id="shibleZoomOverlay" onclick="shibleZoomToggle()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);cursor:zoom-out;align-items:center;justify-content:center">
+          <img id="shibleZoomImg" src="" style="max-width:95vw;max-height:92vh;object-fit:contain;border-radius:4px">
+          <div style="position:absolute;bottom:0;right:0;width:9%;height:6%;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);background:rgba(0,0,0,0.3);pointer-events:none" id="shibleZoomBlur"></div>
+        </div>
 
-        <!-- Input area -->
-        <div id="shibleInputArea" style="padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
-          <input type="date" id="shibleDateInput" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:7px 10px;border-radius:4px;cursor:pointer;color-scheme:dark">
-          <button onclick="submitShibleGuess()"
-            style="font-family:var(--mono);font-size:11px;font-weight:700;background:var(--accent2);border:none;color:#fff;padding:8px 16px;border-radius:4px;cursor:pointer;white-space:nowrap">
-            GUESS
-          </button>
+        <!-- Guess history -->
+        <div id="shibleHistory" style="padding:6px 16px;display:flex;flex-direction:column;gap:3px;max-height:140px;overflow-y:auto"></div>
+
+        <!-- Drum scroll input -->
+        <div id="shibleInputArea" style="padding:12px 16px;border-top:1px solid var(--border)">
+          <div style="display:flex;gap:10px;align-items:flex-end">
+            <!-- DAY drum -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+              <span style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:1px">DAY</span>
+              <div style="display:flex;align-items:center;gap:4px">
+                <button onclick="shibleAdjust('d',-1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">‹</button>
+                <div id="shibleDayDisp" style="font-family:var(--mono);font-size:20px;font-weight:900;color:var(--text);min-width:36px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 0">01</div>
+                <button onclick="shibleAdjust('d',1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">›</button>
+              </div>
+              <div id="shibleDayColor" style="width:36px;height:8px;border-radius:2px;background:var(--surface2)"></div>
+            </div>
+            <!-- MONTH drum -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1.4">
+              <span style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:1px">MONTH</span>
+              <div style="display:flex;align-items:center;gap:4px">
+                <button onclick="shibleAdjust('m',-1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">‹</button>
+                <div id="shibleMonthDisp" style="font-family:var(--mono);font-size:20px;font-weight:900;color:var(--text);min-width:52px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 0">JAN</div>
+                <button onclick="shibleAdjust('m',1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">›</button>
+              </div>
+              <div id="shibleMonthColor" style="width:52px;height:8px;border-radius:2px;background:var(--surface2)"></div>
+            </div>
+            <!-- YEAR drum -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1.4">
+              <span style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:1px">YEAR</span>
+              <div style="display:flex;align-items:center;gap:4px">
+                <button onclick="shibleAdjust('y',-1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">‹</button>
+                <div id="shibleYearDisp" style="font-family:var(--mono);font-size:20px;font-weight:900;color:var(--text);min-width:60px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 0">2025</div>
+                <button onclick="shibleAdjust('y',1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">›</button>
+              </div>
+              <div id="shibleYearColor" style="width:60px;height:8px;border-radius:2px;background:var(--surface2)"></div>
+            </div>
+            <!-- Guess button -->
+            <button onclick="submitShibleGuess()" id="shibleGuessBtn"
+              style="font-family:var(--mono);font-size:12px;font-weight:700;background:var(--accent2);border:none;color:#fff;padding:0 20px;height:38px;border-radius:4px;cursor:pointer;white-space:nowrap;align-self:center;margin-bottom:12px">
+              GUESS
+            </button>
+          </div>
         </div>
 
         <!-- Play again row -->
-        <div id="shiblePlayAgain" style="display:none;padding:10px 16px;border-top:1px solid var(--border);display:none;justify-content:space-between;align-items:center;gap:8px">
-          <a id="shibleVodLink" href="#" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--accent);text-decoration:none">▶ Watch this VOD</a>
+        <div id="shiblePlayAgain" style="display:none;padding:10px 16px;border-top:1px solid var(--border);justify-content:space-between;align-items:center;gap:8px">
+          <a id="shibleVodLink" href="#" style="font-family:var(--mono);font-size:10px;color:var(--accent);text-decoration:none;cursor:pointer">▶ Watch this VOD</a>
           <button onclick="openShible(true)"
             style="font-family:var(--mono);font-size:11px;font-weight:700;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 16px;border-radius:4px;cursor:pointer">
             🎲 Play Again
@@ -3421,14 +3464,38 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeClipMod
 let _shibleStream = null;
 let _shibleGuesses = 0;
 const SHIBLE_MAX_GUESSES = 5;
+let _shibleD = 1, _shibleM = 1, _shibleY = 2025;
+const SHIBLE_MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+function shibleAdjust(part, delta) {
+  if (part === 'd') {
+    _shibleD = ((_shibleD - 1 + delta + 31) % 31) + 1;
+    document.getElementById('shibleDayDisp').textContent = String(_shibleD).padStart(2,'0');
+  } else if (part === 'm') {
+    _shibleM = ((_shibleM - 1 + delta + 12) % 12) + 1;
+    document.getElementById('shibleMonthDisp').textContent = SHIBLE_MONTHS[_shibleM - 1];
+  } else if (part === 'y') {
+    _shibleY = Math.max(2020, Math.min(2030, _shibleY + delta));
+    document.getElementById('shibleYearDisp').textContent = _shibleY;
+  }
+}
+
+function shibleZoomToggle() {
+  const overlay = document.getElementById('shibleZoomOverlay');
+  const img = document.getElementById('shibleThumb');
+  if (overlay.style.display === 'flex') {
+    overlay.style.display = 'none';
+    document.getElementById('shibleThumbWrap').style.cursor = 'zoom-in';
+  } else {
+    document.getElementById('shibleZoomImg').src = img.src;
+    overlay.style.display = 'flex';
+    document.getElementById('shibleThumbWrap').style.cursor = 'zoom-out';
+  }
+}
 
 function openShible(randomMode) {
-  if (!allStreams || !allStreams.length) {
-    alert('Streams not loaded yet, try again in a moment!');
-    return;
-  }
+  if (!allStreams || !allStreams.length) { alert('Streams not loaded yet!'); return; }
 
-  // Daily seed: pick stream based on today's date (same for everyone)
   let stream;
   if (randomMode) {
     stream = allStreams[Math.floor(Math.random() * allStreams.length)];
@@ -3440,102 +3507,116 @@ function openShible(randomMode) {
   _shibleStream = stream;
   _shibleGuesses = 0;
 
+  // Init drum to middle of streams date range
+  const now = new Date();
+  _shibleD = now.getDate(); _shibleM = now.getMonth() + 1; _shibleY = now.getFullYear();
+  document.getElementById('shibleDayDisp').textContent = String(_shibleD).padStart(2,'0');
+  document.getElementById('shibleMonthDisp').textContent = SHIBLE_MONTHS[_shibleM - 1];
+  document.getElementById('shibleYearDisp').textContent = _shibleY;
+  ['Day','Month','Year'].forEach(x => { document.getElementById('shible'+x+'Color').style.background = 'var(--surface2)'; });
+
   // Reset UI
   document.getElementById('shibleModal').style.display = 'flex';
   document.getElementById('shibleHistory').innerHTML = '';
-  document.getElementById('shibleInputArea').style.display = 'flex';
+  document.getElementById('shibleInputArea').style.display = 'block';
   document.getElementById('shiblePlayAgain').style.display = 'none';
   document.getElementById('shibleReveal').style.display = 'none';
   document.getElementById('shibleGuessCount').textContent = SHIBLE_MAX_GUESSES + ' guesses left';
   document.getElementById('shibleSubtitle').textContent = randomMode ? 'Guess the stream date from the thumbnail' : '📅 Daily challenge — same VOD for everyone';
-  document.getElementById('shibleDateInput').value = '';
+  document.getElementById('shibleZoomHint').style.display = 'block';
+  document.getElementById('shibleZoomOverlay').style.display = 'none';
+  const guessBtn = document.getElementById('shibleGuessBtn');
+  if (guessBtn) { guessBtn.disabled = false; guessBtn.style.opacity = '1'; }
 
-  // Show thumbnail — blur it slightly to not give away text in thumbnail
   const vid = stream.vids[0];
   const thumb = `https://i.ytimg.com/vi/${vid.id}/maxresdefault.jpg`;
-  const img = document.getElementById('shibleThumb');
-  img.src = thumb;
-  img.style.filter = 'brightness(0.95)';
+  document.getElementById('shibleThumb').src = thumb;
+  document.getElementById('shibleThumbWrap').style.cursor = 'zoom-in';
 }
 
 function closeShible() {
   document.getElementById('shibleModal').style.display = 'none';
+  document.getElementById('shibleZoomOverlay').style.display = 'none';
 }
 
 function submitShibleGuess() {
   if (!_shibleStream) return;
-  const input = document.getElementById('shibleDateInput');
-  const guess = input.value;
-  if (!guess) return;
-
   _shibleGuesses++;
   const guessLeft = SHIBLE_MAX_GUESSES - _shibleGuesses;
   const target = _shibleStream.day; // YYYY-MM-DD
-  const historyEl = document.getElementById('shibleHistory');
+  const [ty, tm, td] = target.split('-').map(Number);
 
-  const gDate = new Date(guess + 'T12:00:00Z');
-  const tDate = new Date(target + 'T12:00:00Z');
+  const gd = _shibleD, gm = _shibleM, gy = _shibleY;
+  const gDate = new Date(gy, gm-1, gd);
+  const tDate = new Date(ty, tm-1, td);
   const diffDays = Math.round((gDate - tDate) / 86400000);
   const absDiff = Math.abs(diffDays);
 
-  let emoji, color, hint;
-  if (diffDays === 0) {
-    emoji = '🎉'; color = '#4caf50'; hint = 'PERFECT!';
-  } else if (absDiff <= 3) {
-    emoji = '🔥'; color = '#ff9800'; hint = diffDays < 0 ? '▲ ' + absDiff + ' days later' : '▼ ' + absDiff + ' days earlier';
-  } else if (absDiff <= 14) {
-    emoji = '📍'; color = '#ff9800'; hint = diffDays < 0 ? '▲ ' + absDiff + ' days later' : '▼ ' + absDiff + ' days earlier';
-  } else if (absDiff <= 60) {
-    emoji = '📆'; color = '#bbb'; hint = diffDays < 0 ? '▲ way later' : '▼ way earlier';
-  } else {
-    emoji = '❄️'; color = '#666'; hint = diffDays < 0 ? '▲▲ much later' : '▼▼ much earlier';
+  // Per-component color feedback (like forsen.horse)
+  function compColor(gv, tv, range1, range2) {
+    if (gv === tv) return '#4caf50';         // 🟩 exact
+    if (Math.abs(gv - tv) <= range1) return '#cddc39'; // 🟨 close
+    if (Math.abs(gv - tv) <= range2) return '#ff9800'; // 🟧 far
+    return '#555';                            // ⬛ terrible
   }
+  const dc = compColor(gd, td, 3, 7);
+  const mc = compColor(gm, tm, 1, 3);
+  const yc = compColor(gy, ty, 0, 1);
+  document.getElementById('shibleDayColor').style.background = dc;
+  document.getElementById('shibleMonthColor').style.background = mc;
+  document.getElementById('shibleYearColor').style.background = yc;
 
-  // Format guess date nicely
+  // Direction arrow
+  const dir = diffDays < 0 ? '⏩' : diffDays > 0 ? '⏪' : '';
+  const overallColor = diffDays === 0 ? '#4caf50' : absDiff <= 7 ? '#cddc39' : absDiff <= 30 ? '#ff9800' : '#555';
   const gFmt = gDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
 
+  const historyEl = document.getElementById('shibleHistory');
   const row = document.createElement('div');
-  row.style.cssText = 'display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05)';
-  row.innerHTML = `<span style="font-size:14px">${emoji}</span><span style="color:${color};font-weight:700;min-width:160px">${gFmt}</span><span style="color:${color}">${hint}</span>`;
+  row.style.cssText = 'display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05)';
+
+  const dayBox = `<span style="background:${dc};color:#111;font-weight:700;padding:1px 6px;border-radius:2px;min-width:22px;text-align:center">${String(gd).padStart(2,'0')}</span>`;
+  const monBox = `<span style="background:${mc};color:#111;font-weight:700;padding:1px 6px;border-radius:2px;min-width:36px;text-align:center">${SHIBLE_MONTHS[gm-1]}</span>`;
+  const yrBox  = `<span style="background:${yc};color:#111;font-weight:700;padding:1px 6px;border-radius:2px;min-width:42px;text-align:center">${gy}</span>`;
+  const dirSpan = diffDays !== 0 ? `<span style="color:#bbb;font-size:14px;margin-left:4px">${dir}</span>` : '<span style="color:#4caf50;font-size:14px;margin-left:4px">✓</span>';
+
+  row.innerHTML = dayBox + monBox + yrBox + dirSpan;
   historyEl.appendChild(row);
+  historyEl.scrollTop = historyEl.scrollHeight;
 
   const correct = diffDays === 0;
   const outOfGuesses = _shibleGuesses >= SHIBLE_MAX_GUESSES;
 
   if (correct || outOfGuesses) {
-    // End game
     document.getElementById('shibleInputArea').style.display = 'none';
-    const playAgain = document.getElementById('shiblePlayAgain');
-    playAgain.style.display = 'flex';
-
+    document.getElementById('shiblePlayAgain').style.display = 'flex';
     const tFmt = tDate.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
     const revealEl = document.getElementById('shibleReveal');
     revealEl.style.display = 'flex';
-    document.getElementById('shibleResultText').textContent = correct ? '🎉 ' + (_shibleGuesses === 1 ? 'FIRST TRY!' : 'GOT IT!') : '😔 Better luck next time';
+    document.getElementById('shibleResultText').textContent = correct ? (_shibleGuesses === 1 ? '🎉 FIRST TRY!' : '🎉 GOT IT!') : '😔 Better luck next time';
     document.getElementById('shibleResultDate').textContent = 'Stream date: ' + tFmt;
-
-    // Link to the actual VOD on the site
     const streamIdx = allStreams.indexOf(_shibleStream);
     const vodLink = document.getElementById('shibleVodLink');
-    if (streamIdx >= 0) {
-      vodLink.href = '#stream-' + streamIdx;
-      vodLink.onclick = () => { closeShible(); selectStream(streamIdx); return false; };
-    }
-    document.getElementById('shibleGuessCount').textContent = correct ? '✓ Solved in ' + _shibleGuesses + (_shibleGuesses === 1 ? ' guess' : ' guesses') : 'Out of guesses';
+    if (streamIdx >= 0) vodLink.onclick = () => { closeShible(); selectStream(streamIdx); return false; };
+    document.getElementById('shibleGuessCount').textContent = correct ? '✓ Solved in ' + _shibleGuesses + (_shibleGuesses === 1 ? ' guess' : ' guesses') : '❌ Out of guesses';
   } else {
     document.getElementById('shibleGuessCount').textContent = guessLeft + (guessLeft === 1 ? ' guess left' : ' guesses left');
-    input.value = '';
-    input.focus();
   }
 }
 
-// Close SHIB.LE on backdrop
+// Close SHIB.LE on backdrop / Escape
 document.addEventListener('click', e => {
   const modal = document.getElementById('shibleModal');
   if (modal && e.target === modal) closeShible();
+  const zoom = document.getElementById('shibleZoomOverlay');
+  if (zoom && e.target === zoom) shibleZoomToggle();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('shibleModal')?.style.display === 'flex') submitShibleGuess();
+  if (document.getElementById('shibleModal')?.style.display !== 'flex') return;
+  if (e.key === 'Escape') { closeShible(); return; }
+  if (e.key === 'Enter') { e.preventDefault(); submitShibleGuess(); }
+  if (e.key === 'ArrowLeft') shibleAdjust('d', -1);
+  if (e.key === 'ArrowRight') shibleAdjust('d', 1);
 });
 
 
@@ -3591,11 +3672,11 @@ function startFlappy() {
   });
 
   // Game state
-  const GRAVITY = 0.45;
-  const FLAP = -8.5;
+  const GRAVITY = 0.28;
+  const FLAP = -6.8;
   const PIPE_W = 52;
-  const PIPE_GAP = 155;
-  const PIPE_SPEED = 2.8;
+  const PIPE_GAP = 210;
+  const PIPE_SPEED = 1.9;
   const EMOTE_SIZE = 52;
   const BIRD_SIZE = 48;
 
@@ -3623,7 +3704,7 @@ function startFlappy() {
   }
 
   function spawnPipe() {
-    const gapY = 130 + Math.random() * (H - 280 - 60);
+    const gapY = 120 + Math.random() * (H - 300 - 60);
     const eImg = emoteImgs[pipeEmoteIdx % emoteImgs.length];
     pipeEmoteIdx++;
     pipes.push({ x: W + 10, gapY, eImg, scored: false });
@@ -3763,7 +3844,7 @@ function startFlappy() {
       groundX = (groundX + PIPE_SPEED) % W;
 
       // Spawn pipes
-      if (frameCount % 90 === 0 || (frameCount === 1)) spawnPipe();
+      if (frameCount % 130 === 0 || (frameCount === 1)) spawnPipe();
 
       // Update bird
       bird.vy += GRAVITY;
