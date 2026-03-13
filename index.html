@@ -641,6 +641,21 @@
   }
   .btn-primary:hover { filter: brightness(1.1); }
 
+  .stream-status {
+    display: flex;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .live-status { color: #ff6060 !important; }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #ff4040; box-shadow: 0 0 5px #ff4040;
+    display: inline-block; animation: pulse 1.2s infinite;
+    flex-shrink: 0;
+  }
+
   /* STATUS BAR */
   .status-bar {
     padding: 6px 20px;
@@ -1129,10 +1144,11 @@
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    padding: 8px 24px 16px;
-    background: linear-gradient(180deg, rgba(255,40,40,0.10) 0%, transparent 100%);
-    border-bottom: 1px solid rgba(255,64,64,0.2);
+    padding: 8px 24px 24px;
+    background: linear-gradient(180deg, rgba(255,40,40,0.12) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(255,64,64,0.25);
     margin-bottom: 0;
+    overflow: hidden; /* contain glow so it doesn't bleed into vod grid */
   }
   .live-banner.visible { display: flex; }
   .live-banner-header {
@@ -1165,8 +1181,13 @@
     aspect-ratio: 16/9;
     border-radius: 6px;
     overflow: hidden;
-    border: 1px solid rgba(255,64,64,0.3);
-    box-shadow: 0 4px 32px rgba(255,40,40,0.15);
+    border: 2px solid rgba(255,64,64,0.7);
+    box-shadow: 0 0 0 4px rgba(255,40,40,0.25), 0 0 40px rgba(255,40,40,0.3), 0 0 80px rgba(255,40,40,0.12);
+    animation: liveGlow 2s ease-in-out infinite;
+  }
+  @keyframes liveGlow {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(255,40,40,0.25), 0 0 40px rgba(255,40,40,0.3), 0 0 80px rgba(255,40,40,0.12); }
+    50%       { box-shadow: 0 0 0 6px rgba(255,40,40,0.35), 0 0 60px rgba(255,40,40,0.45), 0 0 100px rgba(255,40,40,0.18); }
   }
   .live-banner-embed iframe {
     width: 100%; height: 100%; border: none; display: block;
@@ -1310,7 +1331,7 @@
     </div>
     <div class="site-footer">
       <span>Made by Shibez</span>
-      <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="">
+      <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveToggle()" style="cursor:pointer" title="">
     </div>
   </div>
 
@@ -3085,6 +3106,44 @@ function formatUptime(startedAt) {
 }
 
 // ── Check if shlbez is live ──────────────────────────────────────────────────
+let _secretLiveActive = false;
+function secretLiveToggle() {
+  const banner      = document.getElementById('liveBanner');
+  const dot         = document.querySelector('.logo-dot');
+  const statusText  = document.getElementById('streamStatusText');
+  const statusEl    = document.getElementById('streamStatus');
+  const bannerEmbed = document.getElementById('liveBannerEmbed');
+  const meta        = document.getElementById('liveBannerMeta');
+
+  _secretLiveActive = !_secretLiveActive;
+
+  if (_secretLiveActive) {
+    if (dot) dot.classList.add('live');
+    if (statusEl) statusEl.className = 'stream-status live-status';
+    if (statusText) statusText.innerHTML =
+      `<a href="https://www.twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><span class="live-dot"></span>Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" class="status-emote" alt=""></a>`;
+    if (meta) {
+      meta.innerHTML = `<span style="color:#ff6060">Category: Test Stream</span> · ⏱ 0h 01m`;
+      meta.style.display = 'block';
+    }
+    if (banner) {
+      banner.classList.add('visible');
+      banner.style.display = 'flex';
+    }
+    if (bannerEmbed && !bannerEmbed.querySelector('iframe')) {
+      const parent = location.hostname || 'localhost';
+      bannerEmbed.innerHTML = `<iframe src="https://player.twitch.tv/?channel=shlbez&parent=${parent}&autoplay=false" frameborder="0" allowfullscreen></iframe>`;
+    }
+  } else {
+    if (dot) dot.classList.remove('live');
+    if (statusEl) statusEl.className = 'stream-status offline-status';
+    if (statusText) statusText.innerHTML = 'Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt="">';
+    if (banner) { banner.classList.remove('visible'); banner.style.display = ''; }
+    if (bannerEmbed) bannerEmbed.innerHTML = '';
+    if (meta) { meta.innerHTML = ''; meta.style.display = 'none'; }
+  }
+}
+
 async function demoLiveAsBadgeInsider() {
   const banner      = document.getElementById('liveBanner');
   const bannerGame  = document.getElementById('liveBannerGame');
