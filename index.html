@@ -1327,7 +1327,7 @@
     </div>
     <div style="display:flex;flex:1;overflow:hidden;position:relative;">
       <button id="showChatBtn" onclick="toggleChat()" title="Show chat"
-        style="display:none;position:absolute;right:8px;bottom:8px;z-index:20;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;align-items:center;gap:5px;flex-direction:row">
+        style="display:none;position:absolute;right:8px;top:8px;z-index:20;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;align-items:center;gap:5px;flex-direction:row">
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
         SHOW CHAT
       </button>
@@ -1975,7 +1975,7 @@ function selectStream(idx, pushHistory=true) {
   document.getElementById('playerView').classList.add('active');
   const s = allStreams[idx];
   const ptt = document.getElementById('playerTopTitle'); if (ptt) ptt.textContent = s.title;
-  document.getElementById('playerTopDate').textContent = 'Streamed ' + new Date(s.day+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('playerTopDate').textContent = '';
   document.getElementById('theaterBtnWrap').style.display = 'flex';
   const tbw2 = document.getElementById('theaterBarWrap'); if (tbw2) tbw2.style.display = 'flex';
   renderVideoPlayer(currentStream, 0);
