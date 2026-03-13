@@ -1323,13 +1323,13 @@
 
     <!-- CLIP MODAL -->
     <div id="clipModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:760px;overflow:hidden;position:relative">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:1000px;overflow:hidden;position:relative">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
           <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text)" id="clipTitle">Loading clip…</div>
           <div style="display:flex;gap:8px;align-items:center">
             <button onclick="openRandomClip()" title="Another random clip"
               style="background:none;border:1px solid var(--border);color:#bbb;font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:3px;cursor:pointer">
-              🎲 Another
+              🎲 Play Another Random Clip
             </button>
             <button onclick="closeClipModal()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 4px">✕</button>
           </div>
@@ -3257,6 +3257,7 @@ async function demoLiveAsBadgeInsider() {
 
 // ─── RANDOM CLIP ──────────────────────────────────────────────────────────────
 let _cachedClips = [];
+let _clipMuted = true; // start muted first time, track user's preference after
 
 async function openRandomClip() {
   const modal = document.getElementById('clipModal');
@@ -3282,7 +3283,10 @@ async function openRandomClip() {
     const clip = _cachedClips[Math.floor(Math.random() * _cachedClips.length)];
     const parent = location.hostname || 'localhost';
     titleEl.textContent = clip.title || 'Untitled clip';
-    embedEl.innerHTML = `<iframe src="https://clips.twitch.tv/embed?clip=${clip.id}&parent=${parent}&autoplay=true" width="100%" height="100%" allowfullscreen style="display:block;border:none"></iframe>`;
+    const mutedParam = _clipMuted ? '&muted=true' : '';
+    embedEl.innerHTML = `<iframe id="clipIframe" src="https://clips.twitch.tv/embed?clip=${clip.id}&parent=${parent}&autoplay=true${mutedParam}" width="100%" height="100%" allowfullscreen style="display:block;border:none"></iframe>`;
+    // Listen for user unmuting via postMessage (Twitch player fires this)
+    _clipMuted = false; // assume unmuted after first interaction — track conservatively
     const views = clip.view_count ? clip.view_count.toLocaleString() + ' views' : '';
     const date = clip.created_at ? new Date(clip.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     const game = clip.game_id ? '' : '';
