@@ -216,7 +216,7 @@
 
   .video-wrapper {
     position: relative;
-    padding-bottom: 46%;
+    padding-bottom: 43%;
     height: 0;
   }
   .video-wrapper iframe {
@@ -1017,12 +1017,12 @@
   .social-link:hover { opacity: 1; color: var(--accent); }
   .social-link svg { width: 18px; height: 18px; display: block; flex-shrink: 0; }
   .social-vod-badge {
-    font-size: 8px; font-family: var(--mono); font-weight: 700;
-    color: var(--muted); line-height: 1; letter-spacing: 0.3px;
-    pointer-events: none; margin-top: 1px;
+    font-size: 9px; font-family: var(--mono); font-weight: 800;
+    color: #ccc; line-height: 1; letter-spacing: 0.5px;
+    pointer-events: none; margin-left: 2px;
   }
   .social-link-vod {
-    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    display: flex; flex-direction: row; align-items: center; width: auto;
   }
   .topbar-avatar {
     width: 30px; height: 30px; border-radius: 50%;
@@ -1280,11 +1280,11 @@
     <div class="grid-header">
       <span class="grid-header-title">ALL STREAMS <span class="grid-header-count" id="gridCount"></span></span>
       <div id="dateFilterWrap" style="display:flex;align-items:center;gap:6px;margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted)">
-        <input type="date" id="dateFrom" title="From date"
+        <input type="date" id="dateFrom" lang="en" title="From date"
           style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;color-scheme:dark"
           oninput="applyDateFilter()">
         <span style="color:#555">→</span>
-        <input type="date" id="dateTo" title="To date"
+        <input type="date" id="dateTo" lang="en" title="To date"
           style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;color-scheme:dark"
           oninput="applyDateFilter()">
         <button onclick="clearDateFilter()" title="Clear filter"
@@ -1351,7 +1351,7 @@
           </button>
         </div>
         <div class="video-meta" id="videoMeta" style="display:none">
-          <div class="video-top" style="display:none">
+          <div class="video-top">
             <div class="video-title" id="videoTitle"></div>
             <div class="video-date-badge" id="videoDateBadge"></div>
           </div>
@@ -1389,15 +1389,20 @@
               style="width:52px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;text-align:center"
               oninput="chatDelay=parseInt(this.value)||0;const di=document.getElementById('chatDelayInput');if(di)di.value=this.value;resetChatSync()">
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span>CHAT WIDTH (px)</span>
-            <input type="number" id="chatWidthInput" value="320" min="150" max="600"
-              style="width:52px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;text-align:center"
-              oninput="const p=document.getElementById('chatPanel');if(p){p.style.width=this.value+'px';p.style.flexShrink='0'}">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+            <span style="flex:1">CHAT WIDTH (px)</span>
+            <div style="display:flex;align-items:center;gap:3px">
+              <button onclick="adjustChatWidth(-10)" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer">&lt;</button>
+              <input type="number" id="chatWidthInput" value="340" min="150" max="600"
+                style="width:48px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:2px 4px;border-radius:3px;text-align:center"
+                oninput="const p=document.getElementById('chatPanel');if(p){p.style.width=this.value+'px';p.style.flexShrink='0'}">
+              <button onclick="adjustChatWidth(+10)" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer">&gt;</button>
+              <button onclick="resetChatWidth()" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 5px;border-radius:3px;cursor:pointer">DEFAULT</button>
+            </div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <span>TIMESTAMPS</span>
-            <button onclick="showTimestamps=!showTimestamps;this.textContent=showTimestamps?'ON':'OFF';this.style.color=showTimestamps?'var(--accent)':'var(--muted)'"
+            <button id="tsToggleBtn" onclick="showTimestamps=!showTimestamps;this.textContent=showTimestamps?'ON':'OFF';this.style.color=showTimestamps?'var(--accent)':'var(--muted)';rerenderVisibleChat()"
               style="background:none;border:1px solid var(--border);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 10px;border-radius:3px;cursor:pointer">ON</button>
           </div>
         </div>
@@ -2317,6 +2322,38 @@ function startChatSync() {
   }, 500);
 }
 
+function formatChatTime(offset) {
+  const displayOffset = Math.max(0, offset);
+  const h = Math.floor(displayOffset / 3600);
+  const mins = Math.floor((displayOffset % 3600) / 60);
+  const secs = Math.floor(displayOffset % 60);
+  return h > 0
+    ? `${h}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`
+    : `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+}
+
+function rerenderVisibleChat() {
+  const box = document.getElementById('chatMessages');
+  if (!box) return;
+  const msgs = box.querySelectorAll('.chat-msg');
+  msgs.forEach(div => {
+    const idx = parseInt(div.dataset.idx);
+    if (isNaN(idx)) return;
+    const msg = chatMessages[idx];
+    if (!msg || msg.isSystem) return;
+    const timeStr = formatChatTime(msg.offset);
+    const BADGE_URLS = {
+      broadcaster:'https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1',
+      moderator:'https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1',
+      vip:'https://static-cdn.jtvnw.net/badges/v1/b817aba4-fad8-49e2-b88a-7cc744dfa6ec/1',
+      subscriber:'https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/1',
+    };
+    const badgeHtml = (msg.badges||[]).slice(0,2).map(b=>BADGE_URLS[b]?`<img src="${BADGE_URLS[b]}" class="chat-badge" alt="${b}">`:''). join('');
+    const timeHtml = showTimestamps ? `<span class="chat-msg-time" title="Jump to ${timeStr}">${timeStr}</span>` : '';
+    div.innerHTML = `${timeHtml}${badgeHtml}<span class="chat-msg-user" style="color:${msg.color||'#9146ff'}">${escHtml(msg.user)}</span><span class="chat-msg-text">: ${parseMessageText(msg.text)}</span>`;
+  });
+}
+
 function appendChatMsg(msg) {
   if (msg.isSystem) {
     const box = document.getElementById('chatMessages');
@@ -2335,14 +2372,10 @@ function appendChatMsg(msg) {
   if (ph) ph.remove();
 
   const div = document.createElement('div');
-  div.className = 'chat-msg';
+  div.className = 'chat-msg' + (msg.isSystem ? ' chat-msg-system' : '');
+  div.dataset.idx = chatMessages.indexOf(msg);
   const displayOffset = Math.max(0, msg.offset);
-  const h = Math.floor(displayOffset / 3600);
-  const mins = Math.floor((displayOffset % 3600) / 60);
-  const secs = Math.floor(displayOffset % 60);
-  const timeStr = h > 0
-    ? `${h}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`
-    : `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  const timeStr = formatChatTime(msg.offset);
   const BADGE_URLS = {
     broadcaster: 'https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1',
     moderator:   'https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1',
@@ -2362,7 +2395,8 @@ function appendChatMsg(msg) {
   const timeHtml = showTimestamps ? `<span class="chat-msg-time" title="Jump to ${timeStr}">${timeStr}</span>` : '';
   div.innerHTML = `${timeHtml}${badgeHtml}<span class="chat-msg-user" style="color:${msg.color||'#9146ff'}">${escHtml(msg.user)}</span><span class="chat-msg-text">: ${parseMessageText(msg.text)}</span>`;
   // Click TIMESTAMP to seek
-  div.querySelector('.chat-msg-time').addEventListener('click', () => {
+  const timeEl = div.querySelector('.chat-msg-time');
+  if (timeEl) timeEl.addEventListener('click', () => {
     if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
       ytPlayer.seekTo(displayOffset, true);
       ytPlayer.playVideo();
@@ -2559,9 +2593,24 @@ async function renderChat(stream) {
         });
       }
 
-      // Parse badges string e.g. "broadcaster/1,subscriber/78,sub-gifter/10"
-      const badgesRaw = (m.tags && m.tags.badges) || m.badges || '';
-      const badges = badgesRaw ? badgesRaw.split(',').map(b => b.split('/')[0]).filter(Boolean) : [];
+      // Parse badges — rustlog can put them in tags.badges (string "sub/0,mod/1") or top-level
+      const badgesRaw = (m.tags && (m.tags.badges || m.tags['badges'])) || m.badges || m.badge || '';
+      let badges = [];
+      if (typeof badgesRaw === 'string' && badgesRaw) {
+        badges = badgesRaw.split(',').map(b => b.split('/')[0].trim()).filter(Boolean);
+      } else if (Array.isArray(badgesRaw)) {
+        badges = badgesRaw.map(b => typeof b === 'string' ? b.split('/')[0] : (b.name || b)).filter(Boolean);
+      }
+      // Debug: log first message with any tags to see structure
+      if (badges.length > 0 && !window._badgeDebugLogged) {
+        window._badgeDebugLogged = true;
+        console.log('Badge debug — raw msg:', JSON.stringify(m).slice(0, 300));
+        console.log('Parsed badges:', badges);
+      }
+      if (!window._msgDebugLogged && m.tags) {
+        window._msgDebugLogged = true;
+        console.log('Rustlog msg sample (has tags):', JSON.stringify(m).slice(0, 400));
+      }
       return { offset, user: username, text, color, badges };
     }).filter(m => m !== null && !isNaN(m.offset) && m.offset >= 0 && m.offset < 86400 * 3).sort((a,b) => a.offset - b.offset);
 
@@ -2609,7 +2658,7 @@ async function renderChat(stream) {
 
   document.addEventListener('mousedown', e => {
     const handle = document.getElementById('resizeHandle');
-    if (!handle || e.target !== handle) return;
+    if (!handle || !handle.contains(e.target)) return;
     dragging = true;
     startX = e.clientX;
     const panel = document.getElementById('chatPanel');
@@ -2642,7 +2691,7 @@ async function renderChat(stream) {
   // Touch support for mobile
   document.addEventListener('touchstart', e => {
     const handle = document.getElementById('resizeHandle');
-    if (!handle || e.target !== handle) return;
+    if (!handle || !handle.contains(e.target)) return;
     dragging = true;
     startX = e.touches[0].clientX;
     const panel = document.getElementById('chatPanel');
@@ -2826,6 +2875,27 @@ function generateColor(name) {
 }
 
 let chatVisible = true;
+const DEFAULT_CHAT_WIDTH = 340;
+
+function adjustChatWidth(delta) {
+  const input = document.getElementById('chatWidthInput');
+  const panel = document.getElementById('chatPanel');
+  if (!input || !panel) return;
+  const newW = Math.min(600, Math.max(150, (parseInt(input.value)||340) + delta));
+  input.value = newW;
+  panel.style.width = newW + 'px';
+  panel.style.flexShrink = '0';
+}
+
+function resetChatWidth() {
+  const input = document.getElementById('chatWidthInput');
+  const panel = document.getElementById('chatPanel');
+  if (!input || !panel) return;
+  input.value = DEFAULT_CHAT_WIDTH;
+  panel.style.width = DEFAULT_CHAT_WIDTH + 'px';
+  panel.style.flexShrink = '0';
+}
+
 function toggleChatSettings() {
   const panel = document.getElementById('chatSettingsPanel');
   const btn = document.getElementById('chatSettingsBtn');
