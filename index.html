@@ -1391,11 +1391,11 @@
           <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
             <span style="flex:1">CHAT DELAY (s)</span>
             <div style="display:flex;align-items:center;gap:3px">
-              <button onclick="adjustChatDelay(-1)" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer">&lt;</button>
+              <button id="delayDecBtn" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer;user-select:none">&lt;</button>
               <input type="number" id="chatDelayInputSettings" value="0"
                 style="width:48px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:2px 4px;border-radius:3px;text-align:center"
                 oninput="chatDelay=parseInt(this.value)||0;const di=document.getElementById('chatDelayInput');if(di)di.value=this.value;resetChatSync()">
-              <button onclick="adjustChatDelay(+1)" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer">&gt;</button>
+              <button id="delayIncBtn" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer;user-select:none">&gt;</button>
               <button onclick="chatDelay=0;document.getElementById('chatDelayInputSettings').value=0;const di=document.getElementById('chatDelayInput');if(di)di.value=0;resetChatSync()"
                 style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 5px;border-radius:3px;cursor:pointer">DEFAULT</button>
             </div>
@@ -1403,11 +1403,11 @@
           <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
             <span style="flex:1">CHAT WIDTH (px)</span>
             <div style="display:flex;align-items:center;gap:3px">
-              <button onclick="adjustChatWidth(-10)" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer">&lt;</button>
+              <button id="widthDecBtn" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer;user-select:none">&lt;</button>
               <input type="number" id="chatWidthInput" value="340" min="150" max="600"
                 style="width:48px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:2px 4px;border-radius:3px;text-align:center"
                 oninput="const p=document.getElementById('chatPanel');if(p){p.style.width=this.value+'px';p.style.flexShrink='0'}">
-              <button onclick="adjustChatWidth(+10)" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer">&gt;</button>
+              <button id="widthIncBtn" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer;user-select:none">&gt;</button>
               <button onclick="resetChatWidth()" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 5px;border-radius:3px;cursor:pointer">DEFAULT</button>
             </div>
           </div>
@@ -2474,6 +2474,18 @@ function scrollChatToBottom() {
 
 // Detect manual scroll = disable autoscroll
 document.addEventListener('DOMContentLoaded', () => {
+  // Wire hold-to-repeat for chat delay and width buttons
+  // Use setTimeout so settings panel elements exist
+  setTimeout(() => {
+    const dd = document.getElementById('delayDecBtn');
+    const di = document.getElementById('delayIncBtn');
+    const wd = document.getElementById('widthDecBtn');
+    const wi = document.getElementById('widthIncBtn');
+    if (dd) holdButton(dd, () => adjustChatDelay(-1));
+    if (di) holdButton(di, () => adjustChatDelay(+1));
+    if (wd) holdButton(wd, () => adjustChatWidth(-10));
+    if (wi) holdButton(wi, () => adjustChatWidth(+10));
+  }, 0);
   const box = document.getElementById('chatMessages');
   if (box) {
     box.addEventListener('scroll', () => {
@@ -2930,6 +2942,21 @@ function generateColor(name) {
 
 let chatVisible = true;
 const DEFAULT_CHAT_WIDTH = 340;
+
+// Hold-to-repeat: call fn immediately, then repeat after delay while held
+function holdButton(btn, fn) {
+  let interval = null;
+  let timeout = null;
+  function start() {
+    fn();
+    timeout = setTimeout(() => { interval = setInterval(fn, 80); }, 400);
+  }
+  function stop() { clearTimeout(timeout); clearInterval(interval); }
+  btn.addEventListener('mousedown', e => { e.preventDefault(); start(); });
+  btn.addEventListener('touchstart', e => { e.preventDefault(); start(); }, { passive: false });
+  document.addEventListener('mouseup', stop);
+  document.addEventListener('touchend', stop);
+}
 
 function adjustChatDelay(delta) {
   const input = document.getElementById('chatDelayInputSettings');
