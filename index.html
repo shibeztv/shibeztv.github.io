@@ -3158,12 +3158,18 @@ let _secretLiveActive = false;
 let _secretClicks = 0, _secretTimer = null;
 function secretLiveClick() {
   _secretClicks++;
+  console.log('[secret] click', _secretClicks, '/ 3');
   clearTimeout(_secretTimer);
   if (_secretClicks >= 3) {
     _secretClicks = 0;
+    clearTimeout(_secretTimer);
+    console.log('[secret] triggered!');
     secretLiveToggle();
   } else {
-    _secretTimer = setTimeout(() => { _secretClicks = 0; }, 5000);
+    _secretTimer = setTimeout(() => {
+      console.log('[secret] reset');
+      _secretClicks = 0;
+    }, 5000);
   }
 }
 
