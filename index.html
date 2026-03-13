@@ -1602,6 +1602,7 @@ async function fetchTwitchVods(token) {
 // Config is hardcoded - no localStorage
 const config = { ...DEFAULTS };
 let allStreams = [];
+let displayedStreams = []; // current filtered/full list for pagination
 let currentStream = null;
 let currentPartIdx = 0;
 let chatMode = 'vod';
@@ -1849,14 +1850,15 @@ function goToPage(page) {
 function renderPage() {
   const grid = document.getElementById('streamGrid');
   const start = currentPage * PAGE_SIZE;
-  const pageStreams = allStreams.slice(start, start + PAGE_SIZE);
+  const pageStreams = displayedStreams.slice(start, start + PAGE_SIZE);
 
   grid.innerHTML = pageStreams.map((s, i) => {
     const idx = start + i;
     const date = new Date(s.day+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
     const games = [...new Set(s.games.map(g=>g.label))].slice(0,3).map(g=>`<span class="grid-game-tag">${escHtml(g)}</span>`).join('');
     const parts = s.vids.length > 1 ? `<span class="grid-card-parts">${s.vids.length} PARTS</span>` : '';
-    return `<div class="grid-card" onclick="selectStream(${idx})">
+    const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
+    return `<div class="grid-card" onclick="selectStream(${globalIdx})">
       <div class="grid-card-thumb">
         <img src="${s.thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="thumb-fallback" style="display:none">ðº</div>
@@ -1872,6 +1874,7 @@ function renderPage() {
   }).join('');
 
   const pg = document.getElementById('pagination');
+  totalPages = Math.ceil(displayedStreams.length / PAGE_SIZE);
   pg.style.display = totalPages > 1 ? 'flex' : 'none';
   document.getElementById('pagePrev').disabled = currentPage === 0;
   document.getElementById('pageNext').disabled = currentPage === totalPages - 1;
@@ -1927,6 +1930,7 @@ function clearDateFilter() {
 }
 
 function renderStreamList(streams) {
+  displayedStreams = streams;
   const countEl = document.getElementById('gridCount');
   if (countEl) countEl.textContent = '(' + streams.length + ' streams)';
   totalPages = Math.ceil(streams.length / PAGE_SIZE);
