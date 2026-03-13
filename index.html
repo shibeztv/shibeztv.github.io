@@ -1371,7 +1371,7 @@
     </div>
     <div class="site-footer">
       <span>Made by Shibez</span>
-      <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveToggle()" style="cursor:pointer" title="">
+      <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveClick()" style="cursor:pointer" title="">
     </div>
   </div>
 
@@ -1492,7 +1492,7 @@
         </div>
         <div class="site-footer player-footer" style="border-top:1px solid var(--border);margin:0;padding:10px 0;flex-shrink:0">
           <span>Made by Shibez</span>
-          <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveToggle()" style="cursor:pointer" title="">
+          <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveClick()" style="cursor:pointer" title="">
         </div>
       </aside>
     </div>
@@ -3155,6 +3155,18 @@ function formatUptime(startedAt) {
 
 // ── Check if shlbez is live ──────────────────────────────────────────────────
 let _secretLiveActive = false;
+let _secretClicks = 0, _secretTimer = null;
+function secretLiveClick() {
+  _secretClicks++;
+  clearTimeout(_secretTimer);
+  if (_secretClicks >= 3) {
+    _secretClicks = 0;
+    secretLiveToggle();
+  } else {
+    _secretTimer = setTimeout(() => { _secretClicks = 0; }, 5000);
+  }
+}
+
 function secretLiveToggle() {
   const banner      = document.getElementById('liveBanner');
   const dot         = document.querySelector('.logo-dot');
