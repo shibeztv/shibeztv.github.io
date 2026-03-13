@@ -1382,13 +1382,15 @@
               oninput="chatDelay=parseInt(this.value)||0;resetChatSync()">
             <span style="color:#aaa">s</span>
           </div>
-          <button id="theaterToggleBtn" class="theater-btn" onclick="toggleTheater()" title="Theater mode">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M8 19v2M16 19v2"/></svg>
-            THEATER MODE
-          </button>
-          <div class="parts-section" id="partsSection" style="margin-left:auto">
-            <div class="parts-label" style="color:#bbb">Stream parts</div>
-            <div class="parts-list" id="partsList"></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-left:auto">
+            <button id="theaterToggleBtn" class="theater-btn" onclick="toggleTheater()" title="Theater mode">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M8 19v2M16 19v2"/></svg>
+              THEATER MODE
+            </button>
+            <div class="parts-section" id="partsSection">
+              <div class="parts-label" style="color:#bbb">Stream parts</div>
+              <div class="parts-list" id="partsList"></div>
+            </div>
           </div>
         </div>
         <div class="video-meta" id="videoMeta" style="display:none">
