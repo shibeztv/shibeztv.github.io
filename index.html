@@ -783,6 +783,7 @@
 
   /* Theater mode — video fills left, chat pinned right */
 
+  body.theater .topbar { display: none; }
   body.theater .layout { height: 100vh; margin-top: 0; display: flex; flex-direction: column; }
   body.theater #gridView { display: none !important; }
   body.theater .player-view { flex: 1; display: flex !important; flex-direction: column; overflow: hidden; }
@@ -1081,9 +1082,10 @@
     body.theater .chat-panel { flex: 1; width: 100%; height: auto; border-top: 1px solid var(--border); }
   }
 
-  /* Theater mode — desktop: video left, chat right, keeps browser UI visible */
+  /* Theater mode — desktop: video left, chat right */
   @media (min-width: 769px) {
-    body.theater .layout { height: calc(100vh - 44px); margin-top: 0; }
+    body.theater .topbar { display: none; }
+    body.theater .layout { height: 100vh; margin-top: 0; }
     body.theater .player-topbar { display: none !important; }
     body.theater .theater-btn-wrap { display: none !important; }
     body.theater .video-meta { display: none !important; }
