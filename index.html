@@ -2708,6 +2708,7 @@ async function renderChat(stream) {
     const newWidth = Math.min(600, Math.max(200, startWidth + delta));
     panel.style.width = newWidth + 'px';
     panel.style.flexShrink = '0';
+    const wi = document.getElementById('chatWidthInput'); if (wi) wi.value = newWidth;
   });
 
   document.addEventListener('mouseup', () => {
@@ -2739,6 +2740,7 @@ async function renderChat(stream) {
     const newWidth = Math.min(600, Math.max(120, startWidth + delta));
     panel.style.width = newWidth + 'px';
     panel.style.flexShrink = '0';
+    const wi = document.getElementById('chatWidthInput'); if (wi) wi.value = newWidth;
     e.preventDefault();
   }, { passive: false });
 
