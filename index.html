@@ -6,7 +6,7 @@
 <title>Shibez VOD Archive</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600&family=DM+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600&family=DM+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0d0d0f;
@@ -200,8 +200,10 @@
   .main {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
   .main::-webkit-scrollbar { width: 4px; }
   .main::-webkit-scrollbar-thumb { background: var(--border); }
@@ -457,7 +459,8 @@
 
   .chat-msg {
     padding: 3px 10px;
-    font-size: 12px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
     line-height: 1.5;
     word-break: break-word;
     transition: background 0.1s;
@@ -480,6 +483,18 @@
   .chat-msg-text { color: var(--text); }
 
   /* EMOTES */
+  .chat-badge {
+    display: inline-block;
+    vertical-align: middle;
+    width: 18px; height: 18px;
+    margin-right: 2px;
+    object-fit: contain;
+  }
+  /* Remove number input spinners */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
   .chat-emote {
     display: inline-block;
     vertical-align: middle;
@@ -762,7 +777,7 @@
   body.theater #theaterBarWrap { display: none !important; }
   body.theater .player-view > div[style*="display:flex"] { flex: 1; overflow: hidden; }
 
-  .player-view.active { display: flex; }
+  .player-view.active { display: flex; overflow: hidden; }
 
   body.theater .main {
     flex: 1; overflow: hidden;
@@ -929,7 +944,7 @@
     padding: 24px 0 20px;
     font-family: var(--mono);
     font-size: 11px;
-    color: #555;
+    color: var(--text);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -944,7 +959,7 @@
 
   /* ── PLAYER VIEW ────────────────────────────────────────────────── */
   .player-view { display: none; flex: 1; overflow: hidden; flex-direction: column; }
-  .player-view.active { display: flex; }
+  .player-view.active { display: flex; overflow: hidden; }
   .player-topbar {
     padding: 8px 14px;
     background: var(--surface2);
@@ -999,14 +1014,15 @@
     transition: opacity 0.12s;
     position: relative;
   }
-  .social-link:hover { opacity: 1; }
+  .social-link:hover { opacity: 1; color: var(--accent); }
   .social-link svg { width: 18px; height: 18px; display: block; flex-shrink: 0; }
   .social-vod-badge {
-    position: absolute; bottom: 1px; right: 0px;
-    font-size: 6px; font-family: var(--mono); font-weight: 800;
-    background: var(--accent); color: #fff;
-    padding: 0 2px; border-radius: 2px; line-height: 1.4;
-    pointer-events: none;
+    font-size: 8px; font-family: var(--mono); font-weight: 700;
+    color: var(--muted); line-height: 1; letter-spacing: 0.3px;
+    pointer-events: none; margin-top: 1px;
+  }
+  .social-link-vod {
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
   }
   .topbar-avatar {
     width: 30px; height: 30px; border-radius: 50%;
@@ -1170,13 +1186,34 @@
   }
   body.theater .resize-handle { display: block; }
   .resize-handle:hover,
-  .resize-handle.dragging { background: #fff; width: 4px; }
+  .resize-handle.dragging { background: var(--accent); width: 4px; }
   .resize-handle::after {
     content: '';
     position: absolute;
     top: 0; bottom: 0;
     left: -6px; right: -6px;
   }
+  /* Drag hint dot — shown when no video is playing */
+  .resize-handle .drag-hint {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px; height: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    transition: opacity 0.4s;
+    opacity: 1;
+  }
+  .resize-handle .drag-hint::before {
+    content: '⋮';
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1;
+  }
+  .resize-handle.hint-hidden .drag-hint { opacity: 0; }
 
 
   /* Dates use DM Mono for uniform-height digits (no 6/9 ascenders) */
@@ -1208,7 +1245,7 @@
     <a href="https://www.youtube.com/@ShibezYT" target="_blank" class="social-link" title="YouTube Main">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
     </a>
-    <a href="https://www.youtube.com/@ShibezVods" target="_blank" class="social-link" title="YouTube VODs">
+    <a href="https://www.youtube.com/@ShibezVods" target="_blank" class="social-link social-link-vod" title="YouTube VODs">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
       <span class="social-vod-badge">VOD</span>
     </a>
@@ -1242,6 +1279,17 @@
     </div>
     <div class="grid-header">
       <span class="grid-header-title">ALL STREAMS <span class="grid-header-count" id="gridCount"></span></span>
+      <div id="dateFilterWrap" style="display:flex;align-items:center;gap:6px;margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted)">
+        <input type="date" id="dateFrom" title="From date"
+          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;color-scheme:dark"
+          oninput="applyDateFilter()">
+        <span style="color:#555">→</span>
+        <input type="date" id="dateTo" title="To date"
+          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;color-scheme:dark"
+          oninput="applyDateFilter()">
+        <button onclick="clearDateFilter()" title="Clear filter"
+          style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;cursor:pointer;display:none" id="dateFilterClear">✕</button>
+      </div>
     </div>
     <div class="stream-grid" id="streamGrid">
       <div class="loader"><span>Loading streams</span><div class="loader-dots"><span></span><span></span><span></span></div></div>
@@ -1273,30 +1321,29 @@
 
     </div>
     <div style="display:flex;flex:1;overflow:hidden;position:relative;">
+      <button id="showChatBtn" onclick="toggleChat()" title="Show chat"
+        style="display:none;position:absolute;right:8px;bottom:8px;z-index:20;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;align-items:center;gap:5px;flex-direction:row">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        SHOW CHAT
+      </button>
       <button class="chat-open-btn" id="chatOpenBtn" style="display:none" onclick="toggleChat()" title="Show chat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
         <span style="font-family:var(--mono);font-size:9px;writing-mode:vertical-rl;margin-top:4px">CHAT</span>
       </button>
       <main class="main" id="mainArea">
-        <div class="status-bar" id="statusBar" style="display:none">
-          <span class="status-dot" id="statusDot"></span>
-          <span id="statusText"></span>
-        </div>
+
         <div class="video-content-wrap" style="position:relative;">
         <div class="video-section" id="videoSection">
           <div class="no-video"><div class="icon">📺</div><div>Loading…</div></div>
         </div>
 
         <div id="theaterBarWrap" style="display:none;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <div style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--muted)">
+          <div style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--muted)">
             <span style="white-space:nowrap;letter-spacing:0.3px">CHAT DELAY</span>
-            <input type="range" id="chatDelaySlider" min="-60" max="120" step="1" value="0"
-              style="width:120px;accent-color:var(--accent);cursor:pointer"
-              oninput="chatDelay=parseInt(this.value);document.getElementById('chatDelayInput').value=this.value;resetChatSync()">
-            <input type="number" id="chatDelayInput" value="0" min="-60" max="120"
-              style="width:46px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:3px;text-align:center"
-              oninput="chatDelay=parseInt(this.value)||0;document.getElementById('chatDelaySlider').value=chatDelay;resetChatSync()">
-            <span id="chatDelayLabel" style="color:#aaa;min-width:14px">s</span>
+            <input type="number" id="chatDelayInput" value="0"
+              style="width:52px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;text-align:center"
+              oninput="chatDelay=parseInt(this.value)||0;resetChatSync()">
+            <span style="color:#aaa">s</span>
           </div>
           <button id="theaterToggleBtn" class="theater-btn" onclick="toggleTheater()" title="Theater mode">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M8 19v2M16 19v2"/></svg>
@@ -1304,7 +1351,7 @@
           </button>
         </div>
         <div class="video-meta" id="videoMeta" style="display:none">
-          <div class="video-top">
+          <div class="video-top" style="display:none">
             <div class="video-title" id="videoTitle"></div>
             <div class="video-date-badge" id="videoDateBadge"></div>
           </div>
@@ -1321,15 +1368,38 @@
           <div class="parts-list" id="partsList"></div>
         </div>
       </main>
-      <div class="resize-handle" id="resizeHandle"></div>
+      <div class="resize-handle" id="resizeHandle"><div class="drag-hint"></div></div>
       <aside class="chat-panel" id="chatPanel">
         <div class="chat-header">
           <span class="chat-header-icon">💬</span>
           <span class="chat-header-title">CHAT REPLAY</span>
           <span id="chatHeaderNote" style="font-family:var(--mono);font-size:9px;color:var(--muted)">—</span>
+          <button onclick="toggleChatSettings()" title="Chat settings" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:3px;display:flex;align-items:center" id="chatSettingsBtn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
           <button class="chat-toggle-btn" onclick="toggleChat()" title="Hide chat" id="chatToggleBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
           </button>
+        </div>
+        <!-- Chat settings panel -->
+        <div id="chatSettingsPanel" style="display:none;padding:10px 12px;background:var(--surface2);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span>CHAT DELAY (s)</span>
+            <input type="number" id="chatDelayInputSettings" value="0"
+              style="width:52px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;text-align:center"
+              oninput="chatDelay=parseInt(this.value)||0;const di=document.getElementById('chatDelayInput');if(di)di.value=this.value;resetChatSync()">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span>CHAT WIDTH (px)</span>
+            <input type="number" id="chatWidthInput" value="320" min="150" max="600"
+              style="width:52px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;text-align:center"
+              oninput="const p=document.getElementById('chatPanel');if(p){p.style.width=this.value+'px';p.style.flexShrink='0'}">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span>TIMESTAMPS</span>
+            <button onclick="showTimestamps=!showTimestamps;this.textContent=showTimestamps?'ON':'OFF';this.style.color=showTimestamps?'var(--accent)':'var(--muted)'"
+              style="background:none;border:1px solid var(--border);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 10px;border-radius:3px;cursor:pointer">ON</button>
+          </div>
         </div>
         <div class="chat-messages" id="chatMessages">
           <div class="chat-placeholder">
@@ -1339,6 +1409,7 @@
         </div>
         <div class="chat-footer" id="chatFooter" style="display:none">
           <span id="chatSyncStatus">⏸ paused</span>
+          <span style="margin-left:auto;opacity:0.6" id="statusText"></span>
         </div>
       </aside>
     </div>
@@ -1637,12 +1708,43 @@ function formatDuration(secs) {
 
 // ─── GROUP VIDEOS INTO STREAMS ─────────────────────────────────────────────
 // A "stream" = same calendar day. Multiple videos on same day = parts of same stream.
+// Try to extract stream date from video title
+// Handles: "Jan 15 2025", "January 15 2025", "15/01/2025", "2025-01-15", "01-15-2025"
+function extractDateFromTitle(title) {
+  if (!title) return null;
+  const MONTHS = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+    january:0,february:1,march:2,april:3,june:5,july:6,august:7,september:8,october:9,november:10,december:11 };
+  // "Jan 15 2025" or "January 15, 2025" or "15 Jan 2025"
+  const m1 = title.match(/(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[.\s,]+(\d{1,2})[.\s,]+(\d{4})/i);
+  if (m1) {
+    const mo = MONTHS[m1[1].toLowerCase().slice(0,3)];
+    const d = new Date(Date.UTC(parseInt(m1[3]), mo, parseInt(m1[2])));
+    if (!isNaN(d)) return d.toISOString().slice(0,10);
+  }
+  // "15 Jan 2025"
+  const m2 = title.match(/(\d{1,2})[.\s,]+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[.\s,]+(\d{4})/i);
+  if (m2) {
+    const mo = MONTHS[m2[2].toLowerCase().slice(0,3)];
+    const d = new Date(Date.UTC(parseInt(m2[3]), mo, parseInt(m2[1])));
+    if (!isNaN(d)) return d.toISOString().slice(0,10);
+  }
+  // "2025-01-15" or "2025/01/15"
+  const m3 = title.match(/(20\d{2})[-/](0?\d|1[0-2])[-/](0?\d|[12]\d|3[01])/);
+  if (m3) return `${m3[1]}-${m3[2].padStart(2,'0')}-${m3[3].padStart(2,'0')}`;
+  // "01/15/2025" or "01-15-2025"
+  const m4 = title.match(/(0?\d|1[0-2])[-/](0?\d|[12]\d|3[01])[-/](20\d{2})/);
+  if (m4) return `${m4[3]}-${m4[1].padStart(2,'0')}-${m4[2].padStart(2,'0')}`;
+  return null;
+}
+
 function groupIntoStreams(videos) {
   // Filter out videos under 10 minutes
   videos = videos.filter(v => v.duration >= 600);
   const byDay = {};
   videos.forEach(v => {
-    const day = v.publishedAt.slice(0,10); // YYYY-MM-DD
+    // Try to extract date from title first (more accurate than upload date)
+    const titleDay = extractDateFromTitle(v.title);
+    const day = titleDay || v.publishedAt.slice(0,10);
     if (!byDay[day]) byDay[day] = [];
     byDay[day].push(v);
   });
@@ -1778,6 +1880,29 @@ function renderPage() {
   }
 }
 
+function applyDateFilter() {
+  const from = document.getElementById('dateFrom').value; // YYYY-MM-DD or ''
+  const to   = document.getElementById('dateTo').value;
+  const clearBtn = document.getElementById('dateFilterClear');
+  const filtered = allStreams.filter(s => {
+    if (from && s.day < from) return false;
+    if (to   && s.day > to)   return false;
+    return true;
+  });
+  if (clearBtn) clearBtn.style.display = (from || to) ? 'block' : 'none';
+  renderStreamList(filtered);
+}
+
+function clearDateFilter() {
+  const df = document.getElementById('dateFrom');
+  const dt = document.getElementById('dateTo');
+  if (df) df.value = '';
+  if (dt) dt.value = '';
+  const clearBtn = document.getElementById('dateFilterClear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  renderStreamList(allStreams);
+}
+
 function renderStreamList(streams) {
   const countEl = document.getElementById('gridCount');
   if (countEl) countEl.textContent = '(' + streams.length + ' streams)';
@@ -1864,12 +1989,20 @@ function renderVideoPlayer(stream, partIdx) {
           if (e.data === YT.PlayerState.PLAYING) {
             startChatSync();
             scheduleHideTheaterBtn();
+            // Hide resize hint after 1.5s of playing
+            setTimeout(() => {
+              const rh = document.getElementById('resizeHandle');
+              if (rh) rh.classList.add('hint-hidden');
+            }, 1500);
           }
           if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
             stopChatSync();
             const btn = document.getElementById('theaterBackBtn');
             if (btn) btn.style.opacity = '1';
             clearTimeout(theaterHideTimer);
+            // Show resize hint again when paused
+            const rh = document.getElementById('resizeHandle');
+            if (rh) rh.classList.remove('hint-hidden');
           }
         }
       }
@@ -1999,7 +2132,7 @@ function renderVideoMeta(stream) {
 
   const sb = document.getElementById('statusBar'); if (sb) sb.style.display = 'flex';
   const sd = document.getElementById('statusDot'); if (sd) sd.className = 'status-dot ok';
-  const stxt = document.getElementById('statusText'); if (stxt) stxt.textContent = `Stream: ${stream.day} · ${stream.vids.length} video(s)${stream.games.length ? ' · ' + stream.games.length + ' chapters' : ''}`;
+  const stxt = document.getElementById('statusText'); if (stxt) stxt.textContent = `Stream: ${stream.day} · ${stream.vids.length} ${stream.vids.length === 1 ? 'video' : 'videos'}${stream.games.length ? ' · ' + stream.games.length + ' chapters' : ''}`;
 }
 
 
@@ -2132,6 +2265,7 @@ let chatPointer = 0;         // index of next message to show
 let chatSyncInterval = null;
 let vodStartTime = null;     // unix ms when VOD started
 let chatDelay = 0;           // seconds to subtract from video position when syncing chat
+let showTimestamps = true;   // toggle chat timestamps
 let autoScroll = true;
 
 function resetChatSync() {
@@ -2209,7 +2343,24 @@ function appendChatMsg(msg) {
   const timeStr = h > 0
     ? `${h}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`
     : `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-  div.innerHTML = `<span class="chat-msg-time" title="Jump to ${timeStr}">${timeStr}</span><span class="chat-msg-user" style="color:${msg.color||'#9146ff'}">${escHtml(msg.user)}</span><span class="chat-msg-text">: ${parseMessageText(msg.text)}</span>`;
+  const BADGE_URLS = {
+    broadcaster: 'https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1',
+    moderator:   'https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1',
+    vip:         'https://static-cdn.jtvnw.net/badges/v1/b817aba4-fad8-49e2-b88a-7cc744dfa6ec/1',
+    subscriber:  'https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/1',
+    partner:     'https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/1',
+    turbo:       'https://static-cdn.jtvnw.net/badges/v1/bd444ec6-8f34-4bf9-91f4-af1e3428d80f/1',
+    premium:     'https://static-cdn.jtvnw.net/badges/v1/a1dd5073-19c3-4911-8cb4-c464a7bc1510/1',
+    'sub-gifter':'https://static-cdn.jtvnw.net/badges/v1/f1d8a571-5f3f-4a33-918c-d43a4d6f3e1a/1',
+    founder:     'https://static-cdn.jtvnw.net/badges/v1/511b78a9-ab37-472f-9569-457753bbe7d3/1',
+    staff:       'https://static-cdn.jtvnw.net/badges/v1/d97c37be-a963-4035-b3fb-b1fd76129dd5/1',
+  };
+  const badgeHtml = (msg.badges||[]).slice(0,2).map(b => {
+    const url = BADGE_URLS[b];
+    return url ? `<img src="${url}" class="chat-badge" alt="${b}" title="${b}">` : '';
+  }).join('');
+  const timeHtml = showTimestamps ? `<span class="chat-msg-time" title="Jump to ${timeStr}">${timeStr}</span>` : '';
+  div.innerHTML = `${timeHtml}${badgeHtml}<span class="chat-msg-user" style="color:${msg.color||'#9146ff'}">${escHtml(msg.user)}</span><span class="chat-msg-text">: ${parseMessageText(msg.text)}</span>`;
   // Click TIMESTAMP to seek
   div.querySelector('.chat-msg-time').addEventListener('click', () => {
     if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
@@ -2408,13 +2559,17 @@ async function renderChat(stream) {
         });
       }
 
-      return { offset, user: username, text, color };
+      // Parse badges string e.g. "broadcaster/1,subscriber/78,sub-gifter/10"
+      const badgesRaw = (m.tags && m.tags.badges) || m.badges || '';
+      const badges = badgesRaw ? badgesRaw.split(',').map(b => b.split('/')[0]).filter(Boolean) : [];
+      return { offset, user: username, text, color, badges };
     }).filter(m => m !== null && !isNaN(m.offset) && m.offset >= 0 && m.offset < 86400 * 3).sort((a,b) => a.offset - b.offset);
 
     console.log(`Parsed ${msgs.length} messages, offset range: ${msgs[0]?.offset?.toFixed(0)}s to ${msgs[msgs.length-1]?.offset?.toFixed(0)}s`);
 
     // Inject a synthetic stream-start marker at offset 0
-    const liveMarker = { offset: 0, user: '📡', text: 'Shibez went live!', color: '#ff4444', isSystem: true };
+    const liveDate = new Date(vodStart).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const liveMarker = { offset: 0, user: '🔴', text: `Shibez went live! — ${liveDate}`, color: '#ff4444', isSystem: true };
     chatMessages = [liveMarker, ...msgs];
     box.innerHTML = '';
 
@@ -2671,18 +2826,30 @@ function generateColor(name) {
 }
 
 let chatVisible = true;
+function toggleChatSettings() {
+  const panel = document.getElementById('chatSettingsPanel');
+  const btn = document.getElementById('chatSettingsBtn');
+  if (!panel) return;
+  const isOpen = panel.style.display === 'flex';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  btn.style.color = isOpen ? 'var(--muted)' : 'var(--text)';
+}
+
 function toggleChat() {
   chatVisible = !chatVisible;
   const panel = document.getElementById('chatPanel');
   const openBtn = document.getElementById('chatOpenBtn');
   const toggleBtn = document.getElementById('chatToggleBtn');
+  const showChatBtn = document.getElementById('showChatBtn');
   if (chatVisible) {
     if (panel) panel.style.display = '';
+    if (showChatBtn) showChatBtn.style.display = 'none';
     if (openBtn) openBtn.style.display = 'none';
     if (toggleBtn) { toggleBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>'; toggleBtn.title = 'Hide chat'; }
   } else {
     if (panel) panel.style.display = 'none';
     if (openBtn) openBtn.style.display = 'flex';
+    if (showChatBtn) showChatBtn.style.display = 'flex';
     if (toggleBtn) { toggleBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>'; toggleBtn.title = 'Show chat'; }
   }
 }
