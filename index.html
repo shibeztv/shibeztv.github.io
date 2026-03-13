@@ -1311,14 +1311,92 @@
       <div class="live-banner-meta" id="liveBannerMeta" style="font-family:var(--mono);font-size:12px;color:#ccc;display:none"></div>
       <div class="live-banner-embed" id="liveBannerEmbed"></div>
     </div>
-    <!-- RANDOM CLIP BUTTON -->
-    <div style="display:flex;justify-content:flex-start;padding:10px 0 4px">
+    <!-- RANDOM CLIP + SHIB.LE BUTTONS -->
+    <div style="display:flex;justify-content:flex-start;gap:8px;padding:10px 0 4px">
       <button onclick="openRandomClip()" id="randomClipBtn"
         style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
         onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
         onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
         🎲 RANDOM CLIP
       </button>
+      <button onclick="openShible()" id="shibleBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        📅 SHIB.LE
+      </button>
+      <button onclick="openFlappyShibez()" id="flappyBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='#4ade80';this.style.color='#4ade80'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        🐦 FLAPPY SHIBEZ
+      </button>
+    </div>
+
+    <!-- FLAPPY SHIBEZ MODAL -->
+    <div id="flappyModal" style="display:none;position:fixed;inset:0;z-index:9002;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;padding:20px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
+          <div style="display:flex;flex-direction:column;gap:1px">
+            <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:var(--text);letter-spacing:1px">FLAPPY SHIBEZ</span>
+            <span style="font-family:var(--mono);font-size:9px;color:#bbb">Click / Space / Tap to flap</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-family:var(--mono);font-size:18px;font-weight:900;color:var(--text)" id="flappyScore">0</span>
+            <button onclick="closeFlappy()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
+          </div>
+        </div>
+        <canvas id="flappyCanvas" width="400" height="550" style="display:block;cursor:pointer"></canvas>
+      </div>
+    </div>
+
+    <!-- SHIB.LE MODAL -->
+    <div id="shibleModal" style="display:none;position:fixed;inset:0;z-index:9001;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;padding:20px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:680px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;flex-direction:column;gap:1px">
+            <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--text);letter-spacing:1px">SHIB.LE</span>
+            <span style="font-family:var(--mono);font-size:9px;color:#bbb" id="shibleSubtitle">Guess the stream date from the thumbnail</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-family:var(--mono);font-size:10px;color:#bbb" id="shibleGuessCount">5 guesses left</span>
+            <button onclick="closeShible()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
+          </div>
+        </div>
+
+        <!-- Thumbnail -->
+        <div style="position:relative;background:#111">
+          <img id="shibleThumb" src="" alt="VOD thumbnail" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;filter:brightness(1)">
+          <div id="shibleReveal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px">
+            <div style="font-family:var(--mono);font-size:28px;font-weight:900;color:#fff" id="shibleResultText"></div>
+            <div style="font-family:var(--mono);font-size:14px;color:#bbb" id="shibleResultDate"></div>
+          </div>
+        </div>
+
+        <!-- Guess history -->
+        <div id="shibleHistory" style="padding:8px 16px;display:flex;flex-direction:column;gap:4px;min-height:32px"></div>
+
+        <!-- Input area -->
+        <div id="shibleInputArea" style="padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
+          <input type="date" id="shibleDateInput" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:7px 10px;border-radius:4px;cursor:pointer;color-scheme:dark">
+          <button onclick="submitShibleGuess()"
+            style="font-family:var(--mono);font-size:11px;font-weight:700;background:var(--accent2);border:none;color:#fff;padding:8px 16px;border-radius:4px;cursor:pointer;white-space:nowrap">
+            GUESS
+          </button>
+        </div>
+
+        <!-- Play again row -->
+        <div id="shiblePlayAgain" style="display:none;padding:10px 16px;border-top:1px solid var(--border);display:none;justify-content:space-between;align-items:center;gap:8px">
+          <a id="shibleVodLink" href="#" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--accent);text-decoration:none">▶ Watch this VOD</a>
+          <button onclick="openShible(true)"
+            style="font-family:var(--mono);font-size:11px;font-weight:700;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 16px;border-radius:4px;cursor:pointer">
+            🎲 Play Again
+          </button>
+        </div>
+
+      </div>
     </div>
 
     <!-- CLIP MODAL -->
@@ -3336,6 +3414,431 @@ document.addEventListener('click', e => {
   if (modal && e.target === modal) closeClipModal();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeClipModal(); });
+
+
+
+// ─── SHIB.LE ──────────────────────────────────────────────────────────────────
+let _shibleStream = null;
+let _shibleGuesses = 0;
+const SHIBLE_MAX_GUESSES = 5;
+
+function openShible(randomMode) {
+  if (!allStreams || !allStreams.length) {
+    alert('Streams not loaded yet, try again in a moment!');
+    return;
+  }
+
+  // Daily seed: pick stream based on today's date (same for everyone)
+  let stream;
+  if (randomMode) {
+    stream = allStreams[Math.floor(Math.random() * allStreams.length)];
+  } else {
+    const today = new Date();
+    const seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
+    stream = allStreams[seed % allStreams.length];
+  }
+  _shibleStream = stream;
+  _shibleGuesses = 0;
+
+  // Reset UI
+  document.getElementById('shibleModal').style.display = 'flex';
+  document.getElementById('shibleHistory').innerHTML = '';
+  document.getElementById('shibleInputArea').style.display = 'flex';
+  document.getElementById('shiblePlayAgain').style.display = 'none';
+  document.getElementById('shibleReveal').style.display = 'none';
+  document.getElementById('shibleGuessCount').textContent = SHIBLE_MAX_GUESSES + ' guesses left';
+  document.getElementById('shibleSubtitle').textContent = randomMode ? 'Guess the stream date from the thumbnail' : '📅 Daily challenge — same VOD for everyone';
+  document.getElementById('shibleDateInput').value = '';
+
+  // Show thumbnail — blur it slightly to not give away text in thumbnail
+  const vid = stream.vids[0];
+  const thumb = `https://i.ytimg.com/vi/${vid.id}/maxresdefault.jpg`;
+  const img = document.getElementById('shibleThumb');
+  img.src = thumb;
+  img.style.filter = 'brightness(0.95)';
+}
+
+function closeShible() {
+  document.getElementById('shibleModal').style.display = 'none';
+}
+
+function submitShibleGuess() {
+  if (!_shibleStream) return;
+  const input = document.getElementById('shibleDateInput');
+  const guess = input.value;
+  if (!guess) return;
+
+  _shibleGuesses++;
+  const guessLeft = SHIBLE_MAX_GUESSES - _shibleGuesses;
+  const target = _shibleStream.day; // YYYY-MM-DD
+  const historyEl = document.getElementById('shibleHistory');
+
+  const gDate = new Date(guess + 'T12:00:00Z');
+  const tDate = new Date(target + 'T12:00:00Z');
+  const diffDays = Math.round((gDate - tDate) / 86400000);
+  const absDiff = Math.abs(diffDays);
+
+  let emoji, color, hint;
+  if (diffDays === 0) {
+    emoji = '🎉'; color = '#4caf50'; hint = 'PERFECT!';
+  } else if (absDiff <= 3) {
+    emoji = '🔥'; color = '#ff9800'; hint = diffDays < 0 ? '▲ ' + absDiff + ' days later' : '▼ ' + absDiff + ' days earlier';
+  } else if (absDiff <= 14) {
+    emoji = '📍'; color = '#ff9800'; hint = diffDays < 0 ? '▲ ' + absDiff + ' days later' : '▼ ' + absDiff + ' days earlier';
+  } else if (absDiff <= 60) {
+    emoji = '📆'; color = '#bbb'; hint = diffDays < 0 ? '▲ way later' : '▼ way earlier';
+  } else {
+    emoji = '❄️'; color = '#666'; hint = diffDays < 0 ? '▲▲ much later' : '▼▼ much earlier';
+  }
+
+  // Format guess date nicely
+  const gFmt = gDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05)';
+  row.innerHTML = `<span style="font-size:14px">${emoji}</span><span style="color:${color};font-weight:700;min-width:160px">${gFmt}</span><span style="color:${color}">${hint}</span>`;
+  historyEl.appendChild(row);
+
+  const correct = diffDays === 0;
+  const outOfGuesses = _shibleGuesses >= SHIBLE_MAX_GUESSES;
+
+  if (correct || outOfGuesses) {
+    // End game
+    document.getElementById('shibleInputArea').style.display = 'none';
+    const playAgain = document.getElementById('shiblePlayAgain');
+    playAgain.style.display = 'flex';
+
+    const tFmt = tDate.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+    const revealEl = document.getElementById('shibleReveal');
+    revealEl.style.display = 'flex';
+    document.getElementById('shibleResultText').textContent = correct ? '🎉 ' + (_shibleGuesses === 1 ? 'FIRST TRY!' : 'GOT IT!') : '😔 Better luck next time';
+    document.getElementById('shibleResultDate').textContent = 'Stream date: ' + tFmt;
+
+    // Link to the actual VOD on the site
+    const streamIdx = allStreams.indexOf(_shibleStream);
+    const vodLink = document.getElementById('shibleVodLink');
+    if (streamIdx >= 0) {
+      vodLink.href = '#stream-' + streamIdx;
+      vodLink.onclick = () => { closeShible(); selectStream(streamIdx); return false; };
+    }
+    document.getElementById('shibleGuessCount').textContent = correct ? '✓ Solved in ' + _shibleGuesses + (_shibleGuesses === 1 ? ' guess' : ' guesses') : 'Out of guesses';
+  } else {
+    document.getElementById('shibleGuessCount').textContent = guessLeft + (guessLeft === 1 ? ' guess left' : ' guesses left');
+    input.value = '';
+    input.focus();
+  }
+}
+
+// Close SHIB.LE on backdrop
+document.addEventListener('click', e => {
+  const modal = document.getElementById('shibleModal');
+  if (modal && e.target === modal) closeShible();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('shibleModal')?.style.display === 'flex') submitShibleGuess();
+});
+
+
+// ─── FLAPPY SHIBEZ ────────────────────────────────────────────────────────────
+const FLAPPY_BIRD_URL = 'https://cdn.7tv.app/emote/01FQ1FZ7P0000FQA8WEBNDDY09/2x.webp';
+const FLAPPY_EMOTE_SET = '01F6YHT8TG0003S6SNNTMYB87P';
+
+let _flappyEmotes = [];
+let _flappyRunning = false;
+let _flappyRAF = null;
+
+async function openFlappyShibez() {
+  document.getElementById('flappyModal').style.display = 'flex';
+  if (!_flappyEmotes.length) {
+    try {
+      const r = await fetch('https://7tv.io/v3/emote-sets/' + FLAPPY_EMOTE_SET);
+      const d = await r.json();
+      _flappyEmotes = (d.emotes || []).map(e => ({
+        id: e.id,
+        name: e.name,
+        url: `https://cdn.7tv.app/emote/${e.id}/2x.webp`
+      }));
+    } catch(e) {
+      _flappyEmotes = [{id:'01GB9W8JN80004CKF2H1TWA99H', name:'fallback', url:'https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp'}];
+    }
+  }
+  startFlappy();
+}
+
+function closeFlappy() {
+  _flappyRunning = false;
+  if (_flappyRAF) cancelAnimationFrame(_flappyRAF);
+  document.getElementById('flappyModal').style.display = 'none';
+}
+
+function startFlappy() {
+  const canvas = document.getElementById('flappyCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Preload bird image
+  const birdImg = new Image();
+  birdImg.crossOrigin = 'anonymous';
+  birdImg.src = FLAPPY_BIRD_URL;
+
+  // Preload emote images (up to 12 random ones)
+  const shuffled = [..._flappyEmotes].sort(() => Math.random() - 0.5).slice(0, 12);
+  const emoteImgs = shuffled.map(e => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = e.url;
+    return img;
+  });
+
+  // Game state
+  const GRAVITY = 0.45;
+  const FLAP = -8.5;
+  const PIPE_W = 52;
+  const PIPE_GAP = 155;
+  const PIPE_SPEED = 2.8;
+  const EMOTE_SIZE = 52;
+  const BIRD_SIZE = 48;
+
+  let bird = { x: 80, y: H/2, vy: 0, rot: 0 };
+  let pipes = [];
+  let score = 0;
+  let best = parseInt(localStorage.getItem('flappyBest') || '0');
+  let state = 'waiting'; // waiting | playing | dead
+  let frameCount = 0;
+  let pipeEmoteIdx = 0;
+  let groundX = 0;
+
+  // Ground tiles (simple gradient rect)
+  function drawGround() {
+    ctx.fillStyle = '#1a2a1a';
+    ctx.fillRect(0, H - 60, W, 60);
+    ctx.fillStyle = '#2d4a2d';
+    ctx.fillRect(0, H - 60, W, 6);
+    // Moving ground lines
+    ctx.fillStyle = '#3a5a3a';
+    for (let i = 0; i < 8; i++) {
+      const gx = ((groundX + i * 60) % W);
+      ctx.fillRect(gx, H - 54, 40, 4);
+    }
+  }
+
+  function spawnPipe() {
+    const gapY = 130 + Math.random() * (H - 280 - 60);
+    const eImg = emoteImgs[pipeEmoteIdx % emoteImgs.length];
+    pipeEmoteIdx++;
+    pipes.push({ x: W + 10, gapY, eImg, scored: false });
+  }
+
+  function drawPipe(p) {
+    const topH = p.gapY;
+    const botY = p.gapY + PIPE_GAP;
+    const botH = H - 60 - botY;
+    const cols = Math.ceil(PIPE_W / EMOTE_SIZE);
+
+    // Draw top pipe emotes (stacked downward from top)
+    const topRows = Math.ceil(topH / EMOTE_SIZE);
+    for (let row = 0; row < topRows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const ey = row * EMOTE_SIZE;
+        if (ey + EMOTE_SIZE < 0) continue;
+        try { ctx.drawImage(p.eImg, p.x + col * EMOTE_SIZE, ey, EMOTE_SIZE, EMOTE_SIZE); } catch(e){}
+      }
+    }
+
+    // Dark tint over top pipe
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(p.x, 0, PIPE_W, topH);
+
+    // Draw bottom pipe emotes (stacked upward from floor)
+    const botRows = Math.ceil(botH / EMOTE_SIZE);
+    for (let row = 0; row < botRows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const ey = botY + row * EMOTE_SIZE;
+        if (ey > H - 60) break;
+        try { ctx.drawImage(p.eImg, p.x + col * EMOTE_SIZE, ey, EMOTE_SIZE, EMOTE_SIZE); } catch(e){}
+      }
+    }
+
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(p.x, botY, PIPE_W, botH);
+  }
+
+  function drawBird() {
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(Math.min(Math.PI/4, Math.max(-Math.PI/6, bird.rot)));
+    try {
+      ctx.drawImage(birdImg, -BIRD_SIZE/2, -BIRD_SIZE/2, BIRD_SIZE, BIRD_SIZE);
+    } catch(e) {
+      ctx.fillStyle = '#fc5c7d';
+      ctx.beginPath();
+      ctx.arc(0, 0, BIRD_SIZE/2, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function checkCollision() {
+    const bx1 = bird.x - BIRD_SIZE/2 + 6, bx2 = bird.x + BIRD_SIZE/2 - 6;
+    const by1 = bird.y - BIRD_SIZE/2 + 6, by2 = bird.y + BIRD_SIZE/2 - 6;
+    if (by2 >= H - 60 || by1 <= 0) return true;
+    for (const p of pipes) {
+      if (bx2 < p.x || bx1 > p.x + PIPE_W) continue;
+      if (by1 < p.gapY || by2 > p.gapY + PIPE_GAP) return true;
+    }
+    return false;
+  }
+
+  function flap() {
+    if (state === 'waiting') { state = 'playing'; }
+    if (state === 'playing') { bird.vy = FLAP; }
+    if (state === 'dead') { resetGame(); }
+  }
+
+  function resetGame() {
+    bird = { x: 80, y: H/2, vy: 0, rot: 0 };
+    pipes = [];
+    score = 0;
+    frameCount = 0;
+    pipeEmoteIdx = Math.floor(Math.random() * emoteImgs.length);
+    state = 'waiting';
+    document.getElementById('flappyScore').textContent = '0';
+  }
+
+  function drawOverlay() {
+    if (state === 'waiting') {
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.font = 'bold 22px monospace';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.fillText('TAP / CLICK TO START', W/2, H/2 - 10);
+      ctx.font = '13px monospace';
+      ctx.fillStyle = '#bbb';
+      ctx.fillText('Space or tap to flap!', W/2, H/2 + 18);
+      if (best > 0) {
+        ctx.font = '12px monospace';
+        ctx.fillStyle = '#fc5c7d';
+        ctx.fillText('Best: ' + best, W/2, H/2 + 42);
+      }
+    }
+    if (state === 'dead') {
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 26px monospace';
+      ctx.fillStyle = '#fc5c7d';
+      ctx.fillText('GAME OVER', W/2, H/2 - 40);
+      ctx.font = 'bold 20px monospace';
+      ctx.fillStyle = '#fff';
+      ctx.fillText('Score: ' + score, W/2, H/2);
+      if (score >= best) {
+        ctx.font = '13px monospace';
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText('🏆 NEW BEST!', W/2, H/2 + 26);
+      } else {
+        ctx.font = '13px monospace';
+        ctx.fillStyle = '#bbb';
+        ctx.fillText('Best: ' + best, W/2, H/2 + 26);
+      }
+      ctx.font = '12px monospace';
+      ctx.fillStyle = '#bbb';
+      ctx.fillText('Click to play again', W/2, H/2 + 52);
+    }
+    ctx.textAlign = 'left';
+  }
+
+  function loop() {
+    if (!_flappyRunning) return;
+
+    // Background sky
+    const sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#0d1117');
+    sky.addColorStop(1, '#1a2a3a');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
+
+    if (state === 'playing') {
+      frameCount++;
+      groundX = (groundX + PIPE_SPEED) % W;
+
+      // Spawn pipes
+      if (frameCount % 90 === 0 || (frameCount === 1)) spawnPipe();
+
+      // Update bird
+      bird.vy += GRAVITY;
+      bird.y += bird.vy;
+      bird.rot = bird.vy * 0.06;
+
+      // Update pipes
+      for (const p of pipes) {
+        p.x -= PIPE_SPEED;
+        if (!p.scored && p.x + PIPE_W < bird.x) {
+          p.scored = true;
+          score++;
+          if (score > best) { best = score; localStorage.setItem('flappyBest', best); }
+          document.getElementById('flappyScore').textContent = score;
+        }
+      }
+      pipes = pipes.filter(p => p.x > -PIPE_W - 10);
+
+      if (checkCollision()) state = 'dead';
+    }
+
+    // Draw
+    pipes.forEach(drawPipe);
+    drawGround();
+    drawBird();
+
+    // Live score
+    if (state === 'playing') {
+      ctx.font = 'bold 28px monospace';
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillText(score, W/2 - 13, 52);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(score, W/2 - 14, 50);
+    }
+
+    drawOverlay();
+    _flappyRAF = requestAnimationFrame(loop);
+  }
+
+  // Input handlers
+  const onFlap = e => {
+    e.preventDefault();
+    flap();
+  };
+  canvas.addEventListener('click', onFlap);
+  canvas.addEventListener('touchstart', onFlap, { passive: false });
+
+  const onKey = e => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); flap(); } };
+  document.addEventListener('keydown', onKey);
+
+  // Cleanup on close
+  canvas._flappyCleanup = () => {
+    canvas.removeEventListener('click', onFlap);
+    canvas.removeEventListener('touchstart', onFlap);
+    document.removeEventListener('keydown', onKey);
+  };
+
+  _flappyRunning = true;
+  resetGame();
+  loop();
+}
+
+const _origCloseFlappy = closeFlappy;
+function closeFlappy() {
+  _flappyRunning = false;
+  if (_flappyRAF) { cancelAnimationFrame(_flappyRAF); _flappyRAF = null; }
+  const c = document.getElementById('flappyCanvas');
+  if (c && c._flappyCleanup) { c._flappyCleanup(); c._flappyCleanup = null; }
+  document.getElementById('flappyModal').style.display = 'none';
+}
+
+document.addEventListener('click', e => {
+  const modal = document.getElementById('flappyModal');
+  if (modal && e.target === modal) closeFlappy();
+});
 
 </script>
 </body>
