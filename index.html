@@ -360,19 +360,19 @@
 
   /* MULTI-PART */
   .parts-section {
-    padding: 12px 20px;
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
     display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
   }
-  .parts-section.visible { display: block; }
+  .parts-section.visible { display: flex; }
   .parts-label {
     font-family: var(--mono);
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: var(--muted);
-    margin-bottom: 8px;
+    color: #bbb;
+    margin-bottom: 0;
   }
   .parts-list {
     display: flex;
@@ -782,7 +782,7 @@
   .theater-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 
   /* Theater mode — video fills left, chat pinned right */
-  body.theater .topbar { display: none; }
+
   body.theater .layout { height: 100vh; margin-top: 0; display: flex; flex-direction: column; }
   body.theater #gridView { display: none !important; }
   body.theater .player-view { flex: 1; display: flex !important; flex-direction: column; overflow: hidden; }
@@ -1021,6 +1021,7 @@
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+    margin-left: auto;
   }
   .social-link {
     display: flex;
@@ -1046,12 +1047,12 @@
   }
   .topbar-avatar {
     width: 30px; height: 30px; border-radius: 50%;
-    overflow: hidden; border: 1px solid #444;
-    margin-left: 6px; flex-shrink: 0;
-    transition: border-color 0.15s; text-decoration: none;
+    overflow: hidden; border: 2px solid #444;
+    margin-left: 0; flex-shrink: 0;
+    transition: border-color 0.15s, box-shadow 0.15s; text-decoration: none;
     display: block;
   }
-  .topbar-avatar:hover { border-color: #9146ff; }
+  .topbar-avatar:hover { border-color: #9146ff; box-shadow: 0 0 0 3px rgba(145,70,255,0.35); }
   .topbar-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .status-emote { height: 30px; width: 30px; object-fit: cover; border-radius: 50%; vertical-align: middle; margin-left: 4px; }
 
@@ -1064,6 +1065,9 @@
     #playerView > div { flex-direction: column; }
     .chat-panel { width: 100%; height: 300px; border-left: none; border-top: 1px solid var(--border); }
     .stream-grid { grid-template-columns: repeat(2, 1fr); }
+    .grid-header-title { font-size: 9px; letter-spacing: 0.3px; }
+    .grid-header-count { font-size: 9px; }
+    .live-banner-embed { width: 80%; }
   }
 
   /* Theater mode — mobile: video top, chat below */
@@ -1077,10 +1081,9 @@
     body.theater .chat-panel { flex: 1; width: 100%; height: auto; border-top: 1px solid var(--border); }
   }
 
-  /* Theater mode — desktop: video left, chat right, full screen */
+  /* Theater mode — desktop: video left, chat right, keeps browser UI visible */
   @media (min-width: 769px) {
-    body.theater .topbar { display: none; }
-    body.theater .layout { height: 100vh; margin-top: 0; }
+    body.theater .layout { height: calc(100vh - 44px); margin-top: 0; }
     body.theater .player-topbar { display: none !important; }
     body.theater .theater-btn-wrap { display: none !important; }
     body.theater .video-meta { display: none !important; }
@@ -1314,7 +1317,7 @@
             style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;color-scheme:dark"
             oninput="applyDateFilter()">
         </div>
-        <span style="font-size:18px;color:var(--muted);align-self:flex-end;padding-bottom:3px;font-weight:300">→</span>
+        <span style="font-size:18px;color:#bbb;align-self:flex-end;padding-bottom:3px;font-weight:300">→</span>
         <div style="display:flex;flex-direction:column;gap:1px">
           <span style="font-size:9px;color:var(--text);letter-spacing:0.5px;opacity:0.7">TO</span>
           <input type="date" id="dateTo" lang="en" title="To date"
@@ -1381,6 +1384,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M8 19v2M16 19v2"/></svg>
             THEATER MODE
           </button>
+          <div class="parts-section" id="partsSection" style="margin-left:auto">
+            <div class="parts-label" style="color:#bbb">Stream parts</div>
+            <div class="parts-list" id="partsList"></div>
+          </div>
         </div>
         <div class="video-meta" id="videoMeta" style="display:none">
           <div class="video-top">
@@ -1394,10 +1401,6 @@
           </div>
           <div class="segments-label">Jump to game</div>
           <div class="segments" id="segmentBtns"></div>
-        </div>
-        <div class="parts-section" id="partsSection">
-          <div class="parts-label">Stream parts</div>
-          <div class="parts-list" id="partsList"></div>
         </div>
       </main>
       <div class="resize-handle" id="resizeHandle"><div class="drag-hint"></div></div>
@@ -2025,14 +2028,16 @@ function toggleTheater() {
   const btn = document.getElementById('theaterToggleBtn');
   if (btn) btn.classList.toggle('active', theaterMode);
 
-  // Mobile: request fullscreen to hide browser chrome (Android Chrome supports this)
-  if (theaterMode) {
-    const el = document.documentElement;
-    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-    if (req) req.call(el).catch(() => {});
-  } else {
-    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-    if (exit && (document.fullscreenElement || document.webkitFullscreenElement)) exit.call(document).catch(() => {});
+  // On mobile only: request fullscreen to hide browser chrome
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    if (theaterMode) {
+      const el = document.documentElement;
+      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (req) req.call(el).catch(() => {});
+    } else {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+      if (exit && (document.fullscreenElement || document.webkitFullscreenElement)) exit.call(document).catch(() => {});
+    }
   }
 }
 
@@ -3034,7 +3039,7 @@ function toggleChat() {
   const toggleBtn = document.getElementById('chatToggleBtn');
   const showChatBtn = document.getElementById('showChatBtn');
   if (chatVisible) {
-    if (panel) panel.style.display = '';
+    if (panel) panel.style.display = 'flex';
     if (showChatBtn) showChatBtn.style.display = 'none';
     if (openBtn) openBtn.style.display = 'none';
     if (toggleBtn) { toggleBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>'; toggleBtn.title = 'Hide chat'; }
