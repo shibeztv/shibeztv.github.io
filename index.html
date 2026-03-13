@@ -1310,6 +1310,38 @@
       <div class="live-banner-meta" id="liveBannerMeta" style="font-family:var(--mono);font-size:12px;color:#ccc;display:none"></div>
       <div class="live-banner-embed" id="liveBannerEmbed"></div>
     </div>
+    <!-- RANDOM CLIP BUTTON -->
+    <div style="display:flex;justify-content:center;padding:10px 0 4px">
+      <button onclick="openRandomClip()" id="randomClipBtn"
+        style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+          <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+        </svg>
+        🎲 RANDOM CLIP
+      </button>
+    </div>
+
+    <!-- CLIP MODAL -->
+    <div id="clipModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:760px;overflow:hidden;position:relative">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
+          <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text)" id="clipTitle">Loading clip…</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button onclick="openRandomClip()" title="Another random clip"
+              style="background:none;border:1px solid var(--border);color:#bbb;font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:3px;cursor:pointer">
+              🎲 Another
+            </button>
+            <button onclick="closeClipModal()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 4px">✕</button>
+          </div>
+        </div>
+        <div style="aspect-ratio:16/9;background:#000" id="clipEmbed"></div>
+        <div style="padding:8px 14px;font-family:var(--mono);font-size:10px;color:#bbb;display:flex;gap:12px" id="clipMeta"></div>
+      </div>
+    </div>
+
     <div class="grid-header">
       <span class="grid-header-title">ARCHIVED STREAMS <span class="grid-header-count" id="gridCount"></span></span>
       <div id="dateFilterWrap" style="display:flex;align-items:center;gap:6px;margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted)">
@@ -3224,6 +3256,67 @@ async function demoLiveAsBadgeInsider() {
     if (statusText) statusText.innerHTML = 'Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt="">';
   }
 }
+
+
+// ─── RANDOM CLIP ──────────────────────────────────────────────────────────────
+let _cachedClips = [];
+
+async function openRandomClip() {
+  const modal = document.getElementById('clipModal');
+  const embedEl = document.getElementById('clipEmbed');
+  const titleEl = document.getElementById('clipTitle');
+  const metaEl = document.getElementById('clipMeta');
+  modal.style.display = 'flex';
+  embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-family:var(--mono);font-size:12px">Loading…</div>';
+  titleEl.textContent = 'Fetching clip…';
+  metaEl.innerHTML = '';
+
+  try {
+    if (_cachedClips.length < 5) {
+      const token = await fetchTwitchToken();
+      // Fetch up to 100 top clips from shlbez (Twitch user ID from config)
+      const uid = await getTwitchUserId(token);
+      const url = `https://api.twitch.tv/helix/clips?broadcaster_id=${uid}&first=100`;
+      const r = await fetch(url, { headers: { 'Client-ID': config.twitchClientId, 'Authorization': 'Bearer ' + token }});
+      const d = await r.json();
+      _cachedClips = (d.data || []);
+    }
+    if (!_cachedClips.length) { titleEl.textContent = 'No clips found :('; return; }
+    const clip = _cachedClips[Math.floor(Math.random() * _cachedClips.length)];
+    const parent = location.hostname || 'localhost';
+    titleEl.textContent = clip.title || 'Untitled clip';
+    embedEl.innerHTML = `<iframe src="https://clips.twitch.tv/embed?clip=${clip.id}&parent=${parent}&autoplay=true" width="100%" height="100%" allowfullscreen style="display:block;border:none"></iframe>`;
+    const views = clip.view_count ? clip.view_count.toLocaleString() + ' views' : '';
+    const date = clip.created_at ? new Date(clip.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    const game = clip.game_id ? '' : '';
+    metaEl.innerHTML = `<span>${date}</span>${views ? `<span>·</span><span>${views}</span>` : ''}`;
+  } catch(e) {
+    titleEl.textContent = 'Could not load clip';
+    embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-family:var(--mono);font-size:12px">Error loading clip</div>';
+  }
+}
+
+async function getTwitchUserId(token) {
+  const r = await fetch('https://api.twitch.tv/helix/users?login=shlbez', {
+    headers: { 'Client-ID': config.twitchClientId, 'Authorization': 'Bearer ' + token }
+  });
+  const d = await r.json();
+  return d.data && d.data[0] ? d.data[0].id : null;
+}
+
+function closeClipModal() {
+  const modal = document.getElementById('clipModal');
+  modal.style.display = 'none';
+  const embedEl = document.getElementById('clipEmbed');
+  if (embedEl) embedEl.innerHTML = ''; // stop video
+}
+
+// Close clip modal on backdrop click
+document.addEventListener('click', e => {
+  const modal = document.getElementById('clipModal');
+  if (modal && e.target === modal) closeClipModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeClipModal(); });
 
 </script>
 </body>
