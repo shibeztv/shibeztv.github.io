@@ -814,6 +814,7 @@
     width: 100% !important; height: 100% !important;
   }
   body.theater .video-meta { display: none !important; }
+  body.theater .player-footer { display: none !important; }
   body.theater .timeline-wrap { display: none !important; }
   body.theater .parts-section { display: none !important; }
   body.theater .status-bar { display: none !important; }
@@ -954,6 +955,10 @@
   }
   .page-ellipsis { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 0 4px; }
 
+  .player-footer {
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
   .site-footer {
     text-align: center;
     padding: 24px 0 20px;
@@ -1079,6 +1084,7 @@
     body.theater .player-topbar { display: none !important; }
     body.theater .theater-btn-wrap { display: none !important; }
     body.theater .video-meta { display: none !important; }
+  body.theater .player-footer { display: none !important; }
     body.theater .timeline-wrap { display: none !important; }
     body.theater .parts-section { display: none !important; }
     body.theater .status-bar { display: none !important; }
@@ -1448,12 +1454,13 @@
           <span id="chatSyncStatus">⏸ paused</span>
           <span style="margin-left:auto;opacity:0.6" id="statusText"></span>
         </div>
-        <div class="site-footer" style="border-top:1px solid var(--border);margin:0;padding:10px 0;flex-shrink:0">
-          <span>Made by Shibez</span>
-          <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveToggle()" style="cursor:pointer" title="">
-        </div>
       </aside>
     </div>
+  </div>
+  <!-- Player page footer — hidden in theater mode -->
+  <div class="site-footer player-footer" id="playerFooter" style="display:none">
+    <span>Made by Shibez</span>
+    <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveToggle()" style="cursor:pointer" title="">
   </div>
 
 </div>
@@ -1981,6 +1988,7 @@ function goBack(pushHistory=true) {
   if (typeof theaterMode !== 'undefined' && theaterMode && typeof toggleTheater === 'function') toggleTheater();
   document.getElementById('gridView').style.display = '';
   document.getElementById('playerView').classList.remove('active');
+  const pfb = document.getElementById('playerFooter'); if (pfb) pfb.style.display = 'none';
   const tbw = document.getElementById('theaterBtnWrap'); if (tbw) tbw.style.display = 'none';
   currentStream = null;
   if (pushHistory) try { history.pushState({}, '', location.pathname); } catch(e) {}
@@ -2006,6 +2014,7 @@ function selectStream(idx, pushHistory=true) {
   const ptt = document.getElementById('playerTopTitle'); if (ptt) ptt.textContent = s.title;
   document.getElementById('playerTopDate').textContent = '';
   document.getElementById('theaterBtnWrap').style.display = 'flex';
+  const pf = document.getElementById('playerFooter'); if (pf) pf.style.display = 'flex';
   const tbw2 = document.getElementById('theaterBarWrap'); if (tbw2) tbw2.style.display = 'flex';
   renderVideoPlayer(currentStream, 0);
   renderVideoMeta(currentStream);
