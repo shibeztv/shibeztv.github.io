@@ -1993,6 +1993,16 @@ function toggleTheater() {
   document.body.classList.toggle('theater', theaterMode);
   const btn = document.getElementById('theaterToggleBtn');
   if (btn) btn.classList.toggle('active', theaterMode);
+
+  // Mobile: request fullscreen to hide browser chrome (Android Chrome supports this)
+  if (theaterMode) {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (req) req.call(el).catch(() => {});
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (exit && (document.fullscreenElement || document.webkitFullscreenElement)) exit.call(document).catch(() => {});
+  }
 }
 
 let ytPlayer = null;
@@ -2329,14 +2339,31 @@ function resolveBadgeUrl(raw) {
 }
 let autoScroll = true;
 
+const CHAT_CONTEXT = 30; // messages to show before current position on seek
+
+function seekChatToPos(pos) {
+  // Find pointer at current position
+  let ptr = chatMessages.findIndex(m => m.offset >= pos);
+  if (ptr < 0) ptr = chatMessages.length;
+  chatPointer = ptr;
+
+  const box = document.getElementById('chatMessages');
+  if (!box) return;
+  box.innerHTML = '';
+
+  // Render CHAT_CONTEXT messages before current pos as context
+  const contextStart = Math.max(0, ptr - CHAT_CONTEXT);
+  for (let i = contextStart; i < ptr; i++) {
+    appendChatMsg(chatMessages[i]);
+  }
+  scrollChatToBottom();
+}
+
 function resetChatSync() {
   // Re-seek chat to current video position with new delay
   if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
   const pos = ytPlayer.getCurrentTime() - 15 + chatDelay;
-  chatPointer = chatMessages.findIndex(m => m.offset >= pos);
-  if (chatPointer < 0) chatPointer = chatMessages.length;
-  const box = document.getElementById('chatMessages');
-  if (box) box.innerHTML = '';
+  seekChatToPos(pos);
 }
 
 function stopChatSync() {
@@ -2355,15 +2382,9 @@ function startChatSync() {
     if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
     const pos = ytPlayer.getCurrentTime() - 15 + chatDelay;
 
-    // Detect seek backwards — reset pointer and clear chat
-    if (pos < lastSyncPos - 2) {
-      const box = document.getElementById('chatMessages');
-      if (box) box.innerHTML = '';
-      chatPointer = 0;
-      // Fast-forward pointer to correct position
-      while (chatPointer < chatMessages.length && chatMessages[chatPointer].offset < pos - 0.5) {
-        chatPointer++;
-      }
+    // Detect seek (forward jump > 5s or any backward) — reload with context
+    if (pos < lastSyncPos - 2 || pos > lastSyncPos + 5) {
+      seekChatToPos(pos);
     }
     lastSyncPos = pos;
 
