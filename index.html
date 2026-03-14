@@ -4539,7 +4539,7 @@ function startSpace() {
     {key:'towerGun',     label:'🗼 Tower Gun',      desc:'8-shot radial burst in all directions',                                             color:'#a855f7', cost:45,  tier2:{key:'tier2_towerGun',   label:'🗼+ Double Burst',      desc:'Every 4th attack fires 16 shots (2×) in a rotating circle',  cost:32}},
     {key:'flamethrower', label:'🔥 Flamethrower',   desc:'Short range cone, deals burn over time',                                            color:'#ff4400', cost:52,  tier2:{key:'tier2_flamethrower',label:'🔥+ Inferno',           desc:'Longer range + burn dmg 1/3s',           cost:35}},
     {key:'multiGun',     label:'💥 Multi-Gun',      desc:'6-way spread, medium dmg',                                                          color:'#4ade80', cost:65,  tier2:{key:'tier2_multiGun',   label:'💥+ Wide Shotgun',      desc:'12-way, much wider spread + longer range',cost:42}},
-    {key:'frozenStaff',  label:'❄️ Frozen Staff',   desc:'Ice cone that slows hit enemies for 1.5s. Chill aura lingers after you stop.',     color:'#88ddff', cost:48,  tier2:{key:'tier2_frozenStaff',label:'❄️+ Deep Freeze',       desc:'After 3-4s of continuous hits, fully freezes the enemy for 1.5-2s',cost:36}},
+    {key:'frozenStaff',  label:'❄️ Frozen Staff',   desc:'Ice cone slows hit enemies. Tier 2: after 3s of hits, freezes enemy for 1.5s.',  color:'#88ddff', cost:48,  tier2:{key:'tier2_frozenStaff',label:'❄️+ Deep Freeze',       desc:'After 3s of continuous hits, fully freezes the enemy for 1.5s',cost:36}},
     {key:'friends',      label:'👾 Friends',        desc:'Orbital followers (1 per lvl, max 12). Each auto-aims & shoots! -12% fire rate.',  color:'#f0abfc', cost:30,  maxLvl:12, costPerLvl:l=>Math.floor(30+l*22)},
   ];
 
@@ -4583,11 +4583,11 @@ function startSpace() {
         }
         return Array.from({length:maxSlots},(_,si)=>{
           const inSlot=activeWeapons[si]===def.key;
-          return `<button onclick="spaceEquipWeapon('${def.key}',${si})" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${inSlot?`rgba(100,200,255,0.22)`:'rgba(255,255,255,0.07)'};border:1px solid ${inSlot?'rgba(100,200,255,0.6)':'rgba(255,255,255,0.2)'};color:${inSlot?'#60ddff':'#aaa'};padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:2px">${inSlot?'✓':'+'} S${si+1}</button>`;
+          return `<button onclick="spaceEquipWeapon('${def.key}',${si})" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${inSlot?`rgba(100,200,255,0.22)`:'rgba(255,255,255,0.07)'};border:1px solid ${inSlot?'rgba(100,200,255,0.6)':'rgba(255,255,255,0.2)'};color:${inSlot?'#60ddff':'#aaa'};padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:2px">${inSlot?'✓':'+'} T${si+1}</button>`;
         }).join('');
       })() : '';
       return `<div style="background:${active?'rgba(100,200,255,0.10)':'rgba(255,255,255,0.04)'};border:2px solid ${active?def.color:'rgba(255,255,255,0.1)'};border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;position:relative">
-        ${active?`<div style="position:absolute;top:5px;right:7px;font-family:var(--mono);font-size:8px;color:${def.color};font-weight:900">S${activeSlotIdx+1}</div>`:''}
+        ${active?`<div style="position:absolute;top:5px;right:7px;font-family:var(--mono);font-size:8px;color:${def.color};font-weight:900">T${activeSlotIdx+1}</div>`:''}
         <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#fff;white-space:nowrap">${def.label}</div>
         <div style="font-family:var(--mono);font-size:9px;color:#bbb;flex:1">${def.desc}</div>
         <div style="margin-top:${isFriends?'0':'4px'};flex-shrink:0;display:flex;flex-wrap:wrap;gap:3px">
@@ -4717,6 +4717,7 @@ function startSpace() {
   let _nukeFlash=0, _freezeFlash=0;
   let _minigunShooting=false; // track if minigun fired this frame
   let _towerGunBurstCount=0;  // counts bursts for tier2 double-shot every 4th
+  let _lastShownSec=-1; // prevents double-update on 120Hz displays
   let state='waiting', enemyTimer=90, difficulty=1, invincible=0, shootCooldown=0;
   // Multi-weapon slots: active weapons array (slot 0 = primary)
   let activeWeapon = 'default';
@@ -5018,7 +5019,17 @@ function startSpace() {
           deepFreeze:!!upgrades.tier2_frozenStaff,
         });
       }
-      shootCooldown=Math.floor(6*rapidMod);
+      // Frost SFX — icy crackle tones
+      const _ac=getACtx();if(_ac){
+        [480,640,820].forEach((f,i)=>setTimeout(()=>{
+          const g=_ac.createGain();g.gain.setValueAtTime(getSfxVol()*0.09,_ac.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+0.12);
+          const o=_ac.createOscillator();o.type='sine';o.frequency.setValueAtTime(f,_ac.currentTime);
+          o.frequency.linearRampToValueAtTime(f*1.15,_ac.currentTime+0.08);
+          o.connect(g);g.connect(_ac.destination);o.start();o.stop(_ac.currentTime+0.15);
+        },i*18));
+      }
+      shootCooldown=Math.floor(8*rapidMod); // 30% slower than before (was 6)
 
     } else {
       const cd=Math.floor(getShootCd()*rapidMod);
@@ -5055,7 +5066,7 @@ function startSpace() {
     const sizeRoll=Math.random();
     const sizeScale = sizeRoll<0.10 ? 3 : sizeRoll<0.30 ? 2 : 1;
     const finalSize = size * sizeScale;
-    const speed=(0.42+Math.random()*0.54)*Math.min(difficulty,3.5)*(sizeScale>1?0.75:1)*0.40; // halved overall speed
+    const speed=(0.42+Math.random()*0.54)*Math.min(difficulty,3.5)*(sizeScale>1?0.75:1)*0.36; // a bit slower
     const timeMins=survivalFrames/3600;
     const dmgScale=Math.max(1, getBulletDmg()*0.7);
     const timeHp=Math.floor(timeMins*0.35);
@@ -5138,7 +5149,7 @@ function startSpace() {
     score=0;lives=getMaxHp();frame=0;survivalFrames=0;
     try{_spaceDeathSfxPlayer?.pauseVideo();_spaceDeathSfxPlayer?.seekTo(0,true);}catch(e){}
     state='playing';enemyTimer=90;difficulty=1;invincible=0;shootCooldown=0;_deathFrame=0;silverLives=0;
-    _nukeFlash=0;_freezeFlash=0;_minigunShooting=false;_towerGunBurstCount=0;_autoShoot=false;
+    _nukeFlash=0;_freezeFlash=0;_minigunShooting=false;_towerGunBurstCount=0;_autoShoot=false;_lastShownSec=-1;
     activeWeapon='default';activeWeapons=['default'];
     window._spaceWeapon='default';
     // Pick a new random track on retry
@@ -5294,14 +5305,24 @@ function startSpace() {
       if(!e.img) return;
       _activeOverlayImgs.add(e.img);
       const sz = e.size;
-      // Convert world coords → screen coords using camera
       const screenX = e.x - cam.x;
       const screenY = e.y - cam.y;
       const sw = sz * scaleX, sh = sz * scaleY;
       const sx = (screenX - sz/2) * scaleX, sy = (screenY - sz/2) * scaleY;
-      // Hide if off-screen
-      if(sx+sw<0||sx>rect.width||sy+sh<0||sy>rect.height){
-        e.img.style.left=OFF; e.img.style.top=OFF; return;
+      const offScreen = sx+sw<0||sx>rect.width||sy+sh<0||sy>rect.height;
+      if(offScreen){
+        // Big/boss/titan: keep animated but invisible so WebP loop doesn't reset
+        if(e.isBoss||e.isTitan||e.isBig){
+          e.img.style.width  = sw + 'px';
+          e.img.style.height = sh + 'px';
+          e.img.style.left   = sx + 'px';
+          e.img.style.top    = sy + 'px';
+          e.img.style.display = 'block';
+          e.img.style.opacity = '0'; // invisible but animation keeps running
+        } else {
+          e.img.style.left=OFF; e.img.style.top=OFF;
+        }
+        return;
       }
       e.img.style.width  = sw + 'px';
       e.img.style.height = sh + 'px';
@@ -5364,8 +5385,9 @@ function startSpace() {
 
     if((state==='playing') && !shopOpen){
       survivalFrames++;
-      if(survivalFrames%60===0){
-        const secs=Math.floor(survivalFrames/60);
+      const secs=Math.floor(survivalFrames/60);
+      if(secs!==_lastShownSec){
+        _lastShownSec=secs;
         const el=document.getElementById('spaceTimer');
         if(el) el.textContent=Math.floor(secs/60)+':'+(secs%60<10?'0':'')+(secs%60);
       }
@@ -5453,7 +5475,7 @@ function startSpace() {
             const _wName=_wdef.label.replace(/^[^ ]+ /,'');
             const _t2Name=_hasT2?_wdef.tier2.label.replace(/^[^ ]+ /,'').replace(/\+/,'').trim():'';
             const _dispName=_hasT2?`${_wName} — ${_t2Name}`:_wName;
-            const slotLabel=maxSlots>1?`<span style="color:#666;font-size:9px;margin-right:2px">S${si+1}:</span>`:'';
+            const slotLabel=maxSlots>1?`<span style="color:#666;font-size:9px;margin-right:2px">T${si+1}:</span>`:'';
             hudParts.push(`<span style="display:inline-flex;align-items:center;color:${_wdef.color};font-weight:700;font-size:13px;border-right:1px solid rgba(255,255,255,0.12);padding-right:8px;margin-right:2px">${slotLabel}${_dispName}</span>`);
           }
         }
@@ -5660,11 +5682,11 @@ function startSpace() {
                 // Deep freeze tier2: track continuous hit duration
                 if(b.deepFreeze){
                   e.deepFreezeHits=(e.deepFreezeHits||0)+1;
-                  if(e.deepFreezeHits>=12&&!e.deepFrozen){ // ~3-4s of consistent hits at 3/s
-                    e.deepFrozen=Math.floor(90+Math.random()*30); // 1.5-2s freeze
+                  if(e.deepFreezeHits>=9&&!e.deepFrozen){ // ~3s of continuous hits at ~3/s
+                    e.deepFrozen=90; // exactly 1.5s freeze
                     e.deepFreezeHits=0;
                     spawnParticles(e.x,e.y,'#88ddff',20);
-                    playTone(330,'sine',0.15,0.3);
+                    playTone(330,'sine',0.15,0.3);setTimeout(()=>playTone(500,'sine',0.1,0.25),80);
                   }
                 }
               }
