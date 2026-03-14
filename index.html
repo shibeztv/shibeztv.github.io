@@ -4641,7 +4641,7 @@ function startSpace() {
   };
 
   function getShipSpeed()   { return 1.90*(1+upgrades.speed*0.13); } // 1.5.3: -15% base speed
-  function getShootCd()     { const base=Math.max(5,Math.floor(84-upgrades.atkSpeed*2)); return upgrades.tier2_default ? Math.max(4,Math.floor(base*0.75)) : base; }
+  function getShootCd()     { const base=Math.max(5,Math.floor(47-upgrades.atkSpeed*2)); return upgrades.tier2_default ? Math.max(4,Math.floor(base*0.75)) : base; }
   function getBulletCount() { return 1+upgrades.multishot+(_hasPowerup('triple')?2:0)+(_hasPowerup('double')?1:0); }
   function getBulletDmg()   { return 1+upgrades.damage; }
   function getBulletSize()   { return 1.15+upgrades.bulletSize*0.2; } // 15% wider base
