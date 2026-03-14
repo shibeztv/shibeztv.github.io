@@ -1369,7 +1369,7 @@
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
             <div style="display:flex;flex-direction:column;gap:1px">
-              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.5.2</span></span>
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.5.3</span></span>
               <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · E shop · P pause</span>
             </div>
           </div>
@@ -3993,48 +3993,63 @@ function startFlappy() {
   let _canvasRect = null;
   function getCanvasRect(){ if(!_canvasRect || frame%60===0) _canvasRect=canvas.getBoundingClientRect(); return _canvasRect; }
 
+  // Track which imgs are in use this frame
+  const _activeOverlayImgs = new Set();
+
   function positionEmoteOverlays(){
     if(!_emoteLayer) return;
     const rect = getCanvasRect();
     const scaleX = rect.width / canvas.width;
     const scaleY = rect.height / canvas.height;
+    const OFF = '-9999px'; // off-screen position for unused imgs
 
-    // Hide all overlays first
-    Array.from(_emoteLayer.querySelectorAll('.space-emote-overlay')).forEach(el=>{
-      el.style.display='none';
-    });
+    _activeOverlayImgs.clear();
 
-    // Position enemies
+    // Position enemies — NEVER set display:none (kills animation), move off-screen instead
     const isFrozen = _hasPowerup('freeze');
     enemies.forEach(e=>{
       if(!e.img) return;
+      _activeOverlayImgs.add(e.img);
       const sz = e.size;
-      const sx = (e.x - sz/2) * scaleX;
-      const sy = (e.y - sz/2) * scaleY;
       const sw = sz * scaleX;
       const sh = sz * scaleY;
-      e.img.style.display='block';
-      e.img.style.width = sw+'px';
-      e.img.style.height = sh+'px';
-      e.img.style.left = sx+'px';
-      e.img.style.top = sy+'px';
+      const sx = (e.x - sz/2) * scaleX;
+      const sy = (e.y - sz/2) * scaleY;
+      e.img.style.width  = sw + 'px';
+      e.img.style.height = sh + 'px';
+      e.img.style.left   = sx + 'px';
+      e.img.style.top    = sy + 'px';
+      e.img.style.display = 'block';
+      e.img.style.opacity = '1';
       e.img.style.borderRadius = '50%';
       e.img.style.filter = isFrozen ? 'hue-rotate(195deg) saturate(1.5) brightness(0.85)' : '';
-      e.img.style.opacity = (invincible>0 && e===null) ? '0.5' : '1';
     });
 
-    // Position ship (show inside UFO dome)
+    // Move unused enemy imgs off-screen (not display:none — that resets animation!)
+    Array.from(_emoteLayer.querySelectorAll('.space-emote-overlay')).forEach(el=>{
+      if(el === shipImg) return; // handle ship separately
+      if(!_activeOverlayImgs.has(el)){
+        el.style.left = OFF;
+        el.style.top  = OFF;
+      }
+    });
+
+    // Ship: move off-screen when invisible instead of display:none
     const DOME_R = 18;
     const domeSize = DOME_R * 1.55 * scaleX;
-    const sx = (ship.x - domeSize/2) * scaleX;
-    const sy = (ship.y - 2 - DOME_R - domeSize*0.05) * scaleY;
-    shipImg.style.display = (state==='dead' || (invincible>0 && Math.floor(frame/5)%2===1)) ? 'none' : 'block';
-    shipImg.style.width = domeSize+'px';
-    shipImg.style.height = domeSize+'px';
-    shipImg.style.left = sx+'px';
-    shipImg.style.top = sy+'px';
-    shipImg.style.borderRadius = '50%';
-    shipImg.style.filter = '';
+    const shipHide = state==='dead' || (invincible>0 && Math.floor(frame/5)%2===1);
+    if(shipHide){
+      shipImg.style.left = OFF;
+      shipImg.style.top  = OFF;
+    } else {
+      shipImg.style.width  = domeSize + 'px';
+      shipImg.style.height = domeSize + 'px';
+      shipImg.style.left   = ((ship.x - domeSize/2) * scaleX) + 'px';
+      shipImg.style.top    = ((ship.y - 2 - DOME_R - domeSize*0.05) * scaleY) + 'px';
+      shipImg.style.display = 'block';
+      shipImg.style.borderRadius = '50%';
+      shipImg.style.filter = '';
+    }
   }
 
   function loop() {
@@ -4477,12 +4492,16 @@ function startSpace() {
     const i = document.createElement('img');
     i.crossOrigin='anonymous'; i.src=url;
     i.className='space-emote-overlay';
+    i.style.display='block'; // never hide — keep animation running
+    i.style.left='-9999px'; i.style.top='-9999px'; // start off-screen
     i.dataset.emoteIdx=idx;
     if(_emoteLayer) _emoteLayer.appendChild(i);
     return i;
   });
-  // Ship img in overlay layer
+  // Ship img in overlay layer — always display:block, move off-screen to hide
   shipImg.className='space-emote-overlay';
+  shipImg.style.display='block';
+  shipImg.style.left='-9999px'; shipImg.style.top='-9999px';
   if(_emoteLayer) _emoteLayer.appendChild(shipImg);
 
   // Coin emote images
@@ -4511,7 +4530,7 @@ function startSpace() {
 
   const _pAngles=[0,Math.PI*0.5,Math.PI,Math.PI*1.5,Math.PI*0.25];
   const planets = Array.from({length:5}, (_,pi)=>{
-    const spd=0.07+Math.random()*0.08;
+    const _baseSpeeds=[0.030,0.055,0.025,0.045,0.038]; const spd=(_baseSpeeds[pi]||0.035)+Math.random()*0.022;
     const ang=_pAngles[pi]+(Math.random()-0.5)*0.4;
     return {
       x: pi<3 ? Math.random()*W : W+200+pi*400+Math.random()*200,
@@ -4551,7 +4570,7 @@ function startSpace() {
   function saveCoins(n){coins=n;window._spaceCoins=n;document.getElementById('spaceCoins').textContent=coins;document.getElementById('shopCoinsDisp').textContent=coins;}
 
   const WEAPON_DEFS = [
-    {key:'default',     label:'🔫 Default',      desc:'Balanced auto fire',         color:'#60ddff', cost:0,      tier2:{key:'tier2_default',    label:'🔫+ Double-Shot',        desc:'Always fires 2 bullets',      cost:15}},
+    {key:'default',     label:'🔫 Default',      desc:'Balanced auto fire',         color:'#60ddff', cost:0,      tier2:{key:'tier2_default',    label:'🔫+ Double-Shot',        desc:'2 bullets + 25% fire speed',  cost:15}},
     {key:'sniper',      label:'🔴 Laser Gun',      desc:'Piercing laser beam, insane dmg, slow cooldown', color:'#ff6644', cost:25, tier2:{key:'tier2_sniper',  label:'🔴+ Wide Laser',         desc:'Wider beam, slightly faster',  cost:20}},
     {key:'minigun',     label:'⚙️ Minigun',       desc:'5-6 bullet spray, rapid fire, low dmg each',    color:'#fbbf24', cost:30, tier2:{key:'tier2_minigun', label:'⚙️+ Heavy Minigun',      desc:'9 bullets, wider spread, faster', cost:20}},
     {key:'towerGun',    label:'🗼 Tower Gun',     desc:'8-shot radial burst in all directions',         color:'#a855f7', cost:35, tier2:{key:'tier2_towerGun',label:'🗼+ Rotating Ring',       desc:'Shots orbit & rotate on spawn',cost:22}},
@@ -4685,7 +4704,7 @@ function startSpace() {
   };
 
   function getShipSpeed()   { return 2.38*(1+upgrades.speed*0.13); } // 1.5.3: -15% base speed
-  function getShootCd()     { return Math.max(4,Math.floor(15-upgrades.atkSpeed*2)); } // 1.3.1: default gun 20% faster
+  function getShootCd()     { const base=Math.max(5,Math.floor(21-upgrades.atkSpeed*2)); return upgrades.tier2_default ? Math.max(4,Math.floor(base*0.75)) : base; }
   function getBulletCount() { return 1+upgrades.multishot+(_hasPowerup('triple')?2:0)+(_hasPowerup('double')?1:0); }
   function getBulletDmg()   { return 1+upgrades.damage; }
   function getBulletSize()   { return 1.15+upgrades.bulletSize*0.2; } // 15% wider base
