@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shibez VOD Archive v2.1</title>
+<title>Shibez VOD Archive</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600&family=DM+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -4483,8 +4483,9 @@ function startSpace() {
 
   // ── Wreck emote image for abandoned ships
   const _wreckImg = new Image(); _wreckImg.crossOrigin='anonymous';
-  _wreckImg.src='https://cdn.7tv.app/emote/01FRGDJAEG0007ABTNBF6YJW54/2x.webp';
-  if(_imgPool){ _wreckImg.style.cssText='position:absolute;width:1px;height:1px;'; _imgPool.appendChild(_wreckImg); }
+  _wreckImg.src='https://cdn.7tv.app/emote/01FRGDJAEG0007ABTNBF6YJW54/3x.webp';
+  // Keep in imgPool so it doesn't get garbage collected
+  if(_imgPool){ const _wi=_wreckImg.cloneNode(); _wi.style.cssText='position:absolute;left:-9999px;top:0;width:1px;height:1px;'; _imgPool.appendChild(_wi); }
 
   // ── Abandoned ships — 5 scattered across the world map
   // HP: 50–250 (tiered). Destruction spawns 1–3 (50hp) / 3–6 (100hp) / 8–16 (200+hp) enemies
@@ -5896,6 +5897,7 @@ function startSpace() {
       const hpPct=as.hp/as.maxHp;
       // Draw the wreck emote image (rotated slightly for character)
       if(_wreckImg.complete&&_wreckImg.naturalWidth>0){
+        ctx.save();
         ctx.translate(as.x,as.y);
         ctx.rotate(as.rotation||0);
         const damageAlpha=0.55+0.45*hpPct; // fades slightly as damaged
@@ -5915,7 +5917,7 @@ function startSpace() {
           const sparkY=(Math.cos(as.y*0.01+frame*0.04)*as.size*0.3);
           ctx.beginPath();ctx.arc(sparkX,sparkY,3+2*(1-hpPct),0,Math.PI*2);ctx.fill();
         }
-        ctx.setTransform(1,0,0,1,0,0); // reset transform
+        ctx.restore(); // restores rotation only — camera translate preserved
       } else {
         // Fallback geometric if emote not loaded
         ctx.globalAlpha=0.8;
