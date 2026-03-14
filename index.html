@@ -1258,6 +1258,13 @@
     font-variant-numeric: lining-nums tabular-nums;
   }
 
+  #spacePauseBtn:hover {
+    background: rgba(74,222,128,0.15) !important;
+    border-color: #4ade80 !important;
+    color: #4ade80 !important;
+    transform: scale(1.12);
+  }
+  #spacePauseBtn { transition: all 0.12s; }
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
   <link rel="icon" type="image/png" href="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-70x70.png">
@@ -1335,7 +1342,7 @@
         style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
         onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
         onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🚀 SPACEBEZ 1.1
+        🚀 SPACEBEZ 1.2.1.1
       </button>
     </div>
 
@@ -1350,7 +1357,7 @@
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
             <div style="display:flex;flex-direction:column;gap:1px">
-              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.1</span></span>
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.2.1</span></span>
               <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · E shop · P pause</span>
             </div>
           </div>
@@ -4136,20 +4143,64 @@ function setSpaceMusicVol(v) {
   if (active && active.setVolume) { active.unMute(); active.setVolume(parseInt(v)); }
 }
 
+// ── Background music playlist (random order, equal weight)
+const _BG_TRACKS = [
+  { id:'UDVtMYqUAyw', title:'Interstellar Main Theme' },
+  { id:'_lXLz-E3syE', title:'Heolstor the Nightlord' },
+  { id:'TCd6PfxOy0Y', title:'Daft Punk - Veridis Quo' },
+  { id:'1CGMk_roNaE', title:'The Toxic Avenger - Make this Right' },
+  { id:'nf30qQzw7rk', title:'Subnautica - Abandon Ship' },
+  { id:'ysPtBjY8o_A', title:'Chris Christodoulou - Coalescence' },
+];
+let _bgTrackIdx = Math.floor(Math.random() * _BG_TRACKS.length);
+let _songTitleTimer = 0; // frames to show title
+let _songTitleText = '';
+
+function _nextBgTrack() {
+  // Pick a different random track
+  let next;
+  do { next = Math.floor(Math.random() * _BG_TRACKS.length); } while(next === _bgTrackIdx && _BG_TRACKS.length > 1);
+  _bgTrackIdx = next;
+  return _BG_TRACKS[_bgTrackIdx];
+}
+
+function _loadBgTrack(track) {
+  if (!_spaceMusicPlayer) return;
+  try {
+    _spaceMusicPlayer.loadVideoById(track.id);
+    const vol = parseInt(document.getElementById('spaceMusicVol')?.value||25);
+    _spaceMusicPlayer.setVolume(vol);
+    if (_spaceMusicMuted || _spaceAllMuted) _spaceMusicPlayer.mute();
+    else _spaceMusicPlayer.unMute();
+    _songTitleText = track.title;
+    _songTitleTimer = 360; // 6 seconds at 60fps
+  } catch(e) {}
+}
+
 function initSpaceMusic() {
   const vol = parseInt(document.getElementById('spaceMusicVol')?.value||25);
+  const startTrack = _BG_TRACKS[_bgTrackIdx];
   // Main music
   if (!_spaceMusicPlayer) {
     if (typeof YT === 'undefined' || !YT.Player) { setTimeout(initSpaceMusic, 500); return; }
     _spaceMusicPlayer = new YT.Player('spaceMusicEl', {
-      videoId: 'UDVtMYqUAyw',
-      playerVars: { autoplay:1, loop:1, list:'RDUDVtMYqUAyw', listType:'playlist', controls:0, fs:0, origin:location.origin },
+      videoId: startTrack.id,
+      playerVars: { autoplay:1, controls:0, fs:0, origin:location.origin },
       events: {
-        onReady: e => { e.target.setVolume(vol); if(!_spaceMusicMuted) e.target.playVideo(); else e.target.mute(); },
-        onStateChange: e => { if(e.data===YT.PlayerState.ENDED && !_spaceInShop) e.target.playVideo(); }
+        onReady: e => {
+          e.target.setVolume(vol);
+          if(!_spaceMusicMuted && !_spaceAllMuted) e.target.playVideo(); else e.target.mute();
+          _songTitleText = startTrack.title;
+          _songTitleTimer = 360;
+        },
+        onStateChange: e => {
+          if(e.data === YT.PlayerState.ENDED && !_spaceInShop) {
+            _loadBgTrack(_nextBgTrack());
+          }
+        }
       }
     });
-  } else { try { if(!_spaceInShop && !_spaceMusicMuted) _spaceMusicPlayer.playVideo(); } catch(e){} }
+  } else { try { if(!_spaceInShop && !_spaceMusicMuted && !_spaceAllMuted) _spaceMusicPlayer.playVideo(); } catch(e){} }
   // Shop music (preload silently)
   if (!_spaceShopMusicPlayer) {
     _spaceShopMusicPlayer = new YT.Player('spaceShopMusicEl', {
@@ -4261,11 +4312,14 @@ function spaceShopToggle() {
   } else {
     // Closing shop — restore pre-shop state
     shop.style.display = 'none';
-    switchToMainMusic();
     if (_stateBeforeShop === 'paused') {
       if (window._spaceSetState) window._spaceSetState('paused');
+      stopAllSpaceMusic(); // was paused before shop, stop music again
     } else if (_stateBeforeShop === 'playing') {
       if (window._spaceSetState) window._spaceSetState('playing');
+      switchToMainMusic(); // was playing, resume main
+    } else {
+      switchToMainMusic();
     }
     _stateBeforeShop = null;
   }
@@ -4297,11 +4351,11 @@ function toggleSpacePause() {
   if (state === 'paused') {
     window._spaceSetState('playing');
     if (btn) { btn.textContent = '⏸'; btn.style.color = '#aaa'; }
-    resumeSpaceMusic();
+    resumeSpaceMusic(); // resume main music when unpausing
   } else if (state === 'playing') {
     window._spaceSetState('paused');
     if (btn) { btn.textContent = '▶'; btn.style.color = '#4ade80'; }
-    pauseSpaceMusic();
+    stopAllSpaceMusic(); // stop ALL music when pausing
     try { _spaceDeathSfxPlayer?.pauseVideo(); } catch(e){}
   }
 }
@@ -4447,9 +4501,14 @@ function startSpace() {
             if(!def.tier2||!owned) return '';
             const t2key=def.tier2.key;const t2owned=upgrades[t2key]>0;
             const t2afford=coins>=def.tier2.cost&&!t2owned;
-            return `<div style="margin-top:6px;border-top:1px solid rgba(255,255,255,0.1);padding-top:5px;font-family:var(--mono);font-size:9px">
-              <span style="color:${def.color};font-weight:700">${def.tier2.label}</span> <span style="color:#888">${def.tier2.desc}</span>
-              <div style="margin-top:3px">${t2owned?'<span style="color:#4ade80;font-size:9px;font-weight:700">✓ UNLOCKED</span>':`<button onclick="spaceBuyTier2('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${t2afford?'rgba(255,215,0,0.18)':'rgba(255,255,255,0.05)'};border:1px solid ${t2afford?'rgba(255,215,0,0.4)':'rgba(255,255,255,0.1)'};color:${t2afford?'#ffd700':'#555'};padding:2px 8px;border-radius:3px;cursor:${t2afford?'pointer':'default'}">🪙 ${def.tier2.cost}</button>`}</div>
+            return `<div style="margin-top:7px;border-top:1px solid ${def.color}33;padding-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <div style="flex:1;min-width:0">
+                <div style="font-family:var(--mono);font-size:10px;font-weight:800;color:${def.color}">${def.tier2.label}</div>
+                <div style="font-family:var(--mono);font-size:8px;color:#888;margin-top:1px">${def.tier2.desc}</div>
+              </div>
+              ${t2owned
+                ? '<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900;white-space:nowrap">✓ ACTIVE</span>'
+                : `<button onclick="spaceBuyTier2('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${t2afford?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.05)'};border:1px solid ${t2afford?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.1)'};color:${t2afford?'#ffd700':'#555'};padding:3px 10px;border-radius:3px;cursor:${t2afford?'pointer':'default'};white-space:nowrap">⬆ UPGRADE 🪙${def.tier2.cost}</button>`}
             </div>`;
           })()}
         </div>
@@ -4751,6 +4810,9 @@ function startSpace() {
       // Default — aim-directed with multishot support
       const cd=Math.floor(getShootCd()*rapidMod);
       const count=Math.max(upgrades.tier2_default?2:1,getBulletCount());
+      if(upgrades.tier2_default){// also fire behind
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+Math.PI)*10,vy:Math.sin(baseAngle+Math.PI)*10,dmg:Math.max(1,Math.floor(dmg*0.7)),size:sz});
+      }
       const offsets=count===1?[0]:count===2?[-0.12,0.12]:count===3?[-0.2,0,0.2]:[-0.25,-0.08,0.08,0.25];
       offsets.forEach(da=>{
         const a=baseAngle+da;
@@ -4770,7 +4832,7 @@ function startSpace() {
   // Enemies spawn from ALL sides
   function spawnEnemy() {
     const img=enemyImgs[Math.floor(Math.random()*enemyImgs.length)];
-    const size=28+Math.random()*22;
+    const size=(28+Math.random()*22)*0.90; // 10% smaller
     // Pick spawn edge: 0=top 1=right 2=bottom 3=left
     const edge=Math.floor(Math.random()*4);
     let x,y;
@@ -5436,20 +5498,20 @@ function startSpace() {
         const beamLen=Math.sqrt(W*W+H*H)*1.1;
         const bw=(b.width||6)*t;
         ctx.translate(b.x,b.y);ctx.rotate(angle);
-        // Outer glow
+        // Outer glow (subtle)
         const og=ctx.createLinearGradient(0,0,beamLen,0);
-        og.addColorStop(0,`rgba(255,100,50,${0.25*t})`);og.addColorStop(0.6,`rgba(255,60,20,${0.1*t})`);og.addColorStop(1,'rgba(255,40,0,0)');
-        ctx.strokeStyle=og;ctx.lineWidth=bw*3.5;ctx.lineCap='round';
+        og.addColorStop(0,`rgba(255,80,30,${0.12*t})`);og.addColorStop(0.5,`rgba(255,50,10,${0.06*t})`);og.addColorStop(1,'rgba(255,30,0,0)');
+        ctx.strokeStyle=og;ctx.lineWidth=bw*2.2;ctx.lineCap='round';
         ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(beamLen,0);ctx.stroke();
-        // Core beam
+        // Core beam — fades out as life drops
         const cg=ctx.createLinearGradient(0,0,beamLen,0);
-        cg.addColorStop(0,`rgba(255,220,180,${t})`);cg.addColorStop(0.3,`rgba(255,80,20,${0.9*t})`);cg.addColorStop(1,'rgba(255,40,0,0)');
+        cg.addColorStop(0,`rgba(255,180,120,${t*0.85})`);cg.addColorStop(0.35,`rgba(255,60,10,${0.7*t})`);cg.addColorStop(1,'rgba(255,30,0,0)');
         ctx.strokeStyle=cg;ctx.lineWidth=bw;
         ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(beamLen,0);ctx.stroke();
-        // Bright origin flash
-        const og2=ctx.createRadialGradient(0,0,0,0,0,bw*3);
-        og2.addColorStop(0,`rgba(255,255,200,${t})`);og2.addColorStop(1,'rgba(255,80,0,0)');
-        ctx.fillStyle=og2;ctx.beginPath();ctx.arc(0,0,bw*3,0,Math.PI*2);ctx.fill();
+        // Small dim origin point (no big flash)
+        const og2=ctx.createRadialGradient(0,0,0,0,0,bw*1.5);
+        og2.addColorStop(0,`rgba(255,200,150,${t*0.6})`);og2.addColorStop(1,'rgba(255,60,0,0)');
+        ctx.fillStyle=og2;ctx.beginPath();ctx.arc(0,0,bw*1.5,0,Math.PI*2);ctx.fill();
 
       } else if(wt==='minigun'){
         // Minigun — tiny fast yellow/white round
@@ -5703,6 +5765,31 @@ function startSpace() {
       }
       ctx.globalAlpha=1;
       ctx.restore();
+    }
+
+    // ── Song title notification (bottom right, fades in/out)
+    if(_songTitleTimer>0){
+      _songTitleTimer--;
+      const SHOW=360, FADE=60;
+      let alpha;
+      if(_songTitleTimer>SHOW-FADE) alpha=(SHOW-_songTitleTimer)/FADE; // fade in
+      else if(_songTitleTimer<FADE)  alpha=_songTitleTimer/FADE;        // fade out
+      else                           alpha=1;
+      if(alpha>0){
+        ctx.save();
+        ctx.globalAlpha=alpha*0.9;
+        const titleFontPx=Math.min(13,Math.floor(W*0.022));
+        ctx.font=`${titleFontPx}px monospace`;
+        const noteW=ctx.measureText('♪ '+_songTitleText).width+18;
+        const noteH=titleFontPx+14;
+        const nx=W-noteW-10, ny=H-noteH-42; // above HP bar
+        ctx.fillStyle='rgba(10,10,25,0.75)';
+        ctx.beginPath();ctx.roundRect(nx,ny,noteW,noteH,5);ctx.fill();
+        ctx.strokeStyle='rgba(124,92,252,0.4)';ctx.lineWidth=1;ctx.stroke();
+        ctx.fillStyle='#c4b5fd';
+        ctx.fillText('♪ '+_songTitleText,nx+9,ny+noteH*0.7);
+        ctx.restore();
+      }
     }
     _spaceRAF=requestAnimationFrame(loop);
   }
