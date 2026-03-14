@@ -1342,7 +1342,7 @@
         style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
         onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
         onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🚀 SPACEBEZ 1.3
+        🚀 SPACEBEZ
       </button>
     </div>
 
@@ -1351,13 +1351,14 @@
       <div style="background:#050510;border:1px solid #1a1a3a;border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;max-width:100%;max-height:100%;overflow-y:hidden">
         <div id="spaceMusicEl" style="display:none"></div>
         <div id="spaceShopMusicEl" style="display:none"></div>
+        <div id="spaceShopMusicEl2" style="display:none"></div>
         <div id="spaceDeathSfxEl" style="display:none"></div>
 
         <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box;gap:8px;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
             <div style="display:flex;flex-direction:column;gap:1px">
-              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.4</span></span>
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.5</span></span>
               <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · E shop · P pause</span>
             </div>
           </div>
@@ -1389,7 +1390,7 @@
           <div style="font-family:var(--mono);font-size:15px;font-weight:900;color:#ffd700;letter-spacing:2px;margin-bottom:4px">🛒 UPGRADE SHOP</div>
           <div style="font-family:var(--mono);font-size:11px;color:#aaa;margin-bottom:8px">🪙 <span id="shopCoinsDisp" style="color:#ffd700;font-weight:900">0</span> coins &nbsp;·&nbsp; E/Tab to close &nbsp;·&nbsp; After Death = You keep half of current coins 🪙 + 1🪙 / every 10 score</div>
           <div id="shopGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;max-width:900px;overflow-y:auto;max-height:68vh"></div>
-          <div style="margin-top:8px;font-family:var(--mono);font-size:9px;color:#4a3a6a;letter-spacing:0.5px">♪ Shop music: Motoi Sakuraba — Majula</div>
+          <div class="shopMusicLabel" style="margin-top:8px;font-family:var(--mono);font-size:9px;color:#4a3a6a;letter-spacing:0.5px">♪ Shop music: Motoi Sakuraba — Majula</div>
           </div>
         </div>
       </div>
@@ -4205,15 +4206,32 @@ function initSpaceMusic() {
     });
   } else { try { if(!_spaceInShop && !_spaceMusicMuted && !_spaceAllMuted) _spaceMusicPlayer.playVideo(); } catch(e){} }
   // Shop music (preload silently)
+  const _SHOP_TRACKS = [
+    {id:'BeJ-Kscdp4w', title:'Motoi Sakuraba — Majula'},
+    {id:'tCZFx6cx7w8', title:"Yuji Takenouchi — A Moment's Peace"}
+  ];
+  if(!window._shopTrackIdx) window._shopTrackIdx = Math.floor(Math.random()*_SHOP_TRACKS.length);
+  const _shopT = _SHOP_TRACKS[window._shopTrackIdx];
+  // Update shop music label
+  const _sml = document.querySelector('#spaceShop .shopMusicLabel');
+  if(_sml) _sml.textContent = '♪ Shop music: ' + _shopT.title;
+
   if (!_spaceShopMusicPlayer) {
     _spaceShopMusicPlayer = new YT.Player('spaceShopMusicEl', {
-      videoId: 'BeJ-Kscdp4w',
-      playerVars: { autoplay:0, loop:1, list:'RDBeJ-Kscdp4w', listType:'playlist', controls:0, fs:0, origin:location.origin },
+      videoId: _shopT.id,
+      playerVars: { autoplay:0, controls:0, fs:0, origin:location.origin },
       events: {
         onReady: e => { e.target.setVolume(vol); e.target.pauseVideo(); },
-        onStateChange: e => { if(e.data===YT.PlayerState.ENDED && _spaceInShop) e.target.playVideo(); }
+        onStateChange: e => { if(e.data===YT.PlayerState.ENDED && _spaceInShop) e.target.seekTo(0,true); }
       }
     });
+  } else {
+    // Randomise shop track each time shop is re-entered
+    window._shopTrackIdx = Math.floor(Math.random()*_SHOP_TRACKS.length);
+    const _st2=_SHOP_TRACKS[window._shopTrackIdx];
+    try{_spaceShopMusicPlayer.loadVideoById(_st2.id);_spaceShopMusicPlayer.setVolume(vol);_spaceShopMusicPlayer.pauseVideo();}catch(e){}
+    const _sml2 = document.querySelector('#spaceShop .shopMusicLabel');
+    if(_sml2) _sml2.textContent = '♪ Shop music: ' + _st2.title;
   }
 }
 
@@ -4313,6 +4331,8 @@ function spaceShopToggle() {
     shop.style.display = 'flex';
     renderShopGrid(); switchToShopMusic();
     const _sb=document.getElementById('spaceSkipBtn');if(_sb){_sb.style.opacity='0.3';_sb.style.cursor='not-allowed';}
+    // randomise shop track on each open
+    if(window._spaceShopMusicPlayer&&window._SHOP_TRACKS){const _si=Math.floor(Math.random()*window._SHOP_TRACKS.length);const _st=window._SHOP_TRACKS[_si];try{window._spaceShopMusicPlayer.loadVideoById(_st.id);}catch(e){}const _sml=document.querySelector('#spaceShop .shopMusicLabel');if(_sml)_sml.textContent='♪ Shop music: '+_st.title;}
   } else {
     // Closing shop — restore pre-shop state
     shop.style.display = 'none';
@@ -4374,7 +4394,8 @@ function startSpace() {
 
   // ── Preload emotes (pilot emotes for UFO + enemies)
   const shipEmote = _spaceEmotes[Math.floor(Math.random() * _spaceEmotes.length)];
-  const shipImg = new Image(); shipImg.crossOrigin='anonymous'; shipImg.src = shipEmote.url;
+  const _shipUrl = shipEmote.animated ? `https://cdn.7tv.app/emote/${shipEmote.id}/2x.gif` : shipEmote.url;
+  const shipImg = new Image(); shipImg.crossOrigin='anonymous'; shipImg.src = _shipUrl;
 
   const enemyPool = _spaceEmotes.filter(e=>e.url!==shipEmote.url).sort(()=>Math.random()-0.5).slice(0,24);
   // Add imgs to DOM so GIFs animate (canvas draws live frame from DOM img)
@@ -4388,9 +4409,11 @@ function startSpace() {
     _imgPool.innerHTML='';
   }
   const enemyImgs = enemyPool.map(e=>{
-    const i=new Image(); i.crossOrigin='anonymous'; i.src=e.url;
+    const animated = e.animated || false;
+    const url = animated ? `https://cdn.7tv.app/emote/${e.id}/2x.gif` : e.url;
+    const i=new Image(); i.crossOrigin='anonymous'; i.src=url;
     i.style.cssText='position:absolute;width:32px;height:32px;image-rendering:auto;';
-    if(_imgPool) _imgPool.appendChild(i);
+    if(_imgPool) _imgPool.appendChild(i); // in DOM = GIF animates live
     return i;
   });
   // Also add ship img to pool
@@ -4398,9 +4421,10 @@ function startSpace() {
   if(_imgPool) _imgPool.appendChild(shipImg);
 
   // ── Stars
-  const stars = Array.from({length:160}, ()=>({
+  const stars = Array.from({length:200}, ()=>({
     x:Math.random()*W, y:Math.random()*H,
-    r:Math.random()*1.5+0.2, speed:0.07+Math.random()*0.18, a:0.3+Math.random()*0.7
+    r:Math.random()*1.5+0.2, a:0.2+Math.random()*0.8,
+    phase:Math.random()*Math.PI*2, rate:0.004+Math.random()*0.008
   }));
 
   // ── Planet emote base image
@@ -4410,7 +4434,7 @@ function startSpace() {
   _planetEmoteImg.src='https://cdn.7tv.app/emote/01F00Z3A9G0007E4VV006YKSK9/2x.webp';
   if(_imgPool){ _planetEmoteImg.style.cssText='position:absolute;width:1px;height:1px;'; _imgPool.appendChild(_planetEmoteImg); }
 
-  const planets = Array.from({length:2}, (_,pi)=>({
+  const planets = Array.from({length:5}, (_,pi)=>({
     x: W+400+pi*700+Math.random()*300, y:80+Math.random()*(H-160),
     r:10+Math.random()*14, speed:0.07+Math.random()*0.08,
     hue:PLANET_HUES[Math.floor(Math.random()*PLANET_HUES.length)],
@@ -5299,8 +5323,8 @@ function startSpace() {
               const coinCount=(e.sizeScale||1)+(Math.random()<0.35?1:0)+riskBonus;
               for(let ci=0;ci<coinCount;ci++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');
               const roll=Math.random();
-              if(roll<0.04)spawnDrop(e.x,e.y,'heart');
-              else if(roll<0.06)spawnDrop(e.x,e.y,'silverheart');
+              if(roll<0.09)spawnDrop(e.x,e.y,'heart');
+              else if(roll<0.12)spawnDrop(e.x,e.y,'silverheart');
               else if(roll<0.09)spawnDrop(e.x,e.y,'explosion');
               else if(roll<0.12)spawnDrop(e.x,e.y,'freeze');
               else if(roll<0.14)spawnDrop(e.x,e.y,'magnet');
@@ -5335,8 +5359,8 @@ function startSpace() {
               const coinCount=(e.sizeScale||1)+(Math.random()<0.35?1:0)+riskBonus;
               for(let ci=0;ci<coinCount;ci++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');
               const roll=Math.random();
-              if(roll<0.04) spawnDrop(e.x,e.y,'heart');
-              else if(roll<0.06) spawnDrop(e.x,e.y,'silverheart');
+              if(roll<0.09) spawnDrop(e.x,e.y,'heart');
+              else if(roll<0.12) spawnDrop(e.x,e.y,'silverheart');
               else if(roll<0.09) spawnDrop(e.x,e.y,'explosion');
               else if(roll<0.12) spawnDrop(e.x,e.y,'freeze');
               else if(roll<0.14) spawnDrop(e.x,e.y,'magnet');
@@ -5458,7 +5482,7 @@ function startSpace() {
       enemies=enemies.filter(e=>e.x>-120&&e.x<W+120&&e.y>-120&&e.y<H+120);
       particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=0.93;p.vy*=0.93;p.life--;});
       particles=particles.filter(p=>p.life>0);
-      stars.forEach(s=>{s.x-=s.speed;if(s.x<0){s.x=W;s.y=Math.random()*H;}});
+      // stars: no movement, fade only
       planets.forEach(p=>{p.x-=p.speed;if(p.x<-p.r*3){p.x=W+p.r*2+Math.random()*500;p.y=80+Math.random()*(H-160);}});
     }
 
@@ -5467,7 +5491,7 @@ function startSpace() {
 
     // Stars
     stars.forEach(s=>{
-      ctx.globalAlpha=s.a*(0.75+0.25*Math.sin(frame*0.004+s.x*0.01));
+      ctx.globalAlpha=s.a*Math.abs(Math.sin(frame*s.rate+s.phase));
       ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
     });
     ctx.globalAlpha=1;
@@ -5512,11 +5536,20 @@ function startSpace() {
       const gr=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,18);
       gr.addColorStop(0,col+'55');gr.addColorStop(1,col+'00');
       ctx.fillStyle=gr;ctx.beginPath();ctx.arc(d.x,d.y,18,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle=col;ctx.beginPath();ctx.arc(d.x,d.y,13,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.stroke();
-      // Custom icon per powerup type
+      const PR=11; // 1.5: 15% smaller
+      ctx.fillStyle=col;ctx.beginPath();ctx.arc(d.x,d.y,PR,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1.5;ctx.stroke();
+      // Emoji icon centered on circle
+      // Emoji icon on circle (all types)
       ctx.save();ctx.translate(d.x,d.y);
-      const iconSize=9;
+      const iconSize=8;
+      const _emojiMap={shield:'🛡️',freeze:'❄️',double:'💥',triple:'💥',rapid:'⚡',magnet:'🧲',heart:'❤️',silverheart:'💛',riskReward:'⚠️'};
+      if(_emojiMap[d.type]){
+        ctx.font='11px serif';ctx.textAlign='center';ctx.fillStyle='#fff';
+        ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=3;
+        ctx.fillText(_emojiMap[d.type],0,4);ctx.shadowBlur=0;
+      } else {
+      // fallback custom icon shapes
       if(d.type==='shield'){
         // Shield shape
         ctx.fillStyle=col;ctx.beginPath();
@@ -5570,6 +5603,7 @@ function startSpace() {
         ctx.fillStyle=col;ctx.font='bold 11px monospace';ctx.textAlign='center';
         ctx.fillText((pt?.label||d.type).slice(0,2),0,4);
       }
+      } // close fallback else
       ctx.restore();ctx.textAlign='left';ctx.globalAlpha=1;
     });
 
