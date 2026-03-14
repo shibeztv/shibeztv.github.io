@@ -754,6 +754,15 @@
   }
 
   #spaceModal *::-webkit-scrollbar { width: 0; height: 0; }
+  .space-emote-overlay {
+    position: absolute;
+    pointer-events: none;
+    image-rendering: auto;
+    will-change: transform;
+    display: none;
+    border-radius: 50%;
+    overflow: hidden;
+  }
   #spaceModal { scrollbar-width: none; }
   /* THEATER MODE */
   .theater-btn-wrap {
@@ -1385,6 +1394,7 @@
         </div>
         <div style="position:relative;flex:1;display:flex;flex-direction:column;width:100%">
           <canvas id="spaceCanvas" style="display:block;cursor:crosshair;touch-action:none;width:100%"></canvas>
+          <div id="spaceEmoteLayer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
           <div id="spacePowerup" style="height:22px;padding:2px 16px;font-family:var(--mono);font-size:10px;color:#ffd700;background:#050510;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:8px"></div>
 
           <!-- SHOP OVERLAY — only over canvas, topbar stays visible -->
@@ -3979,6 +3989,54 @@ function startFlappy() {
     ctx.textAlign = 'left';
   }
 
+  // Get canvas bounding rect for coordinate mapping
+  let _canvasRect = null;
+  function getCanvasRect(){ if(!_canvasRect || frame%60===0) _canvasRect=canvas.getBoundingClientRect(); return _canvasRect; }
+
+  function positionEmoteOverlays(){
+    if(!_emoteLayer) return;
+    const rect = getCanvasRect();
+    const scaleX = rect.width / canvas.width;
+    const scaleY = rect.height / canvas.height;
+
+    // Hide all overlays first
+    Array.from(_emoteLayer.querySelectorAll('.space-emote-overlay')).forEach(el=>{
+      el.style.display='none';
+    });
+
+    // Position enemies
+    const isFrozen = _hasPowerup('freeze');
+    enemies.forEach(e=>{
+      if(!e.img) return;
+      const sz = e.size;
+      const sx = (e.x - sz/2) * scaleX;
+      const sy = (e.y - sz/2) * scaleY;
+      const sw = sz * scaleX;
+      const sh = sz * scaleY;
+      e.img.style.display='block';
+      e.img.style.width = sw+'px';
+      e.img.style.height = sh+'px';
+      e.img.style.left = sx+'px';
+      e.img.style.top = sy+'px';
+      e.img.style.borderRadius = '50%';
+      e.img.style.filter = isFrozen ? 'hue-rotate(195deg) saturate(1.5) brightness(0.85)' : '';
+      e.img.style.opacity = (invincible>0 && e===null) ? '0.5' : '1';
+    });
+
+    // Position ship (show inside UFO dome)
+    const DOME_R = 18;
+    const domeSize = DOME_R * 1.55 * scaleX;
+    const sx = (ship.x - domeSize/2) * scaleX;
+    const sy = (ship.y - 2 - DOME_R - domeSize*0.05) * scaleY;
+    shipImg.style.display = (state==='dead' || (invincible>0 && Math.floor(frame/5)%2===1)) ? 'none' : 'block';
+    shipImg.style.width = domeSize+'px';
+    shipImg.style.height = domeSize+'px';
+    shipImg.style.left = sx+'px';
+    shipImg.style.top = sy+'px';
+    shipImg.style.borderRadius = '50%';
+    shipImg.style.filter = '';
+  }
+
   function loop() {
     if (!_flappyRunning) return;
 
@@ -4401,26 +4459,31 @@ function startSpace() {
 
   const enemyPool = _spaceEmotes.filter(e=>e.url!==shipEmote.url).sort(()=>Math.random()-0.5).slice(0,24);
   // Add imgs to DOM so GIFs animate (canvas draws live frame from DOM img)
+  // Emote overlay system: place real <img> elements over canvas for animated WebP
+  const _emoteLayer = document.getElementById('spaceEmoteLayer');
+  if(_emoteLayer) _emoteLayer.innerHTML = '';
+  // Legacy imgPool kept for compatibility
   let _imgPool = document.getElementById('spaceImgPool');
   if(!_imgPool){
     _imgPool = document.createElement('div');
     _imgPool.id='spaceImgPool';
-    _imgPool.style.cssText='position:fixed;left:-1px;top:0;width:1px;height:100%;overflow:hidden;pointer-events:none;z-index:9999;opacity:0.002;';
+    _imgPool.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;pointer-events:none;';
     document.body.appendChild(_imgPool);
   } else {
     _imgPool.innerHTML='';
   }
-  const enemyImgs = enemyPool.map(e=>{
-    // Use /2x.webp for all — animated WebP plays in DOM just like GIF, canvas drawImage grabs current frame
+  const enemyImgs = enemyPool.map((e,idx)=>{
     const url = e.id ? `https://cdn.7tv.app/emote/${e.id}/2x.webp` : e.url;
-    const i=new Image(); i.crossOrigin='anonymous'; i.src=url;
-    i.style.cssText='display:inline-block;width:52px;height:52px;image-rendering:auto;';
-    if(_imgPool) _imgPool.appendChild(i); // MUST stay in DOM for animated WebP to play
+    const i = document.createElement('img');
+    i.crossOrigin='anonymous'; i.src=url;
+    i.className='space-emote-overlay';
+    i.dataset.emoteIdx=idx;
+    if(_emoteLayer) _emoteLayer.appendChild(i);
     return i;
   });
-  // Also add ship img to pool
-  shipImg.style.cssText='display:inline-block;width:52px;height:52px;image-rendering:auto;';
-  if(_imgPool) _imgPool.appendChild(shipImg);
+  // Ship img in overlay layer
+  shipImg.className='space-emote-overlay';
+  if(_emoteLayer) _emoteLayer.appendChild(shipImg);
 
   // Coin emote images
   const _coinImg = new Image(); _coinImg.crossOrigin='anonymous';
@@ -5132,10 +5195,12 @@ function startSpace() {
     sg2.addColorStop(0,'rgba(255,255,255,0.5)');sg2.addColorStop(1,'rgba(255,255,255,0)');
     ctx.arc(0,-2,DOME_R,Math.PI,0);ctx.closePath();ctx.fillStyle=sg2;ctx.fill();
 
-    // Emote (pilot) inside dome — positioned so it shows above the hull
-    if(emoteImg && emoteImg.complete && emoteImg.naturalWidth>0){
-      const es=DOME_R*1.55; // emote size
-      try { ctx.drawImage(emoteImg, -es/2, -2-DOME_R-es*0.05, es, es); } catch(e){}
+    // Emote pilot: clip circle over dome area drawn on canvas
+    // (DOM overlay positioned separately in positionEmoteOverlays)
+    // Draw a placeholder tinted circle so dome isn't empty while img loads
+    if(!emoteImg || !emoteImg.complete || emoteImg.naturalWidth===0){
+      ctx.beginPath();ctx.arc(0,-2,DOME_R*0.7,0,Math.PI*2);
+      ctx.fillStyle='rgba(100,150,255,0.3)';ctx.fill();
     }
 
     // Landing lights
@@ -5774,17 +5839,11 @@ function startSpace() {
         ctx.globalAlpha=1;ctx.restore();
       }
       const _eFrozen = _hasPowerup('freeze');
-      if(e.img&&e.img.complete&&e.img.naturalWidth>0){
-        try{
-          const ar=e.img.naturalWidth/(e.img.naturalHeight||e.img.naturalWidth);
-          const dw=ar>=1?e.size:e.size*ar;
-          const dh=ar>=1?e.size/ar:e.size;
-          if(_eFrozen){ctx.save();ctx.filter='hue-rotate(195deg) saturate(1.5) brightness(0.85)';}
-          ctx.drawImage(e.img,e.x-dw/2,e.y-dh/2,dw,dh);
-          if(_eFrozen){ctx.restore();}
-        }catch(err){}
+      // Emote drawn via DOM overlay (see positionEmoteOverlays) — just show frozen ring if needed
+      if(!e.img||!e.img.complete||!e.img.naturalWidth){
+        ctx.fillStyle=_eFrozen?'rgba(100,180,255,0.4)':'rgba(255,100,100,0.3)';
+        ctx.beginPath();ctx.arc(e.x,e.y,e.size/2,0,Math.PI*2);ctx.fill();
       }
-      else{ctx.fillStyle=_eFrozen?'rgba(100,180,255,0.6)':'rgba(255,100,100,0.6)';ctx.beginPath();ctx.arc(e.x,e.y,e.size/2,0,Math.PI*2);ctx.fill();}
       if(_eFrozen){
         ctx.save();ctx.globalAlpha=0.35;ctx.strokeStyle='#88ddff';ctx.lineWidth=2;
         ctx.beginPath();ctx.arc(e.x,e.y,e.size*0.55,0,Math.PI*2);ctx.stroke();ctx.restore();
@@ -6002,6 +6061,7 @@ function startSpace() {
         ctx.restore();
       }
     }
+    positionEmoteOverlays();
     _spaceRAF=requestAnimationFrame(loop);
   }
 
