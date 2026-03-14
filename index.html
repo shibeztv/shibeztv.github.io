@@ -1356,6 +1356,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
             <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa">SCORE: <span id="spaceScore" style="color:#fff;font-weight:900;font-size:15px">0</span></span>
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa">⏱ <span id="spaceTimer" style="color:#fff;font-weight:900;font-size:15px">0:00</span></span>
             <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa">🪙 <span id="spaceCoins" style="color:#ffd700;font-weight:900;font-size:15px">0</span></span>
             <span id="spaceHeartsDisplay" style="font-size:16px;letter-spacing:1px">❤️❤️❤️</span><span id="spaceLives" style="display:none">3</span>
             <div style="display:flex;align-items:center;gap:5px;border-left:1px solid #1a1a3a;padding-left:10px">
@@ -4481,7 +4482,7 @@ function startSpace() {
   let _pilotIdx = Math.floor(Math.random()*_spaceEmotes.length);
   let ship = {x:W/2, y:H/2, vx:0, vy:0, angle:0};
   let bullets=[],enemies=[],particles=[],drops=[],powerupDrops=[];
-  let score=0, lives=getMaxHp(), frame=0;
+  let score=0, lives=getMaxHp(), frame=0, survivalFrames=0;
   let state='waiting', enemyTimer=90, difficulty=1, invincible=0, shootCooldown=0;
   window._spaceGetState=()=>state;
   window._spaceSetState=s=>{state=s;};
@@ -4744,7 +4745,7 @@ function startSpace() {
     if(_spaceEmotes.length>1){let n;do{n=Math.floor(Math.random()*_spaceEmotes.length);}while(n===_pilotIdx);_pilotIdx=n;}
     const ne=_spaceEmotes[_pilotIdx];shipImg.src=ne.url;shipImg.crossOrigin='anonymous';
     bullets=[];enemies=[];particles=[];drops=[];powerupDrops=[];
-    score=0;lives=getMaxHp();frame=0;
+    score=0;lives=getMaxHp();frame=0;survivalFrames=0;
     state='playing';enemyTimer=90;difficulty=1;invincible=0;shootCooldown=0;_deathFrame=0;silverLives=0;resumeSpaceMusic();
     regenTimer=0;activePowerup=null;powerupTimer=0;
     document.getElementById('spaceScore').textContent='0';
@@ -4883,6 +4884,12 @@ function startSpace() {
     const shopOpen=document.getElementById('spaceShop').style.display==='flex';
 
     if((state==='playing') && !shopOpen){
+      survivalFrames++;
+      if(survivalFrames%30===0){
+        const secs=Math.floor(survivalFrames/60);
+        const el=document.getElementById('spaceTimer');
+        if(el) el.textContent=Math.floor(secs/60)+':'+(secs%60<10?'0':'')+(secs%60);
+      }
       const SPEED=getShipSpeed();
       if(keys['ArrowUp']||keys['w']||keys['W'])    ship.y=Math.max(30,ship.y-SPEED);
       if(keys['ArrowDown']||keys['s']||keys['S'])  ship.y=Math.min(H-30,ship.y+SPEED);
@@ -5333,7 +5340,7 @@ function startSpace() {
           ctx.font=`bold ${scoreFontPx}px monospace`;ctx.fillStyle='#ccc';
           ctx.fillText('Score: '+score+'  ·  Best: '+Math.max(score,parseInt(localStorage.getItem('spaceBest')||0)),W/2,H/2+W*0.06);
           ctx.font=`${Math.floor(W*0.018)}px monospace`;ctx.fillStyle='#ffd700';
-          const earnedPts=Math.floor(score/50);ctx.fillText('🪙 '+coins+' coins kept  ·  ⭐ '+(upgradePoints+(earnedPts||0))+' upgrade pts total',W/2,H/2+W*0.09);
+          const earnedPts=Math.floor(score/50);const finalSecs=Math.floor(survivalFrames/60);const finalTime=Math.floor(finalSecs/60)+':'+(finalSecs%60<10?'0':'')+(finalSecs%60);ctx.fillText('🪙 '+coins+' coins  ·  ⭐ '+(upgradePoints+(earnedPts||0))+' pts  ·  ⏱ '+finalTime,W/2,H/2+W*0.09);
           const best2=parseInt(localStorage.getItem('spaceBest')||'0');
           if(score>best2){localStorage.setItem('spaceBest',score);ctx.globalAlpha=sf;ctx.fillStyle='#4ade80';ctx.font=`bold ${scoreFontPx}px monospace`;ctx.fillText('🏆 NEW BEST!',W/2,H/2+W*0.125);}
         }
