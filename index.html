@@ -1331,6 +1331,30 @@
         onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
         🐦 FLAPPY SHIBEZ
       </button>
+      <button onclick="openSpaceShibez()" id="spaceBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        🚀 SPACE SHIBEZ
+      </button>
+    </div>
+
+    <!-- SPACE SHIBEZ MODAL -->
+    <div id="spaceModal" style="display:none;position:fixed;inset:0;z-index:9003;background:rgba(0,0,0,0.95);align-items:center;justify-content:center;padding:20px">
+      <div style="background:#050510;border:1px solid #1a1a3a;border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box">
+          <div style="display:flex;flex-direction:column;gap:1px">
+            <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACE SHIBEZ</span>
+            <span style="font-family:var(--mono);font-size:9px;color:#aaa">Arrow keys / WASD to move · Space to shoot · Tap to fire on mobile</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-family:var(--mono);font-size:11px;color:#aaa">SCORE: <span id="spaceScore" style="color:#fff;font-weight:900">0</span></span>
+            <span style="font-family:var(--mono);font-size:11px;color:#aaa">❤️ <span id="spaceLives" style="color:#fc5c7d;font-weight:900">3</span></span>
+            <button onclick="closeSpace()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
+          </div>
+        </div>
+        <canvas id="spaceCanvas" width="560" height="560" style="display:block;cursor:crosshair;touch-action:none"></canvas>
+      </div>
     </div>
 
     <!-- FLAPPY SHIBEZ MODAL -->
@@ -4032,6 +4056,357 @@ document.addEventListener('click', e => {
   const modal = document.getElementById('flappyModal');
   if (modal && e.target === modal) closeFlappy();
 });
+
+
+// ─── SPACE SHIBEZ ─────────────────────────────────────────────────────────────
+let _spaceRunning = false, _spaceRAF = null;
+const SPACE_EMOTE_SET = '01F6YHT8TG0003S6SNNTMYB87P';
+let _spaceEmotes = [];
+
+async function openSpaceShibez() {
+  document.getElementById('spaceModal').style.display = 'flex';
+  if (!_spaceEmotes.length) {
+    // reuse flappy emotes if already loaded
+    if (_flappyEmotes.length) {
+      _spaceEmotes = _flappyEmotes;
+    } else {
+      try {
+        const r = await fetch('https://7tv.io/v3/emote-sets/' + SPACE_EMOTE_SET);
+        const d = await r.json();
+        _spaceEmotes = (d.emotes || []).map(e => ({
+          id: e.id, name: e.name,
+          animated: e.data?.animated || false,
+          url: `https://cdn.7tv.app/emote/${e.id}/2x.${e.data?.animated ? 'gif' : 'webp'}`
+        }));
+      } catch(e) { _spaceEmotes = [{url:'https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp'}]; }
+    }
+  }
+  startSpace();
+}
+
+function closeSpace() {
+  _spaceRunning = false;
+  if (_spaceRAF) { cancelAnimationFrame(_spaceRAF); _spaceRAF = null; }
+  const c = document.getElementById('spaceCanvas');
+  if (c && c._spaceCleanup) { c._spaceCleanup(); c._spaceCleanup = null; }
+  document.getElementById('spaceModal').style.display = 'none';
+}
+document.addEventListener('click', e => { if (e.target === document.getElementById('spaceModal')) closeSpace(); });
+
+function startSpace() {
+  const canvas = document.getElementById('spaceCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Pick random ship emote
+  const shipEmote = _spaceEmotes[Math.floor(Math.random() * _spaceEmotes.length)];
+  const shipImg = new Image(); shipImg.crossOrigin = 'anonymous'; shipImg.src = shipEmote.url;
+
+  // Preload enemy emotes (exclude ship)
+  const enemyPool = _spaceEmotes.filter(e => e.url !== shipEmote.url)
+    .sort(() => Math.random() - 0.5).slice(0, 16);
+  const enemyImgs = enemyPool.map(e => {
+    const img = new Image(); img.crossOrigin = 'anonymous'; img.src = e.url; return img;
+  });
+
+  // Stars
+  const stars = Array.from({length: 120}, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 1.6 + 0.2,
+    speed: 0.3 + Math.random() * 1.4,
+    a: 0.3 + Math.random() * 0.7
+  }));
+
+  // Planets (rare, slow-moving)
+  const planets = Array.from({length: 3}, () => ({
+    x: Math.random() * W, y: Math.random() * H * 0.8 + 50,
+    r: 18 + Math.random() * 30,
+    speed: 0.08 + Math.random() * 0.15,
+    hue: Math.floor(Math.random() * 360),
+    rings: Math.random() > 0.5
+  }));
+
+  const SHIP_SIZE = 52;
+  const BULLET_SPEED = 9;
+  const SHIP_SPEED = 4.5;
+
+  let ship = { x: 90, y: H / 2, vx: 0, vy: 0 };
+  let bullets = [];
+  let enemies = [];
+  let particles = [];
+  let score = 0;
+  let lives = 3;
+  let frame = 0;
+  let state = 'waiting'; // waiting | playing | dead
+  let enemyTimer = 90;
+  let difficulty = 1;
+  let invincible = 0; // frames of invincibility after hit
+  let shootCooldown = 0;
+
+  const keys = {};
+  const onKey = e => {
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','w','a','s','d','W','A','S','D'].includes(e.key)) e.preventDefault();
+    if (e.type === 'keydown') {
+      keys[e.key] = true;
+      if ((e.key === ' ' || e.key === 'Space') && state === 'waiting') { state = 'playing'; return; }
+      if ((e.key === ' ' || e.key === 'Space') && state === 'dead') { resetSpace(); return; }
+    }
+    if (e.type === 'keyup') keys[e.key] = false;
+  };
+  document.addEventListener('keydown', onKey);
+  document.addEventListener('keyup', onKey);
+
+  // Touch: tap = shoot, drag = move
+  let touchStart = null;
+  const onTouch = e => {
+    e.preventDefault();
+    if (state === 'waiting') { state = 'playing'; return; }
+    if (state === 'dead') { resetSpace(); return; }
+    const t = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const tx = (t.clientX - rect.left) * (W / rect.width);
+    const ty = (t.clientY - rect.top) * (H / rect.height);
+    if (e.type === 'touchstart') { touchStart = {x: tx, y: ty}; fireBullet(); }
+    if (e.type === 'touchmove' && touchStart) {
+      ship.x = Math.max(SHIP_SIZE/2, Math.min(W*0.4, tx));
+      ship.y = Math.max(SHIP_SIZE/2, Math.min(H - SHIP_SIZE/2, ty));
+    }
+  };
+  canvas.addEventListener('touchstart', onTouch, {passive: false});
+  canvas.addEventListener('touchmove', onTouch, {passive: false});
+
+  function fireBullet() {
+    if (shootCooldown > 0) return;
+    bullets.push({x: ship.x + SHIP_SIZE/2, y: ship.y});
+    shootCooldown = 14;
+  }
+
+  function spawnEnemy() {
+    const img = enemyImgs[Math.floor(Math.random() * enemyImgs.length)];
+    const size = 32 + Math.random() * 28;
+    const y = size/2 + Math.random() * (H - size);
+    const speed = (1.2 + Math.random() * 1.8) * difficulty;
+    const wobble = Math.random() > 0.45;
+    const wobbleAmp = 1.5 + Math.random() * 2.5;
+    const wobbleFreq = 0.04 + Math.random() * 0.04;
+    enemies.push({x: W + size, y, oy: y, img, size, speed, wobble, wobbleAmp, wobbleFreq, hp: 1 + (difficulty > 2 ? 1 : 0), maxHp: 1 + (difficulty > 2 ? 1 : 0), age: 0});
+  }
+
+  function spawnParticles(x, y, color) {
+    for (let i = 0; i < 10; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const spd = 1.5 + Math.random() * 3;
+      particles.push({x, y, vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd, r: 2+Math.random()*3, life: 30+Math.random()*20, color});
+    }
+  }
+
+  function resetSpace() {
+    ship = {x: 90, y: H/2, vx: 0, vy: 0};
+    bullets = []; enemies = []; particles = [];
+    score = 0; lives = 3; frame = 0; state = 'playing';
+    enemyTimer = 90; difficulty = 1; invincible = 0; shootCooldown = 0;
+    document.getElementById('spaceScore').textContent = '0';
+    document.getElementById('spaceLives').textContent = '3';
+  }
+
+  function loop() {
+    if (!_spaceRunning) return;
+    frame++;
+
+    // ── UPDATE ──
+    if (state === 'playing') {
+      // Ship movement
+      const up    = keys['ArrowUp']    || keys['w'] || keys['W'];
+      const down  = keys['ArrowDown']  || keys['s'] || keys['S'];
+      const left  = keys['ArrowLeft']  || keys['a'] || keys['A'];
+      const right = keys['ArrowRight'] || keys['d'] || keys['D'];
+      const shoot = keys[' '] || keys['Space'];
+      if (up)    ship.y = Math.max(SHIP_SIZE/2, ship.y - SHIP_SPEED);
+      if (down)  ship.y = Math.min(H - SHIP_SIZE/2, ship.y + SHIP_SPEED);
+      if (left)  ship.x = Math.max(SHIP_SIZE/2, ship.x - SHIP_SPEED);
+      if (right) ship.x = Math.min(W * 0.45, ship.x + SHIP_SPEED);
+      if (shoot) fireBullet();
+      if (shootCooldown > 0) shootCooldown--;
+      if (invincible > 0) invincible--;
+
+      // Enemies
+      enemyTimer--;
+      if (enemyTimer <= 0) {
+        spawnEnemy();
+        enemyTimer = Math.max(28, 90 - score * 0.4);
+      }
+      difficulty = 1 + score * 0.015;
+
+      enemies.forEach(e => {
+        e.x -= e.speed;
+        e.age++;
+        if (e.wobble) e.y = e.oy + Math.sin(e.age * e.wobbleFreq) * e.wobbleAmp * 10;
+      });
+      bullets.forEach(b => b.x += BULLET_SPEED);
+
+      // Bullet-enemy collisions
+      bullets = bullets.filter(b => {
+        let hit = false;
+        enemies = enemies.map(e => {
+          if (hit) return e;
+          const dx = b.x - (e.x - e.size/2), dy = b.y - e.y;
+          if (dx > 0 && dx < e.size && Math.abs(dy) < e.size/2) {
+            e.hp--;
+            hit = true;
+            spawnParticles(e.x - e.size/2, e.y, '#fc5c7d');
+            if (e.hp <= 0) {
+              score++;
+              document.getElementById('spaceScore').textContent = score;
+              spawnParticles(e.x - e.size/2, e.y, '#ffd700');
+              return null;
+            }
+          }
+          return e;
+        }).filter(Boolean);
+        return !hit;
+      });
+
+      // Enemy-ship collision
+      if (invincible <= 0) {
+        enemies = enemies.filter(e => {
+          const dx = Math.abs((e.x - e.size/2) - ship.x);
+          const dy = Math.abs(e.y - ship.y);
+          if (dx < (e.size + SHIP_SIZE) * 0.38 && dy < (e.size + SHIP_SIZE) * 0.38) {
+            lives--;
+            invincible = 90;
+            spawnParticles(ship.x, ship.y, '#ff4444');
+            document.getElementById('spaceLives').textContent = Math.max(0, lives);
+            if (lives <= 0) state = 'dead';
+            return false;
+          }
+          return true;
+        });
+      }
+
+      bullets  = bullets.filter(b => b.x < W + 20);
+      enemies  = enemies.filter(e => e.x > -100);
+      particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vx *= 0.94; p.vy *= 0.94; p.life--; });
+      particles = particles.filter(p => p.life > 0);
+
+      // Stars + planets scroll
+      stars.forEach(s => { s.x -= s.speed; if (s.x < 0) { s.x = W; s.y = Math.random() * H; } });
+      planets.forEach(p => { p.x -= p.speed; if (p.x < -p.r * 2) { p.x = W + p.r; p.y = 50 + Math.random() * (H - 100); } });
+    }
+
+    // ── DRAW ──
+    // Background
+    ctx.fillStyle = '#020212';
+    ctx.fillRect(0, 0, W, H);
+
+    // Stars
+    stars.forEach(s => {
+      ctx.globalAlpha = s.a * (0.7 + 0.3 * Math.sin(frame * 0.02 + s.x));
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Planets
+    planets.forEach(p => {
+      const g = ctx.createRadialGradient(p.x - p.r*0.3, p.y - p.r*0.3, 0, p.x, p.y, p.r);
+      g.addColorStop(0, `hsl(${p.hue},60%,70%)`);
+      g.addColorStop(1, `hsl(${p.hue},40%,25%)`);
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = g; ctx.fill();
+      if (p.rings) {
+        ctx.save();
+        ctx.translate(p.x, p.y); ctx.scale(1, 0.28);
+        ctx.strokeStyle = `hsla(${p.hue},50%,60%,0.5)`; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(0, 0, p.r * 1.6, 0, Math.PI*2); ctx.stroke();
+        ctx.restore();
+      }
+    });
+
+    // Particles
+    particles.forEach(p => {
+      ctx.globalAlpha = p.life / 50;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Bullets
+    bullets.forEach(b => {
+      const bg = ctx.createLinearGradient(b.x - 18, b.y, b.x, b.y);
+      bg.addColorStop(0, 'rgba(100,200,255,0)');
+      bg.addColorStop(1, '#60ddff');
+      ctx.strokeStyle = bg; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(b.x - 18, b.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(b.x, b.y, 2.5, 0, Math.PI*2); ctx.fill();
+    });
+
+    // Enemies
+    enemies.forEach(e => {
+      if (e.img && e.img.complete && e.img.naturalWidth > 0) {
+        try { ctx.drawImage(e.img, e.x - e.size, e.y - e.size/2, e.size, e.size); } catch(err){}
+      }
+      // HP bar for tanky enemies
+      if (e.maxHp > 1) {
+        ctx.fillStyle = '#333'; ctx.fillRect(e.x - e.size, e.y + e.size/2 + 2, e.size, 4);
+        ctx.fillStyle = '#fc5c7d'; ctx.fillRect(e.x - e.size, e.y + e.size/2 + 2, e.size * (e.hp / e.maxHp), 4);
+      }
+    });
+
+    // Ship (flash when invincible)
+    if (state !== 'dead' && (invincible <= 0 || Math.floor(frame / 5) % 2 === 0)) {
+      if (shipImg.complete && shipImg.naturalWidth > 0) {
+        try { ctx.drawImage(shipImg, ship.x - SHIP_SIZE/2, ship.y - SHIP_SIZE/2, SHIP_SIZE, SHIP_SIZE); } catch(e){}
+      } else {
+        ctx.fillStyle = '#60ddff';
+        ctx.beginPath(); ctx.moveTo(ship.x + SHIP_SIZE/2, ship.y);
+        ctx.lineTo(ship.x - SHIP_SIZE/2, ship.y - SHIP_SIZE/3);
+        ctx.lineTo(ship.x - SHIP_SIZE/2, ship.y + SHIP_SIZE/3);
+        ctx.closePath(); ctx.fill();
+      }
+      // Engine glow
+      const eg = ctx.createRadialGradient(ship.x - SHIP_SIZE/2, ship.y, 0, ship.x - SHIP_SIZE/2, ship.y, 14);
+      eg.addColorStop(0, 'rgba(100,180,255,0.7)'); eg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = eg;
+      ctx.beginPath(); ctx.arc(ship.x - SHIP_SIZE/2, ship.y, 14, 0, Math.PI*2); ctx.fill();
+    }
+
+    // Overlays
+    if (state === 'waiting') {
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 22px monospace'; ctx.fillStyle = '#fff'; ctx.fillText('SPACE SHIBEZ', W/2, H/2 - 20);
+      ctx.font = '13px monospace'; ctx.fillStyle = '#aaa'; ctx.fillText('Arrow keys / WASD · Space to shoot', W/2, H/2 + 10);
+      ctx.fillText('Press Space or tap to start', W/2, H/2 + 34);
+      ctx.textAlign = 'left';
+    }
+    if (state === 'dead') {
+      ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 26px monospace'; ctx.fillStyle = '#fc5c7d'; ctx.fillText('GAME OVER', W/2, H/2 - 34);
+      ctx.font = 'bold 18px monospace'; ctx.fillStyle = '#fff'; ctx.fillText('Score: ' + score, W/2, H/2);
+      const best = parseInt(localStorage.getItem('spaceBest') || '0');
+      if (score > best) localStorage.setItem('spaceBest', score);
+      const b = Math.max(score, best);
+      ctx.font = '13px monospace'; ctx.fillStyle = score >= best ? '#4ade80' : '#aaa';
+      ctx.fillText(score >= best ? '🏆 NEW BEST!' : 'Best: ' + b, W/2, H/2 + 28);
+      ctx.font = '12px monospace'; ctx.fillStyle = '#aaa'; ctx.fillText('Press Space or tap to retry', W/2, H/2 + 54);
+      ctx.textAlign = 'left';
+    }
+
+    _spaceRAF = requestAnimationFrame(loop);
+  }
+
+  canvas._spaceCleanup = () => {
+    document.removeEventListener('keydown', onKey);
+    document.removeEventListener('keyup', onKey);
+    canvas.removeEventListener('touchstart', onTouch);
+    canvas.removeEventListener('touchmove', onTouch);
+  };
+
+  _spaceRunning = true;
+  loop();
+}
 
 </script>
 </body>
