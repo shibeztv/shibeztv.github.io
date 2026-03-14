@@ -2021,6 +2021,15 @@ function groupIntoStreams(videos) {
   // Filter out videos under 10 minutes
   videos = videos.filter(v => v.duration >= 600);
 
+  // Deduplicate by exact title + duration — removes accidental double uploads only
+  const seen = new Set();
+  videos = videos.filter(v => {
+    const key = v.title.trim().toLowerCase() + '|' + v.duration;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
   const byDay = {};
   let noDateIdx = 0;
   videos.forEach(v => {
