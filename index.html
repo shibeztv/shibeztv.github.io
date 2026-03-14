@@ -1357,7 +1357,7 @@
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
             <div style="display:flex;flex-direction:column;gap:1px">
-              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.3.1</span></span>
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.4</span></span>
               <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · E shop · P pause</span>
             </div>
           </div>
@@ -1389,7 +1389,7 @@
           <div style="font-family:var(--mono);font-size:15px;font-weight:900;color:#ffd700;letter-spacing:2px;margin-bottom:4px">🛒 UPGRADE SHOP</div>
           <div style="font-family:var(--mono);font-size:11px;color:#aaa;margin-bottom:8px">🪙 <span id="shopCoinsDisp" style="color:#ffd700;font-weight:900">0</span> coins &nbsp;·&nbsp; E/Tab to close &nbsp;·&nbsp; After Death = You keep half of current coins 🪙 + 1🪙 / every 10 score</div>
           <div id="shopGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;max-width:900px;overflow-y:auto;max-height:68vh"></div>
-          <div style="margin-top:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(124,92,252,0.2);border-radius:4px;font-family:var(--mono);font-size:9px;color:#6a5a9a;letter-spacing:0.5px;display:flex;align-items:center;gap:6px"><span>♪</span><span>Shop music: Motoi Sakuraba — Majula</span><button onclick="_loadBgTrack(_nextBgTrack())" title="Skip song (main music only)" style="margin-left:auto;background:none;border:none;color:#6a5a9a;cursor:pointer;font-size:13px;line-height:1;padding:0 2px" onmouseover="this.style.color='#c4b5fd'" onmouseout="this.style.color='#6a5a9a'">⏭</button></div>
+          <div style="margin-top:8px;font-family:var(--mono);font-size:9px;color:#4a3a6a;letter-spacing:0.5px">♪ Shop music: Motoi Sakuraba — Majula</div>
           </div>
         </div>
       </div>
@@ -4321,6 +4321,7 @@ function spaceShopToggle() {
     } else if (_stateBeforeShop === 'playing') {
       if (window._spaceSetState) window._spaceSetState('playing');
       switchToMainMusic(); // was playing, resume main
+      _songTitleTimer = 180; // show song title for 3s
     } else {
       switchToMainMusic();
     }
@@ -4355,6 +4356,7 @@ function toggleSpacePause() {
     window._spaceSetState('playing');
     if (btn) { btn.textContent = '⏸'; btn.style.color = '#aaa'; }
     resumeSpaceMusic(); // resume main music when unpausing
+    _songTitleTimer = 180; // show current song for 3s on unpause
   } else if (state === 'playing') {
     window._spaceSetState('paused');
     if (btn) { btn.textContent = '▶'; btn.style.color = '#4ade80'; }
@@ -4479,8 +4481,8 @@ function startSpace() {
         ? (coins>=friendsCost && friendsLvl<friendsMax)
         : (coins>=def.cost && !owned);
       const isFriends = def.key==='friends';
-      const colSpan = isFriends ? 'grid-column:1/-1;' : '';
-      return `<div style="${colSpan}background:${active?'rgba(100,200,255,0.12)':'rgba(255,255,255,0.04)'};border:2px solid ${active?def.color:'rgba(255,255,255,0.1)'};border-radius:8px;padding:10px 12px;display:flex;flex-direction:${isFriends?'row':'column'};align-items:${isFriends?'center':'flex-start'};gap:${isFriends?'16px':'5px'};position:relative">
+      const colSpan = ''; // 1.4: friends same size as other weapons
+      return `<div style="${colSpan}background:${active?'rgba(100,200,255,0.12)':'rgba(255,255,255,0.04)'};border:2px solid ${active?def.color:'rgba(255,255,255,0.1)'};border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;position:relative">
         ${active?`<div style="position:absolute;top:5px;right:7px;font-family:var(--mono);font-size:8px;color:${def.color};font-weight:900">ACTIVE</div>`:''}
         <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#fff;white-space:nowrap">${def.label}</div>
         <div style="font-family:var(--mono);font-size:9px;color:#bbb;flex:1">${def.desc}</div>
@@ -4721,9 +4723,11 @@ function startSpace() {
       ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
       ctx.textAlign='center';
       // Check hover — is mouse within ~80px of center
-      const _pauseHover=canvas._pauseZones&&canvas._pauseZones[0]&&
-        mouseX>=canvas._pauseZones[0].x-30&&mouseX<=canvas._pauseZones[0].x+canvas._pauseZones[0].w+30&&
-        mouseY>=canvas._pauseZones[0].y-30&&mouseY<=canvas._pauseZones[0].y+canvas._pauseZones[0].h+30;
+      // Tight hover: only change text if actually over the PAUSED word
+      const _ptw=ctx.measureText('PAUSED').width;
+      const _pauseHover=canvas._pauseTextBounds&&
+        mouseX>=canvas._pauseTextBounds.x&&mouseX<=canvas._pauseTextBounds.x+canvas._pauseTextBounds.w&&
+        mouseY>=canvas._pauseTextBounds.y&&mouseY<=canvas._pauseTextBounds.y+canvas._pauseTextBounds.h;
       const _pauseScale=_pauseHover?1.2:1.0;
       const _pauseFontPx=Math.floor(W*0.07*_pauseScale);
       ctx.font=`bold ${_pauseFontPx}px monospace`;
@@ -4731,6 +4735,9 @@ function startSpace() {
       if(_pauseHover){ctx.shadowColor='#60ddff';ctx.shadowBlur=12;}
       const pausedTxt=_pauseHover?'CONTINUE':'PAUSED';const pausedY=H/2-10;
       ctx.fillText(pausedTxt,W/2,pausedY);
+      // Store tight text bounds for next frame hover check
+      const _ptMeas=ctx.measureText('PAUSED');
+      canvas._pauseTextBounds={x:W/2-_ptMeas.width/2,y:pausedY-_pauseFontPx,w:_ptMeas.width,h:_pauseFontPx+8};
       ctx.shadowBlur=0;
       ctx.font='13px monospace';ctx.fillStyle='#7c8aaa';
       const resumeTxt='click here or press P to resume';const resumeY=H/2+24;
@@ -4879,7 +4886,7 @@ function startSpace() {
     // HP scales with time AND player damage upgrades so enemies stay tanky
     const dmgScale=Math.max(1, getBulletDmg()*0.7);
     const timeHp=Math.floor(timeMins*2.5); // +2-3 hp per minute
-    const baseHp=Math.ceil((1+timeHp+Math.floor(difficulty*0.6))*dmgScale);
+    const baseHp=Math.ceil((1+timeHp+Math.floor(difficulty*0.35))*dmgScale); // 1.4: slower hp scale
     const riskHpMult=upgrades.riskReward?1+upgrades.riskReward*0.2:1;
     const finalBaseHp=Math.ceil(baseHp*riskHpMult);
     const hp=finalBaseHp*sizeScale;
@@ -4949,6 +4956,7 @@ function startSpace() {
     const ne=_spaceEmotes[_pilotIdx];shipImg.src=ne.url;shipImg.crossOrigin='anonymous';
     bullets=[];enemies=[];particles=[];drops=[];powerupDrops=[];
     score=0;lives=getMaxHp();frame=0;survivalFrames=0;
+    try{_spaceDeathSfxPlayer?.pauseVideo();_spaceDeathSfxPlayer?.seekTo(0,true);}catch(e){}
     state='playing';enemyTimer=90;difficulty=1;invincible=0;shootCooldown=0;_deathFrame=0;silverLives=0;
     // Pick a new random track on retry
     const _retryTrack=_nextBgTrack();
@@ -5166,9 +5174,11 @@ function startSpace() {
         if(_wdef){
           const _t2key=_wdef.tier2?.key; const _hasT2=_t2key&&upgrades[_t2key];
           const _wName=_wdef.label.replace(/^[^ ]+ /,''); // strip emoji for display
-          const _t2Name=_hasT2?_wdef.tier2.label.replace(/^[^ ]+ /,'').replace(/^\+/,'').trim():'';
+          const _t2Name=_hasT2?_wdef.tier2.label.replace(/^[^ ]+ /,'').replace(/\+/,'').trim():'';
           const _dispName=_hasT2?`${_wName} — ${_t2Name}`:_wName;
-          hudParts.unshift(`<span style="color:${_wdef.color};font-weight:700;font-size:11px;border-right:1px solid rgba(255,255,255,0.15);padding-right:8px;margin-right:2px"><span style="color:#888;font-weight:400;font-size:9px">Weapon: </span>${_dispName}</span>`);
+          const _eUrl=shipImg&&shipImg.src?shipImg.src:'';
+          const _eImgHtml=_eUrl?`<img src="${_eUrl}" style="width:18px;height:18px;object-fit:contain;vertical-align:middle;margin-right:4px;border-radius:2px">`:'';
+          hudParts.unshift(`<span style="display:inline-flex;align-items:center;color:${_wdef.color};font-weight:700;font-size:11px;border-right:1px solid rgba(255,255,255,0.15);padding-right:8px;margin-right:2px">${_eImgHtml}<span style="color:#888;font-weight:400;font-size:9px">Weapon:&nbsp;</span>${_dispName}</span>`);
         }
         activePowerups.forEach((t,key)=>{
           const pd=POWERUP_TYPES.find(p=>p.type===key);
@@ -5196,8 +5206,8 @@ function startSpace() {
       const swarmMod=upgrades.enemySwarm?1/(1+upgrades.enemySwarm*0.15):1;
       // Ease-in: very slow for first minute, gradually faster
       const secIn=survivalFrames/60;
-      const easeBase= secIn<30 ? 320 : secIn<60 ? 250 : secIn<120 ? 190 : secIn<240 ? 140 : 100;
-      const scoreRamp=Math.max(0.5,1-score*0.006);
+      const easeBase= secIn<30 ? 380 : secIn<60 ? 310 : secIn<120 ? 240 : secIn<240 ? 175 : 130; // 1.4: slower ramp
+      const scoreRamp=Math.max(0.6,1-score*0.004); // 1.4: slower score ramp
       const baseSpawn=Math.floor(easeBase*scoreRamp);
       enemyTimer=Math.max(12,Math.floor(baseSpawn*timeFactor*swarmMod));
       }
@@ -5479,8 +5489,12 @@ function startSpace() {
       }
       ctx.fillStyle=cfill;ctx.strokeStyle=cstroke;ctx.lineWidth=1.5;
       ctx.beginPath();ctx.arc(d.x,d.y,cr,0,Math.PI*2);ctx.fill();ctx.stroke();
-      ctx.fillStyle='#fff';ctx.font=`bold ${d.green?9:7}px monospace`;ctx.textAlign='center';
-      ctx.fillText(clabel,d.x,d.y+(d.green?3.5:2.5));ctx.textAlign='left';ctx.globalAlpha=1;
+      // 1.4: plain circle, no label text on normal coins
+      if(d.green||d.silver){
+        ctx.fillStyle='#fff';ctx.font=`bold ${d.green?9:7}px monospace`;ctx.textAlign='center';
+        ctx.fillText(clabel,d.x,d.y+(d.green?3.5:2.5));ctx.textAlign='left';
+      }
+      ctx.globalAlpha=1;
     });
 
     // Powerup drops
@@ -5698,7 +5712,7 @@ function startSpace() {
         ctx.save();ctx.globalAlpha=0.35;ctx.strokeStyle='#88ddff';ctx.lineWidth=2;
         ctx.beginPath();ctx.arc(e.x,e.y,e.size*0.55,0,Math.PI*2);ctx.stroke();ctx.restore();
       }
-      if(e.maxHp>1){
+      if(true){
         const bary=e.y+e.size/2+3, barh=e.isTitan?8:4;
         ctx.fillStyle='#111';ctx.fillRect(e.x-e.size/2,bary,e.size,barh);
         ctx.fillStyle=e.isTitan?'#ff8800':e.isBoss?'#ff6600':e.isBig?'#ff2244':'#fc5c7d';
@@ -5754,9 +5768,11 @@ function startSpace() {
       ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
       ctx.textAlign='center';
       // Check hover — is mouse within ~80px of center
-      const _pauseHover=canvas._pauseZones&&canvas._pauseZones[0]&&
-        mouseX>=canvas._pauseZones[0].x-30&&mouseX<=canvas._pauseZones[0].x+canvas._pauseZones[0].w+30&&
-        mouseY>=canvas._pauseZones[0].y-30&&mouseY<=canvas._pauseZones[0].y+canvas._pauseZones[0].h+30;
+      // Tight hover: only change text if actually over the PAUSED word
+      const _ptw=ctx.measureText('PAUSED').width;
+      const _pauseHover=canvas._pauseTextBounds&&
+        mouseX>=canvas._pauseTextBounds.x&&mouseX<=canvas._pauseTextBounds.x+canvas._pauseTextBounds.w&&
+        mouseY>=canvas._pauseTextBounds.y&&mouseY<=canvas._pauseTextBounds.y+canvas._pauseTextBounds.h;
       const _pauseScale=_pauseHover?1.2:1.0;
       const _pauseFontPx=Math.floor(W*0.07*_pauseScale);
       ctx.font=`bold ${_pauseFontPx}px monospace`;
@@ -5764,6 +5780,9 @@ function startSpace() {
       if(_pauseHover){ctx.shadowColor='#60ddff';ctx.shadowBlur=12;}
       const pausedTxt=_pauseHover?'CONTINUE':'PAUSED';const pausedY=H/2-10;
       ctx.fillText(pausedTxt,W/2,pausedY);
+      // Store tight text bounds for next frame hover check
+      const _ptMeas=ctx.measureText('PAUSED');
+      canvas._pauseTextBounds={x:W/2-_ptMeas.width/2,y:pausedY-_pauseFontPx,w:_ptMeas.width,h:_pauseFontPx+8};
       ctx.shadowBlur=0;
       ctx.font='13px monospace';ctx.fillStyle='#7c8aaa';
       const resumeTxt='click here or press P to resume';const resumeY=H/2+24;
@@ -5897,7 +5916,7 @@ function startSpace() {
         ctx.font=`${titleFontPx}px monospace`;
         const noteW=ctx.measureText('♪ '+_songTitleText).width+18;
         const noteH=titleFontPx+14;
-        const nx=W-noteW-10, ny=H-noteH-42; // above HP bar
+        const nx=W-noteW-10, ny=H-noteH-6; // 1.4: bottom-right near powerup bar
         ctx.fillStyle='rgba(10,10,25,0.75)';
         ctx.beginPath();ctx.roundRect(nx,ny,noteW,noteH,5);ctx.fill();
         ctx.strokeStyle='rgba(124,92,252,0.4)';ctx.lineWidth=1;ctx.stroke();
