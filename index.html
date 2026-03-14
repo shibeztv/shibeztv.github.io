@@ -4360,7 +4360,7 @@ function startSpace() {
 
   const WEAPON_DEFS = [
     {key:'default',     label:'🔫 Default',      desc:'Balanced auto fire',         color:'#60ddff', cost:0},
-    {key:'sniper',      label:'🎯 Sniper',        desc:'1 huge slow bullet, insane dmg, long cooldown', color:'#ff6644', cost:25},
+    {key:'sniper',      label:'🔴 Laser Gun',      desc:'Piercing laser beam, insane dmg, slow cooldown', color:'#ff6644', cost:25},
     {key:'minigun',     label:'⚙️ Minigun',       desc:'Rapid tiny bullets, low dmg each',              color:'#fbbf24', cost:30},
     {key:'towerGun',    label:'🗼 Tower Gun',     desc:'8-shot radial burst in all directions',         color:'#a855f7', cost:35},
     {key:'flamethrower',label:'🔥 Flamethrower',  desc:'Short range cone, deals burn over time',        color:'#ff4400', cost:40},
@@ -4391,11 +4391,13 @@ function startSpace() {
       const owned = def.cost===0 || upgrades[def.key]>0;
       const active = activeWeapon===def.key;
       const canAfford = coins>=def.cost && !owned;
-      return `<div style="background:${active?'rgba(100,200,255,0.12)':'rgba(255,255,255,0.04)'};border:2px solid ${active?def.color:'rgba(255,255,255,0.1)'};border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;position:relative">
+      const isFriends = def.key==='friends';
+      const colSpan = isFriends ? 'grid-column:1/-1;' : '';
+      return `<div style="${colSpan}background:${active?'rgba(100,200,255,0.12)':'rgba(255,255,255,0.04)'};border:2px solid ${active?def.color:'rgba(255,255,255,0.1)'};border-radius:8px;padding:10px 12px;display:flex;flex-direction:${isFriends?'row':'column'};align-items:${isFriends?'center':'flex-start'};gap:${isFriends?'16px':'5px'};position:relative">
         ${active?`<div style="position:absolute;top:5px;right:7px;font-family:var(--mono);font-size:8px;color:${def.color};font-weight:900">ACTIVE</div>`:''}
-        <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#fff">${def.label}</div>
-        <div style="font-family:var(--mono);font-size:9px;color:#bbb">${def.desc}</div>
-        <div style="margin-top:4px">
+        <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#fff;white-space:nowrap">${def.label}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:#bbb;flex:1">${def.desc}</div>
+        <div style="margin-top:${isFriends?'0':'4px'};flex-shrink:0">
           ${active
             ? `<span style="font-family:var(--mono);font-size:10px;color:${def.color};font-weight:700">✓ Equipped</span>`
             : owned
@@ -5109,7 +5111,7 @@ function startSpace() {
         ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(b.x,b.y,(b.size||1)*2,0,Math.PI*2);ctx.fill();
 
       } else if(wt==='sniper'||b.sniper){
-        // Sniper — long bright orange tracer with glow
+        // Laser Gun — pulsing red/orange beam with glow
         const angle=Math.atan2(b.vy,b.vx);
         const sz=b.size||1;
         ctx.translate(b.x,b.y);ctx.rotate(angle);
@@ -5264,18 +5266,17 @@ function startSpace() {
         ctx.shadowBlur=0;
         if(tf>0.8){
           const sf=Math.min(1,(tf-0.8)/0.2);
-          // RETRY button — between YOU DIED and score, slightly bigger than score text
-          const pulse=0.6+0.4*Math.sin(frame*0.08);
-          ctx.globalAlpha=sf*pulse;
+          // RETRY button — plain, no flash
+          ctx.globalAlpha=sf*0.9;
           const retryFontPx=Math.floor(W*0.026);
           ctx.font=`bold ${retryFontPx}px monospace`;
           const retryTxt='↺  RETRY';
           const rtm=ctx.measureText(retryTxt);
           const rw=rtm.width+24, rh=retryFontPx*1.7;
           const rx=W/2-rw/2, ry=H/2-W*0.025;
-          ctx.fillStyle='rgba(180,20,20,0.35)';
+          ctx.fillStyle='rgba(60,60,80,0.5)';
           ctx.beginPath();ctx.roundRect(rx,ry,rw,rh,5);ctx.fill();
-          ctx.strokeStyle=`rgba(255,60,60,${pulse*0.7})`;ctx.lineWidth=1.5;ctx.stroke();
+          ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1.5;ctx.stroke();
           ctx.fillStyle='#fff';ctx.fillText(retryTxt,W/2,ry+rh*0.7);
           canvas._retryRect={x:rx,y:ry,w:rw,h:rh};
           // Score below retry
