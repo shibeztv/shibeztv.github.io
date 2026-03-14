@@ -1350,7 +1350,7 @@
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
             <div style="display:flex;flex-direction:column;gap:1px">
-              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ</span>
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ</span><span style="font-family:var(--mono);font-size:9px;color:#555;margin-left:5px;align-self:flex-end;padding-bottom:1px">v1.0</span>
               <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · E shop · P pause</span>
             </div>
           </div>
@@ -4143,7 +4143,7 @@ function initSpaceMusic() {
     if (typeof YT === 'undefined' || !YT.Player) { setTimeout(initSpaceMusic, 500); return; }
     _spaceMusicPlayer = new YT.Player('spaceMusicEl', {
       videoId: 'UDVtMYqUAyw',
-      playerVars: { autoplay:1, loop:1, list:'RDUDVtMYqUAyw', listType:'playlist', controls:0, fs:0 },
+      playerVars: { autoplay:1, loop:1, list:'RDUDVtMYqUAyw', listType:'playlist', controls:0, fs:0, origin:location.origin },
       events: {
         onReady: e => { e.target.setVolume(vol); if(!_spaceMusicMuted) e.target.playVideo(); else e.target.mute(); },
         onStateChange: e => { if(e.data===YT.PlayerState.ENDED && !_spaceInShop) e.target.playVideo(); }
@@ -4154,7 +4154,7 @@ function initSpaceMusic() {
   if (!_spaceShopMusicPlayer) {
     _spaceShopMusicPlayer = new YT.Player('spaceShopMusicEl', {
       videoId: 'BeJ-Kscdp4w',
-      playerVars: { autoplay:0, loop:1, list:'RDBeJ-Kscdp4w', listType:'playlist', controls:0, fs:0 },
+      playerVars: { autoplay:0, loop:1, list:'RDBeJ-Kscdp4w', listType:'playlist', controls:0, fs:0, origin:location.origin },
       events: {
         onReady: e => { e.target.setVolume(vol); e.target.pauseVideo(); },
         onStateChange: e => { if(e.data===YT.PlayerState.ENDED && _spaceInShop) e.target.playVideo(); }
@@ -4189,7 +4189,7 @@ function initDeathSfx() {
   if (_spaceDeathSfxPlayer || typeof YT === 'undefined' || !YT.Player) return;
   _spaceDeathSfxPlayer = new YT.Player('spaceDeathSfxEl', {
     videoId: 'j_nV2jcTFvA',
-    playerVars: { autoplay:0, controls:0, fs:0 },
+    playerVars: { autoplay:0, controls:0, fs:0, origin:location.origin },
     events: {
       onReady: e => { e.target.setVolume(40); e.target.pauseVideo(); }
     }
@@ -5018,8 +5018,8 @@ function startSpace() {
         if(score>15&&Math.random()<0.3+score*0.005) spawnEnemy();
         if(score>40&&Math.random()<0.2) spawnEnemy();
         const timeFactor=Math.max(0.3,1-survivalFrames/36000);
-      const swarmMod=1/(1+upgrades.enemySwarm*0.15);
-      enemyTimer=Math.max(12,Math.floor((140-score*0.5)*timeFactor*swarmMod));
+      const swarmMod=upgrades.enemySwarm?1/(1+upgrades.enemySwarm*0.15):1;
+      enemyTimer=Math.max(12,Math.floor((95-score*0.4)*timeFactor*swarmMod));
       }
       difficulty=1+score*0.010;
 
@@ -5352,12 +5352,12 @@ function startSpace() {
     // TITAN WARNING flash
     if(_titanWarning>0){
       ctx.save();
-      ctx.globalAlpha=(_titanWarning%20<10)?0.65:0;
-      ctx.fillStyle='rgba(255,80,0,0.18)';ctx.fillRect(0,0,W,H);
-      ctx.globalAlpha=(_titanWarning%20<10)?1:0;
-      ctx.textAlign='center';ctx.font=`bold ${Math.floor(W*0.042)}px monospace`;
-      ctx.fillStyle='#ff7700';ctx.shadowColor='#ff4400';ctx.shadowBlur=18;
-      ctx.fillText('⚠  TITAN INCOMING',W/2,H/2);
+      ctx.globalAlpha=(_titanWarning%20<10)?0.25:0;
+      ctx.fillStyle='rgba(255,80,0,0.1)';ctx.fillRect(0,0,W,H);
+      ctx.globalAlpha=(_titanWarning%20<10)?0.75:0;
+      ctx.textAlign='center';ctx.font=`bold ${Math.floor(W*0.028)}px monospace`;
+      ctx.fillStyle='#ff9944';ctx.shadowColor='#ff4400';ctx.shadowBlur=8;
+      ctx.fillText('⚠  DOUBTER INCOMING',W/2,H*0.25);
       ctx.shadowBlur=0;ctx.textAlign='left';ctx.globalAlpha=1;ctx.restore();
     }
 
