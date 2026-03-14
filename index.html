@@ -1345,7 +1345,7 @@
         <div id="spaceMusicEl" style="display:none"></div>
         <div id="spaceShopMusicEl" style="display:none"></div>
         <div id="spaceDeathSfxEl" style="display:none"></div>
-        <div id="spaceImgPool" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;overflow:hidden"></div>
+
         <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box;gap:8px;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
@@ -4297,16 +4297,23 @@ function startSpace() {
 
   const enemyPool = _spaceEmotes.filter(e=>e.url!==shipEmote.url).sort(()=>Math.random()-0.5).slice(0,24);
   // Add imgs to DOM so GIFs animate (canvas draws live frame from DOM img)
-  const _imgPool = document.getElementById('spaceImgPool');
-  if(_imgPool) _imgPool.innerHTML='';
+  let _imgPool = document.getElementById('spaceImgPool');
+  if(!_imgPool){
+    _imgPool = document.createElement('div');
+    _imgPool.id='spaceImgPool';
+    _imgPool.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:visible;pointer-events:none;z-index:-1;';
+    document.body.appendChild(_imgPool);
+  } else {
+    _imgPool.innerHTML='';
+  }
   const enemyImgs = enemyPool.map(e=>{
     const i=new Image(); i.crossOrigin='anonymous'; i.src=e.url;
-    i.style.cssText='position:absolute;width:1px;height:1px;';
+    i.style.cssText='position:absolute;width:32px;height:32px;image-rendering:auto;';
     if(_imgPool) _imgPool.appendChild(i);
     return i;
   });
   // Also add ship img to pool
-  shipImg.style.cssText='position:absolute;width:1px;height:1px;';
+  shipImg.style.cssText='position:absolute;width:32px;height:32px;image-rendering:auto;';
   if(_imgPool) _imgPool.appendChild(shipImg);
 
   // ── Stars
@@ -4332,7 +4339,8 @@ function startSpace() {
   }));
 
   // ── Upgrades
-  const upgrades = window._spaceUpgrades||(window._spaceUpgrades={speed:0,atkSpeed:0,multishot:0,maxHp:0,hpRegen:0,damage:0,bulletSize:0,coinMagnet:0,xpBoost:0,armor:0});
+  const upgrades = window._spaceUpgrades||(window._spaceUpgrades={speed:0,atkSpeed:0,multishot:0,maxHp:0,hpRegen:0,damage:0,bulletSize:0,coinMagnet:0,armor:0,xpBoost:0,sniper:0,minigun:0,dualBeretta:0,flamethrower:0,multiGun:0});
+  let activeWeapon = window._spaceWeapon||'default'; // persists across runs
   const UPGRADE_DEFS = [
     {key:'speed',      label:'🚀 Move Speed',    desc:'+8% speed per lvl',      maxLvl:20, cost:l=>Math.floor(1+l*1.4)},
     {key:'atkSpeed',   label:'⚡ Attack Speed',   desc:'-6% shoot cooldown',     maxLvl:20, cost:l=>Math.floor(1+l*1.4)},
@@ -4342,17 +4350,27 @@ function startSpace() {
     {key:'damage',     label:'🔥 Damage',         desc:'+1 bullet damage',       maxLvl:20, cost:l=>Math.floor(2+l*1.6)},
     {key:'bulletSize', label:'🔵 Bullet Size',    desc:'+20% bullet hitbox',     maxLvl:10, cost:l=>Math.floor(3+l*2)},
     {key:'coinMagnet', label:'🧲 Coin Range',     desc:'+15% pickup radius',     maxLvl:10, cost:l=>Math.floor(2+l*1.5)},
-    {key:'armor',      label:'🛡 Armor',          desc:'10% chance block hit',   maxLvl:10, cost:l=>Math.floor(4+l*2.5)},
-    {key:'xpBoost',    label:'⭐ Score Boost',    desc:'+10% score per kill',    maxLvl:10, cost:l=>Math.floor(3+l*2)},
+    {key:'armor',      label:'🛡 Armor',           desc:'↑block% (hyperbolic)',   maxLvl:20, cost:l=>Math.floor(3+l*2)},
   ];
 
   let coins = window._spaceCoins||0;
   function saveCoins(n){coins=n;window._spaceCoins=n;document.getElementById('spaceCoins').textContent=coins;document.getElementById('shopCoinsDisp').textContent=coins;}
 
+  const WEAPON_DEFS = [
+    {key:'default',     label:'🔫 Default',      desc:'Balanced auto fire',         color:'#60ddff', cost:0},
+    {key:'sniper',      label:'🎯 Sniper',        desc:'1 huge slow bullet, insane dmg, long cooldown', color:'#ff6644', cost:25},
+    {key:'minigun',     label:'⚙️ Minigun',       desc:'Rapid tiny bullets, low dmg each',              color:'#fbbf24', cost:30},
+    {key:'dualBeretta', label:'🔫🔫 Dual Beretta',desc:'Two guns, alternating fast shots',              color:'#a855f7', cost:35},
+    {key:'flamethrower',label:'🔥 Flamethrower',  desc:'Short range cone, deals burn over time',        color:'#ff4400', cost:40},
+    {key:'multiGun',    label:'💥 Multi-Gun',     desc:'6-way spread, medium dmg',                      color:'#4ade80', cost:50},
+  ];
+
   window.renderShopGrid = function renderShopGrid() {
     const grid=document.getElementById('shopGrid'); if(!grid) return;
     document.getElementById('shopCoinsDisp').textContent=coins;
-    grid.innerHTML=UPGRADE_DEFS.map(def=>{
+
+    // ── Stat upgrades
+    const statHtml = UPGRADE_DEFS.map(def=>{
       const lvl=upgrades[def.key],maxed=lvl>=def.maxLvl,cost=def.cost(lvl),canAfford=coins>=cost&&!maxed;
       return `<div style="background:rgba(255,255,255,0.05);border:1px solid ${canAfford?'rgba(255,215,0,0.4)':'rgba(255,255,255,0.1)'};border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px">
         <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff">${def.label}</div>
@@ -4364,6 +4382,47 @@ function startSpace() {
         </div>
       </div>`;
     }).join('');
+
+    // ── Weapon selector
+    const weaponHtml = WEAPON_DEFS.map(def=>{
+      const owned = def.cost===0 || upgrades[def.key]>0;
+      const active = activeWeapon===def.key;
+      const canAfford = coins>=def.cost && !owned;
+      return `<div style="background:${active?'rgba(100,200,255,0.12)':'rgba(255,255,255,0.04)'};border:2px solid ${active?def.color:'rgba(255,255,255,0.1)'};border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;position:relative">
+        ${active?`<div style="position:absolute;top:5px;right:7px;font-family:var(--mono);font-size:8px;color:${def.color};font-weight:900">ACTIVE</div>`:''}
+        <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#fff">${def.label}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:#bbb">${def.desc}</div>
+        <div style="margin-top:4px">
+          ${active
+            ? `<span style="font-family:var(--mono);font-size:10px;color:${def.color};font-weight:700">✓ Equipped</span>`
+            : owned
+              ? `<button onclick="spaceEquipWeapon('${def.key}')" style="font-family:var(--mono);font-size:10px;font-weight:700;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.4);color:#60ddff;padding:3px 10px;border-radius:3px;cursor:pointer">EQUIP</button>`
+              : `<button onclick="spaceBuyWeapon('${def.key}')" style="font-family:var(--mono);font-size:10px;font-weight:700;background:${canAfford?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.05)'};border:1px solid ${canAfford?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.1)'};color:${canAfford?'#ffd700':'#555'};padding:3px 10px;border-radius:3px;cursor:${canAfford?'pointer':'default'}">🪙 ${def.cost}</button>`
+          }
+        </div>
+      </div>`;
+    }).join('');
+
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;font-family:var(--mono);font-size:11px;font-weight:900;color:#aaa;letter-spacing:2px;padding:4px 0 2px;border-bottom:1px solid #1a1a3a;margin-bottom:4px">▸ STAT UPGRADES</div>
+      ${statHtml}
+      <div style="grid-column:1/-1;font-family:var(--mono);font-size:11px;font-weight:900;color:#aaa;letter-spacing:2px;padding:10px 0 2px;border-bottom:1px solid #1a1a3a;margin-bottom:4px;margin-top:8px">▸ WEAPONS — buy once, equip anytime</div>
+      ${weaponHtml}
+    `;
+  };
+
+  window.spaceBuyWeapon = function(key) {
+    const def = WEAPON_DEFS.find(d=>d.key===key); if(!def) return;
+    if(coins<def.cost) return;
+    saveCoins(coins-def.cost);
+    upgrades[key]=1;
+    activeWeapon=key; window._spaceWeapon=key;
+    sfxPowerup();
+    renderShopGrid();
+  };
+  window.spaceEquipWeapon = function(key) {
+    activeWeapon=key; window._spaceWeapon=key;
+    renderShopGrid();
   };
 
   window.spaceBuyUpgrade = function(key) {
@@ -4418,7 +4477,22 @@ function startSpace() {
     const o=ac.createOscillator();o.type=type;o.frequency.setValueAtTime(freq,ac.currentTime);
     o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+dur+0.02);
   }
-  function sfxShoot(){playTone(880,'square',0.07,0.12);playTone(660,'square',0.05,0.06);}
+  function sfxShoot(){
+    if(activeWeapon==='sniper'){playTone(120,'sawtooth',0.12,0.35,0.001);playTone(300,'square',0.06,0.2,0.001);return;}
+    if(activeWeapon==='minigun'){playTone(700,'square',0.03,0.08);return;}
+    if(activeWeapon==='dualBeretta'){playTone(800,'square',0.05,0.14);return;}
+    if(activeWeapon==='flamethrower'){
+      const ac=getACtx();if(!ac)return;const v=getSfxVol()*0.12;if(v<=0)return;
+      const buf=ac.createBuffer(1,Math.floor(ac.sampleRate*0.06),ac.sampleRate);
+      const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+      const s=ac.createBufferSource();s.buffer=buf;
+      const g=ac.createGain();g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.08);
+      const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=800;f.Q.value=0.5;
+      s.connect(f);f.connect(g);g.connect(ac.destination);s.start();return;
+    }
+    if(activeWeapon==='multiGun'){playTone(600,'square',0.06,0.14);playTone(500,'square',0.04,0.08);return;}
+    playTone(880,'square',0.07,0.12);playTone(660,'square',0.05,0.06);
+  }
   function sfxHit(){playTone(180,'sawtooth',0.08,0.15);}
   function sfxExplode(){
     const ac=getACtx();if(!ac)return;const v=getSfxVol();if(v<=0)return;
@@ -4502,21 +4576,73 @@ function startSpace() {
   canvas.addEventListener('touchmove',onTouch,{passive:false});
 
   // Bullets fire toward cursor (or forward if keys)
+  let _dualToggle=0; // for dual beretta alternating
+  let _flameFrame=0;
+
   function fireBulletDir() {
     if(shootCooldown>0) return;
-    const cd=activePowerup==='rapid'?Math.max(2,getShootCd()-8):getShootCd();
-    // Aim toward mouse
-    const dx=mouseX-ship.x, dy=mouseY-ship.y;
-    const len=Math.sqrt(dx*dx+dy*dy)||1;
-    const bspeed=11;
-    const count=getBulletCount();
-    const angles=count===1?[0]:count===2?[-0.12,0.12]:[-0.2,0,0.2];
-    const baseAngle=Math.atan2(dy,dx);
-    angles.forEach(da=>{
-      const a=baseAngle+da;
-      bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*bspeed,vy:Math.sin(a)*bspeed,dmg:getBulletDmg()});
-    });
-    shootCooldown=cd;
+    const rapidMod=activePowerup==='rapid'?0.4:1;
+    const baseAngle=Math.atan2(mouseY-ship.y,mouseX-ship.x);
+    const dmg=getBulletDmg();
+    const sz=getBulletSize();
+    const pw=activePowerup;
+
+    if(activeWeapon==='sniper'){
+      // One massive slow bullet, huge damage, long CD
+      const sd=dmg*6+4;
+      bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle)*20,vy:Math.sin(baseAngle)*20,dmg:sd,size:sz*3.5,color:'#ff6644',sniper:true});
+      shootCooldown=Math.floor(55*rapidMod);
+
+    } else if(activeWeapon==='minigun'){
+      // Rapid tiny bullets with slight spread
+      const spread=(Math.random()-0.5)*0.22;
+      bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*16,vy:Math.sin(baseAngle+spread)*16,dmg:Math.max(1,Math.floor(dmg*0.6)),size:sz*0.6,color:'#fbbf24'});
+      shootCooldown=Math.floor(3*rapidMod);
+
+    } else if(activeWeapon==='dualBeretta'){
+      // Two offset guns alternating
+      const side=(_dualToggle%2===0)?-10:10;
+      _dualToggle++;
+      const perp=baseAngle+Math.PI/2;
+      const ox=Math.cos(perp)*side, oy=Math.sin(perp)*side;
+      bullets.push({x:ship.x+ox,y:ship.y+oy,vx:Math.cos(baseAngle)*13,vy:Math.sin(baseAngle)*13,dmg:dmg,size:sz,color:'#c084fc'});
+      shootCooldown=Math.floor(7*rapidMod);
+
+    } else if(activeWeapon==='flamethrower'){
+      // Short-range cone of slow particles that deal burn
+      const spread=0.55;
+      for(let i=0;i<4;i++){
+        const a=baseAngle+(Math.random()-0.5)*spread;
+        const spd=3.5+Math.random()*3;
+        const life=18+Math.random()*14;
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:Math.max(1,Math.floor(dmg*0.5)),size:sz*1.8,color:'#ff4400',flame:true,life,maxLife:life});
+      }
+      shootCooldown=Math.floor(5*rapidMod);
+
+    } else if(activeWeapon==='multiGun'){
+      // 6-way spread around aim direction
+      const count=6;
+      const spread=0.55;
+      for(let i=0;i<count;i++){
+        const a=baseAngle+(i-(count-1)/2)*(spread/(count-1));
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*12,vy:Math.sin(a)*12,dmg:dmg,size:sz,color:'#4ade80'});
+      }
+      shootCooldown=Math.floor(18*rapidMod);
+
+    } else {
+      // Default — aim-directed with multishot support
+      const cd=Math.floor(getShootCd()*rapidMod);
+      const count=getBulletCount();
+      const offsets=count===1?[0]:count===2?[-0.12,0.12]:count===3?[-0.2,0,0.2]:[-0.25,-0.08,0.08,0.25];
+      offsets.forEach(da=>{
+        const a=baseAngle+da;
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*11,vy:Math.sin(a)*11,dmg:dmg,size:sz});
+      });
+      // Powerup extras
+      if(pw==='double'&&count<2){bullets.push({x:ship.x,y:ship.y-8,vx:Math.cos(baseAngle)*11,vy:Math.sin(baseAngle)*11,dmg:dmg});}
+      if(pw==='triple'&&count<3){[-0.2,0.2].forEach(da=>bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*11,vy:Math.sin(baseAngle+da)*11,dmg:dmg}));}
+      shootCooldown=cd;
+    }
     sfxShoot();
   }
 
@@ -4548,7 +4674,7 @@ function startSpace() {
   }
 
   function spawnDrop(x,y,type){
-    if(type==='coin')drops.push({x,y,vx:(Math.random()-0.5)*1.2,vy:-1.5-Math.random(),life:99999,collected:false,settled:false});
+    if(type==='coin')drops.push({x,y,vx:0,vy:0,life:99999,collected:false,settled:true});
     else powerupDrops.push({x,y,vx:(Math.random()-0.5)*1.0,vy:-1.2,type,life:600,collected:false});
   }
 
@@ -4721,6 +4847,14 @@ function startSpace() {
         }
       }
 
+      // Show weapon indicator in powerup bar
+      const _wdef=WEAPON_DEFS&&WEAPON_DEFS.find(w=>w.key===activeWeapon);
+      if(_wdef&&activeWeapon!=='default'){
+        const _pb=document.getElementById('spacePowerup');
+        if(_pb&&!activePowerup){
+          _pb.innerHTML=`<span style="color:${_wdef.color};font-weight:700;font-size:10px">${_wdef.label}</span>`;
+        }
+      }
       if(activePowerup&&powerupTimer>0){
         powerupTimer--;
         const pd=POWERUP_TYPES.find(p=>p.type===activePowerup);
@@ -4752,7 +4886,7 @@ function startSpace() {
           if(Math.sqrt(dx*dx+dy*dy)<e.size*0.5*getBulletSize()){
             e.hp-=b.dmg;hit=true;spawnParticles(e.x,e.y,'#fc5c7d',5);sfxHit();
             if(e.hp<=0){
-              score+=1+Math.floor(upgrades.xpBoost*0.1*score*0.05||0);document.getElementById('spaceScore').textContent=score;
+              score++;document.getElementById('spaceScore').textContent=score;
               spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
               const coinCount=(e.sizeScale||1)+(Math.random()<0.35?1:0);
               for(let ci=0;ci<coinCount;ci++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');
@@ -4771,24 +4905,10 @@ function startSpace() {
       drops=drops.filter(d=>{
         const isMagnet=activePowerup==='magnet';
         if(isMagnet){
-          d.settled=false;
+          // Pull coin toward ship
           const dx=ship.x-d.x,dy=ship.y-d.y,dist=Math.sqrt(dx*dx+dy*dy)||1;
-          const pull=Math.min(7,200/dist);
-          d.vx=dx/dist*pull;d.vy=dy/dist*pull;
-        }
-        if(!d.settled){
-          d.vy+=0.15;
-          d.x+=d.vx;d.y+=d.vy;
-          d.vx*=0.90;d.vy*=0.88;
-          // Floor bounce — strong damping so it settles fast
-          if(d.y>=H-10){d.y=H-10;d.vy*=-0.2;d.vx*=0.6;}
-          // Side walls
-          if(d.x<8){d.x=8;d.vx=Math.abs(d.vx)*0.4;}
-          if(d.x>W-8){d.x=W-8;d.vx=-Math.abs(d.vx)*0.4;}
-          // Settle when almost stopped
-          if(!isMagnet&&Math.abs(d.vx)<0.15&&Math.abs(d.vy)<0.15&&d.y>=H-12){
-            d.settled=true;d.vx=0;d.vy=0;d.y=H-10;
-          }
+          const pull=Math.min(8,220/dist);
+          d.x+=dx/dist*pull;d.y+=dy/dist*pull;
         }
         const collectR=isMagnet?52:getCoinRange();
         if(Math.sqrt((d.x-ship.x)**2+(d.y-ship.y)**2)<collectR&&!d.collected){
@@ -4822,7 +4942,8 @@ function startSpace() {
       if(invincible<=0&&activePowerup!=='shield'){
         enemies=enemies.filter(e=>{
           if(Math.sqrt((e.x-ship.x)**2+(e.y-ship.y)**2)<(e.size+32)*0.4){
-            const blocked=upgrades.armor>0&&Math.random()<upgrades.armor*0.10;
+            const armorChance=upgrades.armor>0?1-(1/(1+0.15*upgrades.armor)):0;
+            const blocked=Math.random()<armorChance;
             if(blocked){
               spawnParticles(ship.x,ship.y,'#60ddff',8); // shield block flash
             } else if(silverLives>0){
@@ -4839,7 +4960,11 @@ function startSpace() {
         });
       }
 
-      bullets=bullets.filter(b=>b.x>-20&&b.x<W+20&&b.y>-20&&b.y<H+20);
+      bullets.forEach(b=>{if(b.flame&&b.life!==undefined)b.life--;});
+      bullets=bullets.filter(b=>{
+        if(b.flame)return b.life>0;
+        return b.x>-20&&b.x<W+20&&b.y>-20&&b.y<H+20;
+      });
       enemies=enemies.filter(e=>e.x>-120&&e.x<W+120&&e.y>-120&&e.y<H+120);
       particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=0.93;p.vy*=0.93;p.life--;});
       particles=particles.filter(p=>p.life>0);
@@ -4959,16 +5084,9 @@ function startSpace() {
           ctx.globalAlpha=sf*0.85;
           ctx.font='bold 14px monospace';ctx.fillStyle='#ccc';ctx.fillText('Score: '+score+'  ·  Best: '+Math.max(score,parseInt(localStorage.getItem('spaceBest')||0)),W/2,H/2+W*0.08);
           ctx.font='12px monospace';ctx.fillStyle='#ffd700';ctx.fillText('🪙 '+coins+' coins kept · upgrades saved',W/2,H/2+W*0.11);
-          // Pulsing RETRY button
-          const pulse=0.6+0.4*Math.sin(frame*0.08);
-          ctx.globalAlpha=sf*pulse;
-          ctx.font=`bold ${Math.floor(W*0.035)}px monospace`;
-          const rw=W*0.22, rh=W*0.055, rx=W/2-rw/2, ry=H/2+W*0.12;
-          ctx.fillStyle='rgba(200,30,30,0.35)';ctx.beginPath();ctx.roundRect(rx,ry,rw,rh,6);ctx.fill();
-          ctx.strokeStyle=`rgba(255,60,60,${pulse*0.8})`;ctx.lineWidth=2;ctx.stroke();
-          ctx.fillStyle='#fff';ctx.fillText('↺  RETRY',W/2,ry+rh*0.68);
-          // Store retry rect for click detection
-          canvas._retryRect={x:rx,y:ry,w:rw,h:rh};
+          ctx.globalAlpha=sf*0.75;
+          ctx.font=`bold ${Math.floor(W*0.022)}px monospace`;
+          ctx.fillStyle='#aaa';ctx.fillText('↺ RETRY  —  Space or click',W/2,H/2+W*0.13);
           const best2=parseInt(localStorage.getItem('spaceBest')||'0');
           if(score>best2){localStorage.setItem('spaceBest',score);ctx.globalAlpha=sf;ctx.fillStyle='#4ade80';ctx.font='bold 13px monospace';ctx.fillText('🏆 NEW BEST!',W/2,H/2-W*0.05);}
         }
