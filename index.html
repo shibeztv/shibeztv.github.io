@@ -1345,36 +1345,42 @@
         <div id="spaceMusicEl" style="display:none"></div>
         <div id="spaceShopMusicEl" style="display:none"></div>
         <div id="spaceDeathSfxEl" style="display:none"></div>
+        <div id="spaceImgPool" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;overflow:hidden"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box;gap:8px;flex-wrap:wrap">
-          <div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0">
-            <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ</span>
-            <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click to shoot · E for shop</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
+            <div style="display:flex;flex-direction:column;gap:1px">
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ</span>
+              <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · E shop · P pause</span>
+            </div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
             <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa">SCORE: <span id="spaceScore" style="color:#fff;font-weight:900;font-size:15px">0</span></span>
             <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa">🪙 <span id="spaceCoins" style="color:#ffd700;font-weight:900;font-size:15px">0</span></span>
-            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa">❤️ <span id="spaceLives" style="color:#fc5c7d;font-weight:900;font-size:15px">3</span></span>
+            <span id="spaceHeartsDisplay" style="font-size:16px;letter-spacing:1px">❤️❤️❤️</span><span id="spaceLives" style="display:none">3</span>
             <div style="display:flex;align-items:center;gap:5px;border-left:1px solid #1a1a3a;padding-left:10px">
               <span style="font-family:var(--mono);font-size:11px;color:#aaa;font-weight:700">MUSIC</span>
-              <input id="spaceMusicVol" type="range" min="0" max="100" value="25" oninput="setSpaceMusicVol(this.value)" style="width:54px;accent-color:#7c5cfc;cursor:pointer">
+              <input id="spaceMusicVol" type="range" min="0" max="100" value="25" oninput="setSpaceMusicVol(this.value)" style="width:108px;accent-color:#7c5cfc;cursor:pointer">
             </div>
             <div style="display:flex;align-items:center;gap:5px;border-left:1px solid #1a1a3a;padding-left:10px">
               <span style="font-family:var(--mono);font-size:11px;color:#aaa;font-weight:700">SFX</span>
-              <input id="spaceSfxVol" type="range" min="0" max="100" value="40" style="width:50px;accent-color:#fc5c7d;cursor:pointer">
+              <input id="spaceSfxVol" type="range" min="0" max="100" value="40" style="width:100px;accent-color:#fc5c7d;cursor:pointer">
             </div>
             <button onclick="spaceShopToggle()" style="font-family:var(--mono);font-size:10px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 10px;border-radius:3px;cursor:pointer" title="Press E or Tab">🛒 SHOP [E]</button>
             <button id="spaceMuteBtn" onclick="toggleMuteAll()" title="Mute all sound" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:16px;line-height:1;padding:3px 8px;border-radius:4px">🔊</button>
             <button onclick="closeSpace()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
-        <canvas id="spaceCanvas" style="display:block;cursor:crosshair;touch-action:none"></canvas>
-        <div id="spacePowerup" style="height:22px;padding:2px 16px;font-family:var(--mono);font-size:10px;color:#ffd700;background:#050510;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:8px"></div>
+        <div style="position:relative;flex:1;display:flex;flex-direction:column;width:100%">
+          <canvas id="spaceCanvas" style="display:block;cursor:crosshair;touch-action:none;width:100%"></canvas>
+          <div id="spacePowerup" style="height:22px;padding:2px 16px;font-family:var(--mono);font-size:10px;color:#ffd700;background:#050510;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:8px"></div>
 
-        <!-- SHOP OVERLAY -->
-        <div id="spaceShop" style="display:none;position:absolute;inset:0;background:rgba(2,2,18,0.94);backdrop-filter:blur(4px);flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;box-sizing:border-box">
+          <!-- SHOP OVERLAY — only over canvas, topbar stays visible -->
+          <div id="spaceShop" style="display:none;position:absolute;inset:0;background:rgba(2,2,18,0.96);backdrop-filter:blur(4px);flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;box-sizing:border-box;z-index:10">
           <div style="font-family:var(--mono);font-size:15px;font-weight:900;color:#ffd700;letter-spacing:2px;margin-bottom:4px">🛒 UPGRADE SHOP</div>
           <div style="font-family:var(--mono);font-size:11px;color:#aaa;margin-bottom:8px">🪙 Coins: <span id="shopCoinsDisp" style="color:#ffd700;font-weight:900">0</span> &nbsp;·&nbsp; Press E / Tab to close</div>
-          <div id="shopGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:480px"></div>
+          <div id="shopGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;max-width:700px;overflow-y:auto;max-height:60vh"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -4184,7 +4190,7 @@ function initDeathSfx() {
     videoId: 'j_nV2jcTFvA',
     playerVars: { autoplay:0, controls:0, fs:0 },
     events: {
-      onReady: e => { e.target.setVolume(80); e.target.pauseVideo(); }
+      onReady: e => { e.target.setVolume(40); e.target.pauseVideo(); }
     }
   });
 }
@@ -4192,7 +4198,7 @@ function playDeathSfx() {
   if (!_spaceDeathSfxPlayer) return;
   try {
     _spaceDeathSfxPlayer.seekTo(0, true);
-    _spaceDeathSfxPlayer.setVolume(80);
+    _spaceDeathSfxPlayer.setVolume(40);
     _spaceDeathSfxPlayer.playVideo();
     // Stop after ~4 seconds (the death sound)
     setTimeout(() => { try { _spaceDeathSfxPlayer.pauseVideo(); } catch(e){} }, 4000);
@@ -4232,6 +4238,7 @@ function closeSpace() {
   if (_spaceRAF) { cancelAnimationFrame(_spaceRAF); _spaceRAF = null; }
   const c = document.getElementById('spaceCanvas');
   if (c && c._spaceCleanup) { c._spaceCleanup(); c._spaceCleanup = null; }
+  const _pool=document.getElementById('spaceImgPool');if(_pool)_pool.innerHTML='';
   if (_spaceMusicPlayer) { try { _spaceMusicPlayer.stopVideo(); } catch(e){} }
   document.getElementById('spaceModal').style.display = 'none';
 }
@@ -4246,6 +4253,39 @@ function spaceShopToggle() {
   else { switchToMainMusic(); }
 }
 
+
+function updateHeartsDisplay(livesOverride, silverOverride, maxHpOverride) {
+  const el = document.getElementById('spaceHeartsDisplay');
+  if (!el) return;
+  // Use passed values or try window accessor (called from outside closure)
+  let lv = livesOverride !== undefined ? livesOverride : (window._spaceGetLives ? window._spaceGetLives().lives : 3);
+  let sv = silverOverride !== undefined ? silverOverride : (window._spaceGetLives ? window._spaceGetLives().silverLives : 0);
+  let mx = maxHpOverride !== undefined ? maxHpOverride : (window._spaceGetLives ? window._spaceGetLives().maxHp : 3);
+  let s = '';
+  for (let i = 0; i < sv; i++) s += '💛';
+  for (let i = 0; i < mx; i++) s += (i < lv) ? '❤️' : '🖤';
+  el.textContent = s;
+  const lvEl = document.getElementById('spaceLives');
+  if (lvEl) lvEl.textContent = lv;
+}
+
+
+function toggleSpacePause() {
+  if (!_spaceRunning || !window._spaceGetState) return;
+  const state = window._spaceGetState();
+  const btn = document.getElementById('spacePauseBtn');
+  if (state === 'paused') {
+    window._spaceSetState('playing');
+    if (btn) { btn.textContent = '⏸'; btn.style.color = '#aaa'; }
+    resumeSpaceMusic();
+  } else if (state === 'playing') {
+    window._spaceSetState('paused');
+    if (btn) { btn.textContent = '▶'; btn.style.color = '#4ade80'; }
+    pauseSpaceMusic();
+    try { _spaceDeathSfxPlayer?.pauseVideo(); } catch(e){}
+  }
+}
+
 function startSpace() {
   const canvas = document.getElementById('spaceCanvas');
   const ctx = canvas.getContext('2d');
@@ -4256,7 +4296,18 @@ function startSpace() {
   const shipImg = new Image(); shipImg.crossOrigin='anonymous'; shipImg.src = shipEmote.url;
 
   const enemyPool = _spaceEmotes.filter(e=>e.url!==shipEmote.url).sort(()=>Math.random()-0.5).slice(0,24);
-  const enemyImgs = enemyPool.map(e=>{ const i=new Image(); i.crossOrigin='anonymous'; i.src=e.url; return i; });
+  // Add imgs to DOM so GIFs animate (canvas draws live frame from DOM img)
+  const _imgPool = document.getElementById('spaceImgPool');
+  if(_imgPool) _imgPool.innerHTML='';
+  const enemyImgs = enemyPool.map(e=>{
+    const i=new Image(); i.crossOrigin='anonymous'; i.src=e.url;
+    i.style.cssText='position:absolute;width:1px;height:1px;';
+    if(_imgPool) _imgPool.appendChild(i);
+    return i;
+  });
+  // Also add ship img to pool
+  shipImg.style.cssText='position:absolute;width:1px;height:1px;';
+  if(_imgPool) _imgPool.appendChild(shipImg);
 
   // ── Stars
   const stars = Array.from({length:160}, ()=>({
@@ -4264,27 +4315,35 @@ function startSpace() {
     r:Math.random()*1.5+0.2, speed:0.2+Math.random()*0.6, a:0.3+Math.random()*0.7
   }));
 
-  // ── Planets (2, rare, realistic)
-  const PLANET_HUES = [210,30,120,0,270,180,50];
+  // ── Planet emote base image
+  const PLANET_HUES = [0,30,60,90,120,180,210,270,300];
+  const _planetEmoteImg = new Image();
+  _planetEmoteImg.crossOrigin='anonymous';
+  _planetEmoteImg.src='https://cdn.7tv.app/emote/01F00Z3A9G0007E4VV006YKSK9/2x.webp';
+  if(_imgPool){ _planetEmoteImg.style.cssText='position:absolute;width:1px;height:1px;'; _imgPool.appendChild(_planetEmoteImg); }
+
   const planets = Array.from({length:2}, (_,pi)=>({
     x: W+400+pi*700+Math.random()*300, y:80+Math.random()*(H-160),
     r:10+Math.random()*14, speed:0.07+Math.random()*0.08,
     hue:PLANET_HUES[Math.floor(Math.random()*PLANET_HUES.length)],
-    rings:Math.random()>0.55, ringTilt:0.22+Math.random()*0.18,
-    hasPolarCap:Math.random()>0.5, atmOpacity:0.3+Math.random()*0.4,
-    seed:Math.random()*1000, angle:Math.random()*Math.PI*2,
-    moveDir: Math.random()*Math.PI*2, // scroll direction
+    rings:Math.random()>0.5, ringTilt:0.22+Math.random()*0.18,
+    atmOpacity:0.25+Math.random()*0.4,
+    seed:Math.random()*1000,
   }));
 
   // ── Upgrades
-  const upgrades = window._spaceUpgrades||(window._spaceUpgrades={speed:0,atkSpeed:0,multishot:0,maxHp:0,hpRegen:0,damage:0});
+  const upgrades = window._spaceUpgrades||(window._spaceUpgrades={speed:0,atkSpeed:0,multishot:0,maxHp:0,hpRegen:0,damage:0,bulletSize:0,coinMagnet:0,xpBoost:0,armor:0});
   const UPGRADE_DEFS = [
-    {key:'speed',    label:'🚀 Move Speed',  desc:'+12% speed each',  maxLvl:5, cost:l=>[1,3,5,8,12][l]},
-    {key:'atkSpeed', label:'⚡ Attack Speed', desc:'-12% cooldown',    maxLvl:5, cost:l=>[1,3,5,8,12][l]},
-    {key:'multishot',label:'💥 Multi-Shot',   desc:'+1 bullet',        maxLvl:3, cost:l=>[2,5,10][l]},
-    {key:'maxHp',    label:'❤️ Max HP',       desc:'+1 max health',    maxLvl:4, cost:l=>[1,3,6,10][l]},
-    {key:'hpRegen',  label:'💚 HP Regen',     desc:'regen 1hp/30s',    maxLvl:3, cost:l=>[2,5,9][l]},
-    {key:'damage',   label:'🔥 Damage',       desc:'+1 bullet damage', maxLvl:4, cost:l=>[2,4,7,12][l]},
+    {key:'speed',      label:'🚀 Move Speed',    desc:'+8% speed per lvl',      maxLvl:20, cost:l=>Math.floor(1+l*1.4)},
+    {key:'atkSpeed',   label:'⚡ Attack Speed',   desc:'-6% shoot cooldown',     maxLvl:20, cost:l=>Math.floor(1+l*1.4)},
+    {key:'multishot',  label:'💥 Multi-Shot',     desc:'+1 extra bullet',        maxLvl:20, cost:l=>Math.floor(2+l*2)},
+    {key:'maxHp',      label:'❤️ Max HP',         desc:'+1 max heart',           maxLvl:20, cost:l=>Math.floor(1+l*1.2)},
+    {key:'hpRegen',    label:'💚 HP Regen',       desc:'regen 1hp/30s',          maxLvl:20, cost:l=>Math.floor(2+l*1.8)},
+    {key:'damage',     label:'🔥 Damage',         desc:'+1 bullet damage',       maxLvl:20, cost:l=>Math.floor(2+l*1.6)},
+    {key:'bulletSize', label:'🔵 Bullet Size',    desc:'+20% bullet hitbox',     maxLvl:10, cost:l=>Math.floor(3+l*2)},
+    {key:'coinMagnet', label:'🧲 Coin Range',     desc:'+15% pickup radius',     maxLvl:10, cost:l=>Math.floor(2+l*1.5)},
+    {key:'armor',      label:'🛡 Armor',          desc:'10% chance block hit',   maxLvl:10, cost:l=>Math.floor(4+l*2.5)},
+    {key:'xpBoost',    label:'⭐ Score Boost',    desc:'+10% score per kill',    maxLvl:10, cost:l=>Math.floor(3+l*2)},
   ];
 
   let coins = window._spaceCoins||0;
@@ -4312,13 +4371,15 @@ function startSpace() {
     const lvl=upgrades[key]; if(lvl>=def.maxLvl) return;
     const cost=def.cost(lvl); if(coins<cost) return;
     saveCoins(coins-cost); upgrades[key]++; renderShopGrid();
-    if(key==='maxHp'){lives=Math.min(3+upgrades.maxHp,lives+1);document.getElementById('spaceLives').textContent=lives;}
+    if(key==='maxHp'){lives=Math.min(3+upgrades.maxHp,lives+1);updateHeartsDisplay(lives,silverLives,getMaxHp());}
   };
 
   function getShipSpeed()   { return 3.5*(1+upgrades.speed*0.13); }
   function getShootCd()     { return Math.max(4,14-upgrades.atkSpeed*2); }
   function getBulletCount() { return 1+upgrades.multishot+(activePowerup==='triple'?2:activePowerup==='double'?1:0); }
   function getBulletDmg()   { return 1+upgrades.damage; }
+  function getBulletSize()   { return 1+upgrades.bulletSize*0.2; }
+  function getCoinRange()    { return 20*(1+upgrades.coinMagnet*0.15); }
   function getMaxHp()       { return 3+upgrades.maxHp; }
 
   // Ship can move anywhere on screen
@@ -4327,6 +4388,9 @@ function startSpace() {
   let bullets=[],enemies=[],particles=[],drops=[],powerupDrops=[];
   let score=0, lives=getMaxHp(), frame=0;
   let state='waiting', enemyTimer=90, difficulty=1, invincible=0, shootCooldown=0;
+  window._spaceGetState=()=>state;
+  window._spaceSetState=s=>{state=s;};
+  window._spaceGetLives=()=>({lives,silverLives,maxHp:getMaxHp()});
   let _deathFrame=0;
   let silverLives=0; // bonus armor hearts (shown as gold, lost on hit, not reclaimable)
   let regenTimer=0, activePowerup=null, powerupTimer=0;
@@ -4387,6 +4451,7 @@ function startSpace() {
     const nav=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','w','a','s','d','W','A','S','D',' ','e','E','Tab'];
     if(nav.includes(e.key))e.preventDefault();
     if(e.type==='keydown'){
+      if(e.key==='p'||e.key==='P'){toggleSpacePause();return;}
       keys[e.key]=true;
       if((e.key==='e'||e.key==='E'||e.key==='Tab')&&state==='playing'){spaceShopToggle();return;}
       if((e.key===' '||e.key==='Space')&&state==='waiting'){state='playing';return;}
@@ -4401,7 +4466,17 @@ function startSpace() {
   let mouseX=W/2, mouseY=H/2;
   const onMouseMove=e=>{const r=canvas.getBoundingClientRect();mouseX=(e.clientX-r.left)*(W/r.width);mouseY=(e.clientY-r.top)*(H/r.height);};
   let mouseHeld=false;
-  const onMouseDown=e=>{if(e.button===0){mouseHeld=true;if(state==='playing')fireBulletDir();if(state==='waiting')state='playing';if(state==='dead')resetSpace();}};
+  const onMouseDown=e=>{
+    if(e.button===0){
+      mouseHeld=true;
+      if(state==='playing') fireBulletDir();
+      if(state==='waiting') state='playing';
+      if(state==='dead'){
+        // Check if clicked retry button specifically (or anywhere)
+        resetSpace();
+      }
+    }
+  };
   const onMouseUp=e=>{if(e.button===0)mouseHeld=false;};
   document.addEventListener('mouseup',onMouseUp);
   canvas.addEventListener('mousemove',onMouseMove);
@@ -4409,6 +4484,13 @@ function startSpace() {
 
   const onTouch=e=>{
     e.preventDefault();
+    if(state==='paused'){
+      ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
+      ctx.textAlign='center';
+      ctx.font=`bold ${Math.floor(W*0.07)}px monospace`;ctx.fillStyle='#fff';ctx.fillText('PAUSED',W/2,H/2-10);
+      ctx.font='13px monospace';ctx.fillStyle='#aaa';ctx.fillText('Press P or click ▶ to resume',W/2,H/2+24);
+      ctx.textAlign='left';
+    }
     if(state==='waiting'){state='playing';return;}
     if(state==='dead'){resetSpace();return;}
     const t=e.touches[0];const rect=canvas.getBoundingClientRect();
@@ -4455,9 +4537,14 @@ function startSpace() {
     // Move toward ship (with slight random offset)
     const tx=ship.x+(Math.random()-0.5)*120, ty=ship.y+(Math.random()-0.5)*120;
     const dx=tx-x, dy=ty-y, len=Math.sqrt(dx*dx+dy*dy)||1;
-    const speed=(0.65+Math.random()*0.85)*Math.min(difficulty,3.5);
-    const hp=Math.ceil(1+(difficulty>2?1:0));
-    enemies.push({x,y,img,size,vx:(dx/len)*speed,vy:(dy/len)*speed,hp,maxHp:hp,age:0,wobble:Math.random()>0.4,wobbleAmp:1+Math.random()*2,wobbleFreq:0.03+Math.random()*0.04});
+    const sizeRoll=Math.random();
+    const sizeScale = sizeRoll<0.10 ? 3 : sizeRoll<0.30 ? 2 : 1;
+    const finalSize = size * sizeScale;
+    const speed=(0.65+Math.random()*0.85)*Math.min(difficulty,3.5)*(sizeScale>1?0.75:1);
+    const baseHp=Math.ceil(1+(difficulty>2?1:0));
+    const hp=baseHp*sizeScale;
+    const isBoss=sizeScale===3, isBig=sizeScale===2;
+    enemies.push({x,y,img,size:finalSize,sizeScale,isBoss,isBig,vx:(dx/len)*speed,vy:(dy/len)*speed,hp,maxHp:hp,age:0,wobble:Math.random()>0.4,wobbleAmp:1+Math.random()*2,wobbleFreq:0.03+Math.random()*0.04});
   }
 
   function spawnDrop(x,y,type){
@@ -4479,7 +4566,7 @@ function startSpace() {
     state='playing';enemyTimer=90;difficulty=1;invincible=0;shootCooldown=0;_deathFrame=0;silverLives=0;resumeSpaceMusic();
     regenTimer=0;activePowerup=null;powerupTimer=0;
     document.getElementById('spaceScore').textContent='0';
-    document.getElementById('spaceLives').textContent=lives;
+    updateHeartsDisplay(lives,silverLives,getMaxHp());
     document.getElementById('spaceShop').style.display='none';
     document.getElementById('spacePowerup').innerHTML='';
   }
@@ -4487,45 +4574,59 @@ function startSpace() {
   // ── Draw realistic planet
   function drawPlanet(p){
     const pr=p.r;
+    const d=pr*2;
+
+    // ── Rings BEHIND
     if(p.rings){
       ctx.save();ctx.translate(p.x,p.y);ctx.scale(1,p.ringTilt);
       for(let ri=0;ri<2;ri++){
-        const rr=pr*(1.6+ri*0.25),rw=pr*0.2;
+        const rr=pr*(1.65+ri*0.28),rw=pr*0.22;
         const rg=ctx.createRadialGradient(0,0,rr-rw,0,0,rr+rw);
-        rg.addColorStop(0,`hsla(${p.hue},40%,55%,0)`);
-        rg.addColorStop(0.4,`hsla(${p.hue},50%,60%,${0.3-ri*0.08})`);
+        rg.addColorStop(0,`hsla(${p.hue},40%,60%,0)`);
+        rg.addColorStop(0.4,`hsla(${p.hue},55%,65%,${0.32-ri*0.09})`);
         rg.addColorStop(1,`hsla(${p.hue},40%,45%,0)`);
         ctx.strokeStyle=rg;ctx.lineWidth=rw*2;
         ctx.beginPath();ctx.arc(0,0,rr,Math.PI*0.05,Math.PI*0.95);ctx.stroke();
       }
       ctx.restore();
     }
-    const g=ctx.createRadialGradient(p.x-pr*0.35,p.y-pr*0.35,pr*0.05,p.x+pr*0.1,p.y+pr*0.1,pr*1.05);
-    g.addColorStop(0,`hsl(${p.hue},55%,72%)`);
-    g.addColorStop(0.5,`hsl(${p.hue},45%,38%)`);
-    g.addColorStop(0.82,`hsl(${p.hue},35%,20%)`);
-    g.addColorStop(1,`hsl(${p.hue},22%,7%)`);
-    ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
-    if(p.hasPolarCap){
-      ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);ctx.clip();
-      const cg=ctx.createRadialGradient(p.x,p.y-pr*0.7,0,p.x,p.y-pr*0.7,pr*0.5);
-      cg.addColorStop(0,'rgba(220,235,255,0.5)');cg.addColorStop(1,'rgba(180,210,255,0)');
-      ctx.fillStyle=cg;ctx.fillRect(p.x-pr,p.y-pr,pr*2,pr);ctx.restore();
+
+    // ── Planet emote base with hue-rotate recoloring
+    if(_planetEmoteImg.complete && _planetEmoteImg.naturalWidth>0){
+      ctx.save();
+      // Clip to circle
+      ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);ctx.clip();
+      // Apply hue rotation via CSS filter on a temporary canvas
+      ctx.filter=`hue-rotate(${p.hue}deg) saturate(1.3) brightness(0.9)`;
+      try{ctx.drawImage(_planetEmoteImg, p.x-pr, p.y-pr, d, d);}catch(e){}
+      ctx.filter='none';
+      ctx.restore();
+    } else {
+      // Fallback gradient sphere if emote not loaded
+      const g=ctx.createRadialGradient(p.x-pr*0.3,p.y-pr*0.3,pr*0.05,p.x+pr*0.1,p.y+pr*0.1,pr*1.05);
+      g.addColorStop(0,`hsl(${p.hue},55%,68%)`);g.addColorStop(0.6,`hsl(${p.hue},45%,35%)`);g.addColorStop(1,`hsl(${p.hue},25%,10%)`);
+      ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
     }
-    const ag=ctx.createRadialGradient(p.x,p.y,pr*0.9,p.x,p.y,pr*1.3);
-    ag.addColorStop(0,`hsla(${p.hue},65%,60%,${p.atmOpacity*0.5})`);
-    ag.addColorStop(1,`hsla(${p.hue},55%,45%,0)`);
-    ctx.beginPath();ctx.arc(p.x,p.y,pr*1.3,0,Math.PI*2);ctx.fillStyle=ag;ctx.fill();
-    const sg=ctx.createRadialGradient(p.x-pr*0.38,p.y-pr*0.38,0,p.x-pr*0.28,p.y-pr*0.28,pr*0.52);
-    sg.addColorStop(0,'rgba(255,255,255,0.2)');sg.addColorStop(1,'rgba(255,255,255,0)');
+
+    // ── Atmosphere glow rim
+    const ag=ctx.createRadialGradient(p.x,p.y,pr*0.88,p.x,p.y,pr*1.32);
+    ag.addColorStop(0,`hsla(${p.hue},70%,65%,${p.atmOpacity*0.55})`);
+    ag.addColorStop(1,`hsla(${p.hue},60%,50%,0)`);
+    ctx.beginPath();ctx.arc(p.x,p.y,pr*1.32,0,Math.PI*2);ctx.fillStyle=ag;ctx.fill();
+
+    // ── Specular highlight
+    const sg=ctx.createRadialGradient(p.x-pr*0.38,p.y-pr*0.4,0,p.x-pr*0.28,p.y-pr*0.3,pr*0.5);
+    sg.addColorStop(0,'rgba(255,255,255,0.25)');sg.addColorStop(1,'rgba(255,255,255,0)');
     ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);ctx.fillStyle=sg;ctx.fill();
+
+    // ── Rings IN FRONT (lower half)
     if(p.rings){
       ctx.save();ctx.translate(p.x,p.y);ctx.scale(1,p.ringTilt);
       for(let ri=0;ri<2;ri++){
-        const rr=pr*(1.6+ri*0.25),rw=pr*0.2;
+        const rr=pr*(1.65+ri*0.28),rw=pr*0.22;
         const rg=ctx.createRadialGradient(0,0,rr-rw,0,0,rr+rw);
-        rg.addColorStop(0,`hsla(${p.hue},40%,55%,0)`);
-        rg.addColorStop(0.4,`hsla(${p.hue},50%,60%,${0.3-ri*0.08})`);
+        rg.addColorStop(0,`hsla(${p.hue},40%,60%,0)`);
+        rg.addColorStop(0.4,`hsla(${p.hue},55%,65%,${0.32-ri*0.09})`);
         rg.addColorStop(1,`hsla(${p.hue},40%,45%,0)`);
         ctx.strokeStyle=rg;ctx.lineWidth=rw*2;
         ctx.beginPath();ctx.arc(0,0,rr,Math.PI*1.05,Math.PI*1.95);ctx.stroke();
@@ -4599,7 +4700,7 @@ function startSpace() {
 
     const shopOpen=document.getElementById('spaceShop').style.display==='flex';
 
-    if(state==='playing' && !shopOpen){
+    if((state==='playing') && !shopOpen){
       const SPEED=getShipSpeed();
       if(keys['ArrowUp']||keys['w']||keys['W'])    ship.y=Math.max(30,ship.y-SPEED);
       if(keys['ArrowDown']||keys['s']||keys['S'])  ship.y=Math.min(H-30,ship.y+SPEED);
@@ -4615,7 +4716,7 @@ function startSpace() {
       if(upgrades.hpRegen>0){
         regenTimer++;
         if(regenTimer>=Math.floor(1800/upgrades.hpRegen)&&lives<getMaxHp()){
-          lives++;regenTimer=0;document.getElementById('spaceLives').textContent=lives;
+          lives++;regenTimer=0;updateHeartsDisplay(lives,silverLives,getMaxHp());
           spawnParticles(ship.x,ship.y,'#4ade80',6);
         }
       }
@@ -4648,13 +4749,13 @@ function startSpace() {
         enemies=enemies.map(e=>{
           if(hit)return e;
           const dx=b.x-e.x,dy=b.y-e.y;
-          if(Math.sqrt(dx*dx+dy*dy)<e.size*0.5){
+          if(Math.sqrt(dx*dx+dy*dy)<e.size*0.5*getBulletSize()){
             e.hp-=b.dmg;hit=true;spawnParticles(e.x,e.y,'#fc5c7d',5);sfxHit();
             if(e.hp<=0){
-              score++;document.getElementById('spaceScore').textContent=score;
+              score+=1+Math.floor(upgrades.xpBoost*0.1*score*0.05||0);document.getElementById('spaceScore').textContent=score;
               spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
-              spawnDrop(e.x,e.y,'coin');
-              if(Math.random()<0.35)spawnDrop(e.x+10,e.y+10,'coin');
+              const coinCount=(e.sizeScale||1)+(Math.random()<0.35?1:0);
+              for(let ci=0;ci<coinCount;ci++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');
               const roll=Math.random();
               if(roll<0.07) spawnDrop(e.x,e.y,'heart');
               else if(roll<0.10) spawnDrop(e.x,e.y,'silverheart');
@@ -4670,18 +4771,26 @@ function startSpace() {
       drops=drops.filter(d=>{
         const isMagnet=activePowerup==='magnet';
         if(isMagnet){
-          // Wake up settled coins and pull them hard toward ship
           d.settled=false;
           const dx=ship.x-d.x,dy=ship.y-d.y,dist=Math.sqrt(dx*dx+dy*dy)||1;
-          const pull=Math.min(6,180/dist); // stronger when closer
+          const pull=Math.min(7,200/dist);
           d.vx=dx/dist*pull;d.vy=dy/dist*pull;
         }
-        if(!d.settled){d.vy+=0.12;d.x+=d.vx;d.y+=d.vy;d.vx*=0.93;d.vy*=0.93;}
-        // settle when slow and not magnetised
-        if(!d.settled&&!isMagnet&&Math.abs(d.vx)<0.1&&Math.abs(d.vy)<0.1){d.settled=true;d.vx=0;d.vy=0;}
-        // keep in bounds
-        if(d.x<8)d.x=8;if(d.x>W-8)d.x=W-8;if(d.y>H-8){d.y=H-8;d.vy*=-0.3;d.vx*=0.8;}
-        const collectR=isMagnet?48:22;
+        if(!d.settled){
+          d.vy+=0.15;
+          d.x+=d.vx;d.y+=d.vy;
+          d.vx*=0.90;d.vy*=0.88;
+          // Floor bounce — strong damping so it settles fast
+          if(d.y>=H-10){d.y=H-10;d.vy*=-0.2;d.vx*=0.6;}
+          // Side walls
+          if(d.x<8){d.x=8;d.vx=Math.abs(d.vx)*0.4;}
+          if(d.x>W-8){d.x=W-8;d.vx=-Math.abs(d.vx)*0.4;}
+          // Settle when almost stopped
+          if(!isMagnet&&Math.abs(d.vx)<0.15&&Math.abs(d.vy)<0.15&&d.y>=H-12){
+            d.settled=true;d.vx=0;d.vy=0;d.y=H-10;
+          }
+        }
+        const collectR=isMagnet?52:getCoinRange();
         if(Math.sqrt((d.x-ship.x)**2+(d.y-ship.y)**2)<collectR&&!d.collected){
           d.collected=true;saveCoins(coins+1);spawnParticles(d.x,d.y,'#ffd700',4);sfxCoin();return false;
         }
@@ -4694,7 +4803,7 @@ function startSpace() {
           d.collected=true;const pt=POWERUP_TYPES.find(p=>p.type===d.type);
           if(d.type==='heart'){
             lives=Math.min(getMaxHp(),lives+1);
-            document.getElementById('spaceLives').textContent=lives;
+            updateHeartsDisplay(lives,silverLives,getMaxHp());
             spawnParticles(d.x,d.y,'#ff4488',10);
             playTone(880,'sine',0.1,0.3);setTimeout(()=>playTone(1100,'sine',0.08,0.25),80);
           } else if(d.type==='silverheart'){
@@ -4713,13 +4822,16 @@ function startSpace() {
       if(invincible<=0&&activePowerup!=='shield'){
         enemies=enemies.filter(e=>{
           if(Math.sqrt((e.x-ship.x)**2+(e.y-ship.y)**2)<(e.size+32)*0.4){
-            if(silverLives>0){
+            const blocked=upgrades.armor>0&&Math.random()<upgrades.armor*0.10;
+            if(blocked){
+              spawnParticles(ship.x,ship.y,'#60ddff',8); // shield block flash
+            } else if(silverLives>0){
               silverLives--;spawnParticles(ship.x,ship.y,'#ffe066',10);sfxPlayerHit();
             } else {
               lives--;spawnParticles(ship.x,ship.y,'#ff4444',15);sfxPlayerHit();
             }
             invincible=90;
-            document.getElementById('spaceLives').textContent=Math.max(0,lives);
+            updateHeartsDisplay(lives,silverLives,getMaxHp());
             if(lives<=0){state='dead';_deathFrame=frame;stopAllSpaceMusic();playDeathSfx();}
             return false;
           }
@@ -4806,6 +4918,13 @@ function startSpace() {
     }
 
     // Overlays
+    if(state==='paused'){
+      ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
+      ctx.textAlign='center';
+      ctx.font=`bold ${Math.floor(W*0.07)}px monospace`;ctx.fillStyle='#fff';ctx.fillText('PAUSED',W/2,H/2-10);
+      ctx.font='13px monospace';ctx.fillStyle='#aaa';ctx.fillText('Press P or click ▶ to resume',W/2,H/2+24);
+      ctx.textAlign='left';
+    }
     if(state==='waiting'){
       ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
       ctx.textAlign='center';
@@ -4840,7 +4959,16 @@ function startSpace() {
           ctx.globalAlpha=sf*0.85;
           ctx.font='bold 14px monospace';ctx.fillStyle='#ccc';ctx.fillText('Score: '+score+'  ·  Best: '+Math.max(score,parseInt(localStorage.getItem('spaceBest')||0)),W/2,H/2+W*0.08);
           ctx.font='12px monospace';ctx.fillStyle='#ffd700';ctx.fillText('🪙 '+coins+' coins kept · upgrades saved',W/2,H/2+W*0.11);
-          ctx.font='11px monospace';ctx.fillStyle='#666';ctx.fillText('Space / click to retry',W/2,H/2+W*0.145);
+          // Pulsing RETRY button
+          const pulse=0.6+0.4*Math.sin(frame*0.08);
+          ctx.globalAlpha=sf*pulse;
+          ctx.font=`bold ${Math.floor(W*0.035)}px monospace`;
+          const rw=W*0.22, rh=W*0.055, rx=W/2-rw/2, ry=H/2+W*0.12;
+          ctx.fillStyle='rgba(200,30,30,0.35)';ctx.beginPath();ctx.roundRect(rx,ry,rw,rh,6);ctx.fill();
+          ctx.strokeStyle=`rgba(255,60,60,${pulse*0.8})`;ctx.lineWidth=2;ctx.stroke();
+          ctx.fillStyle='#fff';ctx.fillText('↺  RETRY',W/2,ry+rh*0.68);
+          // Store retry rect for click detection
+          canvas._retryRect={x:rx,y:ry,w:rw,h:rh};
           const best2=parseInt(localStorage.getItem('spaceBest')||'0');
           if(score>best2){localStorage.setItem('spaceBest',score);ctx.globalAlpha=sf;ctx.fillStyle='#4ade80';ctx.font='bold 13px monospace';ctx.fillText('🏆 NEW BEST!',W/2,H/2-W*0.05);}
         }
@@ -4880,6 +5008,27 @@ function startSpace() {
   _spaceRunning=true;
   loop();
 }
+
+
+// Pause music when browser tab is hidden
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    try { _spaceMusicPlayer?.pauseVideo(); } catch(e){}
+    try { _spaceShopMusicPlayer?.pauseVideo(); } catch(e){}
+  } else {
+    // Only resume if game is open and not paused/dead
+    const modal = document.getElementById('spaceModal');
+    if (!modal || modal.style.display === 'none') return;
+    if (!_spaceRunning) return;
+    const st = window._spaceGetState ? window._spaceGetState() : null;
+    if (st === 'playing' && !_spaceMusicMuted && !_spaceAllMuted) {
+      try {
+        if (_spaceInShop) _spaceShopMusicPlayer?.playVideo();
+        else _spaceMusicPlayer?.playVideo();
+      } catch(e){}
+    }
+  }
+});
 
 </script>
 </body>
