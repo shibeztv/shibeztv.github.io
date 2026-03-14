@@ -2052,9 +2052,19 @@ function groupIntoStreams(videos) {
     });
 }
 
+function stripDateFromTitle(title) {
+  // Remove "| JULY 29 2025" or "- Jul 29, 2025" style date suffixes at end
+  return (title || '')
+    .replace(/[\s|–\-]+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[.\s,]+\d{1,2}(?:st|nd|rd|th)?[.\s,]+20\d{2}\s*$/i, '')
+    .replace(/[\s|–\-]+20\d{2}[-/]\d{2}[-/]\d{2}\s*$/, '')
+    .trim();
+}
+
 function buildStreamTitle(vids, day) {
-  // Use first video's title, strip part indicators
-  let t = vids[0].title.replace(/\s*[\[\(]?part\s*\d+[\]\)]?/gi,'').replace(/\s+VOD\s*/gi,' ').trim();
+  let t = stripDateFromTitle(vids[0].title)
+    .replace(/\s*[\[\(]?part\s*\d+[\]\)]?/gi, '')
+    .replace(/\s+VOD\s*/gi, ' ')
+    .trim();
   return t || `Stream — ${formatDay(day)}`;
 }
 
@@ -3081,7 +3091,7 @@ document.addEventListener('mousemove', () => {
 
 
 // ─── STREAM LOADING ──────────────────────────────────────────────────────────
-const CACHE_KEY = 'shibez_streams_v1';
+const CACHE_KEY = 'shibez_streams_v2';
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 async function loadStreams() {
