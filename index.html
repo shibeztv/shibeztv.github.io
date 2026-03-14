@@ -5151,17 +5151,7 @@ function startSpace() {
     sg2.addColorStop(0,'rgba(255,255,255,0.5)');sg2.addColorStop(1,'rgba(255,255,255,0)');
     ctx.arc(0,-2,DOME_R,Math.PI,0);ctx.closePath();ctx.fillStyle=sg2;ctx.fill();
 
-    // Emote pilot: animated but upright (counter-rotate so emote doesn't spin with UFO)
-    if(emoteImg && emoteImg.complete && emoteImg.naturalWidth>0){
-      const es = DOME_R * 1.7;
-      ctx.save();
-      ctx.rotate(-angle); // undo UFO rotation so emote stays upright
-      try { ctx.drawImage(emoteImg, -es/2, -2 - DOME_R*0.15 - es/2, es, es); } catch(e){}
-      ctx.restore();
-    } else {
-      ctx.beginPath();ctx.arc(0,-2,DOME_R*0.7,0,Math.PI*2);
-      ctx.fillStyle='rgba(100,150,255,0.3)';ctx.fill();
-    }
+    // Emote drawn by DOM overlay — just show dome glass bubble
 
     // Landing lights
     const lights=[[-R*0.6,6],[0,8],[R*0.6,6]];
@@ -5214,9 +5204,21 @@ function startSpace() {
     const DOME_R = 18;
     const domeSize = DOME_R * 1.55 * scaleX;
     const shipHide = state==='dead' || (invincible>0 && Math.floor(frame/5)%2===1);
-    // Ship emote drawn on canvas inside drawUFO (rotates with ship, animates from DOM)
-    // Keep it off-screen in DOM so animation plays, canvas uses current frame
-    shipImg.style.left = OFF; shipImg.style.top = OFF;
+    // Ship emote: DOM overlay (animated WebP, always upright, never rotated)
+    const shipHide2 = state==='dead' || (invincible>0 && Math.floor(frame/5)%2===1);
+    if(shipHide2){
+      shipImg.style.left = OFF; shipImg.style.top = OFF;
+    } else {
+      const pilotSize = DOME_R * 1.8 * scaleX;
+      shipImg.style.width  = pilotSize + 'px';
+      shipImg.style.height = pilotSize + 'px';
+      shipImg.style.left   = (ship.x * scaleX - pilotSize/2) + 'px';
+      shipImg.style.top    = ((ship.y - 2 - DOME_R*0.25) * scaleY - pilotSize/2) + 'px';
+      shipImg.style.display = 'block';
+      shipImg.style.borderRadius = '0';
+      shipImg.style.filter = '';
+      shipImg.style.transform = ''; // no rotation — stays upright always
+    }
   }
 
   function loop() {
@@ -5902,7 +5904,7 @@ function startSpace() {
 
     // UFO ship
     if(state!=='dead'&&(invincible<=0||Math.floor(frame/5)%2===0)){
-      drawUFO(ship.x, ship.y, shipImg, ship.angle, 1);
+      drawUFO(ship.x, ship.y, null, 0, 1); // no rotation, emote handled by overlay
     }
 
     // Overlays
