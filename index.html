@@ -4526,7 +4526,7 @@ function startSpace() {
     {key:'armor',       label:'🛡 Armor',             desc:'↑block% per lvl',              maxLvl:20, cost:l=>Math.floor(4+l*3.5)},
     {key:'enemySwarm',  label:'👹 Enemy Swarm',      desc:'+15% more enemies spawn',       maxLvl:20, cost:l=>Math.floor(2+l*1.8)},
     {key:'riskReward',  label:'💰 Risk & Reward',    desc:'Enemies +20% hp, +50% coins',   maxLvl:20, cost:l=>Math.floor(4+l*3.0)},
-    {key:'weaponSlots', label:'🗡️ I Need More Weapons', desc:'Unlock extra weapon slots (1→4 slots total)', maxLvl:3, cost:l=>[200,350,500][l]||999},
+    {key:'weaponSlots', label:'🗡️ I Need More Weapons', desc:'Unlock extra weapon slots (1→4 slots total)', maxLvl:3, cost:l=>[100,150,200][l]||999},
   ];
 
   let coins = window._spaceCoins||0;
@@ -5055,7 +5055,7 @@ function startSpace() {
     const sizeRoll=Math.random();
     const sizeScale = sizeRoll<0.10 ? 3 : sizeRoll<0.30 ? 2 : 1;
     const finalSize = size * sizeScale;
-    const speed=(0.42+Math.random()*0.54)*Math.min(difficulty,3.5)*(sizeScale>1?0.75:1)*0.54; // -10% more (total ~46% slower than original)
+    const speed=(0.42+Math.random()*0.54)*Math.min(difficulty,3.5)*(sizeScale>1?0.75:1)*0.40; // halved overall speed
     const timeMins=survivalFrames/3600;
     const dmgScale=Math.max(1, getBulletDmg()*0.7);
     const timeHp=Math.floor(timeMins*0.35);
@@ -5091,11 +5091,11 @@ function startSpace() {
     const _titanSubtitles=['The Doubtful','The Questioner','Bringer of Doubt','The Skeptic','Lord of Disbelief','The Uncertain','Shadow of Doubt','Eternal Doubter','The Unconvinced','Harbinger of Sus'];
     const titanSubtitle=_titanSubtitles[Math.floor(Math.random()*_titanSubtitles.length)];
     const titanName=`${titanEmoteName}\n${titanSubtitle}`;
-    const size=90+Math.random()*40;
+    const size=(90+Math.random()*40)*2.0; // double size
     const x=cam.x+W+size, y=cam.y+H*0.3+Math.random()*H*0.4;
     const tx=ship.x, ty=ship.y;
     const dx=tx-x, dy=ty-y, len=Math.sqrt(dx*dx+dy*dy)||1;
-    const speed=(0.3+Math.random()*0.2)*0.90;
+    const speed=(0.3+Math.random()*0.2)*0.90*0.90; // 10% slower
     const timeMins=survivalFrames/3600;
     const dmgScale=Math.max(1,getBulletDmg()*0.7);
     const titanHp=Math.ceil((180+timeMins*48)*dmgScale);
@@ -5479,17 +5479,17 @@ function startSpace() {
       enemyTimer--;
       if(enemyTimer<=0){
         spawnEnemy();
-        // Occasionally double-spawn at high scores
-        if(score>25&&Math.random()<0.25+score*0.004) spawnEnemy();
-        if(score>60&&Math.random()<0.15) spawnEnemy();
+        // Occasionally double-spawn at high scores (halved thresholds vs before)
+        if(score>50&&Math.random()<0.12+score*0.002) spawnEnemy();
+        if(score>120&&Math.random()<0.08) spawnEnemy();
         const timeFactor=Math.max(0.3,1-survivalFrames/36000);
-      const swarmMod=upgrades.enemySwarm?1/(1+upgrades.enemySwarm*0.15):1;
-      // Ease-in: very slow for first minute, gradually faster
-      const secIn=survivalFrames/60;
-      const easeBase= secIn<30 ? 450 : secIn<60 ? 370 : secIn<120 ? 290 : secIn<240 ? 210 : 160; // 1.5.2: even slower ramp
-      const scoreRamp=Math.max(0.65,1-score*0.003); // 1.5.2: slower score ramp
-      const baseSpawn=Math.floor(easeBase*scoreRamp);
-      enemyTimer=Math.max(12,Math.floor(baseSpawn*timeFactor*swarmMod));
+        const swarmMod=upgrades.enemySwarm?1/(1+upgrades.enemySwarm*0.15):1;
+        // Ease-in: doubled base values (half spawn rate)
+        const secIn=survivalFrames/60;
+        const easeBase= secIn<30 ? 900 : secIn<60 ? 740 : secIn<120 ? 580 : secIn<240 ? 420 : 320;
+        const scoreRamp=Math.max(0.65,1-score*0.003);
+        const baseSpawn=Math.floor(easeBase*scoreRamp);
+        enemyTimer=Math.max(22,Math.floor(baseSpawn*timeFactor*swarmMod));
       }
       difficulty=1+score*0.007;
 
@@ -5701,6 +5701,17 @@ function startSpace() {
             spawnParticles(as.x+(Math.random()-0.5)*as.size,as.y+(Math.random()-0.5)*as.size,'#888',4);
             if(as.hp<=0){
               as.dead=true; as.deathFrame=frame;
+              // Drop coins based on ship HP tier
+              let coinReward=10; // default 50hp ship
+              if(as.maxHp>=200) coinReward=50;
+              else if(as.maxHp>=100) coinReward=25;
+              // Scatter coins around the wreck
+              for(let ci=0;ci<coinReward;ci++){
+                const ca=Math.random()*Math.PI*2, cr=Math.random()*as.size*0.8;
+                spawnDrop(as.x+Math.cos(ca)*cr, as.y+Math.sin(ca)*cr, 'coin');
+              }
+              spawnParticles(as.x,as.y,'#ffd700',20);
+              sfxPowerup();
               // Explosion effect (safe — no player dmg)
               for(let ni=0;ni<8;ni++)spawnParticles(as.x+(Math.random()-0.5)*as.size*1.2,as.y+(Math.random()-0.5)*as.size*1.2,'#ff8800',10);
               spawnParticles(as.x,as.y,'#ffdd00',20);
@@ -5745,14 +5756,14 @@ function startSpace() {
         }
         const collectR=isMagnet?52:getCoinRange();
         if(Math.sqrt((d.x-ship.x)**2+(d.y-ship.y)**2)<collectR&&!d.collected){
-          d.collected=true;const _cv=d.value||1;saveCoins(coins+_cv);spawnParticles(d.x,d.y,d.green?'#4ade80':d.silver?'#aaa':'#ffd700',d.green?12:d.silver?8:4);if(_cv>1){sfxPowerup();}else{sfxCoin();}return false;
+          d.collected=true;const _cv=d.value||1;saveCoins(coins+_cv);spawnParticles(d.x,d.y,d.gold?'#ffd700':d.green?'#4ade80':d.silver?'#aaa':'#ffd700',d.gold?18:d.green?12:d.silver?8:4);if(_cv>=25){sfxPowerup();if(_cv>=100){playTone(1800,'sine',0.12,0.2);setTimeout(()=>playTone(2200,'sine',0.10,0.18),60);}}else if(_cv>1){sfxPowerup();}else{sfxCoin();}return false;
         }
         return true;
       });
       // Coin combining: 5 settled coins within 40px → silver coin (gives 5), 5 silver → green (gives 25)
       if(frame%30===0){ // check every 30 frames for perf
-        // Merge regular coins
-        const settled=drops.filter(d=>d.settled&&!d.collected&&!d.silver&&!d.green);
+        // Merge regular coins (1-value) → silver coins (5-value)
+        const settled=drops.filter(d=>d.settled&&!d.collected&&!d.silver&&!d.green&&!d.gold);
         for(let i=0;i<settled.length;i++){
           const near=settled.filter((d2,j)=>j!==i&&Math.sqrt((d2.x-settled[i].x)**2+(d2.y-settled[i].y)**2)<38&&!d2._merging);
           if(near.length>=4){
@@ -5761,14 +5772,24 @@ function startSpace() {
             drops.push({x:settled[i].x,y:settled[i].y,vx:0,vy:0,life:99999,collected:false,settled:true,silver:true,value:5});
           }
         }
-        // Merge silver coins
-        const silvers=drops.filter(d=>d.settled&&!d.collected&&d.silver&&!d.green);
+        // Merge silver coins (5-value) → green coins (25-value)
+        const silvers=drops.filter(d=>d.settled&&!d.collected&&d.silver&&!d.green&&!d.gold);
         for(let i=0;i<silvers.length;i++){
           const near=silvers.filter((d2,j)=>j!==i&&Math.sqrt((d2.x-silvers[i].x)**2+(d2.y-silvers[i].y)**2)<50&&!d2._merging);
           if(near.length>=4){
             const group=[silvers[i],...near.slice(0,4)];
             group.forEach(d=>{d._merging=true;d.life=0;});
             drops.push({x:silvers[i].x,y:silvers[i].y,vx:0,vy:0,life:99999,collected:false,settled:true,green:true,value:25});
+          }
+        }
+        // Merge green coins (25-value) → gold coins (100-value)
+        const greens=drops.filter(d=>d.settled&&!d.collected&&d.green&&!d.gold);
+        for(let i=0;i<greens.length;i++){
+          const near=greens.filter((d2,j)=>j!==i&&Math.sqrt((d2.x-greens[i].x)**2+(d2.y-greens[i].y)**2)<60&&!d2._merging);
+          if(near.length>=3){
+            const group=[greens[i],...near.slice(0,3)];
+            group.forEach(d=>{d._merging=true;d.life=0;});
+            drops.push({x:greens[i].x,y:greens[i].y,vx:0,vy:0,life:99999,collected:false,settled:true,gold:true,value:100});
           }
         }
       }
@@ -6000,24 +6021,35 @@ function startSpace() {
     // Coins
     drops.forEach(d=>{
       if(d._merging||d.life<=0) return;
-      const cr=d.green?13:d.silver?11:8.5;
+      const cr=d.gold?16:d.green?13:d.silver?11:8.5;
       ctx.globalAlpha=1;
-      if(d.silver||d.green){
+      if(d.gold){
+        // Rainbow glow — cycling hue ring around coin
+        const rainbowHue=(frame*3)%360; // spin hue each frame
+        const cg=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,cr*2.8);
+        cg.addColorStop(0,`hsla(${rainbowHue},100%,65%,0.7)`);
+        cg.addColorStop(0.45,`hsla(${(rainbowHue+120)%360},100%,55%,0.4)`);
+        cg.addColorStop(1,`hsla(${(rainbowHue+240)%360},100%,50%,0)`);
+        ctx.fillStyle=cg;ctx.beginPath();ctx.arc(d.x,d.y,cr*2.8,0,Math.PI*2);ctx.fill();
+      } else if(d.silver||d.green){
         const cfill=d.green?'#22c55e':'#d1d5db';
         const cg=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,cr*2);
-        cg.addColorStop(0,cfill+'55');cg.addColorStop(1,cfill+'00');
+        cg.addColorStop(0,cfill+'77');cg.addColorStop(1,cfill+'00');
         ctx.fillStyle=cg;ctx.beginPath();ctx.arc(d.x,d.y,cr*2,0,Math.PI*2);ctx.fill();
       }
       const _cImg=_coinImg;
       if(_cImg&&_cImg.complete&&_cImg.naturalWidth>0){
         const csize=cr*2;
-        if(d.silver){ctx.save();ctx.filter='grayscale(1) brightness(1.5)';ctx.globalAlpha=0.9;}
+        if(d.gold){
+          // Rainbow-tinted coin image — hue cycles each frame
+          ctx.save();ctx.filter=`hue-rotate(${(frame*3)%360}deg) saturate(2) brightness(1.4)`;ctx.globalAlpha=1;
+        } else if(d.silver){ctx.save();ctx.filter='grayscale(1) brightness(1.5)';ctx.globalAlpha=0.9;}
         else if(d.green){ctx.save();ctx.filter='hue-rotate(120deg) saturate(1.5)';}
         else ctx.save();
         ctx.drawImage(_cImg,d.x-csize/2,d.y-csize/2,csize,csize);
         ctx.restore();
       } else {
-        ctx.fillStyle=d.green?'#22c55e':d.silver?'#d1d5db':'#ffd700';
+        ctx.fillStyle=d.gold?`hsl(${(frame*3)%360},100%,60%)`:d.green?'#22c55e':d.silver?'#d1d5db':'#ffd700';
         ctx.beginPath();ctx.arc(d.x,d.y,cr,0,Math.PI*2);ctx.fill();
       }
       ctx.globalAlpha=1;
