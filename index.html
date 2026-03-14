@@ -5198,7 +5198,7 @@ function startSpace() {
       e.img.style.top    = sy + 'px';
       e.img.style.display = 'block';
       e.img.style.opacity = '1';
-      e.img.style.borderRadius = '50%';
+      e.img.style.borderRadius = '0';
       e.img.style.filter = isFrozen ? 'hue-rotate(195deg) saturate(1.5) brightness(0.85)' : '';
     });
 
@@ -5213,12 +5213,14 @@ function startSpace() {
     if(shipHide){
       shipImg.style.left = OFF; shipImg.style.top = OFF;
     } else {
-      shipImg.style.width  = domeSize + 'px';
-      shipImg.style.height = domeSize + 'px';
-      shipImg.style.left   = ((ship.x - domeSize/2) * scaleX) + 'px';
-      shipImg.style.top    = ((ship.y - 2 - DOME_R - domeSize*0.05) * scaleY) + 'px';
+      // Bigger emote, centered inside dome properly, no circle crop
+      const pilotSize = DOME_R * 2.2 * scaleX;
+      shipImg.style.width  = pilotSize + 'px';
+      shipImg.style.height = pilotSize + 'px';
+      shipImg.style.left   = ((ship.x) * scaleX - pilotSize/2) + 'px';
+      shipImg.style.top    = ((ship.y - 2 - DOME_R*0.5) * scaleY - pilotSize/2) + 'px';
       shipImg.style.display = 'block';
-      shipImg.style.borderRadius = '50%';
+      shipImg.style.borderRadius = '0';
       shipImg.style.filter = '';
     }
   }
