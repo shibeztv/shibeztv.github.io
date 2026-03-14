@@ -3731,41 +3731,42 @@ function startFlappy() {
   let groundX = 0;
 
   // Ground tiles (simple gradient rect)
-  // Pre-generate bush positions once
-  const _bushes = Array.from({length: 14}, (_, i) => ({
-    ox: i * 52 + Math.random() * 20,
-    w: 28 + Math.floor(Math.random() * 24),
-    h: 18 + Math.floor(Math.random() * 14),
-    speed: 0.6 + Math.random() * 0.4,
-    shade: Math.random() > 0.5
-  }));
+  // Ground emotes: spawn randomly, scroll left and despawn
+  let _gEmotes = []; // { x, size, eIdx }
+  let _gEmoteTimer = 0;
+
+  function spawnGroundEmote() {
+    const count = 1 + (Math.random() < 0.35 ? 1 : 0) + (Math.random() < 0.15 ? 1 : 0);
+    for (let i = 0; i < count; i++) {
+      _gEmotes.push({
+        x: W + 10 + i * (28 + Math.random() * 24),
+        size: 34 + Math.floor(Math.random() * 22),
+        eIdx: Math.floor(Math.random() * emoteImgs.length)
+      });
+    }
+    _gEmoteTimer = 180 + Math.floor(Math.random() * 220);
+  }
 
   function drawGround() {
-    // Grass strip
+    // Flat grass
     ctx.fillStyle = '#4caf50';
     ctx.fillRect(0, H - 60, W, 60);
     ctx.fillStyle = '#2e7d32';
-    ctx.fillRect(0, H - 60, W, 6);
+    ctx.fillRect(0, H - 60, W, 5);
 
-    // Scrolling bushes
-    _bushes.forEach(b => {
-      const bx = ((groundX * b.speed + b.ox) % (W + 60)) - 30;
-      const by = H - 60 - b.h + 4;
-      // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.15)';
-      ctx.beginPath();
-      ctx.ellipse(bx + b.w/2, H - 60 + 2, b.w/2, 5, 0, 0, Math.PI*2);
-      ctx.fill();
-      // Bush body
-      ctx.fillStyle = b.shade ? '#388e3c' : '#43a047';
-      ctx.beginPath();
-      ctx.arc(bx + b.w*0.3, by + b.h*0.55, b.h*0.52, 0, Math.PI*2); ctx.fill();
-      ctx.arc(bx + b.w*0.7, by + b.h*0.6, b.h*0.45, 0, Math.PI*2); ctx.fill();
-      ctx.arc(bx + b.w*0.5, by + b.h*0.3, b.h*0.5, 0, Math.PI*2); ctx.fill();
-      // Highlight
-      ctx.fillStyle = 'rgba(255,255,255,0.12)';
-      ctx.beginPath();
-      ctx.arc(bx + b.w*0.42, by + b.h*0.22, b.h*0.22, 0, Math.PI*2); ctx.fill();
+    if (state === 'playing') {
+      _gEmoteTimer--;
+      if (_gEmoteTimer <= 0) spawnGroundEmote();
+      _gEmotes.forEach(g => { g.x -= PIPE_SPEED * 0.85; });
+      _gEmotes = _gEmotes.filter(g => g.x > -g.size - 10);
+    }
+
+    _gEmotes.forEach(g => {
+      const img = emoteImgs[g.eIdx % emoteImgs.length];
+      const gy = H - 60 - g.size + 4;
+      if (img && img.complete && img.naturalWidth > 0) {
+        try { ctx.drawImage(img, g.x, gy, g.size, g.size); } catch(e) {}
+      }
     });
   }
 
@@ -3790,52 +3791,40 @@ function startFlappy() {
     pipes.push({ x: W + 10, gapY, eImg, scored: false });
   }
 
+  function drawPipeSection(img, px, py, pw, ph) {
+    if (ph <= 0) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(px, py, pw, ph);
+    ctx.clip();
+    const rows = Math.ceil(ph / EMOTE_SIZE);
+    const cols = Math.ceil(pw / EMOTE_SIZE);
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        if (img && img.complete && img.naturalWidth > 0) {
+          try { ctx.drawImage(img, px + col * EMOTE_SIZE, py + row * EMOTE_SIZE, EMOTE_SIZE, EMOTE_SIZE); } catch(e){}
+        } else {
+          ctx.fillStyle = '#2a2a3a';
+          ctx.fillRect(px + col * EMOTE_SIZE, py + row * EMOTE_SIZE, EMOTE_SIZE, EMOTE_SIZE);
+        }
+      }
+    }
+    // Tint
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(px, py, pw, ph);
+    ctx.restore();
+    // Outline exactly on the clipped rect
+    ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px + 1, py + 1, pw - 2, ph - 2);
+  }
+
   function drawPipe(p) {
     const topH = p.gapY;
     const botY = p.gapY + PIPE_GAP;
     const botH = H - 60 - botY;
-    const cols = Math.ceil(PIPE_W / EMOTE_SIZE);
-
-    // Draw top pipe emotes (stacked downward from top)
-    const topRows = Math.ceil(topH / EMOTE_SIZE);
-    for (let row = 0; row < topRows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const ey = row * EMOTE_SIZE;
-        if (ey + EMOTE_SIZE < 0) continue;
-        if (p.eImg && p.eImg.complete && p.eImg.naturalWidth > 0) {
-          try { ctx.drawImage(p.eImg, p.x + col * EMOTE_SIZE, ey, EMOTE_SIZE, EMOTE_SIZE); } catch(ee){}
-        } else {
-          ctx.fillStyle = '#2a2a3a'; ctx.fillRect(p.x + col * EMOTE_SIZE, ey, EMOTE_SIZE, EMOTE_SIZE);
-        }
-      }
-    }
-
-    // Dark tint + border over top pipe
-    ctx.fillStyle = 'rgba(0,0,0,0.18)';
-    ctx.fillRect(p.x, 0, PIPE_W, topH);
-    ctx.strokeStyle = 'rgba(0,0,0,0.8)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(p.x + 1, 0, PIPE_W - 2, topH);
-
-    // Draw bottom pipe emotes (stacked upward from floor)
-    const botRows = Math.ceil(botH / EMOTE_SIZE);
-    for (let row = 0; row < botRows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const ey = botY + row * EMOTE_SIZE;
-        if (ey > H - 60) break;
-        if (p.eImg && p.eImg.complete && p.eImg.naturalWidth > 0) {
-          try { ctx.drawImage(p.eImg, p.x + col * EMOTE_SIZE, ey, EMOTE_SIZE, EMOTE_SIZE); } catch(ee){}
-        } else {
-          ctx.fillStyle = '#2a2a3a'; ctx.fillRect(p.x + col * EMOTE_SIZE, ey, EMOTE_SIZE, EMOTE_SIZE);
-        }
-      }
-    }
-
-    ctx.fillStyle = 'rgba(0,0,0,0.18)';
-    ctx.fillRect(p.x, botY, PIPE_W, botH);
-    ctx.strokeStyle = 'rgba(0,0,0,0.8)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(p.x + 1, botY, PIPE_W - 2, botH);
+    drawPipeSection(p.eImg, p.x, 0, PIPE_W, topH);
+    drawPipeSection(p.eImg, p.x, botY, PIPE_W, botH);
   }
 
   function drawBird() {
@@ -3877,6 +3866,7 @@ function startFlappy() {
     frameCount = 0;
     pipeEmoteIdx = Math.floor(Math.random() * emoteImgs.length);
     _lastGapY = -1;
+    _gEmotes = []; _gEmoteTimer = 60;
     state = 'waiting';
     document.getElementById('flappyScore').textContent = '0';
   }
