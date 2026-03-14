@@ -5151,10 +5151,11 @@ function startSpace() {
     sg2.addColorStop(0,'rgba(255,255,255,0.5)');sg2.addColorStop(1,'rgba(255,255,255,0)');
     ctx.arc(0,-2,DOME_R,Math.PI,0);ctx.closePath();ctx.fillStyle=sg2;ctx.fill();
 
-    // Emote pilot: clip circle over dome area drawn on canvas
-    // (DOM overlay positioned separately in positionEmoteOverlays)
-    // Draw a placeholder tinted circle so dome isn't empty while img loads
-    if(!emoteImg || !emoteImg.complete || emoteImg.naturalWidth===0){
+    // Emote pilot drawn on canvas — rotates with UFO, animates from live DOM img
+    if(emoteImg && emoteImg.complete && emoteImg.naturalWidth>0){
+      const es = DOME_R * 1.7;
+      try { ctx.drawImage(emoteImg, -es/2, -2 - DOME_R*0.15 - es/2, es, es); } catch(e){}
+    } else {
       ctx.beginPath();ctx.arc(0,-2,DOME_R*0.7,0,Math.PI*2);
       ctx.fillStyle='rgba(100,150,255,0.3)';ctx.fill();
     }
@@ -5210,25 +5211,9 @@ function startSpace() {
     const DOME_R = 18;
     const domeSize = DOME_R * 1.55 * scaleX;
     const shipHide = state==='dead' || (invincible>0 && Math.floor(frame/5)%2===1);
-    if(shipHide){
-      shipImg.style.left = OFF; shipImg.style.top = OFF;
-      shipImg.style.transform = '';
-    } else {
-      // Fit inside dome, counter-rotate so emote stays upright while UFO spins
-      const pilotSize = DOME_R * 1.8 * scaleX;
-      const centerX = ship.x * scaleX;
-      const centerY = (ship.y - 2 - DOME_R * 0.3) * scaleY;
-      shipImg.style.width  = pilotSize + 'px';
-      shipImg.style.height = pilotSize + 'px';
-      shipImg.style.left   = (centerX - pilotSize/2) + 'px';
-      shipImg.style.top    = (centerY - pilotSize/2) + 'px';
-      shipImg.style.display = 'block';
-      shipImg.style.borderRadius = '0';
-      shipImg.style.filter = '';
-      // Counter-rotate to keep emote upright
-      const counterDeg = -(ship.angle * 180 / Math.PI);
-      shipImg.style.transform = `rotate(${counterDeg}deg)`;
-    }
+    // Ship emote drawn on canvas inside drawUFO (rotates with ship, animates from DOM)
+    // Keep it off-screen in DOM so animation plays, canvas uses current frame
+    shipImg.style.left = OFF; shipImg.style.top = OFF;
   }
 
   function loop() {
