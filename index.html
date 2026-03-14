@@ -1335,7 +1335,7 @@
         style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
         onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
         onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🚀 SPACEBEZ 1.0
+        🚀 SPACEBEZ 1.1
       </button>
     </div>
 
@@ -1350,7 +1350,7 @@
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
             <div style="display:flex;flex-direction:column;gap:1px">
-              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.0</span></span>
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.1</span></span>
               <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · E shop · P pause</span>
             </div>
           </div>
@@ -4245,13 +4245,30 @@ function closeSpace() {
 }
 document.addEventListener('click', e => { if (e.target === document.getElementById('spaceModal')) closeSpace(); });
 
+let _stateBeforeShop = null;
 function spaceShopToggle() {
   const shop = document.getElementById('spaceShop');
   if (!shop) return;
   const open = shop.style.display === 'flex';
-  shop.style.display = open ? 'none' : 'flex';
-  if (!open) { renderShopGrid(); switchToShopMusic(); }
-  else { switchToMainMusic(); }
+  if (!open) {
+    // Opening shop
+    _stateBeforeShop = window._spaceGetState ? window._spaceGetState() : 'playing';
+    if (_stateBeforeShop !== 'dead') {
+      if (window._spaceSetState) window._spaceSetState('paused'); // freeze game while in shop
+    }
+    shop.style.display = 'flex';
+    renderShopGrid(); switchToShopMusic();
+  } else {
+    // Closing shop — restore pre-shop state
+    shop.style.display = 'none';
+    switchToMainMusic();
+    if (_stateBeforeShop === 'paused') {
+      if (window._spaceSetState) window._spaceSetState('paused');
+    } else if (_stateBeforeShop === 'playing') {
+      if (window._spaceSetState) window._spaceSetState('playing');
+    }
+    _stateBeforeShop = null;
+  }
 }
 
 
@@ -4343,36 +4360,36 @@ function startSpace() {
 
   // ── Upgrades
   // Upgrades reset each run — only coins + upgrade points persist
-  const _freshUpgrades = ()=>({speed:0,atkSpeed:0,multishot:0,maxHp:0,hpRegen:0,damage:0,bulletSize:0,coinMagnet:0,armor:0,xpBoost:0,sniper:0,minigun:0,towerGun:0,flamethrower:0,multiGun:0,friends:0});
+  const _freshUpgrades = ()=>({speed:0,atkSpeed:0,multishot:0,maxHp:0,hpRegen:0,damage:0,bulletSize:0,coinMagnet:0,armor:0,xpBoost:0,sniper:0,minigun:0,towerGun:0,flamethrower:0,multiGun:0,friends:0,tier2_default:0,tier2_sniper:0,tier2_minigun:0,tier2_towerGun:0,tier2_flamethrower:0,tier2_multiGun:0});
   const upgrades = _freshUpgrades();
   window._spaceUpgrades = upgrades; // expose for current run only
   let activeWeapon = 'default'; // resets each run
   // Track which weapons are unlocked this run
   const unlockedWeapons = new Set(['default']);
   const UPGRADE_DEFS = [
-    {key:'speed',       label:'🚀 Move Speed',    desc:'+8% speed per lvl',           maxLvl:20, cost:l=>Math.floor(1+l*1.4)},
+    {key:'speed',       label:'🚀 Move Speed',    desc:'+8% speed per lvl',           maxLvl:10, cost:l=>Math.floor(1+l*1.4)},
     {key:'atkSpeed',    label:'⚡ Attack Speed',   desc:'-6% shoot cooldown',          maxLvl:20, cost:l=>Math.floor(1+l*1.4)},
     {key:'multishot',   label:'💥 Multi-Shot',     desc:'+1 extra bullet',             maxLvl:20, cost:l=>Math.floor(2+l*2)},
     {key:'maxHp',       label:'❤️ Max HP',         desc:'+1 max heart',                maxLvl:20, cost:l=>Math.floor(1+l*1.2)},
-    {key:'hpRegen',     label:'💚 HP Regen',       desc:'regen 1hp/30s',               maxLvl:20, cost:l=>Math.floor(2+l*1.8)},
+    {key:'hpRegen',     label:'💚 HP Regen',       desc:'regen 1hp/30s',               maxLvl:10, cost:l=>Math.floor(2+l*1.8)},
     {key:'damage',      label:'🔥 Damage',         desc:'+1 bullet damage',            maxLvl:20, cost:l=>Math.floor(2+l*1.6)},
-    {key:'bulletSize',  label:'🔵 Bullet Size',    desc:'+20% bullet hitbox',          maxLvl:10, cost:l=>Math.floor(3+l*2)},
-    {key:'coinMagnet',  label:'🧲 Coin Range',     desc:'+15% pickup radius',          maxLvl:10, cost:l=>Math.floor(2+l*1.5)},
+    {key:'bulletSize',  label:'🔵 Bullet Size',    desc:'+20% bullet hitbox',          maxLvl:20, cost:l=>Math.floor(3+l*2)},
+    {key:'coinMagnet',  label:'🧲 Coin Range',     desc:'+15% pickup radius',          maxLvl:20, cost:l=>Math.floor(2+l*1.5)},
     {key:'armor',       label:'🛡 Armor',           desc:'↑block% per lvl',            maxLvl:20, cost:l=>Math.floor(3+l*2)},
-    {key:'enemySwarm',  label:'👹 Enemy Swarm',    desc:'+15% more enemies spawn',     maxLvl:10, cost:l=>Math.floor(2+l*1.5)},
-    {key:'riskReward',  label:'💰 Risk & Reward',  desc:'Enemies +20% hp, +50% coins', maxLvl:10, cost:l=>Math.floor(3+l*2)},
+    {key:'enemySwarm',  label:'👹 Enemy Swarm',    desc:'+15% more enemies spawn',     maxLvl:20, cost:l=>Math.floor(2+l*1.5)},
+    {key:'riskReward',  label:'💰 Risk & Reward',  desc:'Enemies +20% hp, +50% coins', maxLvl:20, cost:l=>Math.floor(3+l*2)},
   ];
 
   let coins = window._spaceCoins||0;
   function saveCoins(n){coins=n;window._spaceCoins=n;document.getElementById('spaceCoins').textContent=coins;document.getElementById('shopCoinsDisp').textContent=coins;}
 
   const WEAPON_DEFS = [
-    {key:'default',     label:'🔫 Default',      desc:'Balanced auto fire',         color:'#60ddff', cost:0},
-    {key:'sniper',      label:'🔴 Laser Gun',      desc:'Piercing laser beam, insane dmg, slow cooldown', color:'#ff6644', cost:25},
-    {key:'minigun',     label:'⚙️ Minigun',       desc:'Rapid tiny bullets, low dmg each',              color:'#fbbf24', cost:30},
-    {key:'towerGun',    label:'🗼 Tower Gun',     desc:'8-shot radial burst in all directions',         color:'#a855f7', cost:35},
-    {key:'flamethrower',label:'🔥 Flamethrower',  desc:'Short range cone, deals burn over time',        color:'#ff4400', cost:40},
-    {key:'multiGun',    label:'💥 Multi-Gun',     desc:'6-way spread, medium dmg',                      color:'#4ade80', cost:50},
+    {key:'default',     label:'🔫 Default',      desc:'Balanced auto fire',         color:'#60ddff', cost:0,      tier2:{key:'tier2_default',    label:'🔫+ Double-Shot',        desc:'Always fires 2 bullets',      cost:15}},
+    {key:'sniper',      label:'🔴 Laser Gun',      desc:'Piercing laser beam, insane dmg, slow cooldown', color:'#ff6644', cost:25, tier2:{key:'tier2_sniper',  label:'🔴+ Wide Laser',         desc:'Wider beam, slightly faster',  cost:20}},
+    {key:'minigun',     label:'⚙️ Minigun',       desc:'Rapid tiny bullets, low dmg each',              color:'#fbbf24', cost:30, tier2:{key:'tier2_minigun', label:'⚙️+ Heavy Minigun',      desc:'Fires 2 bullets, even faster', cost:20}},
+    {key:'towerGun',    label:'🗼 Tower Gun',     desc:'8-shot radial burst in all directions',         color:'#a855f7', cost:35, tier2:{key:'tier2_towerGun',label:'🗼+ Rotating Ring',       desc:'Shots orbit & rotate on spawn',cost:22}},
+    {key:'flamethrower',label:'🔥 Flamethrower',  desc:'Short range cone, deals burn over time',        color:'#ff4400', cost:40, tier2:{key:'tier2_flamethrower',label:'🔥+ Inferno',         desc:'Longer range + burn dmg 1/3s', cost:25}},
+    {key:'multiGun',    label:'💥 Multi-Gun',     desc:'6-way spread, medium dmg',                      color:'#4ade80', cost:50, tier2:{key:'tier2_multiGun', label:'💥+ Shotgun Blast',      desc:'12-way, longer range',         cost:30}},
     {key:'friends',     label:'👾 Friends',       desc:'Orbital followers (1 per lvl, max 8). Each auto-aims and shoots!', color:'#f0abfc', cost:25, maxLvl:8, costPerLvl:l=>Math.floor(25+l*18)},
   ];
 
@@ -4426,7 +4443,15 @@ function startSpace() {
               : owned
                 ? `<button onclick="spaceEquipWeapon('${def.key}')" style="font-family:var(--mono);font-size:10px;font-weight:700;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.4);color:#60ddff;padding:3px 10px;border-radius:3px;cursor:pointer">EQUIP</button>`
                 : `<button onclick="spaceBuyWeapon('${def.key}')" style="font-family:var(--mono);font-size:10px;font-weight:700;background:${canAfford?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.05)'};border:1px solid ${canAfford?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.1)'};color:${canAfford?'#ffd700':'#555'};padding:3px 10px;border-radius:3px;cursor:${canAfford?'pointer':'default'}">🪙 ${def.cost}</button>`
-          }
+          }${(()=>{
+            if(!def.tier2||!owned) return '';
+            const t2key=def.tier2.key;const t2owned=upgrades[t2key]>0;
+            const t2afford=coins>=def.tier2.cost&&!t2owned;
+            return `<div style="margin-top:6px;border-top:1px solid rgba(255,255,255,0.1);padding-top:5px;font-family:var(--mono);font-size:9px">
+              <span style="color:${def.color};font-weight:700">${def.tier2.label}</span> <span style="color:#888">${def.tier2.desc}</span>
+              <div style="margin-top:3px">${t2owned?'<span style="color:#4ade80;font-size:9px;font-weight:700">✓ UNLOCKED</span>':`<button onclick="spaceBuyTier2('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${t2afford?'rgba(255,215,0,0.18)':'rgba(255,255,255,0.05)'};border:1px solid ${t2afford?'rgba(255,215,0,0.4)':'rgba(255,255,255,0.1)'};color:${t2afford?'#ffd700':'#555'};padding:2px 8px;border-radius:3px;cursor:${t2afford?'pointer':'default'}">🪙 ${def.tier2.cost}</button>`}</div>
+            </div>`;
+          })()}
         </div>
       </div>`;
     }).join('');
@@ -4463,6 +4488,15 @@ function startSpace() {
   window.spaceEquipWeapon = function(key) {
     activeWeapon=key; window._spaceWeapon=key;
     renderShopGrid();
+  };
+  window.spaceBuyTier2 = function(weaponKey) {
+    const def=WEAPON_DEFS.find(d=>d.key===weaponKey);if(!def||!def.tier2) return;
+    const t2=def.tier2;
+    if(upgrades[t2.key]>0) return; // already owned
+    if(coins<t2.cost) return;
+    saveCoins(coins-t2.cost);
+    upgrades[t2.key]=1;
+    sfxPowerup();renderShopGrid();
   };
 
   window.spaceBuyUpgrade = function(key) {
@@ -4512,6 +4546,7 @@ function startSpace() {
     {type:'silverheart',label:'💛 BONUS HP',color:'#ffe066',dur:0},
     {type:'explosion',label:'💥 NUKE',   color:'#ff8800',dur:0},
     {type:'freeze',  label:'❄️ FREEZE',  color:'#88ddff',dur:180},
+    {type:'explosion', label:'💥 NUKE',    color:'#ff8800',dur:0},
   ];
 
   // ── Web Audio SFX
@@ -4576,9 +4611,9 @@ function startSpace() {
     if(e.type==='keydown'){
       if(e.key==='p'||e.key==='P'){toggleSpacePause();return;}
       keys[e.key]=true;
-      if((e.key==='e'||e.key==='E'||e.key==='Tab')&&state==='playing'){spaceShopToggle();return;}
+      if((e.key==='e'||e.key==='E'||e.key==='Tab')&&(state==='playing'||state==='paused')){spaceShopToggle();return;}
       if((e.key===' '||e.key==='Space')&&state==='waiting'){state='playing';return;}
-      if((e.key===' '||e.key==='Space')&&state==='dead'){resetSpace();return;}
+      // Space no longer retries — must click the button
     }
     if(e.type==='keyup')keys[e.key]=false;
   };
@@ -4590,14 +4625,26 @@ function startSpace() {
   const onMouseMove=e=>{const r=canvas.getBoundingClientRect();mouseX=(e.clientX-r.left)*(W/r.width);mouseY=(e.clientY-r.top)*(H/r.height);};
   let mouseHeld=false;
   const onMouseDown=e=>{
-    if(e.button===0){
-      mouseHeld=true;
-      if(state==='playing') fireBulletDir();
-      if(state==='waiting') state='playing';
-      if(state==='dead'){
-        // Check if clicked retry button specifically (or anywhere)
+    if(e.button!==0) return;
+    const r=canvas.getBoundingClientRect();
+    const mx=(e.clientX-r.left)*(W/r.width);
+    const my=(e.clientY-r.top)*(H/r.height);
+    if(state==='paused'){
+      // Click PAUSED text or resume text
+      if(canvas._pauseZones&&canvas._pauseZones.some(z=>mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h)){
+        toggleSpacePause(); return;
+      }
+      return; // block other clicks when paused
+    }
+    mouseHeld=true;
+    if(state==='playing') fireBulletDir();
+    if(state==='waiting') state='playing';
+    if(state==='dead'){
+      const rr=canvas._retryRect;
+      if(rr&&mx>=rr.x&&mx<=rr.x+rr.w&&my>=rr.y&&my<=rr.y+rr.h){
         resetSpace();
       }
+      // else: ignore click — must click the button
     }
   };
   const onMouseUp=e=>{if(e.button===0)mouseHeld=false;};
@@ -4610,8 +4657,19 @@ function startSpace() {
     if(state==='paused'){
       ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
       ctx.textAlign='center';
-      ctx.font=`bold ${Math.floor(W*0.07)}px monospace`;ctx.fillStyle='#fff';ctx.fillText('PAUSED',W/2,H/2-10);
-      ctx.font='13px monospace';ctx.fillStyle='#aaa';ctx.fillText('Press P or click ▶ to resume',W/2,H/2+24);
+      ctx.font=`bold ${Math.floor(W*0.07)}px monospace`;ctx.fillStyle='#fff';
+      const pausedTxt='PAUSED';const pausedY=H/2-10;
+      ctx.fillText(pausedTxt,W/2,pausedY);
+      ctx.font='13px monospace';ctx.fillStyle='#7c8aaa';
+      const resumeTxt='click here or press P to resume';const resumeY=H/2+24;
+      ctx.fillText(resumeTxt,W/2,resumeY);
+      // Store click zones
+      const pw=ctx.measureText(pausedTxt).width+20,ph=Math.floor(W*0.07)+10;
+      const rw2=ctx.measureText(resumeTxt).width+20,rh2=20;
+      canvas._pauseZones=[
+        {x:W/2-pw/2,y:pausedY-ph,w:pw,h:ph+8},
+        {x:W/2-rw2/2,y:resumeY-16,w:rw2,h:rh2}
+      ];
       ctx.textAlign='left';
     }
     if(state==='waiting'){state='playing';return;}
@@ -4647,18 +4705,18 @@ function startSpace() {
       bullets.push({
         laser:true, x:ship.x, y:ship.y, angle:baseAngle,
         dmg:sd, life:8, maxLife:8,
-        width: sz*14+8, // beam width in px
+        width: (upgrades.tier2_sniper?(sz*22+12):(sz*14+8)), // beam width in px
         color:'#ff6644',weaponType:'sniper',
         hitEnemies:new Set(), // track which enemies already hit this beam
       });
-      shootCooldown=Math.floor(60*rapidMod);
+      shootCooldown=Math.floor((upgrades.tier2_sniper?44:60)*rapidMod);
       sfxShoot(); return;
 
     } else if(activeWeapon==='minigun'){
       // Rapid tiny bullets with slight spread
-      const spread=(Math.random()-0.5)*0.22;
-      bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*16,vy:Math.sin(baseAngle+spread)*16,dmg:Math.max(1,Math.floor(dmg*0.6)),size:sz*0.6,color:'#fbbf24',weaponType:'minigun'});
-      shootCooldown=Math.floor(3*rapidMod);
+      const mgCount=upgrades.tier2_minigun?2:1;
+      for(let mi=0;mi<mgCount;mi++){const spread=(Math.random()-0.5)*0.3;bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*18,vy:Math.sin(baseAngle+spread)*18,dmg:Math.max(1,Math.floor(dmg*0.6)),size:sz*0.6,color:'#fbbf24',weaponType:'minigun'});}
+      shootCooldown=Math.floor((upgrades.tier2_minigun?2:3)*rapidMod);
 
     } else if(activeWeapon==='towerGun'){
       // 8-way radial burst — fires in all directions like BTD tower
@@ -4675,14 +4733,14 @@ function startSpace() {
         const a=baseAngle+(Math.random()-0.5)*spread;
         const spd=10+Math.random()*8; // 3-4x faster = longer range
         const life=50+Math.random()*30; // longer life too
-        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:Math.max(1,Math.floor(dmg*0.45)),size:sz*1.6,color:'#ff4400',flame:true,life,maxLife:life});
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:Math.max(1,Math.floor(dmg*0.45)),size:sz*1.6,color:'#ff4400',flame:true,life,maxLife:life,burns:!!upgrades.tier2_flamethrower});
       }
       shootCooldown=Math.floor(5*rapidMod);
 
     } else if(activeWeapon==='multiGun'){
-      // 6-way spread around aim direction
-      const count=6;
-      const spread=0.55;
+      // 6-way (or 12-way tier2) spread around aim direction
+      const count=upgrades.tier2_multiGun?12:6;
+      const spread=upgrades.tier2_multiGun?Math.PI*0.7:0.55;
       for(let i=0;i<count;i++){
         const a=baseAngle+(i-(count-1)/2)*(spread/(count-1));
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*12,vy:Math.sin(a)*12,dmg:dmg,size:sz,color:'#4ade80',weaponType:'multi'});
@@ -4692,7 +4750,7 @@ function startSpace() {
     } else {
       // Default — aim-directed with multishot support
       const cd=Math.floor(getShootCd()*rapidMod);
-      const count=getBulletCount();
+      const count=Math.max(upgrades.tier2_default?2:1,getBulletCount());
       const offsets=count===1?[0]:count===2?[-0.12,0.12]:count===3?[-0.2,0,0.2]:[-0.25,-0.08,0.08,0.25];
       offsets.forEach(da=>{
         const a=baseAngle+da;
@@ -4736,7 +4794,23 @@ function startSpace() {
     const finalBaseHp=Math.ceil(baseHp*riskHpMult);
     const hp=finalBaseHp*sizeScale;
     const isBoss=sizeScale===3, isBig=sizeScale===2;
-    enemies.push({x,y,img,size:finalSize,sizeScale,isBoss,isBig,vx:(dx/len)*speed,vy:(dy/len)*speed,hp,maxHp:hp,age:0,wobble:Math.random()>0.4,wobbleAmp:1+Math.random()*2,wobbleFreq:0.03+Math.random()*0.04});
+    // Special trait rolls (only on normal-size enemies)
+    const traitRoll=Math.random();
+    const isSprinter = sizeScale===1 && traitRoll<0.05;          // 5%: 2x speed
+    const isJumper   = sizeScale===1 && !isSprinter && traitRoll<0.08; // 3%: lurk then lunge
+    const isShielded = sizeScale===1 && !isSprinter && !isJumper && traitRoll<0.13; // 5%: blocks 1st bullet
+    const finalSpeed = isSprinter ? speed*2.1 : speed;
+    enemies.push({
+      x,y,img,size:finalSize,sizeScale,isBoss,isBig,
+      vx:(dx/len)*finalSpeed,vy:(dy/len)*finalSpeed,
+      hp,maxHp:hp,age:0,
+      wobble:Math.random()>0.4,wobbleAmp:1+Math.random()*2,wobbleFreq:0.03+Math.random()*0.04,
+      isSprinter, isJumper, isShielded,
+      // Jumper state
+      jumperState:'lurk', jumperCd:Math.floor(60+Math.random()*90),
+      // Shield state
+      shieldHp: isShielded?1:0
+    });
   }
 
   function spawnTitan() {
@@ -5050,11 +5124,35 @@ function startSpace() {
       enemies.forEach(e=>{
         e.age++;
         if(isFrozen){e.vx*=0.85;e.vy*=0.85;} // slow to stop
-        const dx=ship.x-e.x, dy=ship.y-e.y, len=Math.sqrt(dx*dx+dy*dy)||1;
-        const s=e.speed||(1.1*difficulty);
-        e.vx=dx/len*s; e.vy=dy/len*s;
-        if(e.wobble){e.vx+=Math.sin(e.age*e.wobbleFreq)*e.wobbleAmp;e.vy+=Math.cos(e.age*e.wobbleFreq)*e.wobbleAmp;}
-        e.x+=e.vx; e.y+=e.vy;
+        if(e.isJumper){
+          // Lurk phase: slow creep; Lunge phase: burst toward ship
+          e.jumperCd--;
+          if(e.jumperState==='lurk'&&e.jumperCd<=0){
+            // Lunge!
+            const jdx=ship.x-e.x,jdy=ship.y-e.y,jl=Math.sqrt(jdx*jdx+jdy*jdy)||1;
+            const lspd=(e.speed||1.5)*5.5;
+            e.vx=jdx/jl*lspd; e.vy=jdy/jl*lspd;
+            e.jumperState='lunge'; e.jumperCd=28;
+            spawnParticles(e.x,e.y,'#ff2244',6);
+          } else if(e.jumperState==='lunge'&&e.jumperCd<=0){
+            e.jumperState='lurk'; e.jumperCd=Math.floor(70+Math.random()*80);
+          }
+          if(e.jumperState==='lurk'){
+            // Slow creep
+            const jdx=ship.x-e.x,jdy=ship.y-e.y,jl=Math.sqrt(jdx*jdx+jdy*jdy)||1;
+            const crawlSpd=(e.speed||1.5)*0.35;
+            e.vx=jdx/jl*crawlSpd; e.vy=jdy/jl*crawlSpd;
+          }
+          // Decelerate lunge
+          if(e.jumperState==='lunge'){e.vx*=0.92;e.vy*=0.92;}
+          e.x+=e.vx;e.y+=e.vy;
+        } else {
+          const dx=ship.x-e.x, dy=ship.y-e.y, len=Math.sqrt(dx*dx+dy*dy)||1;
+          const s=e.speed||(1.1*difficulty);
+          e.vx=dx/len*s; e.vy=dy/len*s;
+          if(e.wobble){e.vx+=Math.sin(e.age*e.wobbleFreq)*e.wobbleAmp;e.vy+=Math.cos(e.age*e.wobbleFreq)*e.wobbleAmp;}
+          e.x+=e.vx; e.y+=e.vy;
+        }
       });
       bullets.forEach(b=>{if(!b.laser){b.x+=b.vx;b.y+=b.vy;}});
 
@@ -5099,7 +5197,15 @@ function startSpace() {
           if(hit)return e;
           const dx=b.x-e.x,dy=b.y-e.y;
           if(Math.sqrt(dx*dx+dy*dy)<e.size*0.5*getBulletSize()){
-            e.hp-=b.dmg;hit=true;spawnParticles(e.x,e.y,'#fc5c7d',5);sfxHit();
+            if(e.shieldHp>0){
+              // Shield absorbs the hit
+              e.shieldHp--;hit=true;
+              spawnParticles(e.x,e.y,'#60ddff',8);
+              playTone(800,'sine',0.05,0.1); // metallic clank
+            } else {
+              e.hp-=b.dmg;hit=true;spawnParticles(e.x,e.y,'#fc5c7d',5);sfxHit();
+              if(b.burns&&!e.burnTimer){e.burnTimer=180;e.burnDmg=1;}
+            }
             if(e.hp<=0){
               score++;document.getElementById('spaceScore').textContent=score;
               spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
@@ -5239,20 +5345,71 @@ function startSpace() {
     // Powerup drops
     powerupDrops.forEach(d=>{
       const pt=POWERUP_TYPES.find(p=>p.type===d.type);const col=pt?.color||'#fff';
-      const pulse=0.85+0.15*Math.sin(frame*0.12);
-      ctx.globalAlpha=Math.min(1,d.life/30)*pulse;
+      const pulse=0.9+0.1*Math.sin(frame*0.12);
+      ctx.globalAlpha=1; // always fully opaque
       // Bigger glow ring
       const gr=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,18);
       gr.addColorStop(0,col+'55');gr.addColorStop(1,col+'00');
       ctx.fillStyle=gr;ctx.beginPath();ctx.arc(d.x,d.y,18,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(d.x,d.y,13,0,Math.PI*2);ctx.stroke();
       ctx.fillStyle=col+'44';ctx.fill();
-      // Label
-      const lbl=pt?.label||d.type;
-      const isEmoji=lbl.charCodeAt(0)>127;
-      ctx.fillStyle=col;ctx.font=`bold ${isEmoji?'14px':'10px'} monospace`;ctx.textAlign='center';
-      const _lbl=pt?.label||d.type;ctx.fillText(_lbl.slice(0,3),d.x,d.y+4.5);
-      ctx.textAlign='left';ctx.globalAlpha=1;
+      // Custom icon per powerup type
+      ctx.save();ctx.translate(d.x,d.y);
+      const iconSize=9;
+      if(d.type==='shield'){
+        // Shield shape
+        ctx.fillStyle=col;ctx.beginPath();
+        ctx.moveTo(0,-iconSize);ctx.lineTo(iconSize,-iconSize*0.5);ctx.lineTo(iconSize,iconSize*0.3);
+        ctx.quadraticCurveTo(0,iconSize*1.4,-iconSize,iconSize*0.3);
+        ctx.lineTo(-iconSize,-iconSize*0.5);ctx.closePath();ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,0.4)';ctx.beginPath();
+        ctx.moveTo(0,-iconSize*0.6);ctx.lineTo(iconSize*0.6,-iconSize*0.3);ctx.lineTo(iconSize*0.6,iconSize*0.1);
+        ctx.quadraticCurveTo(0,iconSize*0.9,-iconSize*0.6,iconSize*0.1);ctx.closePath();ctx.fill();
+      } else if(d.type==='double'){
+        // 2 bullet lines
+        ctx.fillStyle=col;
+        ctx.fillRect(-iconSize,-3,iconSize*1.8,2.5);
+        ctx.fillRect(-iconSize,2,iconSize*1.8,2.5);
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(iconSize*0.8,-1.75,2.5,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(iconSize*0.8,3.25,2.5,0,Math.PI*2);ctx.fill();
+      } else if(d.type==='triple'){
+        // 3 bullet lines
+        ctx.fillStyle=col;
+        ctx.fillRect(-iconSize,-5,iconSize*1.8,2);
+        ctx.fillRect(-iconSize,-1,iconSize*1.8,2);
+        ctx.fillRect(-iconSize,3,iconSize*1.8,2);
+        ctx.fillStyle='#fff';
+        [-4,0,4].forEach(y=>{ctx.beginPath();ctx.arc(iconSize*0.8,y,2,0,Math.PI*2);ctx.fill();});
+      } else if(d.type==='rapid'){
+        // 3 bullet lines close together (fast fire)
+        ctx.fillStyle=col;
+        for(let ri=0;ri<3;ri++){
+          const rx=-iconSize+ri*iconSize*0.8;
+          ctx.fillRect(rx,-3,iconSize*0.55,6);
+        }
+        ctx.fillStyle='#fff';
+        for(let ri=0;ri<3;ri++){ctx.beginPath();ctx.arc(-iconSize+ri*iconSize*0.8+iconSize*0.27,0,2,0,Math.PI*2);ctx.fill();}
+      } else if(d.type==='magnet'){
+        ctx.font='16px serif';ctx.fillStyle=col;ctx.textAlign='center';ctx.fillText('🧲',0,5);
+      } else if(d.type==='heart'){
+        // Heart shape
+        ctx.fillStyle=col;ctx.beginPath();
+        ctx.moveTo(0,iconSize*0.5);ctx.bezierCurveTo(-iconSize*1.2,-iconSize*0.6,-iconSize*1.2,-iconSize*1.4,0,-iconSize*0.6);
+        ctx.bezierCurveTo(iconSize*1.2,-iconSize*1.4,iconSize*1.2,-iconSize*0.6,0,iconSize*0.5);
+        ctx.closePath();ctx.fill();
+      } else if(d.type==='silverheart'){
+        ctx.fillStyle='#ffe066';ctx.beginPath();
+        ctx.moveTo(0,iconSize*0.5);ctx.bezierCurveTo(-iconSize*1.2,-iconSize*0.6,-iconSize*1.2,-iconSize*1.4,0,-iconSize*0.6);
+        ctx.bezierCurveTo(iconSize*1.2,-iconSize*1.4,iconSize*1.2,-iconSize*0.6,0,iconSize*0.5);
+        ctx.closePath();ctx.fill();
+      } else if(d.type==='explosion'){
+        ctx.font='18px serif';ctx.fillStyle=col;ctx.textAlign='center';ctx.fillText('💥',0,6);
+      } else {
+        // Default: colored letter
+        ctx.fillStyle=col;ctx.font='bold 11px monospace';ctx.textAlign='center';
+        ctx.fillText((pt?.label||d.type).slice(0,2),0,4);
+      }
+      ctx.restore();ctx.textAlign='left';ctx.globalAlpha=1;
     });
 
     // Bullets — each weapon type has its own draw style
@@ -5441,8 +5598,19 @@ function startSpace() {
     if(state==='paused'){
       ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
       ctx.textAlign='center';
-      ctx.font=`bold ${Math.floor(W*0.07)}px monospace`;ctx.fillStyle='#fff';ctx.fillText('PAUSED',W/2,H/2-10);
-      ctx.font='13px monospace';ctx.fillStyle='#aaa';ctx.fillText('Press P or click ▶ to resume',W/2,H/2+24);
+      ctx.font=`bold ${Math.floor(W*0.07)}px monospace`;ctx.fillStyle='#fff';
+      const pausedTxt='PAUSED';const pausedY=H/2-10;
+      ctx.fillText(pausedTxt,W/2,pausedY);
+      ctx.font='13px monospace';ctx.fillStyle='#7c8aaa';
+      const resumeTxt='click here or press P to resume';const resumeY=H/2+24;
+      ctx.fillText(resumeTxt,W/2,resumeY);
+      // Store click zones
+      const pw=ctx.measureText(pausedTxt).width+20,ph=Math.floor(W*0.07)+10;
+      const rw2=ctx.measureText(resumeTxt).width+20,rh2=20;
+      canvas._pauseZones=[
+        {x:W/2-pw/2,y:pausedY-ph,w:pw,h:ph+8},
+        {x:W/2-rw2/2,y:resumeY-16,w:rw2,h:rh2}
+      ];
       ctx.textAlign='left';
     }
     if(state==='waiting'){
