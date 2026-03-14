@@ -5212,16 +5212,22 @@ function startSpace() {
     const shipHide = state==='dead' || (invincible>0 && Math.floor(frame/5)%2===1);
     if(shipHide){
       shipImg.style.left = OFF; shipImg.style.top = OFF;
+      shipImg.style.transform = '';
     } else {
-      // Bigger emote, centered inside dome properly, no circle crop
-      const pilotSize = DOME_R * 2.2 * scaleX;
+      // Fit inside dome, counter-rotate so emote stays upright while UFO spins
+      const pilotSize = DOME_R * 1.8 * scaleX;
+      const centerX = ship.x * scaleX;
+      const centerY = (ship.y - 2 - DOME_R * 0.3) * scaleY;
       shipImg.style.width  = pilotSize + 'px';
       shipImg.style.height = pilotSize + 'px';
-      shipImg.style.left   = ((ship.x) * scaleX - pilotSize/2) + 'px';
-      shipImg.style.top    = ((ship.y - 2 - DOME_R*0.5) * scaleY - pilotSize/2) + 'px';
+      shipImg.style.left   = (centerX - pilotSize/2) + 'px';
+      shipImg.style.top    = (centerY - pilotSize/2) + 'px';
       shipImg.style.display = 'block';
       shipImg.style.borderRadius = '0';
       shipImg.style.filter = '';
+      // Counter-rotate to keep emote upright
+      const counterDeg = -(ship.angle * 180 / Math.PI);
+      shipImg.style.transform = `rotate(${counterDeg}deg)`;
     }
   }
 
