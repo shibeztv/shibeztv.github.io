@@ -4640,8 +4640,8 @@ function startSpace() {
     if(key==='maxHp'){lives=Math.min(3+upgrades.maxHp,lives+1);updateHeartsDisplay(lives,silverLives,getMaxHp());}
   };
 
-  function getShipSpeed()   { return 2.38*(1+upgrades.speed*0.13); } // 1.5.3: -15% base speed
-  function getShootCd()     { const base=Math.max(5,Math.floor(21-upgrades.atkSpeed*2)); return upgrades.tier2_default ? Math.max(4,Math.floor(base*0.75)) : base; }
+  function getShipSpeed()   { return 1.90*(1+upgrades.speed*0.13); } // 1.5.3: -15% base speed
+  function getShootCd()     { const base=Math.max(5,Math.floor(84-upgrades.atkSpeed*2)); return upgrades.tier2_default ? Math.max(4,Math.floor(base*0.75)) : base; }
   function getBulletCount() { return 1+upgrades.multishot+(_hasPowerup('triple')?2:0)+(_hasPowerup('double')?1:0); }
   function getBulletDmg()   { return 1+upgrades.damage; }
   function getBulletSize()   { return 1.15+upgrades.bulletSize*0.2; } // 15% wider base
@@ -4954,11 +4954,11 @@ function startSpace() {
     const sizeRoll=Math.random();
     const sizeScale = sizeRoll<0.10 ? 3 : sizeRoll<0.30 ? 2 : 1;
     const finalSize = size * sizeScale;
-    const speed=(0.65+Math.random()*0.85)*Math.min(difficulty,3.5)*(sizeScale>1?0.75:1);
+    const speed=(0.52+Math.random()*0.68)*Math.min(difficulty,3.5)*(sizeScale>1?0.75:1);
     const timeMins=survivalFrames/3600;
     // HP scales with time AND player damage upgrades so enemies stay tanky
     const dmgScale=Math.max(1, getBulletDmg()*0.7);
-    const timeHp=Math.floor(timeMins*1.4); // 1.5.3: slower time HP
+    const timeHp=Math.floor(timeMins*0.7); // slower time HP
     const baseHp=Math.ceil((1+timeHp+Math.floor(difficulty*0.18))*dmgScale); // 1.5.3: even slower hp scale
     const riskHpMult=upgrades.riskReward?1+upgrades.riskReward*0.2:1;
     const finalBaseHp=Math.ceil(baseHp*riskHpMult);
@@ -5348,7 +5348,7 @@ function startSpace() {
         enemies.push({
           x:W+bossSize, y:H/2+(Math.random()-0.5)*H*0.3,
           img:bossImg, size:bossSize, sizeScale:10, isBoss:true, isBig:false,
-          vx:-(0.12+bossWave*0.03), vy:0, // ~half speed
+          vx:-(0.18+bossWave*0.02), vy:0, // ~20% of enemy speed
           hp:bossHp, maxHp:bossHp, age:0,
           wobble:false, wobbleAmp:0, wobbleFreq:0
         });
