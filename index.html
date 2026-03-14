@@ -1343,23 +1343,24 @@
     <div id="spaceModal" style="display:none;position:fixed;inset:0;z-index:9003;background:rgba(0,0,0,0.97);align-items:center;justify-content:center;padding:10px">
       <div style="background:#050510;border:1px solid #1a1a3a;border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;max-width:100%;max-height:100%">
         <div id="spaceMusicEl" style="display:none"></div>
+        <div id="spaceShopMusicEl" style="display:none"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box;gap:8px;flex-wrap:wrap">
           <div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0">
             <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ</span>
             <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click to shoot · E for shop</span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-            <span style="font-family:var(--mono);font-size:11px;color:#aaa">SCORE: <span id="spaceScore" style="color:#fff;font-weight:900">0</span></span>
-            <span style="font-family:var(--mono);font-size:11px;color:#aaa">🪙 <span id="spaceCoins" style="color:#ffd700;font-weight:900">0</span></span>
-            <span style="font-family:var(--mono);font-size:11px;color:#aaa">❤️ <span id="spaceLives" style="color:#fc5c7d;font-weight:900">3</span></span>
-            <div style="display:flex;align-items:center;gap:4px;border-left:1px solid #1a1a3a;padding-left:8px">
-              <span style="font-family:var(--mono);font-size:9px;color:#444">♪</span>
-              <button id="spaceMuteBtn" onclick="toggleSpaceMusic()" style="font-family:var(--mono);font-size:9px;background:rgba(255,255,255,0.06);border:1px solid #1a1a3a;color:#aaa;padding:2px 6px;border-radius:3px;cursor:pointer">MUTE</button>
-              <input id="spaceMusicVol" type="range" min="0" max="100" value="25" oninput="setSpaceMusicVol(this.value)" style="width:50px;accent-color:#7c5cfc;cursor:pointer">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa">SCORE: <span id="spaceScore" style="color:#fff;font-weight:900;font-size:15px">0</span></span>
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa">🪙 <span id="spaceCoins" style="color:#ffd700;font-weight:900;font-size:15px">0</span></span>
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa">❤️ <span id="spaceLives" style="color:#fc5c7d;font-weight:900;font-size:15px">3</span></span>
+            <div style="display:flex;align-items:center;gap:5px;border-left:1px solid #1a1a3a;padding-left:10px">
+              <span style="font-family:var(--mono);font-size:11px;color:#aaa;font-weight:700">MUSIC</span>
+              <button id="spaceMuteBtn" onclick="toggleSpaceMusic()" style="font-family:var(--mono);font-size:13px;background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;padding:3px 9px;border-radius:4px;cursor:pointer;line-height:1">🔊</button>
+              <input id="spaceMusicVol" type="range" min="0" max="100" value="25" oninput="setSpaceMusicVol(this.value)" style="width:54px;accent-color:#7c5cfc;cursor:pointer">
             </div>
-            <div style="display:flex;align-items:center;gap:4px;border-left:1px solid #1a1a3a;padding-left:8px">
-              <span style="font-family:var(--mono);font-size:9px;color:#444">SFX</span>
-              <input id="spaceSfxVol" type="range" min="0" max="100" value="40" style="width:46px;accent-color:#fc5c7d;cursor:pointer">
+            <div style="display:flex;align-items:center;gap:5px;border-left:1px solid #1a1a3a;padding-left:10px">
+              <span style="font-family:var(--mono);font-size:11px;color:#aaa;font-weight:700">SFX</span>
+              <input id="spaceSfxVol" type="range" min="0" max="100" value="40" style="width:50px;accent-color:#fc5c7d;cursor:pointer">
             </div>
             <button onclick="spaceShopToggle()" style="font-family:var(--mono);font-size:10px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 10px;border-radius:3px;cursor:pointer" title="Press E or Tab">🛒 SHOP [E]</button>
             <button onclick="closeSpace()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
@@ -4083,36 +4084,74 @@ let _spaceRunning = false, _spaceRAF = null;
 const SPACE_EMOTE_SET = '01F6YHT8TG0003S6SNNTMYB87P';
 let _spaceEmotes = [];
 let _spaceMusicPlayer = null;
+let _spaceShopMusicPlayer = null;
 let _spaceMusicMuted = false;
+let _spaceInShop = false;
+
+function _getActiveMusic() { return _spaceInShop ? _spaceShopMusicPlayer : _spaceMusicPlayer; }
 
 function toggleSpaceMusic() {
   _spaceMusicMuted = !_spaceMusicMuted;
   const btn = document.getElementById('spaceMuteBtn');
-  if (_spaceMusicPlayer && _spaceMusicPlayer.setVolume) {
-    if (_spaceMusicMuted) { _spaceMusicPlayer.mute(); if(btn){btn.textContent='UNMUTE';btn.style.color='#fc5c7d';} }
-    else { _spaceMusicPlayer.unMute(); _spaceMusicPlayer.setVolume(parseInt(document.getElementById('spaceMusicVol').value)); if(btn){btn.textContent='MUTE';btn.style.color='#aaa';} }
-  }
-}
-function setSpaceMusicVol(v) {
-  if (_spaceMusicPlayer && _spaceMusicPlayer.setVolume) {
-    _spaceMusicMuted = false;
-    const btn = document.getElementById('spaceMuteBtn');
-    if(btn){btn.textContent='MUTE';btn.style.color='#aaa';}
-    _spaceMusicPlayer.unMute(); _spaceMusicPlayer.setVolume(parseInt(v));
-  }
-}
-function initSpaceMusic() {
-  if (_spaceMusicPlayer) { try { _spaceMusicPlayer.playVideo(); } catch(e){} return; }
-  if (typeof YT === 'undefined' || !YT.Player) { setTimeout(initSpaceMusic, 500); return; }
-  _spaceMusicPlayer = new YT.Player('spaceMusicEl', {
-    videoId: 'UDVtMYqUAyw',
-    playerVars: { autoplay: 1, loop: 1, list: 'RDUDVtMYqUAyw', listType: 'playlist', controls: 0, fs: 0 },
-    events: {
-      onReady: e => { e.target.setVolume(parseInt(document.getElementById('spaceMusicVol')?.value||25)); e.target.playVideo(); },
-      onStateChange: e => { if (e.data === YT.PlayerState.ENDED) e.target.playVideo(); }
+  [_spaceMusicPlayer, _spaceShopMusicPlayer].forEach(p => {
+    if (p && p.setVolume) {
+      if (_spaceMusicMuted) p.mute(); else { p.unMute(); p.setVolume(parseInt(document.getElementById('spaceMusicVol')?.value||25)); }
     }
   });
+  if (btn) { btn.textContent = _spaceMusicMuted ? '🔇' : '🔊'; btn.style.color = _spaceMusicMuted ? '#fc5c7d' : '#aaa'; }
 }
+
+function setSpaceMusicVol(v) {
+  _spaceMusicMuted = false;
+  const btn = document.getElementById('spaceMuteBtn');
+  if (btn) { btn.textContent = '🔊'; btn.style.color = '#aaa'; }
+  const active = _getActiveMusic();
+  if (active && active.setVolume) { active.unMute(); active.setVolume(parseInt(v)); }
+}
+
+function initSpaceMusic() {
+  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||25);
+  // Main music
+  if (!_spaceMusicPlayer) {
+    if (typeof YT === 'undefined' || !YT.Player) { setTimeout(initSpaceMusic, 500); return; }
+    _spaceMusicPlayer = new YT.Player('spaceMusicEl', {
+      videoId: 'UDVtMYqUAyw',
+      playerVars: { autoplay:1, loop:1, list:'RDUDVtMYqUAyw', listType:'playlist', controls:0, fs:0 },
+      events: {
+        onReady: e => { e.target.setVolume(vol); if(!_spaceMusicMuted) e.target.playVideo(); else e.target.mute(); },
+        onStateChange: e => { if(e.data===YT.PlayerState.ENDED && !_spaceInShop) e.target.playVideo(); }
+      }
+    });
+  } else { try { if(!_spaceInShop && !_spaceMusicMuted) _spaceMusicPlayer.playVideo(); } catch(e){} }
+  // Shop music (preload silently)
+  if (!_spaceShopMusicPlayer) {
+    _spaceShopMusicPlayer = new YT.Player('spaceShopMusicEl', {
+      videoId: 'BeJ-Kscdp4w',
+      playerVars: { autoplay:0, loop:1, list:'RDBeJ-Kscdp4w', listType:'playlist', controls:0, fs:0 },
+      events: {
+        onReady: e => { e.target.setVolume(vol); e.target.pauseVideo(); },
+        onStateChange: e => { if(e.data===YT.PlayerState.ENDED && _spaceInShop) e.target.playVideo(); }
+      }
+    });
+  }
+}
+
+function switchToShopMusic() {
+  _spaceInShop = true;
+  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||25);
+  try { _spaceMusicPlayer?.pauseVideo(); } catch(e){}
+  try { if(_spaceShopMusicPlayer?.setVolume) { if(!_spaceMusicMuted){_spaceShopMusicPlayer.unMute();_spaceShopMusicPlayer.setVolume(vol);} _spaceShopMusicPlayer.playVideo(); } } catch(e){}
+}
+
+function switchToMainMusic() {
+  _spaceInShop = false;
+  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||25);
+  try { _spaceShopMusicPlayer?.pauseVideo(); } catch(e){}
+  try { if(_spaceMusicPlayer?.setVolume) { if(!_spaceMusicMuted){_spaceMusicPlayer.unMute();_spaceMusicPlayer.setVolume(vol);} _spaceMusicPlayer.playVideo(); } } catch(e){}
+}
+
+function pauseSpaceMusic() { try { _spaceMusicPlayer?.pauseVideo(); _spaceShopMusicPlayer?.pauseVideo(); } catch(e){} }
+function resumeSpaceMusic() { try { if(!_spaceMusicMuted && !_spaceInShop) _spaceMusicPlayer?.playVideo(); } catch(e){} }
 
 async function openSpacebez() {
   document.getElementById('spaceModal').style.display = 'flex';
@@ -4155,7 +4194,8 @@ function spaceShopToggle() {
   if (!shop) return;
   const open = shop.style.display === 'flex';
   shop.style.display = open ? 'none' : 'flex';
-  if (!open) renderShopGrid();
+  if (!open) { renderShopGrid(); switchToShopMusic(); }
+  else { switchToMainMusic(); }
 }
 
 function startSpace() {
@@ -4191,12 +4231,12 @@ function startSpace() {
   // ── Upgrades
   const upgrades = window._spaceUpgrades||(window._spaceUpgrades={speed:0,atkSpeed:0,multishot:0,maxHp:0,hpRegen:0,damage:0});
   const UPGRADE_DEFS = [
-    {key:'speed',    label:'🚀 Move Speed',  desc:'+15% speed',       maxLvl:5, cost:l=>3+l*2},
-    {key:'atkSpeed', label:'⚡ Attack Speed', desc:'-15% cooldown',    maxLvl:5, cost:l=>3+l*2},
-    {key:'multishot',label:'💥 Multi-Shot',   desc:'+1 bullet',        maxLvl:3, cost:l=>5+l*3},
-    {key:'maxHp',    label:'❤️ Max HP',       desc:'+1 max health',    maxLvl:4, cost:l=>4+l*3},
-    {key:'hpRegen',  label:'💚 HP Regen',     desc:'regen 1hp/30s',    maxLvl:3, cost:l=>6+l*3},
-    {key:'damage',   label:'🔥 Damage',       desc:'+1 bullet damage', maxLvl:4, cost:l=>5+l*3},
+    {key:'speed',    label:'🚀 Move Speed',  desc:'+12% speed each',  maxLvl:5, cost:l=>[1,3,5,8,12][l]},
+    {key:'atkSpeed', label:'⚡ Attack Speed', desc:'-12% cooldown',    maxLvl:5, cost:l=>[1,3,5,8,12][l]},
+    {key:'multishot',label:'💥 Multi-Shot',   desc:'+1 bullet',        maxLvl:3, cost:l=>[2,5,10][l]},
+    {key:'maxHp',    label:'❤️ Max HP',       desc:'+1 max health',    maxLvl:4, cost:l=>[1,3,6,10][l]},
+    {key:'hpRegen',  label:'💚 HP Regen',     desc:'regen 1hp/30s',    maxLvl:3, cost:l=>[2,5,9][l]},
+    {key:'damage',   label:'🔥 Damage',       desc:'+1 bullet damage', maxLvl:4, cost:l=>[2,4,7,12][l]},
   ];
 
   let coins = window._spaceCoins||0;
@@ -4227,25 +4267,31 @@ function startSpace() {
     if(key==='maxHp'){lives=Math.min(3+upgrades.maxHp,lives+1);document.getElementById('spaceLives').textContent=lives;}
   };
 
-  function getShipSpeed()   { return 4.8*(1+upgrades.speed*0.15); }
+  function getShipSpeed()   { return 2.6*(1+upgrades.speed*0.12); }
   function getShootCd()     { return Math.max(4,14-upgrades.atkSpeed*2); }
   function getBulletCount() { return 1+upgrades.multishot+(activePowerup==='triple'?2:activePowerup==='double'?1:0); }
   function getBulletDmg()   { return 1+upgrades.damage; }
   function getMaxHp()       { return 3+upgrades.maxHp; }
 
   // Ship can move anywhere on screen
+  let _pilotIdx = Math.floor(Math.random()*_spaceEmotes.length);
   let ship = {x:W/2, y:H/2, vx:0, vy:0, angle:0};
   let bullets=[],enemies=[],particles=[],drops=[],powerupDrops=[];
   let score=0, lives=getMaxHp(), frame=0;
   let state='waiting', enemyTimer=90, difficulty=1, invincible=0, shootCooldown=0;
+  let _deathFrame=0;
+  let silverLives=0; // bonus armor hearts (shown as gold, lost on hit, not reclaimable)
   let regenTimer=0, activePowerup=null, powerupTimer=0;
   saveCoins(coins);
 
   const POWERUP_TYPES=[
-    {type:'double',  label:'2x SHOT',   color:'#60ddff',dur:300},
-    {type:'triple',  label:'3x SHOT',   color:'#a855f7',dur:240},
-    {type:'rapid',   label:'RAPID FIRE',color:'#fbbf24',dur:240},
-    {type:'shield',  label:'SHIELD',    color:'#4ade80',dur:300},
+    {type:'double',  label:'2x SHOT',   color:'#60ddff',dur:480},
+    {type:'triple',  label:'3x SHOT',   color:'#a855f7',dur:420},
+    {type:'rapid',   label:'RAPID FIRE',color:'#fbbf24',dur:420},
+    {type:'shield',  label:'SHIELD',    color:'#4ade80',dur:480},
+    {type:'magnet',  label:'MAGNET',    color:'#ffd700',dur:360},
+    {type:'heart',   label:'❤ HEAL',     color:'#ff4488',dur:0},
+    {type:'silverheart',label:'💛 BONUS HP',color:'#ffe066',dur:0},
   ];
 
   // ── Web Audio SFX
@@ -4274,6 +4320,18 @@ function startSpace() {
   function sfxPlayerHit(){playTone(120,'sawtooth',0.18,0.3,0.001);playTone(80,'square',0.15,0.2,0.001);}
   function sfxCoin(){playTone(1200,'sine',0.06,0.2);setTimeout(()=>playTone(1600,'sine',0.06,0.15),40);}
   function sfxPowerup(){[800,1000,1200,1500].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.08,0.2),i*40));}
+  function sfxDeath(){
+    const ac=getACtx();if(!ac)return;const v=getSfxVol();if(v<=0)return;
+    // Deep Dark Souls-style toll
+    [220,185,150,110].forEach((freq,i)=>{
+      setTimeout(()=>{
+        const g=ac.createGain();g.gain.setValueAtTime(v*0.5,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+1.8);
+        const o=ac.createOscillator();o.type='sine';o.frequency.setValueAtTime(freq,ac.currentTime);
+        o.frequency.exponentialRampToValueAtTime(freq*0.7,ac.currentTime+1.8);
+        o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+2);
+      },i*180);
+    });
+  }
 
   // ── Input
   const keys={};
@@ -4294,7 +4352,10 @@ function startSpace() {
   // Mouse aim + click to shoot
   let mouseX=W/2, mouseY=H/2;
   const onMouseMove=e=>{const r=canvas.getBoundingClientRect();mouseX=(e.clientX-r.left)*(W/r.width);mouseY=(e.clientY-r.top)*(H/r.height);};
-  const onMouseDown=e=>{if(e.button===0&&state==='playing')fireBulletDir();};
+  let mouseHeld=false;
+  const onMouseDown=e=>{if(e.button===0){mouseHeld=true;if(state==='playing')fireBulletDir();if(state==='waiting')state='playing';if(state==='dead')resetSpace();}};
+  const onMouseUp=e=>{if(e.button===0)mouseHeld=false;};
+  document.addEventListener('mouseup',onMouseUp);
   canvas.addEventListener('mousemove',onMouseMove);
   canvas.addEventListener('mousedown',onMouseDown);
 
@@ -4346,14 +4407,14 @@ function startSpace() {
     // Move toward ship (with slight random offset)
     const tx=ship.x+(Math.random()-0.5)*120, ty=ship.y+(Math.random()-0.5)*120;
     const dx=tx-x, dy=ty-y, len=Math.sqrt(dx*dx+dy*dy)||1;
-    const speed=(1.1+Math.random()*1.6)*difficulty;
+    const speed=(0.65+Math.random()*0.85)*Math.min(difficulty,3.5);
     const hp=Math.ceil(1+(difficulty>2?1:0));
     enemies.push({x,y,img,size,vx:(dx/len)*speed,vy:(dy/len)*speed,hp,maxHp:hp,age:0,wobble:Math.random()>0.4,wobbleAmp:1+Math.random()*2,wobbleFreq:0.03+Math.random()*0.04});
   }
 
   function spawnDrop(x,y,type){
-    if(type==='coin')drops.push({x,y,vx:(Math.random()-0.5)*2,vy:(Math.random()-0.5)*2,life:220,collected:false});
-    else powerupDrops.push({x,y,vx:(Math.random()-0.5)*1.5,vy:(Math.random()-0.5)*1.5,type,life:320,collected:false});
+    if(type==='coin')drops.push({x,y,vx:(Math.random()-0.5)*1.2,vy:-1.5-Math.random(),life:99999,collected:false,settled:false});
+    else powerupDrops.push({x,y,vx:(Math.random()-0.5)*1.0,vy:-1.2,type,life:600,collected:false});
   }
 
   function spawnParticles(x,y,color,n=10){
@@ -4362,9 +4423,12 @@ function startSpace() {
 
   function resetSpace(){
     ship={x:W/2,y:H/2,vx:0,vy:0,angle:0};
+    // new random pilot
+    if(_spaceEmotes.length>1){let n;do{n=Math.floor(Math.random()*_spaceEmotes.length);}while(n===_pilotIdx);_pilotIdx=n;}
+    const ne=_spaceEmotes[_pilotIdx];shipImg.src=ne.url;shipImg.crossOrigin='anonymous';
     bullets=[];enemies=[];particles=[];drops=[];powerupDrops=[];
     score=0;lives=getMaxHp();frame=0;
-    state='playing';enemyTimer=90;difficulty=1;invincible=0;shootCooldown=0;
+    state='playing';enemyTimer=90;difficulty=1;invincible=0;shootCooldown=0;_deathFrame=0;silverLives=0;resumeSpaceMusic();
     regenTimer=0;activePowerup=null;powerupTimer=0;
     document.getElementById('spaceScore').textContent='0';
     document.getElementById('spaceLives').textContent=lives;
@@ -4493,7 +4557,7 @@ function startSpace() {
       if(keys['ArrowDown']||keys['s']||keys['S'])  ship.y=Math.min(H-30,ship.y+SPEED);
       if(keys['ArrowLeft']||keys['a']||keys['A'])  ship.x=Math.max(30,ship.x-SPEED);
       if(keys['ArrowRight']||keys['d']||keys['D']) ship.x=Math.min(W-30,ship.x+SPEED);
-      if(keys[' ']||keys['Space']) fireBullet();
+      if(keys[' ']||keys['Space']||mouseHeld) fireBulletDir();
       if(shootCooldown>0) shootCooldown--;
       if(invincible>0) invincible--;
 
@@ -4516,8 +4580,8 @@ function startSpace() {
       }
 
       enemyTimer--;
-      if(enemyTimer<=0){spawnEnemy();enemyTimer=Math.max(20,80-score*0.4);}
-      difficulty=1+score*0.018;
+      if(enemyTimer<=0){spawnEnemy();enemyTimer=Math.max(35,110-score*0.4);}
+      difficulty=1+score*0.010;
 
       // Enemies move toward ship
       enemies.forEach(e=>{
@@ -4543,7 +4607,10 @@ function startSpace() {
               spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
               spawnDrop(e.x,e.y,'coin');
               if(Math.random()<0.35)spawnDrop(e.x+10,e.y+10,'coin');
-              if(Math.random()<0.15){const pt=POWERUP_TYPES[Math.floor(Math.random()*POWERUP_TYPES.length)];spawnDrop(e.x,e.y,pt.type);}
+              const roll=Math.random();
+              if(roll<0.07) spawnDrop(e.x,e.y,'heart');
+              else if(roll<0.10) spawnDrop(e.x,e.y,'silverheart');
+              else if(roll<0.22){const regularPowerups=['double','triple','rapid','shield','magnet'];const pt=regularPowerups[Math.floor(Math.random()*regularPowerups.length)];spawnDrop(e.x,e.y,pt);}
               return null;
             }
           }
@@ -4553,20 +4620,42 @@ function startSpace() {
       });
 
       drops=drops.filter(d=>{
-        d.x+=d.vx;d.y+=d.vy;d.vx*=0.96;d.vy*=0.96;d.life--;
-        if(d.life<=0)return false;
-        if(Math.sqrt((d.x-ship.x)**2+(d.y-ship.y)**2)<32&&!d.collected){
+        if(activePowerup==='magnet'){
+          // magnet sucks coins toward ship
+          const dx=ship.x-d.x,dy=ship.y-d.y,dist=Math.sqrt(dx*dx+dy*dy)||1;
+          d.vx+=dx/dist*2.5;d.vy+=dy/dist*2.5;
+        }
+        if(!d.settled){d.vy+=0.12;d.x+=d.vx;d.y+=d.vy;d.vx*=0.93;d.vy*=0.93;}
+        // settle on "ground" — just stop when slow
+        if(!d.settled&&Math.abs(d.vx)<0.1&&Math.abs(d.vy)<0.1){d.settled=true;d.vx=0;d.vy=0;}
+        // keep in bounds
+        if(d.x<8)d.x=8;if(d.x>W-8)d.x=W-8;if(d.y>H-8){d.y=H-8;d.vy*=-0.3;d.vx*=0.8;}
+        const collectR=activePowerup==='magnet'?80:22;
+        if(Math.sqrt((d.x-ship.x)**2+(d.y-ship.y)**2)<collectR&&!d.collected){
           d.collected=true;saveCoins(coins+1);spawnParticles(d.x,d.y,'#ffd700',4);sfxCoin();return false;
         }
         return true;
       });
       powerupDrops=powerupDrops.filter(d=>{
-        d.x+=d.vx;d.y+=d.vy;d.vx*=0.97;d.vy*=0.97;d.life--;
-        if(d.life<=0)return false;
-        if(Math.sqrt((d.x-ship.x)**2+(d.y-ship.y)**2)<36&&!d.collected){
+        d.vy+=0.08;d.x+=d.vx;d.y+=d.vy;d.vx*=0.95;d.vy*=0.92;
+        if(d.y>H-12){d.y=H-12;d.vy*=-0.25;d.vx*=0.7;}
+        d.life--;if(d.life<=0)return false;
+        if(Math.sqrt((d.x-ship.x)**2+(d.y-ship.y)**2)<38&&!d.collected){
           d.collected=true;const pt=POWERUP_TYPES.find(p=>p.type===d.type);
-          activePowerup=d.type;powerupTimer=pt?.dur||300;
-          spawnParticles(d.x,d.y,pt?.color||'#fff',8);sfxPowerup();return false;
+          if(d.type==='heart'){
+            lives=Math.min(getMaxHp(),lives+1);
+            document.getElementById('spaceLives').textContent=lives;
+            spawnParticles(d.x,d.y,'#ff4488',10);
+            playTone(880,'sine',0.1,0.3);setTimeout(()=>playTone(1100,'sine',0.08,0.25),80);
+          } else if(d.type==='silverheart'){
+            silverLives++;
+            spawnParticles(d.x,d.y,'#ffe066',10);
+            playTone(1200,'sine',0.08,0.3);setTimeout(()=>playTone(1600,'sine',0.06,0.25),80);
+          } else {
+            activePowerup=d.type;powerupTimer=pt?.dur||420;
+            spawnParticles(d.x,d.y,pt?.color||'#fff',8);sfxPowerup();
+          }
+          return false;
         }
         return true;
       });
@@ -4574,9 +4663,14 @@ function startSpace() {
       if(invincible<=0&&activePowerup!=='shield'){
         enemies=enemies.filter(e=>{
           if(Math.sqrt((e.x-ship.x)**2+(e.y-ship.y)**2)<(e.size+32)*0.4){
-            lives--;invincible=90;spawnParticles(ship.x,ship.y,'#ff4444',15);sfxPlayerHit();
+            if(silverLives>0){
+              silverLives--;spawnParticles(ship.x,ship.y,'#ffe066',10);sfxPlayerHit();
+            } else {
+              lives--;spawnParticles(ship.x,ship.y,'#ff4444',15);sfxPlayerHit();
+            }
+            invincible=90;
             document.getElementById('spaceLives').textContent=Math.max(0,lives);
-            if(lives<=0)state='dead';
+            if(lives<=0){state='dead';_deathFrame=frame;sfxDeath();pauseSpaceMusic();}
             return false;
           }
           return true;
@@ -4673,19 +4767,54 @@ function startSpace() {
       ctx.textAlign='left';
     }
     if(state==='dead'){
-      ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(0,0,W,H);
-      ctx.textAlign='center';
-      ctx.font='bold 30px monospace';ctx.fillStyle='#fc5c7d';ctx.fillText('GAME OVER',W/2,H/2-50);
-      ctx.font='bold 20px monospace';ctx.fillStyle='#fff';ctx.fillText('Score: '+score,W/2,H/2-16);
-      ctx.font='13px monospace';ctx.fillStyle='#ffd700';ctx.fillText('🪙 Coins kept: '+coins+' · Upgrades persist!',W/2,H/2+10);
-      const best2=parseInt(localStorage.getItem('spaceBest')||'0');
-      if(score>best2)localStorage.setItem('spaceBest',score);
-      const b2=Math.max(score,best2);
-      ctx.fillStyle=score>=best2?'#4ade80':'#aaa';ctx.fillText(score>=best2?'🏆 NEW BEST!':'Best: '+b2,W/2,H/2+34);
-      ctx.fillStyle='#aaa';ctx.fillText('Press Space or tap to retry',W/2,H/2+58);
-      ctx.textAlign='left';
+      // Fade in dark overlay
+      const df=Math.min(1,(frame-_deathFrame)/40);
+      ctx.fillStyle=`rgba(0,0,0,${df*0.75})`;ctx.fillRect(0,0,W,H);
+      if(df>0.3){
+        // YOU DIED text — fade in then settle
+        const tf=Math.min(1,(frame-_deathFrame-12)/35);
+        ctx.globalAlpha=tf;
+        ctx.textAlign='center';
+        // Outer glow
+        ctx.shadowColor='#8b0000';ctx.shadowBlur=40;
+        ctx.font=`bold ${Math.floor(W*0.11)}px serif`;
+        // Dark red to bright red gradient for text
+        const tg=ctx.createLinearGradient(0,H/2-W*0.07,0,H/2+W*0.04);
+        tg.addColorStop(0,'#ff2222');tg.addColorStop(0.5,'#cc0000');tg.addColorStop(1,'#660000');
+        ctx.fillStyle=tg;
+        ctx.fillText('YOU DIED',W/2,H/2+W*0.035);
+        ctx.shadowBlur=0;
+        // Stats below
+        if(tf>0.8){
+          const sf=Math.min(1,(tf-0.8)/0.2);
+          ctx.globalAlpha=sf*0.85;
+          ctx.font='bold 14px monospace';ctx.fillStyle='#ccc';ctx.fillText('Score: '+score+'  ·  Best: '+Math.max(score,parseInt(localStorage.getItem('spaceBest')||0)),W/2,H/2+W*0.08);
+          ctx.font='12px monospace';ctx.fillStyle='#ffd700';ctx.fillText('🪙 '+coins+' coins kept · upgrades saved',W/2,H/2+W*0.11);
+          ctx.font='11px monospace';ctx.fillStyle='#666';ctx.fillText('Space / click to retry',W/2,H/2+W*0.145);
+          const best2=parseInt(localStorage.getItem('spaceBest')||'0');
+          if(score>best2){localStorage.setItem('spaceBest',score);ctx.globalAlpha=sf;ctx.fillStyle='#4ade80';ctx.font='bold 13px monospace';ctx.fillText('🏆 NEW BEST!',W/2,H/2-W*0.05);}
+        }
+        ctx.globalAlpha=1;ctx.textAlign='left';
+      }
     }
 
+
+    // ── Bottom-right HP hearts HUD
+    if(state==='playing'||state==='dead'){
+      const hSize=20, hGap=4, hY=H-14, totalH=getMaxHp()+silverLives;
+      ctx.save(); ctx.font=`${hSize}px serif`;
+      for(let i=0;i<totalH;i++){
+        const hx=W-14-(totalH-1-i)*(hSize+hGap);
+        if(i<silverLives){
+          ctx.globalAlpha=0.9; ctx.fillText('💛',hx-hSize/2,hY);
+        } else {
+          const hi=i-silverLives;
+          ctx.globalAlpha = hi<lives?1:0.2;
+          ctx.fillText('❤️',hx-hSize/2,hY);
+        }
+      }
+      ctx.globalAlpha=1; ctx.restore();
+    }
     _spaceRAF=requestAnimationFrame(loop);
   }
 
@@ -4694,6 +4823,7 @@ function startSpace() {
     document.removeEventListener('keyup',onKey);
     canvas.removeEventListener('mousemove',onMouseMove);
     canvas.removeEventListener('mousedown',onMouseDown);
+    document.removeEventListener('mouseup',onMouseUp);
     canvas.removeEventListener('touchstart',onTouch);
     canvas.removeEventListener('touchmove',onTouch);
   };
