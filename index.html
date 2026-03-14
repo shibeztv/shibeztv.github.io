@@ -2033,8 +2033,9 @@ function groupIntoStreams(videos) {
   const byDay = {};
   let noDateIdx = 0;
   videos.forEach(v => {
-    // Primary key: date extracted from title (e.g. "JUNE 09 2022" at end of title)
     const titleDay = extractDateFromTitle(v.title);
+    // Debug: log first 5 to console
+    if (noDateIdx < 5) console.log('[grouping] title:', JSON.stringify(v.title), '→ day:', titleDay, '| publishedAt:', v.publishedAt);
     if (titleDay) {
       if (!byDay[titleDay]) byDay[titleDay] = [];
       byDay[titleDay].push(v);
@@ -3100,7 +3101,9 @@ document.addEventListener('mousemove', () => {
 
 
 // ─── STREAM LOADING ──────────────────────────────────────────────────────────
-const CACHE_KEY = 'shibez_streams_v2';
+const CACHE_KEY = 'shibez_streams_v3';
+// Clear any stale old cache versions
+['shibez_streams_v1','shibez_streams_v2'].forEach(k=>{ try{localStorage.removeItem(k);}catch(e){} });
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 async function loadStreams() {
