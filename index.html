@@ -3091,9 +3091,6 @@ async function loadStreams() {
     return;
   }
 
-  // Load emotes in background
-  loadEmotes();
-
   // Try cache first — show instantly, then refresh in background
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
@@ -3103,12 +3100,16 @@ async function loadStreams() {
       twitchVodDetails = cached.vodDetails || {};
       renderStreamList(allStreams);
       refreshStreams(false); // silent background refresh
+      // VODs already cached — safe to load emotes now (won't compete)
+      setTimeout(loadEmotes, 200);
       return;
     }
   } catch(e) {}
 
   if (grid) grid.innerHTML = '<div class="loader"><span>Loading streams</span><div class="loader-dots"><span></span><span></span><span></span></div></div>';
   await refreshStreams(true);
+  // Emotes load AFTER videos are fetched so they don't compete for connections
+  setTimeout(loadEmotes, 300);
 }
 
 async function refreshStreams(showErrors) {
