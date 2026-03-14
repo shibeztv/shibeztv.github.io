@@ -1342,7 +1342,7 @@
         style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
         onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
         onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🚀 SPACEBEZ 1.2.1.1
+        🚀 SPACEBEZ 1.2.3
       </button>
     </div>
 
@@ -1357,7 +1357,7 @@
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
             <div style="display:flex;flex-direction:column;gap:1px">
-              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.2.1</span></span>
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">1.2.3</span></span>
               <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · E shop · P pause</span>
             </div>
           </div>
@@ -1368,7 +1368,7 @@
             <span id="spaceHeartsDisplay" style="font-size:16px;letter-spacing:1px">❤️❤️❤️</span><span id="spaceLives" style="display:none">3</span>
             <div style="display:flex;align-items:center;gap:5px;border-left:1px solid #1a1a3a;padding-left:10px">
               <span style="font-family:var(--mono);font-size:11px;color:#aaa;font-weight:700">MUSIC</span>
-              <input id="spaceMusicVol" type="range" min="0" max="100" value="25" oninput="setSpaceMusicVol(this.value)" style="width:108px;accent-color:#7c5cfc;cursor:pointer">
+              <input id="spaceMusicVol" type="range" min="0" max="100" value="18" oninput="setSpaceMusicVol(this.value)" style="width:108px;accent-color:#7c5cfc;cursor:pointer">
             </div>
             <div style="display:flex;align-items:center;gap:5px;border-left:1px solid #1a1a3a;padding-left:10px">
               <span style="font-family:var(--mono);font-size:11px;color:#aaa;font-weight:700">SFX</span>
@@ -1386,8 +1386,8 @@
           <!-- SHOP OVERLAY — only over canvas, topbar stays visible -->
           <div id="spaceShop" style="display:none;position:absolute;inset:0;background:rgba(2,2,18,0.96);backdrop-filter:blur(4px);flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;box-sizing:border-box;z-index:10">
           <div style="font-family:var(--mono);font-size:15px;font-weight:900;color:#ffd700;letter-spacing:2px;margin-bottom:4px">🛒 UPGRADE SHOP</div>
-          <div style="font-family:var(--mono);font-size:11px;color:#aaa;margin-bottom:8px">🪙 <span id="shopCoinsDisp" style="color:#ffd700;font-weight:900">0</span> coins &nbsp;·&nbsp; E/Tab to close &nbsp;·&nbsp; <span style="color:#666">die = keep ½ coins + 1🪙/10 score</span></div>
-          <div id="shopGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;max-width:700px;overflow-y:auto;max-height:60vh"></div>
+          <div style="font-family:var(--mono);font-size:11px;color:#aaa;margin-bottom:8px">🪙 <span id="shopCoinsDisp" style="color:#ffd700;font-weight:900">0</span> coins &nbsp;·&nbsp; E/Tab to close &nbsp;·&nbsp; After Death = You keep half of current coins 🪙 + 1🪙 / every 10 score</div>
+          <div id="shopGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;max-width:900px;overflow-y:auto;max-height:72vh"></div>
           </div>
         </div>
       </div>
@@ -4168,17 +4168,18 @@ function _loadBgTrack(track) {
   if (!_spaceMusicPlayer) return;
   try {
     _spaceMusicPlayer.loadVideoById(track.id);
-    const vol = parseInt(document.getElementById('spaceMusicVol')?.value||25);
+    const vol = parseInt(document.getElementById('spaceMusicVol')?.value||18);
     _spaceMusicPlayer.setVolume(vol);
     if (_spaceMusicMuted || _spaceAllMuted) _spaceMusicPlayer.mute();
     else _spaceMusicPlayer.unMute();
     _songTitleText = track.title;
-    _songTitleTimer = 360; // 6 seconds at 60fps
+    _songTitleTimer = 480; // ~8 seconds at 60fps (5s+ fully visible)
   } catch(e) {}
 }
 
 function initSpaceMusic() {
-  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||25);
+  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||18);
+  _bgTrackIdx = Math.floor(Math.random() * _BG_TRACKS.length); // random on each game open
   const startTrack = _BG_TRACKS[_bgTrackIdx];
   // Main music
   if (!_spaceMusicPlayer) {
@@ -4191,7 +4192,7 @@ function initSpaceMusic() {
           e.target.setVolume(vol);
           if(!_spaceMusicMuted && !_spaceAllMuted) e.target.playVideo(); else e.target.mute();
           _songTitleText = startTrack.title;
-          _songTitleTimer = 360;
+          _songTitleTimer = 480;
         },
         onStateChange: e => {
           if(e.data === YT.PlayerState.ENDED && !_spaceInShop) {
@@ -4216,14 +4217,14 @@ function initSpaceMusic() {
 
 function switchToShopMusic() {
   _spaceInShop = true;
-  const vol = Math.floor(parseInt(document.getElementById('spaceMusicVol')?.value||25) * 0.5);
+  const vol = Math.floor(parseInt(document.getElementById('spaceMusicVol')?.value||18) * 0.75);
   try { _spaceMusicPlayer?.pauseVideo(); } catch(e){}
   try { if(_spaceShopMusicPlayer?.setVolume) { if(!_spaceMusicMuted){_spaceShopMusicPlayer.unMute();_spaceShopMusicPlayer.setVolume(vol);} _spaceShopMusicPlayer.playVideo(); } } catch(e){}
 }
 
 function switchToMainMusic() {
   _spaceInShop = false;
-  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||25);
+  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||18);
   try { _spaceShopMusicPlayer?.pauseVideo(); } catch(e){}
   try { if(_spaceMusicPlayer?.setVolume) { if(!_spaceMusicMuted){_spaceMusicPlayer.unMute();_spaceMusicPlayer.setVolume(vol);} _spaceMusicPlayer.playVideo(); } } catch(e){}
 }
@@ -4540,6 +4541,7 @@ function startSpace() {
     if(coins<def.cost) return;
     saveCoins(coins-def.cost);
     upgrades[key]=1;
+    unlockedWeapons.add(key);
     activeWeapon=key; window._spaceWeapon=key;
     sfxPowerup();
     renderShopGrid();
@@ -4566,12 +4568,12 @@ function startSpace() {
     if(key==='maxHp'){lives=Math.min(3+upgrades.maxHp,lives+1);updateHeartsDisplay(lives,silverLives,getMaxHp());}
   };
 
-  function getShipSpeed()   { return activeWeapon==='friends' ? 0.6*(1+upgrades.speed*0.06) : 3.5*(1+upgrades.speed*0.13); }
+  function getShipSpeed()   { return activeWeapon==='friends' ? 0.48*(1+upgrades.speed*0.06) : 2.8*(1+upgrades.speed*0.13); }
   function getShootCd()     { return Math.max(4,14-upgrades.atkSpeed*2); }
   function getBulletCount() { return 1+upgrades.multishot+(_hasPowerup('triple')?2:0)+(_hasPowerup('double')?1:0); }
   function getBulletDmg()   { return 1+upgrades.damage; }
   function getBulletSize()   { return 1+upgrades.bulletSize*0.2; }
-  function getCoinRange()    { return 38*(1+upgrades.coinMagnet*0.15); }
+  function getCoinRange()    { return 32*(1+upgrades.coinMagnet*0.15); }
   function getMaxHp()       { return 3+upgrades.maxHp; }
 
   // Ship can move anywhere on screen
@@ -4810,8 +4812,9 @@ function startSpace() {
       // Default — aim-directed with multishot support
       const cd=Math.floor(getShootCd()*rapidMod);
       const count=Math.max(upgrades.tier2_default?2:1,getBulletCount());
-      if(upgrades.tier2_default){// also fire behind
-        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+Math.PI)*10,vy:Math.sin(baseAngle+Math.PI)*10,dmg:Math.max(1,Math.floor(dmg*0.7)),size:sz});
+      if(upgrades.tier2_default){// 2 bullets behind too
+        const behindAngles=[-0.12,0.12];
+        behindAngles.forEach(da=>bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+Math.PI+da)*10,vy:Math.sin(baseAngle+Math.PI+da)*10,dmg:Math.max(1,Math.floor(dmg*0.7)),size:sz}));
       }
       const offsets=count===1?[0]:count===2?[-0.12,0.12]:count===3?[-0.2,0,0.2]:[-0.25,-0.08,0.08,0.25];
       offsets.forEach(da=>{
@@ -4832,7 +4835,7 @@ function startSpace() {
   // Enemies spawn from ALL sides
   function spawnEnemy() {
     const img=enemyImgs[Math.floor(Math.random()*enemyImgs.length)];
-    const size=(28+Math.random()*22)*0.90; // 10% smaller
+    const size=(28+Math.random()*22)*0.78; // ~20% smaller total
     // Pick spawn edge: 0=top 1=right 2=bottom 3=left
     const edge=Math.floor(Math.random()*4);
     let x,y;
@@ -4858,15 +4861,16 @@ function startSpace() {
     const isBoss=sizeScale===3, isBig=sizeScale===2;
     // Special trait rolls (only on normal-size enemies)
     const traitRoll=Math.random();
+    const traitRoll2=Math.random();
     const isSprinter = sizeScale===1 && traitRoll<0.05;          // 5%: 2x speed
-    const isJumper   = sizeScale===1 && !isSprinter && traitRoll<0.08; // 3%: lurk then lunge
-    const isShielded = sizeScale===1 && !isSprinter && !isJumper && traitRoll<0.13; // 5%: blocks 1st bullet
+    const isJumper   = sizeScale===1 && traitRoll>=0.05 && traitRoll<0.08; // 3%: lunge
+    const isShielded = sizeScale===1 && traitRoll2<0.08; // 8% independent roll: shield bubble
     const finalSpeed = isSprinter ? speed*2.1 : speed;
     enemies.push({
       x,y,img,size:finalSize,sizeScale,isBoss,isBig,
       vx:(dx/len)*finalSpeed,vy:(dy/len)*finalSpeed,
       hp,maxHp:hp,age:0,
-      wobble:Math.random()>0.4,wobbleAmp:1+Math.random()*2,wobbleFreq:0.03+Math.random()*0.04,
+      wobble:Math.random()<0.10,wobbleAmp:1+Math.random()*2,wobbleFreq:0.03+Math.random()*0.04,
       isSprinter, isJumper, isShielded,
       // Jumper state
       jumperState:'lurk', jumperCd:Math.floor(60+Math.random()*90),
@@ -4920,7 +4924,11 @@ function startSpace() {
     const ne=_spaceEmotes[_pilotIdx];shipImg.src=ne.url;shipImg.crossOrigin='anonymous';
     bullets=[];enemies=[];particles=[];drops=[];powerupDrops=[];
     score=0;lives=getMaxHp();frame=0;survivalFrames=0;
-    state='playing';enemyTimer=90;difficulty=1;invincible=0;shootCooldown=0;_deathFrame=0;silverLives=0;resumeSpaceMusic();
+    state='playing';enemyTimer=90;difficulty=1;invincible=0;shootCooldown=0;_deathFrame=0;silverLives=0;
+    // Pick a new random track on retry
+    const _retryTrack=_nextBgTrack();
+    if(_spaceMusicPlayer&&typeof _spaceMusicPlayer.loadVideoById==='function'){try{_loadBgTrack(_retryTrack);}catch(e){}}
+    resumeSpaceMusic();
     regenTimer=0;activePowerups.clear();activePowerup=null;powerupTimer=0;
     document.getElementById('spaceScore').textContent='0';
     updateHeartsDisplay(lives,silverLives,getMaxHp());
@@ -5155,7 +5163,11 @@ function startSpace() {
         if(score>40&&Math.random()<0.2) spawnEnemy();
         const timeFactor=Math.max(0.3,1-survivalFrames/36000);
       const swarmMod=upgrades.enemySwarm?1/(1+upgrades.enemySwarm*0.15):1;
-      enemyTimer=Math.max(12,Math.floor((95-score*0.4)*timeFactor*swarmMod));
+      // Slow at start, ramps with time: base starts at 140, ramps down over 3 min
+      const timeRamp=Math.max(0.4,1-survivalFrames/10800);
+      const scoreRamp=Math.max(0.5,1-score*0.008);
+      const baseSpawn=Math.floor(140*timeRamp*scoreRamp);
+      enemyTimer=Math.max(12,Math.floor(baseSpawn*timeFactor*swarmMod));
       }
       difficulty=1+score*0.010;
 
@@ -5192,12 +5204,12 @@ function startSpace() {
           if(e.jumperState==='lurk'&&e.jumperCd<=0){
             // Lunge!
             const jdx=ship.x-e.x,jdy=ship.y-e.y,jl=Math.sqrt(jdx*jdx+jdy*jdy)||1;
-            const lspd=(e.speed||1.5)*5.5;
+            const lspd=(e.speed||1.5)*12; // bigger jump
             e.vx=jdx/jl*lspd; e.vy=jdy/jl*lspd;
             e.jumperState='lunge'; e.jumperCd=28;
             spawnParticles(e.x,e.y,'#ff2244',6);
           } else if(e.jumperState==='lunge'&&e.jumperCd<=0){
-            e.jumperState='lurk'; e.jumperCd=Math.floor(70+Math.random()*80);
+            e.jumperState='lurk'; e.jumperCd=Math.floor(150+Math.random()*120); // longer wait between lunges
           }
           if(e.jumperState==='lurk'){
             // Slow creep
@@ -5770,7 +5782,7 @@ function startSpace() {
     // ── Song title notification (bottom right, fades in/out)
     if(_songTitleTimer>0){
       _songTitleTimer--;
-      const SHOW=360, FADE=60;
+      const SHOW=480, FADE=50; // 8s total, ~6.3s fully visible
       let alpha;
       if(_songTitleTimer>SHOW-FADE) alpha=(SHOW-_songTitleTimer)/FADE; // fade in
       else if(_songTitleTimer<FADE)  alpha=_songTitleTimer/FADE;        // fade out
@@ -5811,15 +5823,17 @@ function startSpace() {
 // Pause music when browser tab is hidden
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
+    // Tab hidden — pause music (it will resume from same position when returning)
     try { _spaceMusicPlayer?.pauseVideo(); } catch(e){}
     try { _spaceShopMusicPlayer?.pauseVideo(); } catch(e){}
   } else {
-    // Only resume if game is open and not paused/dead
+    // Tab visible again — resume if game is open and music should be playing
     const modal = document.getElementById('spaceModal');
     if (!modal || modal.style.display === 'none') return;
     if (!_spaceRunning) return;
+    if (_spaceMusicMuted || _spaceAllMuted) return;
     const st = window._spaceGetState ? window._spaceGetState() : null;
-    if (st === 'playing' && !_spaceMusicMuted && !_spaceAllMuted) {
+    if (st === 'playing' || st === 'waiting') {
       try {
         if (_spaceInShop) _spaceShopMusicPlayer?.playVideo();
         else _spaceMusicPlayer?.playVideo();
