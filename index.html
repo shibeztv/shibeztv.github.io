@@ -4563,66 +4563,63 @@ function startSpace() {
     // ── Weapon selector
     const weaponHtml = WEAPON_DEFS.map(def=>{
       const isFriendsKey = def.key==='friends';
-      const owned = def.cost===0 || unlockedWeapons.has(def.key);
-      const active = activeWeapons.includes(def.key);
-      const activeSlotIdx = activeWeapons.indexOf(def.key);
-      const friendsLvl = upgrades.friends||0;
-      const friendsMax = def.maxLvl||12;
-      const friendsCost = def.costPerLvl ? def.costPerLvl(friendsLvl) : def.cost;
-      const canAfford = isFriendsKey
-        ? (coins>=friendsCost && friendsLvl<friendsMax)
-        : (coins>=def.cost && !owned);
-      const isFriends = def.key==='friends';
+      const t1owned = def.cost===0 || unlockedWeapons.has(def.key) || (def.key==='friends' && (upgrades.friends||0)>0);
+      const t2key = def.tier2?.key;
+      const t2owned = t2key ? upgrades[t2key]>0 : false;
       const maxSlots = getMaxWeaponSlots();
-      // Build equip button(s)
-      const equipBtns = owned && !isFriendsKey ? (()=>{
-        if(maxSlots===1){
-          return active
-            ? `<span style="font-family:var(--mono);font-size:10px;color:${def.color};font-weight:700">✓ Slot 1</span>`
-            : `<button onclick="spaceEquipWeapon('${def.key}',0)" style="font-family:var(--mono);font-size:10px;font-weight:700;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.4);color:#60ddff;padding:3px 10px;border-radius:3px;cursor:pointer">EQUIP</button>`;
-        }
-        return Array.from({length:maxSlots},(_,si)=>{
-          const inSlot=activeWeapons[si]===def.key;
-          return `<button onclick="spaceEquipWeapon('${def.key}',${si})" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${inSlot?`rgba(100,200,255,0.22)`:'rgba(255,255,255,0.07)'};border:1px solid ${inSlot?'rgba(100,200,255,0.6)':'rgba(255,255,255,0.2)'};color:${inSlot?'#60ddff':'#aaa'};padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:2px">${inSlot?'✓':'+'} T${si+1}</button>`;
-        }).join('');
-      })() : '';
-      return `<div style="background:${active?'rgba(100,200,255,0.10)':'rgba(255,255,255,0.04)'};border:2px solid ${active?def.color:'rgba(255,255,255,0.1)'};border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;position:relative">
-        ${active?`<div style="position:absolute;top:5px;right:7px;font-family:var(--mono);font-size:8px;color:${def.color};font-weight:900">T${activeSlotIdx+1}</div>`:''}
-        <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#fff;white-space:nowrap">${def.label}</div>
-        <div style="font-family:var(--mono);font-size:9px;color:#bbb;flex:1">${def.desc}</div>
-        <div style="margin-top:${isFriends?'0':'4px'};flex-shrink:0;display:flex;flex-wrap:wrap;gap:3px">
-          ${isFriendsKey||!owned
-            ? (owned ? '' : `<button onclick="spaceBuyWeapon('${def.key}')" style="font-family:var(--mono);font-size:10px;font-weight:700;background:${canAfford?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.05)'};border:1px solid ${canAfford?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.1)'};color:${canAfford?'#ffd700':'#555'};padding:3px 10px;border-radius:3px;cursor:${canAfford?'pointer':'default'}">🪙 ${def.cost}</button>`)
-            : equipBtns
-          }${(()=>{
-            // Friends: show follower upgrade panel like a tier2
-            if(isFriendsKey && owned){
-              const fl=upgrades.friends||0,fm=def.maxLvl||12;
-              const fc=def.costPerLvl?def.costPerLvl(fl):def.cost;
-              const fa=coins>=fc&&fl<fm;
-              return `<div style="margin-top:7px;border-top:1px solid ${def.color}33;padding-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                <div style="flex:1;min-width:0">
-                  <div style="font-family:var(--mono);font-size:10px;font-weight:800;color:${def.color}">👾+ Add Follower</div>
-                  <div style="font-family:var(--mono);font-size:8px;color:#888;margin-top:1px">${fl}/${fm} followers active</div>
-                </div>
-                ${fl>=fm?'<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900;white-space:nowrap">MAX</span>'
-                  :`<button onclick="spaceBuyWeapon('friends')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${fa?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.05)'};border:1px solid ${fa?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.1)'};color:${fa?'#ffd700':'#555'};padding:3px 10px;border-radius:3px;cursor:${fa?'pointer':'default'};white-space:nowrap">+Follower 🪙${fc}</button>`}
-              </div>`;
-            }
-            if(!def.tier2||!owned||isFriendsKey) return '';
-            const t2key=def.tier2.key;const t2owned=upgrades[t2key]>0;
-            const t2afford=coins>=def.tier2.cost&&!t2owned;
-            return `<div style="margin-top:7px;border-top:1px solid ${def.color}33;padding-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <div style="flex:1;min-width:0">
-                <div style="font-family:var(--mono);font-size:10px;font-weight:800;color:${def.color}">${def.tier2.label}</div>
-                <div style="font-family:var(--mono);font-size:8px;color:#888;margin-top:1px">${def.tier2.desc}</div>
-              </div>
-              ${t2owned
-                ? '<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900;white-space:nowrap">✓ ACTIVE</span>'
-                : `<button onclick="spaceBuyTier2('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${t2afford?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.05)'};border:1px solid ${t2afford?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.1)'};color:${t2afford?'#ffd700':'#555'};padding:3px 10px;border-radius:3px;cursor:${t2afford?'pointer':'default'};white-space:nowrap">⬆ UPGRADE 🪙${def.tier2.cost}</button>`}
-            </div>`;
-          })()}
-        </div>
+
+      // Which slots this weapon is in (could be in T1 or T2 form)
+      const inSlots = activeWeapons.map((w,si)=>w===def.key?si:-1).filter(si=>si>=0);
+      const isActive = inSlots.length>0;
+      const activeSlotLabel = inSlots.map(si=>`T${si+1}`).join(',');
+
+      // Build the T1 row
+      const t1CanAfford = coins>=def.cost && !t1owned;
+      const t1Row = isFriendsKey ? '' : `
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;background:${t1owned?'rgba(100,200,255,0.08)':'rgba(255,255,255,0.03)'};border:1px solid ${t1owned?'rgba(100,200,255,0.3)':'rgba(255,255,255,0.08)'}">
+          <span style="font-family:var(--mono);font-size:9px;font-weight:900;color:${t1owned?'#60ddff':'#666'};min-width:20px">T1</span>
+          <span style="font-family:var(--mono);font-size:9px;color:${t1owned?'#bbb':'#555'};flex:1">${def.desc}</span>
+          ${t1owned
+            ? (isActive
+                ? `<button onclick="spaceDeequipWeapon('${def.key}')" style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(255,60,60,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff8888;padding:2px 6px;border-radius:3px;cursor:pointer" title="Remove from slot">✕ ${activeSlotLabel}</button>`
+                : `<button onclick="spaceEquipWeaponAuto('${def.key}')" style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.4);color:#60ddff;padding:2px 8px;border-radius:3px;cursor:pointer">EQUIP</button>`)
+            : `<button onclick="spaceBuyWeapon('${def.key}')" style="font-family:var(--mono);font-size:8px;font-weight:700;background:${t1CanAfford?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.04)'};border:1px solid ${t1CanAfford?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.1)'};color:${t1CanAfford?'#ffd700':'#444'};padding:2px 8px;border-radius:3px;cursor:${t1CanAfford?'pointer':'default'}">🪙${def.cost}</button>`
+          }
+        </div>`;
+
+      // Build the T2 row (always shown if weapon has tier2)
+      const t2Row = (!def.tier2||isFriendsKey) ? '' : (()=>{
+        const t2CanAfford = coins>=def.tier2.cost && !t2owned;
+        const t2bg = t2owned ? 'rgba(80,80,120,0.14)' : 'rgba(255,255,255,0.02)';
+        const t2border = t2owned ? def.color+'55' : 'rgba(255,255,255,0.06)';
+        return `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;background:${t2bg};border:1px solid ${t2border}">` +
+          `<span style="font-family:var(--mono);font-size:9px;font-weight:900;color:${t2owned?def.color:'#444'};min-width:20px">T2</span>` +
+          `<span style="font-family:var(--mono);font-size:9px;color:${t2owned?'#bbb':'#444'};flex:1">${def.tier2.label.replace(/^[^ ]+ /,'').replace('+','').trim()} — ${def.tier2.desc}</span>` +
+          (t2owned ? '<span style="font-family:var(--mono);font-size:8px;color:#4ade80;font-weight:900;white-space:nowrap">✓ ON</span>' :
+            `<button onclick="spaceBuyTier2('${def.key}')" style="font-family:var(--mono);font-size:8px;font-weight:700;background:${t2CanAfford?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.04)'};border:1px solid ${t2CanAfford?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.08)'};color:${t2CanAfford?'#ffd700':'#444'};padding:2px 8px;border-radius:3px;cursor:${t2CanAfford?'pointer':'default'}">⬆ 🪙${def.tier2.cost}</button>`) +
+          '</div>';
+      })();
+
+      // Friends special panel
+      const friendsPanel = isFriendsKey && t1owned ? `
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:5px 8px;border-radius:5px;background:rgba(240,171,252,0.06);border:1px solid rgba(240,171,252,0.2)">
+          <span style="font-family:var(--mono);font-size:9px;color:#f0abfc;flex:1">${upgrades.friends||0}/${def.maxLvl||12} followers</span>
+          ${(upgrades.friends||0)>=(def.maxLvl||12)
+            ? '<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900">MAX</span>'
+            : (()=>{ const fc=def.costPerLvl?def.costPerLvl(upgrades.friends||0):def.cost; const fa=coins>=fc; return `<button onclick="spaceBuyWeapon('friends')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${fa?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.04)'};border:1px solid ${fa?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.1)'};color:${fa?'#ffd700':'#555'};padding:2px 8px;border-radius:3px;cursor:${fa?'pointer':'default'}">+1 🪙${fc}</button>`; })()
+          }
+          ${isActive
+            ? `<button onclick="spaceDeequipWeapon('${def.key}')" style="font-family:var(--mono);font-size:8px;background:rgba(255,60,60,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff8888;padding:2px 6px;border-radius:3px;cursor:pointer">✕</button>`
+            : `<button onclick="spaceEquipWeaponAuto('friends')" style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.4);color:#60ddff;padding:2px 8px;border-radius:3px;cursor:pointer">EQUIP</button>`
+          }
+        </div>` : (!t1owned ? `<button onclick="spaceBuyWeapon('friends')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:${coins>=(def.costPerLvl?def.costPerLvl(0):def.cost)?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.04)'};border:1px solid rgba(255,215,0,0.3);color:${coins>=(def.costPerLvl?def.costPerLvl(0):def.cost)?'#ffd700':'#555'};padding:3px 10px;border-radius:3px;cursor:pointer">🪙${def.costPerLvl?def.costPerLvl(0):def.cost} — Buy First Follower</button>` : '');
+
+      return `<div style="background:${isActive?'rgba(100,200,255,0.07)':'rgba(255,255,255,0.03)'};border:2px solid ${isActive?def.color:'rgba(255,255,255,0.08)'};border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;position:relative">
+        ${isActive?`<div style="position:absolute;top:5px;right:7px;font-family:var(--mono);font-size:8px;color:${def.color};font-weight:900">${activeSlotLabel}</div>`:''}
+        <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#fff">${def.label}</div>
+        ${t1Row}
+        ${t2Row}
+        ${friendsPanel}
       </div>`;
     }).join('');
 
@@ -4661,13 +4658,25 @@ function startSpace() {
     sfxPowerup();
     renderShopGrid();
   };
-  window.spaceEquipWeapon = function(key, slotIdx) {
-    const slot = slotIdx||0;
+  // Auto-equip: find first available slot (or replace slot 0)
+  window.spaceEquipWeaponAuto = function(key) {
     const maxSlots = getMaxWeaponSlots();
-    if(slot>=maxSlots) return;
+    // Find first empty/default slot
+    let slot = activeWeapons.findIndex((w,si)=>si<maxSlots && (w==='default'||!w));
+    if(slot<0) slot=0; // no empty slot, use slot 0
     while(activeWeapons.length<=slot) activeWeapons.push('default');
     activeWeapons[slot]=key;
-    if(slot===0){ activeWeapon=key; window._spaceWeapon=key; }
+    activeWeapon=activeWeapons[0];
+    window._spaceWeapon=activeWeapon;
+    renderShopGrid();
+  };
+  // Deequip: remove weapon from all slots it's in, replace with 'default'
+  window.spaceDeequipWeapon = function(key) {
+    for(let si=0;si<activeWeapons.length;si++){
+      if(activeWeapons[si]===key) activeWeapons[si]='default';
+    }
+    activeWeapon=activeWeapons[0];
+    window._spaceWeapon=activeWeapon;
     renderShopGrid();
   };
   window.spaceBuyTier2 = function(weaponKey) {
@@ -4775,8 +4784,10 @@ function startSpace() {
     if(activeWeapon==='multiGun'){playTone(600,'square',0.06,0.12);playTone(500,'square',0.04,0.07);return;}
     playTone(880,'square',0.07,0.10);playTone(660,'square',0.05,0.05);
   }
-  function sfxHit(){playTone(180,'sawtooth',0.08,0.15);}
+  let _lastSfxHitTime=0, _lastSfxExplodeTime=0;
+  function sfxHit(){const now=performance.now();if(now-_lastSfxHitTime<80)return;_lastSfxHitTime=now;playTone(180,'sawtooth',0.08,0.15);}
   function sfxExplode(){
+    const now=performance.now();if(now-_lastSfxExplodeTime<120)return;_lastSfxExplodeTime=now;
     const ac=getACtx();if(!ac)return;const v=getSfxVol();if(v<=0)return;
     const buf=ac.createBuffer(1,ac.sampleRate*0.2,ac.sampleRate);
     const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
@@ -4920,8 +4931,12 @@ function startSpace() {
   const FOLLOWER_ORBIT_R=75;
   // NUM_FOLLOWERS is now dynamic: upgrades.friends (1-8)
 
-  function fireBulletDir(weaponOverride) {
-    if(shootCooldown>0) return;
+  // Per-slot cooldown array — each weapon slot tracks its own cooldown independently
+  const _slotCooldowns=[0,0,0,0];
+
+  function fireBulletDir(weaponOverride, slotIdx) {
+    const slot = slotIdx||0;
+    if(_slotCooldowns[slot]>0) return;
     const rapidMod=_hasPowerup('rapid')?(_hasPowerup('double')||_hasPowerup('triple')?0.35:0.4):1;
     const shipSX = ship.x - cam.x;
     const shipSY = ship.y - cam.y;
@@ -4936,23 +4951,24 @@ function startSpace() {
       });
       if(bestDist<220) baseAngle=bestAngle;
     }
-    const dmg=getBulletDmg();
-    const sz=getBulletSize();
-    const rm=getRangeMult(); // range multiplier applied to all weapons
+    // All stat bonuses applied to all weapons
+    const dmg=getBulletDmg();      // damage upgrade affects every weapon
+    const sz=getBulletSize();       // bullet size upgrade affects every weapon
+    const rm=getRangeMult();        // range upgrade affects every weapon
     const pw=activePowerup;
+    const setCd=(cd)=>{ _slotCooldowns[slot]=cd; shootCooldown=_slotCooldowns[0]; };
 
     if(wKey==='sniper'){
       const sd=dmg*8+6;
-      const bounces = upgrades.tier2_sniper ? 1 : 0;
       bullets.push({
         laser:true, x:ship.x, y:ship.y, angle:baseAngle,
         dmg:sd, life:8, maxLife:8,
         width: (upgrades.tier2_sniper?(sz*38+18):(sz*14+8)),
         color:'#ff6644', weaponType:'sniper',
         hitEnemies:new Set(),
-        bounceCount: bounces, bounced: false,
+        bounceCount: upgrades.tier2_sniper?1:0, bounced: false,
       });
-      shootCooldown=Math.floor((upgrades.tier2_sniper?44:60)*rapidMod);
+      setCd(Math.floor((upgrades.tier2_sniper?44:60)*rapidMod));
       sfxShoot(); return;
 
     } else if(wKey==='minigun'){
@@ -4960,39 +4976,38 @@ function startSpace() {
       const mgSpread=upgrades.tier2_minigun?0.38:0.18;
       for(let mi=0;mi<mgCount;mi++){
         const spread=(Math.random()-0.5)*mgSpread;
+        // dmg and sz bonuses applied; bullet count from multishot doesn't apply (minigun has its own count)
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*18*rm,vy:Math.sin(baseAngle+spread)*18*rm,dmg:Math.max(1,Math.floor(dmg*0.55)),size:sz*0.65,color:'#fbbf24',weaponType:'minigun'});
       }
       _minigunShooting=true;
-      shootCooldown=Math.floor((upgrades.tier2_minigun?2:3)*rapidMod);
+      setCd(Math.floor((upgrades.tier2_minigun?2:3)*rapidMod));
 
     } else if(wKey==='towerGun'){
-      // Tier2: every 4th burst fires double (16 shots) in a rotating ring
       const hasTier2=!!upgrades.tier2_towerGun;
       if(hasTier2) _towerGunBurstCount++;
       const isDoubleBurst=hasTier2&&(_towerGunBurstCount%4===0);
       const shotCount=isDoubleBurst?16:8;
-      // Rotation offset — always rotates with tier2, static without
       const _rotOff=hasTier2?(frame*0.05):0;
       for(let i=0;i<shotCount;i++){
         const a=(i/shotCount)*Math.PI*2+_rotOff;
-        const spd=isDoubleBurst?15*rm:13*rm; // slightly faster on double burst
+        const spd=isDoubleBurst?15*rm:13*rm;
         const bulletSz=isDoubleBurst?sz*1.35:sz*1.1;
-        const col=isDoubleBurst?'#e879f9':'#c084fc'; // brighter purple on double burst
+        const col=isDoubleBurst?'#e879f9':'#c084fc';
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:dmg,size:bulletSz,color:col,weaponType:'dual'});
       }
-      if(isDoubleBurst) spawnParticles(ship.x,ship.y,'#e879f9',10); // visual feedback
-      shootCooldown=Math.floor(44*rapidMod);
+      if(isDoubleBurst) spawnParticles(ship.x,ship.y,'#e879f9',10);
+      setCd(Math.floor(44*rapidMod));
 
     } else if(wKey==='flamethrower'){
       const spread=upgrades.tier2_flamethrower?0.85:0.45;
-      const rangeBonus=upgrades.tier2_flamethrower?1.08:1.0; // +8% range for inferno
+      const rangeBonus=upgrades.tier2_flamethrower?1.08:1.0;
       for(let i=0;i<3;i++){
         const a=baseAngle+(Math.random()-0.5)*spread;
         const spd=(6+Math.random()*4.5)*rangeBonus*rm;
         const life=(30+Math.random()*18)*rangeBonus*rm;
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:Math.max(1,Math.floor(dmg*0.45)),size:sz*1.6,color:'#ff4400',flame:true,life,maxLife:life,burns:!!upgrades.tier2_flamethrower});
       }
-      shootCooldown=Math.floor(5*rapidMod);
+      setCd(Math.floor(5*rapidMod));
 
     } else if(wKey==='multiGun'){
       const count=upgrades.tier2_multiGun?12:6;
@@ -5001,7 +5016,7 @@ function startSpace() {
         const a=baseAngle+(i-(count-1)/2)*(spread/(count-1));
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*12*rm,vy:Math.sin(a)*12*rm,dmg:dmg,size:sz,color:'#4ade80',weaponType:'multi'});
       }
-      shootCooldown=Math.floor(18*rapidMod);
+      setCd(Math.floor(18*rapidMod));
 
     } else if(wKey==='frozenStaff'){
       const spread=upgrades.tier2_frozenStaff?0.65:0.40;
@@ -5009,17 +5024,8 @@ function startSpace() {
         const a=baseAngle+(Math.random()-0.5)*spread;
         const spd=(5+Math.random()*3.5)*rm;
         const life=(28+Math.random()*16)*rm;
-        bullets.push({
-          x:ship.x,y:ship.y,
-          vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,
-          dmg:Math.max(1,Math.floor(dmg*0.35)),
-          size:sz*1.4,color:'#88ddff',
-          flame:true,life,maxLife:life,
-          freezing:true,
-          deepFreeze:!!upgrades.tier2_frozenStaff,
-        });
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:Math.max(1,Math.floor(dmg*0.35)),size:sz*1.4,color:'#88ddff',flame:true,life,maxLife:life,freezing:true,deepFreeze:!!upgrades.tier2_frozenStaff});
       }
-      // Frost SFX — icy crackle tones
       const _ac=getACtx();if(_ac){
         [480,640,820].forEach((f,i)=>setTimeout(()=>{
           const g=_ac.createGain();g.gain.setValueAtTime(getSfxVol()*0.09,_ac.currentTime);
@@ -5029,22 +5035,22 @@ function startSpace() {
           o.connect(g);g.connect(_ac.destination);o.start();o.stop(_ac.currentTime+0.15);
         },i*18));
       }
-      shootCooldown=Math.floor(9*rapidMod); // 30% slower than flamethrower (5 * ~1.8)
+      setCd(Math.floor(9*rapidMod));
 
     } else {
+      // Default — auto-aim; multishot upgrade adds bullets; tier2 = double forward shot
       const cd=Math.floor(getShootCd()*rapidMod);
-      const count=getBulletCount();
+      const count=getBulletCount(); // multishot bonus applies here
       const offsets=count===1?[0]:count===2?[-0.12,0.12]:count===3?[-0.2,0,0.2]:[-0.25,-0.08,0.08,0.25];
       offsets.forEach(da=>{
-        const a=baseAngle+da;
-        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*11*rm,vy:Math.sin(a)*11*rm,dmg:dmg,size:sz});
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*11*rm,vy:Math.sin(baseAngle+da)*11*rm,dmg:dmg,size:sz});
       });
       if(upgrades.tier2_default){
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle)*11*rm,vy:Math.sin(baseAngle)*11*rm,dmg:dmg,size:sz});
       }
-      if(pw==='double'&&count<2){bullets.push({x:ship.x,y:ship.y-8,vx:Math.cos(baseAngle)*11,vy:Math.sin(baseAngle)*11,dmg:dmg});}
-      if(pw==='triple'&&count<3){[-0.2,0.2].forEach(da=>bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*11,vy:Math.sin(baseAngle+da)*11,dmg:dmg}));}
-      shootCooldown=cd;
+      if(pw==='double'&&count<2){bullets.push({x:ship.x,y:ship.y-8,vx:Math.cos(baseAngle)*11*rm,vy:Math.sin(baseAngle)*11*rm,dmg:dmg,size:sz});}
+      if(pw==='triple'&&count<3){[-0.2,0.2].forEach(da=>bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*11*rm,vy:Math.sin(baseAngle+da)*11*rm,dmg:dmg,size:sz}));}
+      setCd(cd);
     }
     sfxShoot();
   }
@@ -5149,6 +5155,7 @@ function startSpace() {
     score=0;lives=getMaxHp();frame=0;survivalFrames=0;
     try{_spaceDeathSfxPlayer?.pauseVideo();_spaceDeathSfxPlayer?.seekTo(0,true);}catch(e){}
     state='playing';enemyTimer=90;difficulty=1;invincible=0;shootCooldown=0;_deathFrame=0;silverLives=0;
+    for(let _ri=0;_ri<4;_ri++)_slotCooldowns[_ri]=0;
     _nukeFlash=0;_freezeFlash=0;_minigunShooting=false;_towerGunBurstCount=0;_autoShoot=false;_lastShownSec=-1;
     activeWeapon='default';activeWeapons=['default'];
     window._spaceWeapon='default';
@@ -5400,12 +5407,40 @@ function startSpace() {
       // Camera follows ship, clamped to world
       cam.x=Math.max(0,Math.min(WW-W, ship.x-W/2));
       cam.y=Math.max(0,Math.min(WH-H, ship.y-H/2));
+
+      // Push ship out of alive abandoned ships (solid collision)
+      for(const as of abandonedShips){
+        if(as.dead) continue;
+        const dx=ship.x-as.x, dy=ship.y-as.y;
+        const dist=Math.sqrt(dx*dx+dy*dy)||1;
+        const minDist=as.size*0.65+18; // ship hull radius ~18
+        if(dist<minDist){
+          const push=(minDist-dist)/dist;
+          ship.x+=dx*push; ship.y+=dy*push;
+        }
+      }
+
+      // Abandoned ship respawn: dead ships come back every ~3 minutes at a random spot
+      if(frame%1===0){ // check every frame for timer
+        abandonedShips.forEach(as=>{
+          if(!as.dead) return;
+          if(!as._respawnFrame) as._respawnFrame=frame+Math.floor(10800+Math.random()*3600);
+          if(frame>=as._respawnFrame){
+            as.hp=as.maxHp; as.dead=false; as.deathFrame=-999; as._respawnFrame=null;
+            // Random new position far from player
+            let nx,ny,attempts=0;
+            do{ nx=120+Math.random()*(WW-240); ny=120+Math.random()*(WH-240); attempts++; }
+            while(attempts<20 && Math.hypot(nx-ship.x,ny-ship.y)<600);
+            as.x=nx; as.y=ny;
+          }
+        });
+      }
       if(keys[' ']||keys['Space']||mouseHeld||_autoShoot){
-        fireBulletDir(); // primary slot (activeWeapon)
+        // Fire all equipped weapon slots independently (each has its own cooldown)
         const maxSlots=getMaxWeaponSlots();
-        for(let si=1;si<maxSlots&&si<activeWeapons.length;si++){
-          const slotWeapon=activeWeapons[si];
-          if(slotWeapon && slotWeapon!==activeWeapon) fireBulletDir(slotWeapon);
+        for(let si=0;si<maxSlots&&si<activeWeapons.length;si++){
+          const wk=activeWeapons[si]||'default';
+          fireBulletDir(wk, si);
         }
       }
 
@@ -5437,7 +5472,8 @@ function startSpace() {
           }
         }
       });
-      if(shootCooldown>0) shootCooldown--;
+      for(let _ci=0;_ci<4;_ci++){ if(_slotCooldowns[_ci]>0)_slotCooldowns[_ci]--; }
+      shootCooldown=_slotCooldowns[0]; // keep legacy compat
       if(invincible>0) invincible--;
 
       // Ship faces cursor (world-space angle, mouse is screen-relative)
@@ -5863,9 +5899,26 @@ function startSpace() {
             for(let fi2=0;fi2<5;fi2++)spawnParticles(ship.x+(Math.random()-0.5)*W*0.5,ship.y+(Math.random()-0.5)*H*0.5,'#88ddff',14);
             spawnParticles(d.x,d.y,'#a0d8ef',20);
             playTone(330,'sine',0.18,0.25);setTimeout(()=>playTone(550,'sine',0.14,0.22),80);setTimeout(()=>playTone(770,'sine',0.10,0.20),160);
+          } else if(d.type==='magnet'){
+            // Instantly collect every coin on the floor
+            let _magnetCoins=0;
+            drops=drops.filter(drop=>{
+              if(drop.collected||drop.life<=0) return true;
+              drop.collected=true;
+              const _cv=drop.value||1;
+              saveCoins(coins+_cv);
+              _magnetCoins+=_cv;
+              spawnParticles(drop.x,drop.y,'#ffd700',3);
+              return false;
+            });
+            if(_magnetCoins>0){sfxPowerup(); playTone(1400,'sine',0.12,0.3);}
+            // Also start the timed magnet pull for any future coins
+            const cur=activePowerups.get('magnet')||0;
+            activePowerups.set('magnet',cur+(pt?.dur||360));
+            sfxPowerup();spawnParticles(d.x,d.y,'#ffd700',12);
           } else {
-            const cur=activePowerups.get(d.type)||0;
-            activePowerups.set(d.type,cur+(pt?.dur||420)); // stack: add time
+            const cur2=activePowerups.get(d.type)||0;
+            activePowerups.set(d.type,cur2+(pt?.dur||420));
             sfxPowerup();spawnParticles(d.x,d.y,pt?.color||'#fff',8);
           }
           return false;
@@ -6043,8 +6096,8 @@ function startSpace() {
     // Coins
     drops.forEach(d=>{
       if(d._merging||d.life<=0) return;
-      const cr=d.gold?16:d.green?13:d.silver?11:8.5;
-      ctx.globalAlpha=1;
+      const cr=d.gold?9:d.green?8:d.silver?7:6.5; // smaller coins — higher value = smaller, less cluttering
+      ctx.globalAlpha=d.gold?0.82:d.green?0.72:d.silver?0.65:0.58; // higher value = more transparent/blended
       if(d.gold){
         // Rainbow glow — cycling hue ring around coin
         const rainbowHue=(frame*3)%360; // spin hue each frame
@@ -6559,39 +6612,7 @@ function startSpace() {
     }
 
 
-    // ── Bottom-LEFT HP hearts — emoji, large, always visible except waiting
-    if(state!=='waiting'){
-      ctx.save();
-      const maxHp=getMaxHp();
-      const totalH=maxHp+silverLives;
-      const hSize=30; // large emoji hearts
-      const hGap=3;
-      const hPad=10;
-      const rowW=(hSize+hGap)*totalH-hGap+hPad*2;
-      const rowH=hSize+hPad*2;
-      const hpX=10, hpY=H-rowH-8;
-      // Background pill
-      ctx.globalAlpha=0.65;
-      ctx.fillStyle='rgba(8,8,20,0.8)';
-      ctx.beginPath();ctx.roundRect(hpX,hpY,rowW,rowH,10);ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;ctx.stroke();
-      ctx.globalAlpha=1;
-      // Hearts
-      ctx.font=`${hSize}px serif`;
-      for(let i=0;i<totalH;i++){
-        const hx=hpX+hPad+i*(hSize+hGap);
-        const hy=hpY+hPad+hSize*0.85;
-        if(i<silverLives){
-          ctx.globalAlpha=0.95;ctx.fillText('💛',hx,hy);
-        } else {
-          const hi=i-silverLives;
-          ctx.globalAlpha=hi<lives?1:0.15;
-          ctx.fillText('❤️',hx,hy);
-        }
-      }
-      ctx.globalAlpha=1;
-      ctx.restore();
-    }
+    // HP hearts are shown in the topbar only (removed from canvas overlay)
 
     // ── Song title notification (bottom right, fades in/out)
     if(_songTitleTimer>0){
