@@ -4531,7 +4531,7 @@ function resumeSpaceMusic() { _spaceInShop=false; try { if(!_spaceMusicMuted) _s
 
 async function openSpacebez() {
   document.getElementById('spaceModal').style.display = 'flex';
-  updateHeartsDisplay(5,0,5); // show correct starting HP immediately
+  if(!window._spaceSavedRun) updateHeartsDisplay(5,0,5); // show starting HP only for new runs
   // Full-screen canvas
   const canvas = document.getElementById('spaceCanvas');
   const W = Math.floor(window.innerWidth  * 0.92);
@@ -4558,9 +4558,25 @@ async function openSpacebez() {
 }
 
 function closeSpace() {
+  // Save current run state so it can be resumed on reopen
+  if (window._spaceGetState && window._spaceGetState() !== 'dead') {
+    try {
+      window._spaceSavedRun = {
+        upgrades: window._spaceUpgrades ? Object.assign({}, window._spaceUpgrades) : null,
+        unlockedWeapons: window._spaceUnlockedWeapons ? Array.from(window._spaceUnlockedWeapons) : ['default'],
+        activeWeapon: window._spaceWeapon || 'default',
+        activeWeapons: window._spaceActiveWeapons ? [...window._spaceActiveWeapons] : ['default'],
+        score: window._spaceScoreVal || 0,
+        lives: window._spaceGetLives ? window._spaceGetLives().lives : 5,
+        silverLives: window._spaceGetLives ? window._spaceGetLives().silverLives : 0,
+        survivalFrames: window._spaceSurvivalFrames || 0,
+        frame: window._spaceFrameVal || 0,
+        state: window._spaceGetState(),
+      };
+    } catch(e) {}
+  }
   _spaceRunning = false;
   if (_spaceRAF) { cancelAnimationFrame(_spaceRAF); _spaceRAF = null; }
-  // Force-close shop if open
   const shop = document.getElementById('spaceShop');
   if (shop) shop.style.display = 'none';
   _spaceInShop = false;
@@ -4773,9 +4789,14 @@ function startSpace() {
   // Upgrades reset each run — only coins + upgrade points persist
   const _freshUpgrades = ()=>({speed:0,atkSpeed:0,multishot:0,maxHp:0,hpRegen:0,damage:0,bulletSize:0,attackRange:0,pierce:0,coinMagnet:0,armor:0,xpBoost:0,sniper:0,minigun:0,towerGun:0,flamethrower:0,multiGun:0,frozenStaff:0,friends:0,enemySwarm:0,riskReward:0,weaponSlots:0,tier2_default:0,tier2_sniper:0,tier2_minigun:0,tier2_towerGun:0,tier2_flamethrower:0,tier2_multiGun:0,tier2_frozenStaff:0,tier2_garlic:0,tier2_lightning:0});
   const upgrades = _freshUpgrades();
-  window._spaceUpgrades = upgrades; // expose for current run only
+  // Restore saved run if player closed mid-game
+  const _saved = window._spaceSavedRun;
+  if(_saved && _saved.upgrades){ Object.assign(upgrades, _saved.upgrades); }
+  window._spaceUpgrades = upgrades;
+  window._spaceUnlockedWeapons = unlockedWeapons;
   // Track which weapons are unlocked this run
   const unlockedWeapons = new Set(['default']);
+  if(_saved && _saved.unlockedWeapons){ _saved.unlockedWeapons.forEach(w=>unlockedWeapons.add(w)); }
   const UPGRADE_DEFS = [
     {key:'speed',       label:'🚀 Movement Speed',  desc:'+12% movement speed per lvl',    maxLvl:10, cost:l=>Math.floor(3+l*l*1.2+l*2)},
     {key:'atkSpeed',    label:'⚡ Attack Speed',     desc:'+8% attack speed per lvl',      maxLvl:20, cost:l=>Math.floor(2+l*l*0.9+l*2)},
@@ -4998,7 +5019,7 @@ function startSpace() {
   let _pilotIdx = Math.floor(Math.random()*_spaceEmotes.length);
   let ship = {x:Math.floor(WW/2), y:Math.floor(WH/2), vx:0, vy:0, angle:0};
   let bullets=[],enemies=[],particles=[],drops=[],powerupDrops=[],_burstRings=[];
-  let score=0, lives=getMaxHp(), frame=0, survivalFrames=0;
+  let score=(_saved&&_saved.score)||0, lives=(_saved&&_saved.lives)||getMaxHp(), frame=(_saved&&_saved.frame)||0, survivalFrames=(_saved&&_saved.survivalFrames)||0;
   window._spaceGameActive=false;
   let lastTitanMinute=0;
   let _titanWarning=0;
@@ -5013,10 +5034,10 @@ function startSpace() {
   let _gamePausedMs=0;
   let _pauseStartTime=null;
   let _lastShownSec=-1;
-  let state='waiting', enemyTimer=90, difficulty=1, invincible=0, shootCooldown=0;
+  let state=(_saved&&_saved.state==='playing')?'playing':'waiting', enemyTimer=90, difficulty=1, invincible=0, shootCooldown=0;
   // Multi-weapon slots: active weapons array (slot 0 = primary)
-  let activeWeapon = 'default';
-  let activeWeapons = ['default']; // slot array — grows with weaponSlots upgrade
+  let activeWeapon = (_saved&&_saved.activeWeapon)||'default';
+  let activeWeapons = (_saved&&_saved.activeWeapons)||['default']; // slot array — grows with weaponSlots upgrade
   window._spaceGetState=()=>state;
   window._spaceSetState=s=>{
     if(s==='paused'&&state==='playing'){_pauseStartTime=performance.now();}
@@ -5674,6 +5695,7 @@ function startSpace() {
   }
 
   function resetSpace(){
+    window._spaceSavedRun = null; // clear saved state on death
     // Keep half coins + 1 per 10 score earned
     const coinBonus=Math.floor(score/10);
     saveCoins(Math.floor(coins/2)+coinBonus);
@@ -5933,6 +5955,7 @@ function startSpace() {
     if(!_spaceRunning) return;
     frame++;
     window._spaceGameActive = (state==='playing' && !_spaceInShop);
+    window._spaceScoreVal=score; window._spaceSurvivalFrames=survivalFrames; window._spaceFrameVal=frame; window._spaceActiveWeapons=activeWeapons;
     if(window._spaceGameActive) _processTwitchQueue();
 
     const shopOpen=document.getElementById('spaceShop').style.display==='flex';
@@ -7457,7 +7480,7 @@ function startSpace() {
     // Mini-map (bottom-right, above powerup bar)
     {
       const mm_w=160, mm_h=Math.floor(mm_w*(WH/WW));
-      const mm_x=W-mm_w-6, mm_y=H-mm_h-28; // bigger, lower
+      const mm_x=W-mm_w-6, mm_y=H-mm_h-52; // moved up a bit
       ctx.save();ctx.globalAlpha=0.55;
       ctx.fillStyle='rgba(5,5,25,0.85)';ctx.beginPath();ctx.roundRect(mm_x,mm_y,mm_w,mm_h,4);ctx.fill();
       ctx.strokeStyle='rgba(100,120,255,0.35)';ctx.lineWidth=1;ctx.stroke();
