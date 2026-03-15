@@ -3751,7 +3751,7 @@ let _flappyRAF = null;
 let _flappyMusicPlayer = null;
 const FLAPPY_MUSIC_ID = 'YzdAI3kseTg';
 const FLAPPY_MUSIC_TITLE = '♪ Johann Strauss — Blue Danube';
-const FLAPPY_MUSIC_VOL = 49; // ~70% of 70 (30% quieter)
+const FLAPPY_MUSIC_VOL = 61; // 49 * 1.25 = ~61
 
 function initFlappyMusic() {
   if (_flappyMusicPlayer) {
@@ -3766,7 +3766,7 @@ function initFlappyMusic() {
     events: {
       onReady: e => {
         e.target.setVolume(FLAPPY_MUSIC_VOL);
-        if(!_flappyMuted) { e.target.unMute(); e.target.playVideo(); }
+        if(!_flappyMuted) { e.target.unMute(); e.target.seekTo(10, true); e.target.playVideo(); }
       },
       onStateChange: e => {
         if(e.data === YT.PlayerState.ENDED) { e.target.seekTo(0,true); e.target.playVideo(); }
@@ -3789,11 +3789,11 @@ async function openFlappyShibez() {
           id: e.id,
           name: e.name,
           animated,
-          url: `https://cdn.7tv.app/emote/${e.id}/2x.${animated ? 'gif' : 'webp'}`
+          url: `https://cdn.7tv.app/emote/${e.id}/4x.avif` // avif plays animation natively
         };
       });
     } catch(e) {
-      _flappyEmotes = [{id:'01GB9W8JN80004CKF2H1TWA99H', name:'fallback', url:'https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp'}];
+      _flappyEmotes = [{id:'01GB9W8JN80004CKF2H1TWA99H', name:'fallback', url:'https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/4x.avif'}];
     }
   }
   startFlappy();
