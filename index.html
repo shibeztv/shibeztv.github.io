@@ -3761,36 +3761,46 @@ async function preloadFlappyEmotes() {
     const d = await r.json();
     _flappyEmotes = (d.emotes || []).map(e => ({
       id: e.id, name: e.name, animated: e.data?.animated || false,
-      url: `https://cdn.7tv.app/emote/${e.id}/2x.webp` // 2x webp: smaller, faster, animated
+      url: `https://cdn.7tv.app/emote/${e.id}/2x.webp`
     }));
   } catch(e) {
     _flappyEmotes = [{id:'01GB9W8JN80004CKF2H1TWA99H', name:'fallback', animated:true,
       url:'https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp'}];
   }
 
-  // Create persistent container (visible so animations run)
   _flappyImgPool = document.getElementById('flappyImgPool');
   if (!_flappyImgPool) {
     _flappyImgPool = document.createElement('div');
     _flappyImgPool.id = 'flappyImgPool';
-    // Visible but off-screen — critical for webp animation to work
+    // Visible but off-screen — keeps webp animations running
     _flappyImgPool.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:visible;pointer-events:none;opacity:0.01';
     document.body.appendChild(_flappyImgPool);
   }
   _flappyImgPool.innerHTML = '';
 
-  // Pick 16 random emotes and pre-load all of them now
   const picks = [..._flappyEmotes].sort(() => Math.random() - 0.5).slice(0, 16);
-  _flappyImgEls = picks.map(e => {
+
+  // Create all img elements and wait for them all to load before flagging ready
+  const loadPromises = picks.map(e => new Promise(resolve => {
     const img = new Image(52, 52);
     img.crossOrigin = 'anonymous';
     img.fetchPriority = 'high';
     img.decoding = 'async';
     img.style.cssText = 'width:52px;height:52px;display:inline-block';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(img); // resolve anyway so we don't block forever
     img.src = e.url;
     _flappyImgPool.appendChild(img);
-    return img;
-  });
+  }));
+
+  // Wait for all to finish downloading — with a 5s timeout safety net
+  await Promise.race([
+    Promise.all(loadPromises),
+    new Promise(r => setTimeout(r, 5000))
+  ]);
+
+  _flappyImgEls = Array.from(_flappyImgPool.querySelectorAll('img'));
+  window._flappyEmotesReady = true;
 }
 // Start pre-loading immediately when page loads
 if (document.readyState === 'loading') {
@@ -3917,28 +3927,12 @@ function startFlappy() {
       // and we have fewer than 4 visible
       const visible = _gEmotes.filter(g => g.x < W + g.size);
       const rightmost = visible.length > 0 ? Math.max(...visible.map(g => g.x + g.size)) : 0;
-      // Rarer: max 2, wider gap, smaller size
-      // Spawn between pillars: find a gap between the last two pipes
-      if (visible.length < 2 && rightmost < W - 150 && Math.random() < 0.25) {
+      // Only spawn ground emotes once images are confirmed loaded
+      if (window._flappyEmotesReady && visible.length < 2 && rightmost < W - 150 && Math.random() < 0.25) {
         const size = 30 + Math.floor(Math.random() * 14);
-        // Find a spot that's between two pipes (in a gap)
-        let spawnX = W + size;
-        // Look for a gap: find rightmost pipe that is still on screen
-        const rightPipes = pipes.filter(p => p.x > -PIPE_W && p.x < W + 300);
-        if (rightPipes.length >= 2) {
-          // Sort by x and find a gap between consecutive pipes
-          const sorted = [...rightPipes].sort((a,b) => a.x - b.x);
-          for (let pi = 0; pi < sorted.length - 1; pi++) {
-            const gapStart = sorted[pi].x + PIPE_W + size + 4;
-            const gapEnd = sorted[pi+1].x - size - 4;
-            if (gapEnd - gapStart > size * 2) {
-              spawnX = gapStart + Math.random() * (gapEnd - gapStart - size);
-              break;
-            }
-          }
-        }
+        // Always spawn off the right edge — emotes scroll in from the right
+        const spawnX = W + size + Math.random() * 40;
         if (!_gEmoteInPipe(spawnX, size)) {
-          // No overlap with existing ground emotes
           const tooClose = _gEmotes.some(g => Math.abs(g.x - spawnX) < g.size * 0.6 + size * 0.6);
           if (!tooClose) {
             const idx = Math.floor(Math.random() * emoteImgs.length);
@@ -4143,14 +4137,14 @@ function startFlappy() {
       ctx.fillText('Click to play again', W/2, H/2 + 52);
       // Song credit
       ctx.font = '10px monospace';
-      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.fillStyle = '#bbb';
       ctx.fillText(FLAPPY_MUSIC_TITLE, W/2, H - 18);
     }
-    // Always show song title
+    // Always show song title — same color as "Click / Space / Tap to flap"
     ctx.save();
     ctx.textAlign = 'center';
     ctx.font = '10px monospace';
-    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fillStyle = '#bbb';
     ctx.fillText(FLAPPY_MUSIC_TITLE, W/2, H - 18);
     ctx.restore();
     ctx.textAlign = 'left';
