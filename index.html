@@ -1417,9 +1417,12 @@
             <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:var(--text);letter-spacing:1px">FLAPPY SHIBEZ</span>
             <span style="font-family:var(--mono);font-size:9px;color:#bbb">Click / Space / Tap to flap</span>
           </div>
-          <div style="display:flex;align-items:center;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px">
             <span style="font-family:var(--mono);font-size:13px;color:#bbb;font-weight:700">Score:</span>
             <span style="font-family:var(--mono);font-size:18px;font-weight:900;color:var(--text)" id="flappyScore">0</span>
+            <input id="flappyVolSlider" type="range" min="0" max="100" value="52" title="Volume"
+              oninput="setFlappyVol(+this.value)"
+              style="width:60px;accent-color:#ffd700;cursor:pointer;vertical-align:middle">
             <button id="flappyMuteBtn" onclick="toggleFlappyMute()" title="Mute/Unmute sounds" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">🔊</button>
             <button onclick="closeFlappy()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
@@ -3751,12 +3754,20 @@ let _flappyRAF = null;
 let _flappyMusicPlayer = null;
 const FLAPPY_MUSIC_ID = 'YzdAI3kseTg';
 const FLAPPY_MUSIC_TITLE = '♪ Johann Strauss — Blue Danube';
-const FLAPPY_MUSIC_VOL = 61; // 49 * 1.25 = ~61
+let _flappyMuted = false;
+let _flappyVolLevel = 52; // current vol 0-100
+
+window.setFlappyVol = function(v) {
+  _flappyVolLevel = v;
+  try { _flappyMusicPlayer?.setVolume(v); } catch(e) {}
+  const btn = document.getElementById('flappyMuteBtn');
+  if(btn) btn.textContent = v === 0 ? '🔇' : '🔊';
+};
 
 function initFlappyMusic() {
   if (_flappyMusicPlayer) {
     // Already created — just play
-    try { if(!_flappyMuted){_flappyMusicPlayer.unMute();_flappyMusicPlayer.setVolume(FLAPPY_MUSIC_VOL);} _flappyMusicPlayer.playVideo(); } catch(e) {}
+    try { if(!_flappyMuted){_flappyMusicPlayer.unMute();_flappyMusicPlayer.setVolume(_flappyVolLevel);} _flappyMusicPlayer.playVideo(); } catch(e) {}
     return;
   }
   if (!window.YT || !YT.Player) { setTimeout(initFlappyMusic, 500); return; }
@@ -3765,7 +3776,7 @@ function initFlappyMusic() {
     playerVars: { autoplay:1, controls:0, fs:0, loop:1, playlist:FLAPPY_MUSIC_ID },
     events: {
       onReady: e => {
-        e.target.setVolume(FLAPPY_MUSIC_VOL);
+        e.target.setVolume(_flappyVolLevel);
         if(!_flappyMuted) { e.target.unMute(); e.target.seekTo(10, true); e.target.playVideo(); }
       },
       onStateChange: e => {
@@ -3857,51 +3868,45 @@ function startFlappy() {
 
   // Ground tiles (simple gradient rect)
   // Ground emotes: spawn randomly, scroll left and despawn
-  let _gEmotes = []; // DOM img elements on the ground
+  let _gEmotes = [];
 
-  // Create a container div for ground emote overlays, positioned over the canvas
   let _gEmoteContainer = document.getElementById('flappyGroundEmotes');
   if (_gEmoteContainer) _gEmoteContainer.remove();
   _gEmoteContainer = document.createElement('div');
   _gEmoteContainer.id = 'flappyGroundEmotes';
-  _gEmoteContainer.style.cssText = 'position:absolute;pointer-events:none;overflow:hidden;';
+  // Position overlay exactly over canvas using same dimensions
+  _gEmoteContainer.style.cssText = `position:absolute;pointer-events:none;overflow:hidden;left:0;top:0;width:${W}px;height:${H}px;transform-origin:top left;`;
   canvas.parentElement.style.position = 'relative';
-  canvas.parentElement.appendChild(_gEmoteContainer);
+  canvas.parentElement.insertBefore(_gEmoteContainer, canvas.nextSibling);
 
   function syncGroundContainer() {
+    // Scale overlay to match canvas display size
     const r = canvas.getBoundingClientRect();
-    const pr = canvas.parentElement.getBoundingClientRect();
-    _gEmoteContainer.style.left = (r.left - pr.left) + 'px';
-    _gEmoteContainer.style.top = (r.top - pr.top) + 'px';
-    _gEmoteContainer.style.width = r.width + 'px';
-    _gEmoteContainer.style.height = r.height + 'px';
+    const scaleX = r.width / W;
+    const scaleY = r.height / H;
+    _gEmoteContainer.style.transform = `scale(${scaleX},${scaleY})`;
   }
 
   function spawnGroundEmote() {
-    const count = 3 + Math.floor(Math.random() * 3);
-    const scaleX = canvas.getBoundingClientRect().width / W;
-    const scaleY = canvas.getBoundingClientRect().height / H;
+    const count = 4 + Math.floor(Math.random() * 3);
     for (let i = 0; i < count; i++) {
       const e = shuffled[Math.floor(Math.random() * shuffled.length)];
       if (!e) continue;
-      const size = (34 + Math.floor(Math.random() * 22));
-      // Random x position spread across the ground area, stationary
+      const size = 40 + Math.floor(Math.random() * 24);
       const xPos = Math.random() * (W - size);
-      const yPos = H - 60 - size + 4;
+      const yPos = H - 60 - size + 4; // sit on top of grass
       const img = document.createElement('img');
       img.crossOrigin = 'anonymous';
       img.src = e.url;
-      img.style.cssText = `position:absolute;left:${xPos*scaleX}px;top:${yPos*scaleY}px;width:${size*scaleX}px;height:${size*scaleY}px;object-fit:contain;pointer-events:none;image-rendering:auto;`;
+      img.style.cssText = `position:absolute;left:${xPos}px;top:${yPos}px;width:${size}px;height:${size}px;object-fit:contain;pointer-events:none;image-rendering:auto;display:block;`;
       _gEmoteContainer.appendChild(img);
       _gEmotes.push(img);
     }
   }
 
-  // Spawn initial ground emotes
   spawnGroundEmote();
 
   function drawGround() {
-    // Flat grass on canvas
     ctx.fillStyle = '#4caf50';
     ctx.fillRect(0, H - 60, W, 60);
     ctx.fillStyle = '#2e7d32';
@@ -3992,14 +3997,13 @@ function startFlappy() {
     return false;
   }
 
-  let _flappyMuted = false;
   window.toggleFlappyMute = function() {
     _flappyMuted = !_flappyMuted;
     const btn = document.getElementById('flappyMuteBtn');
     if(btn) btn.textContent = _flappyMuted ? '🔇' : '🔊';
     try {
       if(_flappyMuted) _flappyMusicPlayer?.mute();
-      else { _flappyMusicPlayer?.unMute(); _flappyMusicPlayer?.setVolume(FLAPPY_MUSIC_VOL); }
+      else { _flappyMusicPlayer?.unMute(); _flappyMusicPlayer?.setVolume(_flappyVolLevel); }
     } catch(e) {}
   };
 
@@ -4030,7 +4034,7 @@ function startFlappy() {
     if (_currentDeathSfx) { try { _currentDeathSfx.pause(); _currentDeathSfx.currentTime=0; } catch(e){} }
     const url = _deathSfxUrls[Math.floor(Math.random()*_deathSfxUrls.length)];
     _currentDeathSfx = new Audio(url);
-    _currentDeathSfx.volume = 0.6;
+    _currentDeathSfx.volume = 0.54; // 10% quieter
     _currentDeathSfx.crossOrigin = 'anonymous';
     _currentDeathSfx.play().catch(()=>{});
   }
