@@ -4608,7 +4608,7 @@ function startSpace() {
         ? (isActive
             ? `<button onclick="spaceDeequipWeapon('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:rgba(255,60,60,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff8888;padding:4px 9px;border-radius:3px;cursor:pointer;white-space:nowrap">✕ ${activeSlotLabel}</button>`
             : `<button onclick="spaceEquipWeaponAuto('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.4);color:#60ddff;padding:4px 10px;border-radius:3px;cursor:pointer;white-space:nowrap">EQUIP</button>`)
-        : `<button onclick="${t1BuyFn}" style="font-family:var(--mono);font-size:10px;font-weight:900;background:${t1CanAfford?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${t1CanAfford?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${t1CanAfford?'#ffd700':'#555'};padding:5px 12px;border-radius:4px;cursor:${t1CanAfford?'pointer':'default'};white-space:nowrap">🪙${t1Cost}</button>`;
+        : `<button onclick="${t1BuyFn}" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${t1CanAfford?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${t1CanAfford?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${t1CanAfford?'#ffd700':'#aaa'};padding:4px 10px;border-radius:4px;cursor:${t1CanAfford?'pointer':'default'};white-space:nowrap">🪙${t1Cost}</button>`;
       const t1Row = `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:5px;background:${t1owned?'rgba(100,200,255,0.08)':'rgba(255,255,255,0.03)'};border:1px solid ${t1owned?'rgba(100,200,255,0.3)':'rgba(255,255,255,0.08)'}">
         <span style="font-family:var(--mono);font-size:9px;font-weight:900;color:${t1owned?'#60ddff':'#aaa'};min-width:56px;flex-shrink:0">UNLOCK</span>
         <span style="font-family:var(--mono);font-size:10px;color:#aaa;flex:1;min-width:0;line-height:1.4">${t1Desc}</span>
@@ -4629,7 +4629,7 @@ function startSpace() {
           <span style="font-family:var(--mono);font-size:10px;color:#aaa;flex:1;min-width:0;line-height:1.4">+1 follower (${fl}/${maxFl})</span>
           ${fl>=maxFl?'<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900;white-space:nowrap">MAX</span>':
             !t1owned?'<span style="font-family:var(--mono);font-size:9px;color:#444;white-space:nowrap">🔒 Unlock first</span>':
-            `<button onclick="spaceBuyWeapon('friends')" style="font-family:var(--mono);font-size:10px;font-weight:900;background:${fa?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${fa?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${fa?'#ffd700':'#aaa'};padding:5px 12px;border-radius:4px;cursor:${fa?'pointer':'default'};white-space:nowrap">⬆ 🪙${fc}</button>`}
+            `<button onclick="spaceBuyWeapon('friends')" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${fa?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${fa?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${fa?'#ffd700':'#aaa'};padding:4px 10px;border-radius:4px;cursor:${fa?'pointer':'default'};white-space:nowrap">🪙${fc}</button>`}
         </div>`;
       } else if(def.tier2){
         const t2CanAfford = coins>=def.tier2.cost && !t2owned && t1owned;
@@ -4641,7 +4641,7 @@ function startSpace() {
           <span style="font-family:var(--mono);font-size:10px;color:#aaa;flex:1;min-width:0;line-height:1.4">${t2desc}</span>
           ${t2owned?'<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900;white-space:nowrap">✓ ON</span>':
             !t1owned?'<span style="font-family:var(--mono);font-size:9px;color:#444;white-space:nowrap">🔒 Unlock first</span>':
-            `<button onclick="spaceBuyTier2('${def.key}')" style="font-family:var(--mono);font-size:10px;font-weight:900;background:${t2CanAfford?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${t2CanAfford?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${t2CanAfford?'#ffd700':'#aaa'};padding:5px 12px;border-radius:4px;cursor:${t2CanAfford?'pointer':'default'};white-space:nowrap">⬆ 🪙${def.tier2.cost}</button>`}
+            `<button onclick="spaceBuyTier2('${def.key}')" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${t2CanAfford?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${t2CanAfford?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${t2CanAfford?'#ffd700':'#aaa'};padding:4px 10px;border-radius:4px;cursor:${t2CanAfford?'pointer':'default'};white-space:nowrap">🪙${def.tier2.cost}</button>`}
         </div>`;
       }
 
