@@ -1369,7 +1369,7 @@
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <button id="spacePauseBtn" onclick="toggleSpacePause()" title="Pause [P]" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:4px 9px;border-radius:4px;font-family:var(--mono)">⏸</button>
             <div style="display:flex;flex-direction:column;gap:1px">
-              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ <span style="font-weight:400;color:#555;font-size:10px">2.1</span></span>
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ</span>
               <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · C auto-fire · E shop · P pause</span>
             </div>
           </div>
@@ -1427,7 +1427,7 @@
             <button onclick="closeFlappy()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
-        <canvas id="flappyCanvas" width="540" height="700" style="display:block;cursor:pointer"></canvas>
+        <canvas id="flappyCanvas" width="680" height="880" style="display:block;cursor:pointer"></canvas>
       </div>
     </div>
 
@@ -7237,7 +7237,7 @@ function startSpace() {
         ctx.fillText(`${_hd2(Math.max(0,e.hp))} / ${Math.floor(e.maxHp)}`,e.x,bary+barh+hpFontPx+1);
         // Boss name — two lines
         const nameParts=e.bossName.split(' — ');
-        const nameFontPx=Math.floor(e.size*0.065+10);
+        const nameFontPx=Math.floor(e.size*0.085+13);
         const subFontPx=Math.floor(nameFontPx*0.78);
         ctx.globalAlpha=1;
         ctx.font=`900 ${nameFontPx}px monospace`;
@@ -7377,7 +7377,7 @@ function startSpace() {
     if(_chatEnemyWarning>0){
       _chatEnemyWarning--;
       const _cew=_chatEnemyWarning;
-      const _cFlash=Math.floor(_cew/8)%2===0; // flash every 8 frames
+      const _cFlash=Math.floor(_cew/20)%2===0; // flash every 20 frames (slower)
       if(_cFlash){
         ctx.save();
         ctx.textAlign='center';
@@ -7386,7 +7386,7 @@ function startSpace() {
         ctx.font=`900 ${_cwFontPx}px monospace`;
         ctx.shadowColor='#ff2222';ctx.shadowBlur=18;
         ctx.fillStyle='#ff4444';
-        ctx.globalAlpha=Math.min(1,_cew/30);
+        ctx.globalAlpha=Math.min(1,_cew/15);
         ctx.fillText(`⚠ ${_chatEnemyName} the Doubter incoming! ⚠`,W/2,_cwY);
         ctx.shadowBlur=0;ctx.restore();
       }
