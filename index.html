@@ -7480,7 +7480,7 @@ function startSpace() {
     // Mini-map (bottom-right, above powerup bar)
     {
       const mm_w=160, mm_h=Math.floor(mm_w*(WH/WW));
-      const mm_x=W-mm_w-6, mm_y=H-mm_h-52; // moved up a bit
+      const mm_x=W-mm_w-6, mm_y=H-mm_h-40;
       ctx.save();ctx.globalAlpha=0.55;
       ctx.fillStyle='rgba(5,5,25,0.85)';ctx.beginPath();ctx.roundRect(mm_x,mm_y,mm_w,mm_h,4);ctx.fill();
       ctx.strokeStyle='rgba(100,120,255,0.35)';ctx.lineWidth=1;ctx.stroke();
@@ -7594,14 +7594,15 @@ function startSpace() {
     // Song title — always visible bottom-right with fade in/out
     if(_songTitleText){
       // Smooth fade: ramp alpha up on new track, hold, fade out after ~22s
-      const _SHOW=1440, _FADE=90;
       if(_songTitleTimer > 0){
         _songTitleTimer--;
-        if(_songTitleAlpha < 1) _songTitleAlpha = Math.min(1, _songTitleAlpha + 1/30); // fade in over 0.5s
-        else if(_songTitleTimer < _FADE) _songTitleAlpha = Math.max(0, _songTitleTimer / _FADE); // fade out
+        // Fade in quickly
+        if(_songTitleAlpha < 1) _songTitleAlpha = Math.min(1, _songTitleAlpha + 1/20);
+        // Fade out only in last 60 frames
+        else if(_songTitleTimer < 60) _songTitleAlpha = Math.max(0, _songTitleTimer / 60);
       } else {
-        // Timer expired — stay fully visible (permanent)
-        _songTitleAlpha = Math.min(1, _songTitleAlpha + 1/30);
+        // Timer done — hold at current alpha, ramp to full if needed
+        if(_songTitleAlpha < 1) _songTitleAlpha = Math.min(1, _songTitleAlpha + 1/20);
       }
       if(_songTitleAlpha > 0.01){
         ctx.save();
