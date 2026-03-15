@@ -2022,8 +2022,6 @@ function groupIntoStreams(videos) {
   const byDay = {};
   videos.forEach(v => {
     const titleDay = extractDateFromTitle(v.title);
-    // Debug: log first 5 to console
-    if (Object.keys(byDay).length < 5) console.log('[grouping] title:', JSON.stringify(v.title), '→ day:', titleDay, '| publishedAt:', v.publishedAt);
     if (titleDay) {
       if (!byDay[titleDay]) byDay[titleDay] = [];
       byDay[titleDay].push(v);
