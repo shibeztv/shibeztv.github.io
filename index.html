@@ -3979,7 +3979,10 @@ function startFlappy() {
       if(_flappyMuted) _flappyMusicPlayer?.mute();
       else { _flappyMusicPlayer?.unMute(); _flappyMusicPlayer?.setVolume(FLAPPY_MUSIC_VOL); }
     } catch(e) {}
-  };('https://badoge.github.io/soundboard/forsen/peppah/bark.mp3');
+  };
+
+  // Jump SFX
+  const _flapSfx = new Audio('https://badoge.github.io/soundboard/forsen/peppah/bark.mp3');
   _flapSfx.volume = 0.35;
   _flapSfx.crossOrigin = 'anonymous';
 
@@ -4810,7 +4813,7 @@ function startSpace() {
 
   function getShipSpeed()   { return 2.03*(1+upgrades.speed*0.05); } // 5% per level
   function getShootCd()     {
-    const base=Math.max(5,Math.floor(75-upgrades.atkSpeed*2)); // -60% base attack speed
+    const base=Math.max(5,Math.floor(88-upgrades.atkSpeed*2)); // base pistol cd
     const t2Mod = upgrades.tier2_default ? Math.max(4,Math.floor(base*0.78)) : base;
     const friendsMod = (activeWeapon==='friends'||activeWeapons.includes('friends')) ? Math.ceil(t2Mod*1.15) : t2Mod; // -15% fire rate
     return friendsMod;
@@ -5504,7 +5507,7 @@ function startSpace() {
     const DOME_R = 18;
     const shipHide2 = state==='dead';
     const isCheatInv2 = invincible > 99999;
-    const shipInvAlpha = (invincible>0&&!isCheatInv2) ? '0.20' : '1';
+    const shipInvAlpha = (invincible>0&&!isCheatInv2) ? (Math.floor(frame/4)%2===0?'1':'0') : '1';
     const shipScrX = (ship.x - cam.x) * scaleX;
     const shipScrY = (ship.y - cam.y) * scaleY;
     if(shipHide2){
@@ -5897,15 +5900,19 @@ function startSpace() {
               document.getElementById('spaceScore').textContent=score;
               spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
               const riskBonus=Math.floor((upgrades.riskReward||0)*0.2);
-              const coinCount=Math.random()<0.45?1:0; // ~1 coin per kill
-              for(let ci=0;ci<coinCount;ci++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');
               const roll=Math.random();
-              if(roll<0.0173)spawnDrop(e.x,e.y,'heart');
-              else if(roll<0.0288)spawnDrop(e.x,e.y,'silverheart');
-              else if(roll<0.0403)spawnDrop(e.x,e.y,'explosion');
-              else if(roll<0.0518)spawnDrop(e.x,e.y,'freeze');
-              else if(roll<0.0633)spawnDrop(e.x,e.y,'magnet');
-              else if(roll<0.0863){const rp=['double','triple','rapid','shield'];spawnDrop(e.x,e.y,rp[Math.floor(Math.random()*rp.length)]);}
+              let droppedUpgrade=false;
+              if(roll<0.0173){spawnDrop(e.x,e.y,'heart');droppedUpgrade=true;}
+              else if(roll<0.0288){spawnDrop(e.x,e.y,'silverheart');droppedUpgrade=true;}
+              else if(roll<0.0403){spawnDrop(e.x,e.y,'explosion');droppedUpgrade=true;}
+              else if(roll<0.0518){spawnDrop(e.x,e.y,'freeze');droppedUpgrade=true;}
+              else if(roll<0.0633){spawnDrop(e.x,e.y,'magnet');droppedUpgrade=true;}
+              else if(roll<0.0863){const rp=['double','triple','rapid','shield'];spawnDrop(e.x,e.y,rp[Math.floor(Math.random()*rp.length)]);droppedUpgrade=true;}
+              // Always drop at least 1 coin unless an upgrade dropped
+              const baseCoin = droppedUpgrade ? 0 : (()=>{ const r=Math.random(); return r<0.05?3:r<0.20?2:1; })();
+              const bonusCoin = riskBonus>0&&Math.random()<0.4?1:0;
+              const coinCount = baseCoin + bonusCoin;
+              for(let ci=0;ci<coinCount;ci++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');
               return null;
             }
           }
@@ -5947,16 +5954,20 @@ function startSpace() {
               spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
               const swarmCoinMult=1+(upgrades.enemySwarm||0)*0.10;
               const riskBonus=Math.floor((upgrades.riskReward||0)*0.2);
-              const swarmBonus=(Math.random()<Math.min(0.9,0.45+(upgrades.enemySwarm||0)*0.04))?1:0;
-              const coinCount=swarmBonus+(Math.random()<(upgrades.riskReward||0)*0.04?1:0);
-              for(let ci=0;ci<coinCount;ci++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');
-              const roll=Math.random();
-              if(roll<0.0173)spawnDrop(e.x,e.y,'heart');
-              else if(roll<0.0288)spawnDrop(e.x,e.y,'silverheart');
-              else if(roll<0.0403)spawnDrop(e.x,e.y,'explosion');
-              else if(roll<0.0518)spawnDrop(e.x,e.y,'freeze');
-              else if(roll<0.0633)spawnDrop(e.x,e.y,'magnet');
-              else if(roll<0.0863){const rp=['double','triple','rapid','shield'];spawnDrop(e.x,e.y,rp[Math.floor(Math.random()*rp.length)]);}
+              const swarmBonus2=(Math.random()<Math.min(0.9,0.45+(upgrades.enemySwarm||0)*0.04))?1:0;
+              const riskBonus2=Math.floor((upgrades.riskReward||0)*0.2);
+              const roll2=Math.random();
+              let droppedUpgrade2=false;
+              if(roll2<0.0173){spawnDrop(e.x,e.y,'heart');droppedUpgrade2=true;}
+              else if(roll2<0.0288){spawnDrop(e.x,e.y,'silverheart');droppedUpgrade2=true;}
+              else if(roll2<0.0403){spawnDrop(e.x,e.y,'explosion');droppedUpgrade2=true;}
+              else if(roll2<0.0518){spawnDrop(e.x,e.y,'freeze');droppedUpgrade2=true;}
+              else if(roll2<0.0633){spawnDrop(e.x,e.y,'magnet');droppedUpgrade2=true;}
+              else if(roll2<0.0863){const rp=['double','triple','rapid','shield'];spawnDrop(e.x,e.y,rp[Math.floor(Math.random()*rp.length)]);droppedUpgrade2=true;}
+              const baseCoin2 = droppedUpgrade2 ? 0 : (()=>{ const r=Math.random(); return r<0.05?3:r<0.20?2:1; })();
+              const swarmCoinMult2=1+(upgrades.enemySwarm||0)*0.10;
+              const coinCount2=Math.ceil((baseCoin2+swarmBonus2+(riskBonus2>0&&Math.random()<0.4?1:0))*swarmCoinMult2);
+              for(let ci=0;ci<coinCount2;ci++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');
               return null;
             }
           }
@@ -6023,13 +6034,19 @@ function startSpace() {
 
       drops=drops.filter(d=>{
         const isMagnet=_hasPowerup('magnet');
-        if(isMagnet){
-          // Pull coin toward ship
+        // Super-magnet: strong pull for coins tagged by pickup (frames countdown)
+        if(d._superMagnet>0){
+          d._superMagnet--;
           const dx=ship.x-d.x,dy=ship.y-d.y,dist=Math.sqrt(dx*dx+dy*dy)||1;
-          const pull=Math.min(32,880/dist); // 4x stronger
+          const pull=2.64; // 130% of base player speed (2.03 * 1.3)
+          d.x+=dx/dist*pull;d.y+=dy/dist*pull;
+          d.settled=false; // keep moving
+        } else if(isMagnet){
+          const dx=ship.x-d.x,dy=ship.y-d.y,dist=Math.sqrt(dx*dx+dy*dy)||1;
+          const pull=Math.min(32,880/dist);
           d.x+=dx/dist*pull;d.y+=dy/dist*pull;
         }
-        const collectR=isMagnet?52:getCoinRange();
+        const collectR=(isMagnet||d._superMagnet>0)?52:getCoinRange();
         if(Math.sqrt((d.x-ship.x)**2+(d.y-ship.y)**2)<collectR&&!d.collected){
           d.collected=true;const _cv=d.value||1;saveCoins(coins+_cv);spawnParticles(d.x,d.y,d.gold?'#ffd700':d.green?'#4ade80':d.silver?'#aaa':'#ffd700',d.gold?18:d.green?12:d.silver?8:4);if(_cv>=25){sfxPowerup();if(_cv>=100){playTone(1800,'sine',0.12,0.2);setTimeout(()=>playTone(2200,'sine',0.10,0.18),60);}}else if(_cv>1){sfxPowerup();}else{sfxCoin();}return false;
         }
@@ -6117,22 +6134,15 @@ function startSpace() {
             spawnParticles(d.x,d.y,'#a0d8ef',20);
             playTone(330,'sine',0.18,0.25);setTimeout(()=>playTone(550,'sine',0.14,0.22),80);setTimeout(()=>playTone(770,'sine',0.10,0.20),160);
           } else if(d.type==='magnet'){
-            // Instantly collect every coin on the floor
-            let _magnetCoins=0;
-            drops=drops.filter(drop=>{
-              if(drop.collected||drop.life<=0) return true;
-              drop.collected=true;
-              const _cv=drop.value||1;
-              saveCoins(coins+_cv);
-              _magnetCoins+=_cv;
-              spawnParticles(drop.x,drop.y,'#ffd700',3);
-              return false;
+            // Tag all floor coins to be strongly pulled to player (visual fly-in over ~5s)
+            drops.forEach(drop=>{
+              if(!drop.collected && drop.life>0) drop._superMagnet=300; // ~5s at 60fps
             });
-            if(_magnetCoins>0){sfxPowerup(); playTone(1400,'sine',0.12,0.3);}
-            // Also start the timed magnet pull for any future coins
+            sfxPowerup(); playTone(1400,'sine',0.12,0.3);
+            // Also start timed magnet pull for future coins
             const cur=activePowerups.get('magnet')||0;
             activePowerups.set('magnet',cur+(pt?.dur||360));
-            sfxPowerup();spawnParticles(d.x,d.y,'#ffd700',12);
+            spawnParticles(d.x,d.y,'#ffd700',12);
           } else {
             const cur2=activePowerups.get(d.type)||0;
             activePowerups.set(d.type,cur2+(pt?.dur||420));
@@ -6625,7 +6635,7 @@ function startSpace() {
         ctx.restore();
       }
       ctx.save();
-      if(invincible>0&&!isCheatInv) ctx.globalAlpha=0.20; // 80% transparent during normal invincibility
+      if(invincible>0&&!isCheatInv) ctx.globalAlpha = Math.floor(frame/4)%2===0 ? 1 : 0; // flash blink on damage
       drawUFO(ship.x, ship.y, null, 0, 1);
       ctx.restore();
     }
