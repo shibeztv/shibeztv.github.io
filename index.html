@@ -3849,8 +3849,8 @@ function startFlappy() {
   });
 
   // Game state
-  const GRAVITY = 0.14;
-  const FLAP = -5.0;
+  const GRAVITY = 0.10;
+  const FLAP = -4.2;
   const PIPE_W = 52;
   const PIPE_GAP = 245;
   const PIPE_SPEED = 1.6;
@@ -3870,31 +3870,34 @@ function startFlappy() {
   // Ground emotes: spawn randomly, scroll left and despawn
   let _gEmotes = [];
 
+  // Overlay sits over the canvas — use z-index to appear on top
   let _gEmoteContainer = document.getElementById('flappyGroundEmotes');
   if (_gEmoteContainer) _gEmoteContainer.remove();
   _gEmoteContainer = document.createElement('div');
   _gEmoteContainer.id = 'flappyGroundEmotes';
-  // Position overlay exactly over canvas using same dimensions
-  _gEmoteContainer.style.cssText = `position:absolute;pointer-events:none;overflow:hidden;left:0;top:0;width:${W}px;height:${H}px;transform-origin:top left;`;
+  _gEmoteContainer.style.cssText = `position:absolute;pointer-events:none;left:0;top:0;width:${W}px;height:${H}px;transform-origin:top left;z-index:2;overflow:visible;`;
+  canvas.style.position = 'relative';
+  canvas.style.zIndex = '1';
   canvas.parentElement.style.position = 'relative';
-  canvas.parentElement.insertBefore(_gEmoteContainer, canvas.nextSibling);
+  canvas.parentElement.appendChild(_gEmoteContainer);
 
   function syncGroundContainer() {
-    // Scale overlay to match canvas display size
-    const r = canvas.getBoundingClientRect();
-    const scaleX = r.width / W;
-    const scaleY = r.height / H;
+    const scaleX = canvas.clientWidth / W;
+    const scaleY = canvas.clientHeight / H;
     _gEmoteContainer.style.transform = `scale(${scaleX},${scaleY})`;
+    // Position directly on top of canvas
+    _gEmoteContainer.style.left = canvas.offsetLeft + 'px';
+    _gEmoteContainer.style.top = canvas.offsetTop + 'px';
   }
 
   function spawnGroundEmote() {
-    const count = 4 + Math.floor(Math.random() * 3);
+    const count = 5 + Math.floor(Math.random() * 4);
     for (let i = 0; i < count; i++) {
       const e = shuffled[Math.floor(Math.random() * shuffled.length)];
       if (!e) continue;
-      const size = 40 + Math.floor(Math.random() * 24);
+      const size = 44 + Math.floor(Math.random() * 28);
       const xPos = Math.random() * (W - size);
-      const yPos = H - 60 - size + 4; // sit on top of grass
+      const yPos = H - 60 - size + 2;
       const img = document.createElement('img');
       img.crossOrigin = 'anonymous';
       img.src = e.url;
@@ -3905,6 +3908,7 @@ function startFlappy() {
   }
 
   spawnGroundEmote();
+  setTimeout(syncGroundContainer, 50); // sync after canvas is visible
 
   function drawGround() {
     ctx.fillStyle = '#4caf50';
