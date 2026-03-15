@@ -1439,10 +1439,10 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
           <div style="display:flex;flex-direction:column;gap:1px">
             <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--text);letter-spacing:1px">SHIB.LE</span>
-            <span style="font-family:var(--mono);font-size:9px;color:#bbb" id="shibleSubtitle">Guess the stream date from the thumbnail</span>
+            <span style="font-family:var(--mono);font-size:13px;color:#bbb" id="shibleSubtitle">Guess the stream date from the thumbnail</span>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <span style="font-family:var(--mono);font-size:10px;color:#bbb" id="shibleGuessCount">5 guesses left</span>
+            <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:#bbb" id="shibleGuessCount">5 guesses left</span>
             <button onclick="closeShible()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
@@ -1475,37 +1475,38 @@
           <div style="display:flex;gap:10px;align-items:flex-end">
             <!-- DAY drum -->
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
-              <span style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:1px">DAY</span>
+              <span style="font-family:var(--mono);font-size:11px;color:#bbb;letter-spacing:1px">DAY</span>
               <div style="display:flex;align-items:center;gap:4px">
-                <button onclick="shibleAdjust('d',-1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">‹</button>
+                <button onclick="shibleAdjust('d',-1)" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">‹</button>
                 <input id="shibleDayDisp" type="number" min="1" max="31" value="1" oninput="shibleSetD(this.value)" style="font-family:var(--mono);font-size:20px;font-weight:900;color:var(--text);width:46px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 0;outline:none;-moz-appearance:textfield;appearance:textfield">
-                <button onclick="shibleAdjust('d',1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">›</button>
+                <button onclick="shibleAdjust('d',1)" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">›</button>
               </div>
               <div id="shibleDayColor" style="width:36px;height:8px;border-radius:2px;background:var(--surface2)"></div>
             </div>
             <!-- MONTH drum -->
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1.4">
-              <span style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:1px">MONTH</span>
+              <span style="font-family:var(--mono);font-size:11px;color:#bbb;letter-spacing:1px">MONTH</span>
               <div style="display:flex;align-items:center;gap:4px">
-                <button onclick="shibleAdjust('m',-1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">‹</button>
+                <button onclick="shibleAdjust('m',-1)" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">‹</button>
                 <div id="shibleMonthDisp" style="font-family:var(--mono);font-size:20px;font-weight:900;color:var(--text);min-width:52px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 0">JAN</div>
-                <button onclick="shibleAdjust('m',1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">›</button>
+                <button onclick="shibleAdjust('m',1)" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">›</button>
               </div>
               <div id="shibleMonthColor" style="width:52px;height:8px;border-radius:2px;background:var(--surface2)"></div>
             </div>
             <!-- YEAR drum -->
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1.4">
-              <span style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:1px">YEAR</span>
+              <span style="font-family:var(--mono);font-size:11px;color:#bbb;letter-spacing:1px">YEAR</span>
               <div style="display:flex;align-items:center;gap:4px">
-                <button onclick="shibleAdjust('y',-1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">‹</button>
+                <button onclick="shibleAdjust('y',-1)" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">‹</button>
                 <input id="shibleYearDisp" type="number" min="2020" max="2030" value="2025" oninput="shibleSetY(this.value)" style="font-family:var(--mono);font-size:20px;font-weight:900;color:var(--text);width:72px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 0;outline:none;-moz-appearance:textfield;appearance:textfield">
-                <button onclick="shibleAdjust('y',1)" style="background:none;border:1px solid var(--border);color:#bbb;width:22px;height:28px;border-radius:3px;cursor:pointer;font-size:14px">›</button>
+                <button onclick="shibleAdjust('y',1)" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">›</button>
               </div>
               <div id="shibleYearColor" style="width:60px;height:8px;border-radius:2px;background:var(--surface2)"></div>
             </div>
             <!-- Guess button -->
             <button onclick="submitShibleGuess()" id="shibleGuessBtn"
-              style="font-family:var(--mono);font-size:12px;font-weight:700;background:var(--accent2);border:none;color:#fff;padding:0 20px;height:38px;border-radius:4px;cursor:pointer;white-space:nowrap;align-self:center;margin-bottom:12px">
+              onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter='brightness(1)'"
+              style="font-family:var(--mono);font-size:14px;font-weight:700;background:var(--accent2);border:none;color:#fff;padding:0 26px;height:44px;border-radius:4px;cursor:pointer;white-space:nowrap;align-self:center;margin-bottom:12px;transition:filter 0.1s">
               GUESS
             </button>
           </div>
@@ -1525,19 +1526,21 @@
 
     <!-- CLIP MODAL -->
     <div id="clipModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:1480px;overflow:hidden;position:relative">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:1625px;overflow:hidden;position:relative">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
-          <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text)" id="clipTitle">Loading clip…</div>
+          <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text)" id="clipTitle">Loading clip…</div>
           <div style="display:flex;gap:8px;align-items:center">
             <button onclick="openRandomClip()" title="Another random clip"
-              style="background:none;border:1px solid var(--border);color:#bbb;font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:3px;cursor:pointer">
+              onmouseover="this.style.background='rgba(255,255,255,0.1)';this.style.color='#fff';this.style.borderColor='#aaa'"
+              onmouseout="this.style.background='none';this.style.color='#bbb';this.style.borderColor='var(--border)'"
+              style="background:none;border:1px solid var(--border);color:#bbb;font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all 0.15s">
               🎲 Play Another Random Clip
             </button>
             <button onclick="closeClipModal()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 4px">✕</button>
           </div>
         </div>
         <div style="aspect-ratio:16/9;background:#000" id="clipEmbed"></div>
-        <div style="padding:8px 14px;font-family:var(--mono);font-size:10px;color:#bbb;display:flex;gap:12px" id="clipMeta"></div>
+        <div style="padding:8px 14px;font-family:var(--mono);font-size:13px;color:#bbb;display:flex;gap:12px" id="clipMeta"></div>
       </div>
     </div>
 
