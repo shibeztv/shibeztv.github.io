@@ -4927,8 +4927,11 @@ function startSpace() {
   let ship = {x:Math.floor(WW/2), y:Math.floor(WH/2), vx:0, vy:0, angle:0};
   let bullets=[],enemies=[],particles=[],drops=[],powerupDrops=[],_burstRings=[];
   let score=0, lives=getMaxHp(), frame=0, survivalFrames=0;
+  window._spaceGameActive=false;
   let lastTitanMinute=0;
   let _titanWarning=0;
+  let _chatEnemyWarning=0;
+  let _chatEnemyName='';
   let _nukeFlash=0, _freezeFlash=0;
   let _minigunShooting=false; // track if minigun fired this frame
   let _towerGunBurstCount=0;  // counts bursts for tier2 double-shot every 4th
@@ -5296,7 +5299,7 @@ function startSpace() {
           freezing:true, pierce:upgrades.pierce||0,
           _slowPct: isT2f?0.40:0.20, // T2 40% slow, T1 20% slow
           _slowExpire: true,
-          // deepFreeze removed — only per-enemy slowTimer
+          deepFreeze: isT2f, // T2 freezes after 4s sustained fire
         });
       }
       // Frost/wind SFX: white noise burst + high shimmer
@@ -5318,7 +5321,7 @@ function startSpace() {
           o.connect(g);g.connect(_ac.destination);o.start();o.stop(_ac.currentTime+0.1);
         },i*12));
       }
-      setCd(Math.floor(12*rapidMod*atkMod));
+      setCd(Math.floor(12*(isT2f?1.82:2.86)*rapidMod*atkMod)); // T1 -65%, T2 -55%
 
     } else if(wKey==='lightning'){
       const isT2L=!!upgrades.tier2_lightning;
@@ -5454,10 +5457,10 @@ function startSpace() {
     const x=cam.x+W+size, y=cam.y+H*0.3+Math.random()*H*0.4;
     const tx=ship.x, ty=ship.y;
     const dx=tx-x, dy=ty-y, len=Math.sqrt(dx*dx+dy*dy)||1;
-    const speed=(0.3+Math.random()*0.2)*0.90*0.90*0.80*0.85; // 15% more reduction
+    const speed=(0.3+Math.random()*0.2)*0.90*0.90*0.80*0.85*0.70; // -30% more
     const timeMins=survivalFrames/3600;
     const dmgScale=Math.max(1,getBulletDmg()*0.7);
-    const titanHp=Math.ceil((180+timeMins*48)*dmgScale*0.60); // -40% HP
+    const titanHp=Math.ceil((180+timeMins*48)*dmgScale*0.60*0.70); // -30% more HP
     spawnParticles(ship.x,ship.y,'#ff6600',20);
     enemies.push({
       x,y,img,size,sizeScale:4,isBoss:false,isBig:false,isTitan:true,
@@ -5468,6 +5471,121 @@ function startSpace() {
     });
     _titanWarning=90;
   }
+
+
+  // ── Twitch Chat Enemy Spawner ──────────────────────────────────────────────
+  const _TWITCH_CHANNEL = 'shlbez';
+  let _twitchChatWs = null;
+  let _twitchUserCooldowns = {}; // username → frame number when they can respawn
+  let _twitchSpawnQueue = [];    // queued usernames waiting for player to be in-game
+  const _TWITCH_COOLDOWN_FRAMES = 60*25; // 25 seconds at 60fps
+  const _twitchEnemyTitles = [
+    'The Doubter','The Lurker','Viewer of Worlds','The Chronically Online',
+    'Enjoyer of Cringe','Chat Menace','The Backseater','The Clapper',
+    'First Time Viewer','Resident Yapper','The POGGER','Slayer of Vibes',
+    'Sub-less Wanderer','The Five-Dollar Menace','Emote Spammer Supreme',
+    'The Hype Train Survivor','Monka S Incarnate','Based Lord',
+    'Certified Simp','The One Who Knows','W Chatter','The Never-Leaves',
+    'The Sleepless One','Doom Scroller','The Alleged Human',
+  ];
+  const _twitchSoundUrls = [
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/did%20not%20ask%20bro.mp3',
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/did%20not%20ask.mp3',
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/fuck%20your%20viewer%20experience.mp3',
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/get%20a%20life%20you%20fat%20fuck.mp3',
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/im%20thinking%20whether%20i%20care.mp3',
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/that%20doesnt%20sound%20very%20xqcl.mp3',
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/thats%20not%20very%20xqcl.mp3',
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/why%20dont%20you%20go%20and%20fuck%20off%20then1.mp3',
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/why%20dont%20you%20go%20and%20fuck%20off%20then2.mp3',
+    'https://badoge.github.io/soundboard/forsen/unfriendly%20lines/why%20dont%20you%20go%20and%20fuck%20off%20then3.mp3',
+  ];
+  // Pre-create audio elements for each sound
+  const _twitchSounds = _twitchSoundUrls.map(url => {
+    const a = new Audio(url); a.volume = 0.35; a.preload = 'auto'; return a;
+  });
+
+  function _playTwitchSound() {
+    const s = _twitchSounds[Math.floor(Math.random()*_twitchSounds.length)];
+    try { s.currentTime = 0; s.play().catch(()=>{}); } catch(e) {}
+  }
+
+  function spawnTwitchEnemy(username) {
+    if(!username || username.length < 1) return;
+    const img = enemyImgs[Math.floor(Math.random()*enemyImgs.length)];
+    const title = _twitchEnemyTitles[Math.floor(Math.random()*_twitchEnemyTitles.length)];
+    const bossName = `${username} — ${title}`;
+    const size = 55 + Math.random()*25;
+    const x = cam.x + W + size + Math.random()*80;
+    const y = cam.y + H*0.15 + Math.random()*H*0.7;
+    const dx = ship.x-x, dy = ship.y-y, len = Math.sqrt(dx*dx+dy*dy)||1;
+    const spd = (0.6+Math.random()*0.4)*0.70;
+    const hp = 25 + Math.floor(Math.random()*15);
+    enemies.push({
+      x, y, img, size, sizeScale:1.2, isBoss:true, isBig:false, isTitan:false,
+      vx:(dx/len)*spd, vy:(dy/len)*spd,
+      hp, maxHp:hp, age:0, wobble:true,
+      wobbleAmp:0.4+Math.random()*0.3, wobbleFreq:0.04+Math.random()*0.02,
+      bossName, speed:spd,
+    });
+    // Set cooldown for this user
+    _twitchUserCooldowns[username] = frame + _TWITCH_COOLDOWN_FRAMES;
+    // Warning flash + sound
+    spawnParticles(ship.x+(Math.random()-0.5)*200, ship.y+(Math.random()-0.5)*150, '#9146ff', 12);
+    _chatEnemyWarning=180;
+    _chatEnemyName=username;
+    _playTwitchSound();
+  }
+
+  function _processTwitchQueue() {
+    // Only process queue when game is actively playing (not paused/in shop)
+    if(state !== 'playing' || _spaceInShop) return;
+    while(_twitchSpawnQueue.length > 0) {
+      const user = _twitchSpawnQueue.shift();
+      const cooldownUntil = _twitchUserCooldowns[user] || 0;
+      if(frame >= cooldownUntil) {
+        spawnTwitchEnemy(user);
+        return; // spawn one per frame tick to avoid burst
+      }
+    }
+  }
+
+  function connectTwitchChat() {
+    if(_twitchChatWs && _twitchChatWs.readyState < 2) return;
+    try {
+      _twitchChatWs = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+      _twitchChatWs.onopen = () => {
+        _twitchChatWs.send('PASS oauth:justinfan12345');
+        _twitchChatWs.send('NICK justinfan12345');
+        _twitchChatWs.send(`JOIN #${_TWITCH_CHANNEL}`);
+      };
+      _twitchChatWs.onmessage = (ev) => {
+        const raw = ev.data;
+        if(raw.startsWith('PING')) { _twitchChatWs.send('PONG :tmi.twitch.tv'); return; }
+        const match = raw.match(/^:([^!]+)![^ ]+ PRIVMSG #[^ ]+ :/);
+        if(match) {
+          const user = match[1];
+          const cooldownUntil = _twitchUserCooldowns[user] || 0;
+          if(frame < cooldownUntil) return; // still on cooldown, ignore
+          // If game is active → spawn immediately, else queue
+          if(state === 'playing' && !_spaceInShop) {
+            spawnTwitchEnemy(user);
+          } else {
+            // Queue up (avoid duplicate queuing)
+            if(!_twitchSpawnQueue.includes(user)) {
+              _twitchSpawnQueue.push(user);
+            }
+          }
+        }
+      };
+      _twitchChatWs.onclose = () => { setTimeout(connectTwitchChat, 5000); };
+      _twitchChatWs.onerror = () => {};
+    } catch(e) {}
+  }
+  // Connect to Twitch chat when game starts
+  connectTwitchChat();
+  // ───────────────────────────────────────────────────────────────────────────
+
 
   function spawnDrop(x,y,type){
     if(type==='coin')drops.push({x,y,vx:0,vy:0,life:99999999,collected:false,settled:true});
@@ -5484,6 +5602,9 @@ function startSpace() {
     saveCoins(Math.floor(coins/2)+coinBonus);
     // Wipe all upgrades for new run
     Object.keys(upgrades).forEach(k=>{ upgrades[k]=0; });
+    _twitchUserCooldowns = {};
+    _twitchSpawnQueue = [];
+    _chatEnemyWarning=0;_chatEnemyName='';
     activeWeapon='default';
     unlockedWeapons.clear(); unlockedWeapons.add('default');
     ship={x:Math.floor(WW/2),y:Math.floor(WH/2),vx:0,vy:0,angle:0};
@@ -5734,6 +5855,8 @@ function startSpace() {
   function loop() {
     if(!_spaceRunning) return;
     frame++;
+    window._spaceGameActive = (state==='playing' && !_spaceInShop && !_paused);
+    if(window._spaceGameActive) _processTwitchQueue();
 
     const shopOpen=document.getElementById('spaceShop').style.display==='flex';
 
@@ -5957,7 +6080,7 @@ function startSpace() {
       }
 
       // Every 3 minutes: spawn a TITAN
-      const curMinMark=Math.floor(survivalFrames/10800);
+      const curMinMark=Math.floor(survivalFrames/10800); // exactly every 3 min
       if(curMinMark>0&&curMinMark>lastTitanMinute){
         lastTitanMinute=curMinMark;
         spawnTitan();
@@ -6043,7 +6166,9 @@ function startSpace() {
         // Tick slow/deepFreeze/burn timers
         if(e.slowLinger>0){ e.slowLinger--; if(e.slowLinger<=0){e.slowTimer=0;e._slowPct=undefined;} }
         if(e.slowTimer>0) e.slowTimer--;
-        // Deep freeze timer decays when not being hit
+        if(e.deepFrozen>0){ e.deepFrozen--; e.vx=0; e.vy=0; } // freeze this enemy only
+        if(e._deepFreezeTimer>0&&!e.deepFrozen){e._deepFreezeTimer=Math.max(0,e._deepFreezeTimer-1);}
+        // Deep freeze timer decay
         if(e.burnTimer>0){ e.burnTimer--; if(e.burnTimer%60===0){const bd=e._burnFlat||1;e.hp-=bd;spawnParticles(e.x,e.y,'#ff4400',3);if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();const bc2=Math.ceil(Math.min(3,e.sizeScale||1));for(let bi=0;bi<bc2;bi++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');enemies=enemies.filter(x=>x!==e);return;}} }
         if(isFrozen){e.vx=0;e.vy=0;return;}
         const slowMult = e.slowTimer>0 ? (1-(e._slowPct||0.20)) : 1.0; // dynamic slow %
@@ -6142,7 +6267,17 @@ function startSpace() {
                 sfxHit();
                 if(b.burns){e.burnTimer=b._burnDur||180;e._burnFlat=b._burnFlat||1;}
                 if(b.freezing){
-                  e.slowTimer=Math.min(360,(e.slowTimer||0)+120);e.slowLinger=200;
+                  e.slowTimer=Math.min(60,(e.slowTimer||0)+60);e.slowLinger=60;
+                  if(b.deepFreeze){
+                    e._deepFreezeTimer=(e._deepFreezeTimer||0)+1;
+                    e._deepFreezeTimer=Math.min(e._deepFreezeTimer,250);
+                    if(e._deepFreezeTimer>=240&&!e.deepFrozen){
+                      e.deepFrozen=120; // 2s freeze for this enemy only
+                      e._deepFreezeTimer=0;
+                      spawnParticles(e.x,e.y,'#88ddff',20);
+                      playTone(330,'sine',0.10,0.2);
+                    }
+                  }
 
                 }
               }
@@ -6189,8 +6324,16 @@ function startSpace() {
               sfxHit();
               if(b.burns){e.burnTimer=b._burnDur||180;e._burnFlat=b._burnFlat||1;}
               if(b.freezing){
-                e.slowTimer=Math.min(180,(e.slowTimer||0)+60);
-                e.slowLinger=180;
+                e.slowTimer=Math.min(60,(e.slowTimer||0)+60);e.slowLinger=60;
+                if(b.deepFreeze){
+                  e._deepFreezeTimer=(e._deepFreezeTimer||0)+1;
+                  e._deepFreezeTimer=Math.min(e._deepFreezeTimer,250);
+                  if(e._deepFreezeTimer>=240&&!e.deepFrozen){
+                    e.deepFrozen=120;e._deepFreezeTimer=0;
+                    spawnParticles(e.x,e.y,'#88ddff',20);
+                    playTone(330,'sine',0.10,0.2);
+                  }
+                }
                 e._slowPct=b._slowPct||0.20;
 
               }
@@ -7203,6 +7346,23 @@ function startSpace() {
     }
 
     // Titan warning
+    if(_chatEnemyWarning>0){
+      _chatEnemyWarning--;
+      const _cew=_chatEnemyWarning;
+      const _cFlash=Math.floor(_cew/8)%2===0; // flash every 8 frames
+      if(_cFlash){
+        ctx.save();
+        ctx.textAlign='center';
+        const _cwY=Math.floor(H*0.14);
+        const _cwFontPx=Math.min(22,Math.floor(W*0.04));
+        ctx.font=`900 ${_cwFontPx}px monospace`;
+        ctx.shadowColor='#ff2222';ctx.shadowBlur=18;
+        ctx.fillStyle='#ff4444';
+        ctx.globalAlpha=Math.min(1,_cew/30);
+        ctx.fillText(`⚠ ${_chatEnemyName} the Doubter incoming! ⚠`,W/2,_cwY);
+        ctx.shadowBlur=0;ctx.restore();
+      }
+    }
     if(_titanWarning>0){
       ctx.save();
       ctx.globalAlpha=(_titanWarning%20<10)?0.25:0;
