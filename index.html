@@ -4661,7 +4661,7 @@ function startSpace() {
     {key:'enemySwarm',  label:'👹 Enemy Swarm',      desc:'+15% more enemies & +10% coin', maxLvl:20, cost:l=>Math.floor(3+l*l*0.8+l*2)},
     {key:'riskReward',  label:'💰 Risk & Reward',    desc:'Enemies +20% hp, +20% coins',   maxLvl:20, cost:l=>Math.floor(6+l*l*1.6+l*4)},
     {key:'pierce',      label:'🔫 Penetration',     desc:'+1 enemy pierced (laser/flame/ice always pierce)', maxLvl:5, cost:l=>Math.floor(10+l*l*4+l*6)},
-    {key:'weaponSlots', label:'🗡️ I Need More Weapons', desc:'Unlock extra weapon slots', maxLvl:2, cost:l=>[120,200][l]||999},
+    {key:'weaponSlots', label:'🗡️ I Need More Weapons', desc:'Unlock extra weapon slots', maxLvl:3, cost:l=>[120,200,1000][l]||999},
   ];
 
   let coins = window._spaceCoins||0;
@@ -4809,9 +4809,9 @@ function startSpace() {
     const maxSlots = getMaxWeaponSlots();
     if(activeWeapons.includes(key)) return; // already equipped
     if(activeWeapons.length < maxSlots) {
-      activeWeapons.push(key); // add to new slot
+      activeWeapons.push(key);
     } else {
-      activeWeapons[0] = key; // replace slot 0
+      activeWeapons[0] = key; // replace first slot
     }
     activeWeapon = activeWeapons[0];
     window._spaceWeapon = activeWeapon;
@@ -4820,9 +4820,8 @@ function startSpace() {
   // Deequip: remove weapon from all slots, compact the array (no 'default' gaps)
   window.spaceDeequipWeapon = function(key) {
     activeWeapons = activeWeapons.filter(w => w !== key);
-    if(activeWeapons.length === 0) activeWeapons = ['default']; // must have at least 1
-    activeWeapon = activeWeapons[0];
-    window._spaceWeapon = activeWeapon;
+    activeWeapon = activeWeapons[0] || null;
+    window._spaceWeapon = activeWeapon || 'none';
     renderShopGrid();
   };
   window.spaceBuyTier2 = function(weaponKey) {
@@ -4842,8 +4841,7 @@ function startSpace() {
     saveCoins(coins-cost); upgrades[key]=lvl+1; renderShopGrid();
     if(key==='maxHp'){lives=Math.min(6+upgrades.maxHp,lives+1);updateHeartsDisplay(lives,silverLives,getMaxHp());}
     if(key==='weaponSlots'){
-      // Expand activeWeapons array to new max
-      while(activeWeapons.length<getMaxWeaponSlots()) activeWeapons.push('default');
+      // Just expand capacity — don't auto-fill with 'default'
       sfxPowerup();
     }
   };
@@ -5136,13 +5134,13 @@ function startSpace() {
       const sd=dmg*8+6;
       bullets.push({
         laser:true, x:ship.x, y:ship.y, angle:baseAngle,
-        dmg:sd, life:8, maxLife:8,
+        dmg:sd, life:0, maxLife:12,
         width: (upgrades.tier2_sniper?(sz*38+18+10):(sz*8+5)), // base -40%, tier2 +10
         color:'#ff6644', weaponType:'sniper',
         hitEnemies:new Set(),
         bounceCount: upgrades.tier2_sniper?1:0, bounced: false,
       });
-      setCd(Math.floor((upgrades.tier2_sniper?44:102)*rapidMod)); // base -70% slower attack speed
+      setCd(Math.floor((upgrades.tier2_sniper?53:122)*rapidMod)); // laser -20% more
       sfxShoot(); return;
 
     } else if(wKey==='minigun'){
@@ -5150,10 +5148,10 @@ function startSpace() {
       const mgSpread=upgrades.tier2_minigun?0.52:0.153; // tier2 even wider spread
       for(let mi=0;mi<mgCount;mi++){
         const spread=(Math.random()-0.5)*mgSpread;
-        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*18*rm,vy:Math.sin(baseAngle+spread)*18*rm,dmg:Math.max(1,Math.floor(dmg*0.275)),size:sz*0.65,color:'#fbbf24',weaponType:'minigun',pierce:upgrades.pierce||0}); // -50% dmg
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*18*rm,vy:Math.sin(baseAngle+spread)*18*rm,dmg:Math.max(1,Math.floor(dmg*0.08)),size:sz*0.65,color:'#fbbf24',weaponType:'minigun',pierce:upgrades.pierce||0}); // -50% dmg
       }
       _minigunShooting=true;
-      setCd(Math.floor((upgrades.tier2_minigun?2.88:5.62)*rapidMod)); // default 30% slower
+      setCd(Math.floor((upgrades.tier2_minigun?3.7:7.3)*rapidMod)); // -30% more
 
     } else if(wKey==='towerGun'){
       const hasTier2=!!upgrades.tier2_towerGun;
@@ -5170,7 +5168,7 @@ function startSpace() {
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:dmg,size:bulletSz,color:col,weaponType:'dual',pierce:upgrades.pierce||0});
       }
       if(isDoubleBurst) spawnParticles(ship.x,ship.y,'#e879f9',10);
-      setCd(Math.floor(44*rapidMod));
+      setCd(Math.floor(70*rapidMod)); // -60% attack speed
 
     } else if(wKey==='flamethrower'){
       const spread=upgrades.tier2_flamethrower?0.85:0.45;
@@ -5180,11 +5178,11 @@ function startSpace() {
         const spd=(6+Math.random()*4.5)*rangeBonus*rm;
         const life=(30+Math.random()*18)*rangeBonus*rm;
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,
-          dmg:Math.max(1,Math.floor(dmg*0.315)), // -30% base dmg, burn is the focus
+          dmg:Math.max(1,Math.floor(dmg*0.6)), // 60% of base dmg, burn focus
           size:sz*1.6,color:'#ff4400',flame:true,life,maxLife:life,
           burns:true, // always burns now
-          _burnDur:upgrades.tier2_flamethrower?240:180,
-          _burnDmg:upgrades.tier2_flamethrower?3:2,
+          _burnDur:upgrades.tier2_flamethrower?360:180,
+          _burnDmg:1, // 1 dmg/s for both tiers
         });
       }
       setCd(Math.floor(5*rapidMod));
@@ -5196,26 +5194,27 @@ function startSpace() {
         const a=baseAngle+(i-(count-1)/2)*(spread/(count-1));
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*12*rm,vy:Math.sin(a)*12*rm,dmg:Math.max(1,Math.floor(dmg*0.80)),size:sz,color:'#4ade80',weaponType:'multi',pierce:upgrades.pierce||0}); // -20% dmg
       }
-      setCd(Math.floor(27*rapidMod)); // -50% attack speed total
+      setCd(Math.floor(46*rapidMod)); // -70% attack speed total
 
     } else if(wKey==='frozenStaff'){
       const spread=upgrades.tier2_frozenStaff?0.65:0.40;
       for(let i=0;i<3;i++){
         const a=baseAngle+(Math.random()-0.5)*spread;
-        const spd=(5+Math.random()*3.5)*1.12*rm; // +12% range base
-        const life=(28+Math.random()*16)*1.12*rm;
+        const rangeF=upgrades.tier2_frozenStaff?1.40:1.12;
+        const spd=(5+Math.random()*3.5)*rangeF*rm;
+        const life=(28+Math.random()*16)*rangeF*rm;
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:Math.max(1,Math.floor(dmg*0.35)),size:sz*1.4,color:'#88ddff',flame:true,life,maxLife:life,freezing:true,deepFreeze:!!upgrades.tier2_frozenStaff});
       }
       const _ac=getACtx();if(_ac){
         [480,640,820].forEach((f,i)=>setTimeout(()=>{
-          const g=_ac.createGain();g.gain.setValueAtTime(getSfxVol()*0.09,_ac.currentTime);
+          const g=_ac.createGain();g.gain.setValueAtTime(getSfxVol()*0.035,_ac.currentTime);
           g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+0.12);
           const o=_ac.createOscillator();o.type='sine';o.frequency.setValueAtTime(f,_ac.currentTime);
           o.frequency.linearRampToValueAtTime(f*1.15,_ac.currentTime+0.08);
           o.connect(g);g.connect(_ac.destination);o.start();o.stop(_ac.currentTime+0.15);
         },i*18));
       }
-      setCd(Math.floor(9*rapidMod));
+      setCd(Math.floor(15*rapidMod)); // -70% slower
 
     } else {
       // Pistol — auto-aim; multishot upgrade adds bullets; tier2 = 3 parallel shots
@@ -5651,7 +5650,7 @@ function startSpace() {
         const maxSlots=getMaxWeaponSlots();
         for(let si=0;si<Math.min(maxSlots,activeWeapons.length);si++){
           const wk=activeWeapons[si];
-          if(wk) fireBulletDir(wk, si);
+          if(wk && wk!=='none') fireBulletDir(wk, si);
         }
       }
 
@@ -5668,7 +5667,7 @@ function startSpace() {
         _followers=[];
       }
       _followers.forEach((f,fi)=>{
-        f.angle+=0.0108; // 10% slower orbit (was 0.012)
+        f.angle+=0.00432; // 60% slower orbit
         f.x=ship.x+Math.cos(f.angle)*FOLLOWER_ORBIT_R;
         f.y=ship.y+Math.sin(f.angle)*FOLLOWER_ORBIT_R;
         if(enemies.length>0){
@@ -5678,7 +5677,7 @@ function startSpace() {
           if(nearest&&f.shootTimer<=0){
             const fa=Math.atan2(nearest.y-f.y,nearest.x-f.x);
             bullets.push({x:f.x,y:f.y,vx:Math.cos(fa)*12,vy:Math.sin(fa)*12,dmg:Math.max(1,Math.floor(getBulletDmg()*0.9)),size:getBulletSize(),color:'#f0abfc',fromFollower:true});
-            f.shootTimer=40;
+            f.shootTimer=114; // -65% attack speed
             playTone(900,'square',0.04,0.07);
           }
         }
@@ -5824,7 +5823,7 @@ function startSpace() {
         // Tick slow/deepFreeze/burn timers
         if(e.slowLinger>0){ e.slowLinger--; if(e.slowLinger<=0){e.slowTimer=0;} }
         if(e.slowTimer>0) e.slowTimer--;
-        if(e.burnTimer>0){ e.burnTimer--; if(e.burnTimer%20===0&&e.burnDmg){e.hp-=e.burnDmg;spawnParticles(e.x,e.y,'#ff4400',2);if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;spawnParticles(e.x,e.y,'#ffd700',10);return;}} }
+        if(e.burnTimer>0){ e.burnTimer--; if(e.burnTimer%60===0&&e.burnDmg){e.hp-=e.burnDmg;spawnParticles(e.x,e.y,'#ff4400',2);if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;spawnParticles(e.x,e.y,'#ffd700',10);return;}} }
         if(e.deepFrozen>0){ e.deepFrozen--; e.vx=0; e.vy=0; return; }
         if(isFrozen){e.vx=0;e.vy=0;return;}
         const slowMult = e.slowTimer>0 ? 0.30 : 1.0; // 70% speed reduction when slowed
@@ -5924,7 +5923,7 @@ function startSpace() {
         }
         const cosA=Math.cos(laser.angle), sinA=Math.sin(laser.angle);
         enemies=enemies.map(e=>{
-          if(laser.hitEnemies.has(e)&&laser.life<laser.maxLife-1)return e;
+          if(laser.hitEnemies.has(e)&&laser.life>1)return e;
           const dx=e.x-laser.x, dy=e.y-laser.y;
           const along=dx*cosA+dy*sinA;
           const perp=Math.abs(-dx*sinA+dy*cosA);
@@ -5974,8 +5973,8 @@ function startSpace() {
               sfxHit();
               if(b.burns&&!e.burnTimer){e.burnTimer=b._burnDur||180;e.burnDmg=b._burnDmg||1;}
               if(b.freezing){
-                e.slowTimer=(e.slowTimer||0)+8;
-                e.slowLinger=162;
+                e.slowTimer=Math.min(360,(e.slowTimer||0)+120); // 2s slow on each hit
+                e.slowLinger=200;
                 if(b.deepFreeze){
                   e.deepFreezeHits=(e.deepFreezeHits||0)+1;
                   if(e.deepFreezeHits>=9&&!e.deepFrozen){
@@ -6213,11 +6212,11 @@ function startSpace() {
 
       bullets.forEach(b=>{
         if(b.flame&&b.life!==undefined)b.life--;
-        if(b.laser)b.life--;
+        if(b.laser)b.life++;
       });
       bullets=bullets.filter(b=>{
         if(b.flame)return b.life>0;
-        if(b.laser)return b.life>0;
+        if(b.laser)return b.life<b.maxLife;
         return b.x>cam.x-80&&b.x<cam.x+W+80&&b.y>cam.y-80&&b.y<cam.y+H+80;
       });
       enemies=enemies.filter(e=>e.x>cam.x-300&&e.x<cam.x+W+300&&e.y>cam.y-300&&e.y<cam.y+H+300);
