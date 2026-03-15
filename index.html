@@ -1380,7 +1380,7 @@
             <span id="spaceHeartsDisplay" style="font-size:16px;letter-spacing:1px">❤️❤️❤️</span><span id="spaceLives" style="display:none">3</span>
             <div style="display:flex;align-items:center;gap:5px;border-left:1px solid #1a1a3a;padding-left:10px">
               <span style="font-family:var(--mono);font-size:11px;color:#aaa;font-weight:700">MUSIC</span>
-              <input id="spaceMusicVol" type="range" min="0" max="100" value="18" oninput="setSpaceMusicVol(this.value)" style="width:108px;accent-color:#7c5cfc;cursor:pointer">
+              <input id="spaceMusicVol" type="range" min="0" max="100" value="12" oninput="setSpaceMusicVol(this.value)" style="width:108px;accent-color:#7c5cfc;cursor:pointer">
             </div>
             <button id="spaceSkipBtn" onclick="if(!_spaceInShop)_loadBgTrack(_nextBgTrack())" title="Skip to next song (disabled in shop)" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:15px;line-height:1;padding:3px 8px;border-radius:4px" onmouseover="if(!_spaceInShop)this.style.color='#fff'" onmouseout="this.style.color='#aaa'">⏭</button>
             <div style="display:flex;align-items:center;gap:5px;border-left:1px solid #1a1a3a;padding-left:10px">
@@ -3902,10 +3902,21 @@ function startFlappy() {
     emoteImgs = [img];
   }
   // Static-only pool for pipe pillars (animated emotes flicker on canvas drawImage)
-  const pipeEmoteImgs = emoteImgs.filter(i => !i._isAnimated && i.complete && i.naturalWidth > 0);
+  // Build pipe pool once — only loaded images, shuffled for variety
+  let _pipePool = emoteImgs.filter(i => i && i.complete && i.naturalWidth > 0);
+  let _pipePoolIdx = 0;
   const _getPipeEmote = () => {
-    const pool = pipeEmoteImgs.length > 0 ? pipeEmoteImgs : emoteImgs;
-    return pool[Math.floor(Math.random() * pool.length)];
+    // Refresh pool if more images have loaded since last check
+    if (_pipePool.length === 0) {
+      _pipePool = emoteImgs.filter(i => i && i.complete && i.naturalWidth > 0);
+      _pipePool.sort(() => Math.random() - 0.5);
+      _pipePoolIdx = 0;
+    }
+    if (_pipePool.length === 0) return emoteImgs[0] || null;
+    // Cycle through pool sequentially so each pipe gets a different emote
+    const img = _pipePool[_pipePoolIdx % _pipePool.length];
+    _pipePoolIdx++;
+    return img;
   };
 
 
@@ -3999,14 +4010,18 @@ function startFlappy() {
     pipes.push({ x: W + 10, gapY, eImg, scored: false });
   }
 
+  // Pre-cached fallback image (stable, never flickers)
+  let _pipeFallbackImg = null;
+  function _getPipeFallback() {
+    if (_pipeFallbackImg && _pipeFallbackImg.complete && _pipeFallbackImg.naturalWidth > 0) return _pipeFallbackImg;
+    const loaded = emoteImgs.filter(i => i && i.complete && i.naturalWidth > 0);
+    _pipeFallbackImg = loaded.length > 0 ? loaded[0] : null;
+    return _pipeFallbackImg;
+  }
   function drawPipeSection(img, px, py, pw, ph) {
     if (ph <= 0) return;
-    // If assigned image failed to load, try a random loaded one from the pool
-    let drawImg = img;
-    if (!drawImg || !drawImg.complete || !drawImg.naturalWidth) {
-      const loaded = emoteImgs.filter(i => i && i.complete && i.naturalWidth > 0);
-      drawImg = loaded.length > 0 ? loaded[Math.floor(Math.random()*loaded.length)] : null;
-    }
+    // Use assigned image or stable fallback (never random per-frame)
+    let drawImg = (img && img.complete && img.naturalWidth > 0) ? img : _getPipeFallback();
     ctx.save();
     ctx.beginPath();
     ctx.rect(px, py, pw, ph);
@@ -4294,6 +4309,8 @@ const _origCloseFlappy = closeFlappy;
 function closeFlappy() {
   _flappyRunning = false;
   if (_flappyRAF) { cancelAnimationFrame(_flappyRAF); _flappyRAF = null; }
+  // Stop death sound
+  if (_currentDeathSfxGlobal) { try { _currentDeathSfxGlobal.pause(); _currentDeathSfxGlobal.currentTime=0; } catch(e){} _currentDeathSfxGlobal=null; }
   const c = document.getElementById('flappyCanvas');
   if (c && c._flappyCleanup) { c._flappyCleanup(); c._flappyCleanup = null; }
   document.getElementById('flappyGroundEmotes')?.remove();
@@ -4392,7 +4409,7 @@ function _loadBgTrack(track) {
   if (!_spaceMusicPlayer) return;
   try {
     _spaceMusicPlayer.loadVideoById(track.id);
-    const vol = parseInt(document.getElementById('spaceMusicVol')?.value||18);
+    const vol = parseInt(document.getElementById('spaceMusicVol')?.value||12);
     _spaceMusicPlayer.setVolume(vol);
     if (_spaceMusicMuted || _spaceAllMuted) _spaceMusicPlayer.mute();
     else _spaceMusicPlayer.unMute();
@@ -4402,7 +4419,7 @@ function _loadBgTrack(track) {
 }
 
 function initSpaceMusic() {
-  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||18);
+  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||12);
   _bgTrackIdx = Math.floor(Math.random() * _BG_TRACKS.length); // random on each game open
   const startTrack = _BG_TRACKS[_bgTrackIdx];
   // Main music
@@ -4467,14 +4484,14 @@ function initSpaceMusic() {
 
 function switchToShopMusic() {
   _spaceInShop = true;
-  const vol = Math.floor(parseInt(document.getElementById('spaceMusicVol')?.value||18) * 0.75);
+  const vol = Math.floor(parseInt(document.getElementById('spaceMusicVol')?.value||12) * 0.75);
   try { _spaceMusicPlayer?.pauseVideo(); } catch(e){}
   try { if(_spaceShopMusicPlayer?.setVolume) { if(!_spaceMusicMuted){_spaceShopMusicPlayer.unMute();_spaceShopMusicPlayer.setVolume(vol);} _spaceShopMusicPlayer.playVideo(); } } catch(e){}
 }
 
 function switchToMainMusic() {
   _spaceInShop = false;
-  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||18);
+  const vol = parseInt(document.getElementById('spaceMusicVol')?.value||12);
   try { _spaceShopMusicPlayer?.pauseVideo(); } catch(e){}
   try { if(_spaceMusicPlayer?.setVolume) { if(!_spaceMusicMuted){_spaceMusicPlayer.unMute();_spaceMusicPlayer.setVolume(vol);} _spaceMusicPlayer.playVideo(); } } catch(e){}
 }
@@ -4493,7 +4510,7 @@ function initDeathSfx() {
     videoId: 'j_nV2jcTFvA',
     playerVars: { autoplay:0, controls:0, fs:0, origin:location.origin },
     events: {
-      onReady: e => { e.target.setVolume(40); e.target.pauseVideo(); }
+      onReady: e => { e.target.setVolume(25); e.target.pauseVideo(); }
     }
   });
 }
@@ -4501,7 +4518,7 @@ function playDeathSfx() {
   if (!_spaceDeathSfxPlayer) return;
   try {
     _spaceDeathSfxPlayer.seekTo(0, true);
-    _spaceDeathSfxPlayer.setVolume(40);
+    _spaceDeathSfxPlayer.setVolume(25);
     _spaceDeathSfxPlayer.playVideo();
     // Stop after ~4 seconds (the death sound)
     setTimeout(() => { try { _spaceDeathSfxPlayer.pauseVideo(); } catch(e){} }, 4000);
