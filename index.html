@@ -3868,28 +3868,16 @@ function startFlappy() {
 
   // Ground tiles (simple gradient rect)
   // Ground emotes: spawn randomly, scroll left and despawn
-  let _gEmotes = []; // {x, size, img} — scroll left, drawn on canvas
-  let _gEmoteTimer = 0;
+  let _gEmotes = []; // {x, size, img} — scroll left as background characters
+  let _gEmoteSpawnX = W + 40; // next spawn position (tracks when to add next emote)
 
-  // Remove any leftover overlay
-  document.getElementById('flappyGroundEmotes')?.remove();
-
-  function spawnGroundEmote() {
-    const count = 3 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < count; i++) {
-      const idx = Math.floor(Math.random() * emoteImgs.length);
-      const size = 38 + Math.floor(Math.random() * 22);
-      _gEmotes.push({
-        x: Math.random() * (W - size), // random position within visible canvas
-        size,
-        img: emoteImgs[idx]
-      });
+  function _gEmoteInPipe(x, size) {
+    // Check if this x position overlaps any pipe
+    for (const p of pipes) {
+      if (x + size > p.x - 8 && x < p.x + PIPE_W + 8) return true;
     }
-    _gEmoteTimer = 800 + Math.floor(Math.random() * 400); // respawn new batch every ~15s
+    return false;
   }
-
-  // Pre-fill ground with emotes immediately
-  spawnGroundEmote();
 
   function drawGround() {
     ctx.fillStyle = '#4caf50';
@@ -3898,10 +3886,23 @@ function startFlappy() {
     ctx.fillRect(0, H - 60, W, 5);
 
     if (state === 'playing') {
-      _gEmoteTimer--;
-      if (_gEmoteTimer <= 0) {
-        _gEmotes = []; // clear old batch
-        spawnGroundEmote(); // spawn fresh batch
+      // Scroll all ground emotes left
+      _gEmotes.forEach(g => { g.x -= PIPE_SPEED; });
+      // Remove ones that scrolled off screen
+      _gEmotes = _gEmotes.filter(g => g.x > -g.size - 10);
+
+      // Spawn a new emote when the last one is far enough from the right edge
+      // and we have fewer than 4 visible
+      const visible = _gEmotes.filter(g => g.x < W + g.size);
+      const rightmost = visible.length > 0 ? Math.max(...visible.map(g => g.x + g.size)) : 0;
+      if (visible.length < 4 && rightmost < W - 80) {
+        const size = 44 + Math.floor(Math.random() * 22);
+        const spawnX = W + size;
+        // Only spawn if not inside a pipe
+        if (!_gEmoteInPipe(spawnX, size)) {
+          const idx = Math.floor(Math.random() * emoteImgs.length);
+          _gEmotes.push({ x: spawnX, size, img: emoteImgs[idx] });
+        }
       }
     }
 
@@ -4053,7 +4054,7 @@ function startFlappy() {
     frameCount = 0;
     pipeEmoteIdx = Math.floor(Math.random() * emoteImgs.length);
     _lastGapY = -1;
-    _gEmotes = []; _gEmoteTimer = 60;
+    _gEmotes = []; _gEmoteSpawnX = W + 40;
     if (document.getElementById('flappyGroundEmotes')) document.getElementById('flappyGroundEmotes').remove();
     state = 'waiting';
     document.getElementById('flappyScore').textContent = '0';
@@ -4849,7 +4850,7 @@ function startSpace() {
   function getShootCd()     {
     const base=Math.max(5,Math.floor(88-upgrades.atkSpeed*2)); // base pistol cd
     const t2Mod = upgrades.tier2_default ? Math.max(4,Math.floor(base*0.78)) : base;
-    const friendsMod = (activeWeapon==='friends'||activeWeapons.includes('friends')) ? Math.ceil(t2Mod*0.625) : t2Mod; // +60% faster when friends active
+    const friendsMod = (activeWeapon==='friends'||activeWeapons.includes('friends')) ? Math.ceil(t2Mod*1.15) : t2Mod; // -15% attack speed when friends active
     return friendsMod;
   }
   function getBulletCount() { return 1+upgrades.multishot+(_hasPowerup('triple')?2:0)+(_hasPowerup('double')?1:0); }
@@ -4930,7 +4931,7 @@ function startSpace() {
     }
     if(now-_lastSfxShootTime<250) return;
     _lastSfxShootTime=now;
-    if(activeWeapon==='towerGun'){[0,60,120].forEach((d,i)=>setTimeout(()=>playTone(700-i*80,'square',0.04,0.14),i*15));return;}
+    if(activeWeapon==='towerGun'){playTone(500,'square',0.012,0.08);return;}
     if(activeWeapon==='flamethrower'){
       const ac=getACtx();if(!ac)return;const v=getSfxVol()*0.12;if(v<=0)return;
       const buf=ac.createBuffer(1,Math.floor(ac.sampleRate*0.06),ac.sampleRate);
@@ -5134,8 +5135,8 @@ function startSpace() {
       const sd=Math.max(1,(dmg*8+6)*0.60); // -40% laser dmg, min 1
       bullets.push({
         laser:true, x:ship.x, y:ship.y, angle:baseAngle,
-        dmg:sd, life:0, maxLife:12,
-        width: (upgrades.tier2_sniper?(sz*30+14):(sz*8+5)), // tier2 20% thinner
+        dmg:sd, life:0, maxLife:3, // brief shot flash
+        width: (upgrades.tier2_sniper?(sz*30+14):(sz*24+15)), // base 3x width
         color:'#ff6644', weaponType:'sniper',
         hitEnemies:new Set(),
         bounceCount: upgrades.tier2_sniper?1:0, bounced: false,
@@ -5145,13 +5146,14 @@ function startSpace() {
 
     } else if(wKey==='minigun'){
       const mgCount=upgrades.tier2_minigun?9:5; // 5 default bullets
-      const mgSpread=upgrades.tier2_minigun?0.52:0.153; // tier2 even wider spread
+      const mgSpread=upgrades.tier2_minigun?0.31:0.092; // -40% spread
       for(let mi=0;mi<mgCount;mi++){
         const spread=(Math.random()-0.5)*mgSpread;
-        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*18*rm,vy:Math.sin(baseAngle+spread)*18*rm,dmg:0.2,size:sz*0.65,color:'#fbbf24',weaponType:'minigun',pierce:upgrades.pierce||0,fracDmg:true}); // 0.2 dmg per bullet
+        const _mgLife=Math.floor(18); // range limited: life frames
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*7.2*rm,vy:Math.sin(baseAngle+spread)*7.2*rm,dmg:0.15,size:sz*0.55,color:'#fbbf24',weaponType:'minigun',pierce:upgrades.pierce||0,fracDmg:true,life:_mgLife,maxLife:_mgLife}); // -60% speed=-60% range, -15% size
       }
       _minigunShooting=true;
-      setCd(Math.floor((upgrades.tier2_minigun?4.8:9.5)*rapidMod)); // -30% more
+      setCd(Math.floor((upgrades.tier2_minigun?7.4:14.9)*rapidMod)); // -20% more
 
     } else if(wKey==='towerGun'){
       const hasTier2=!!upgrades.tier2_towerGun;
@@ -5164,8 +5166,8 @@ function startSpace() {
         const a=_rotOff+(i/shotCount)*Math.PI*2;
         const spd=isDoubleBurst?15*rm:13*rm;
         const bulletSz=isDoubleBurst?sz*1.35:sz*1.1;
-        const _rainbowHues=[0,30,60,120,180,210,270,300,330,45,90,150,240,285,315,195];
-        const col=`hsl(${_rainbowHues[i%_rainbowHues.length]},100%,65%)`;
+        const _shotHue=(_towerGunBurstCount*47)%360; // different hue each shot
+        const col=`hsl(${(_shotHue+i*(360/shotCount))%360},100%,65%)`;
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:dmg,size:bulletSz,color:col,weaponType:'dual',pierce:upgrades.pierce||0});
       }
       if(isDoubleBurst) spawnParticles(ship.x,ship.y,'#e879f9',10);
@@ -5195,7 +5197,7 @@ function startSpace() {
         const a=baseAngle+(i-(count-1)/2)*(spread/(count-1));
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*12*rm,vy:Math.sin(a)*12*rm,dmg:Math.max(1,Math.floor(dmg*0.80)),size:sz,color:'#4ade80',weaponType:'multi',pierce:upgrades.pierce||0}); // -20% dmg
       }
-      setCd(Math.floor(90*rapidMod)); // -40% more on base
+      setCd(Math.floor(113*rapidMod)); // -25% more
 
     } else if(wKey==='frozenStaff'){
       const spread=upgrades.tier2_frozenStaff?0.65:0.40;
@@ -5209,7 +5211,7 @@ function startSpace() {
       // Frost/wind SFX: white noise burst + high shimmer
       const _ac=getACtx();if(_ac){
         // White noise burst (wind)
-        const _nbuf=_ac.createBuffer(1,_ac.sampleRate*0.18,_ac.sampleRate);
+        const _nbuf=_ac.createBuffer(1,Math.floor(_ac.sampleRate*0.18),_ac.sampleRate);
         const _nd=_nbuf.getChannelData(0);for(let _ni=0;_ni<_nd.length;_ni++)_nd[_ni]=(Math.random()*2-1)*0.4;
         const _ns=_ac.createBufferSource();_ns.buffer=_nbuf;
         const _ng=_ac.createGain();_ng.gain.setValueAtTime(getSfxVol()*0.12,_ac.currentTime);
@@ -5218,7 +5220,7 @@ function startSpace() {
         _ns.connect(_nf);_nf.connect(_ng);_ng.connect(_ac.destination);_ns.start();_ns.stop(_ac.currentTime+0.18);
         // Ice shimmer (high freq sine)
         [1800,2400,3200].forEach((f,i)=>setTimeout(()=>{
-          const g=_ac.createGain();g.gain.setValueAtTime(getSfxVol()*0.025,_ac.currentTime);
+          const g=_ac.createGain();g.gain.setValueAtTime(getSfxVol()*0.020,_ac.currentTime); // -20%
           g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+0.1);
           const o=_ac.createOscillator();o.type='sine';o.frequency.setValueAtTime(f,_ac.currentTime);
           o.frequency.exponentialRampToValueAtTime(f*0.7,_ac.currentTime+0.1);
@@ -5233,8 +5235,10 @@ function startSpace() {
       const count=getBulletCount();
       const offsets=count===1?[0]:count===2?[-0.12,0.12]:count===3?[-0.2,0,0.2]:[-0.25,-0.08,0.08,0.25];
       const p=upgrades.pierce||0;
+      const _fActive=activeWeapons.includes('friends')||activeWeapon==='friends';
+      const _fSz=_fActive?sz*6:sz;
       offsets.forEach(da=>{
-        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*11*rm,vy:Math.sin(baseAngle+da)*11*rm,dmg:dmg,size:sz,pierce:p});
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*11*rm,vy:Math.sin(baseAngle+da)*11*rm,dmg:dmg,size:_fSz,pierce:p,circle:_fActive});
       });
       if(upgrades.tier2_default){
         // 3 parallel shots: center + offset perpendicular to aim direction
@@ -6022,7 +6026,41 @@ function startSpace() {
 
       // Bullet-enemy — pierce allows hitting 1+pierce enemies before bullet disappears
       bullets=bullets.filter(b=>{
-        if(b.laser||b.flame) return true; // lasers/flames handled separately
+        if(b.laser) return true; // laser handled separately
+        if(b.flame){
+          // Flame/Frozen staff: circle collision like normal bullets but keeps flying
+          enemies=enemies.map(e=>{
+            const dx=b.x-e.x,dy=b.y-e.y;
+            if(Math.sqrt(dx*dx+dy*dy)<e.size*0.55+b.size*4){
+              if(e.shieldHp>0){e.shieldHp--;spawnParticles(e.x,e.y,'#60ddff',4);}
+              else{
+                if(b.fracDmg){e._hpFrac=(e._hpFrac||0)+b.dmg;const _fd=Math.floor(e._hpFrac);if(_fd>0){e.hp-=_fd;e._hpFrac-=_fd;}}else{e.hp-=b.dmg;}
+                spawnParticles(e.x,e.y,b.freezing?'#88ddff':'#ff6600',4);
+                sfxHit();
+                if(b.burns&&!e.burnTimer){e.burnTimer=b._burnDur||180;e.burnPct=b._burnPct||0.05;}
+                if(b.freezing){
+                  e.slowTimer=Math.min(360,(e.slowTimer||0)+120);e.slowLinger=200;
+                  if(b.deepFreeze){e.deepFreezeHits=(e.deepFreezeHits||0)+1;if(e.deepFreezeHits>=9&&!e.deepFrozen){e.deepFrozen=90;e.deepFreezeHits=0;spawnParticles(e.x,e.y,'#88ddff',20);}}
+                }
+              }
+              if(e.hp<=0){
+                score++;document.getElementById('spaceScore').textContent=score;
+                spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
+                const r2=Math.random();let du=false;
+                if(r2<0.0173){spawnDrop(e.x,e.y,'heart');du=true;}
+                else if(r2<0.0288){spawnDrop(e.x,e.y,'silverheart');du=true;}
+                else if(r2<0.0518){spawnDrop(e.x,e.y,'freeze');du=true;}
+                else if(r2<0.0633){spawnDrop(e.x,e.y,'magnet');du=true;}
+                else if(r2<0.0863){const rp=['double','triple','rapid','shield','aura'];spawnDrop(e.x,e.y,rp[Math.floor(Math.random()*rp.length)]);du=true;}
+                const bc=du?0:(Math.random()<0.05?3:Math.random()<0.20?2:1);
+                for(let ci=0;ci<bc;ci++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');
+                return null;
+              }
+            }
+            return e;
+          }).filter(Boolean);
+          return true; // flame bullets keep flying until life expires
+        }
         enemies=enemies.map(e=>{
           if((b._pierceHits||0)>=(1+(b.pierce||0))) return e; // exceeded pierce count
           const dx=b.x-e.x,dy=b.y-e.y;
@@ -6032,7 +6070,7 @@ function startSpace() {
               e.shieldHp--;
               spawnParticles(e.x,e.y,'#60ddff',8);playTone(800,'sine',0.05,0.1);
             } else {
-              e.hp-=b.dmg;
+              if(b.fracDmg){e._hpFrac=(e._hpFrac||0)+b.dmg;const _fd=Math.floor(e._hpFrac);if(_fd>0){e.hp-=_fd;e._hpFrac-=_fd;}}else{e.hp-=b.dmg;}
               spawnParticles(e.x,e.y, b.freezing?'#88ddff':'#fc5c7d', 5);
               sfxHit();
               if(b.burns&&!e.burnTimer){e.burnTimer=b._burnDur||180;e.burnPct=b._burnPct||0.05;}
@@ -6275,6 +6313,7 @@ function startSpace() {
       bullets=bullets.filter(b=>{
         if(b.flame)return b.life>0;
         if(b.laser)return b.life<b.maxLife;
+        if(b.life!==undefined){b.life--;if(b.life<=0)return false;}
         return b.x>cam.x-80&&b.x<cam.x+W+80&&b.y>cam.y-80&&b.y<cam.y+H+80;
       });
       enemies=enemies.filter(e=>{
@@ -6412,7 +6451,7 @@ function startSpace() {
       ctx.fillStyle=hpPct>0.5?'#4ade80':hpPct>0.25?'#fbbf24':'#f87171';
       ctx.fillRect(as.x-as.size*0.5,as.y+as.size*0.52,as.size*hpPct,6);
       ctx.globalAlpha=0.7;ctx.font='bold 9px monospace';ctx.textAlign='center';ctx.fillStyle='#ccc';
-      ctx.fillText(`💀 ${as.hp}/${as.maxHp}`,as.x,as.y+as.size*0.52+17);ctx.textAlign='left';
+      ctx.fillText(`💀 ${Math.floor(as.hp)}/${Math.floor(as.maxHp)}`,as.x,as.y+as.size*0.52+17);ctx.textAlign='left';
       ctx.restore();
     });
 
@@ -6676,7 +6715,7 @@ function startSpace() {
         ctx.font=`bold ${thpPx}px monospace`;
         ctx.shadowColor='#000';ctx.shadowBlur=5;
         ctx.fillStyle='#ffcc66';ctx.globalAlpha=1;
-        ctx.fillText(`${e.hp} / ${e.maxHp}`,e.x,bary+barh+thpPx+2);
+        ctx.fillText(`${Math.floor(e.hp)} / ${Math.floor(e.maxHp)}`,e.x,bary+barh+thpPx+2);
         // Emote name line
         const parts=e.titanName.split('\n');
         const tnamePx=Math.floor(e.size*0.11+12);
@@ -6701,7 +6740,7 @@ function startSpace() {
         const hpFontPx=Math.floor(e.size*0.055+9);
         ctx.font=`bold ${hpFontPx}px monospace`;ctx.fillStyle='#fff';ctx.globalAlpha=0.9;
         ctx.shadowColor='#000';ctx.shadowBlur=4;
-        ctx.fillText(`${e.hp} / ${e.maxHp}`,e.x,bary+barh+hpFontPx+1);
+        ctx.fillText(`${Math.floor(e.hp)} / ${Math.floor(e.maxHp)}`,e.x,bary+barh+hpFontPx+1);
         // Boss name — two lines
         const nameParts=e.bossName.split(' — ');
         const nameFontPx=Math.floor(e.size*0.065+10);
