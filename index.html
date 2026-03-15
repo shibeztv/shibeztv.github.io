@@ -1410,6 +1410,7 @@
 
     <!-- FLAPPY SHIBEZ MODAL -->
     <div id="flappyModal" style="display:none;position:fixed;inset:0;z-index:9002;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;padding:20px">
+      <div id="flappyMusicEl" style="display:none"></div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
           <div style="display:flex;flex-direction:column;gap:1px">
@@ -1418,6 +1419,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:12px">
             <span style="font-family:var(--mono);font-size:18px;font-weight:900;color:var(--text)" id="flappyScore">0</span>
+            <button id="flappyMuteBtn" onclick="toggleFlappyMute()" title="Mute/Unmute sounds" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">🔊</button>
             <button onclick="closeFlappy()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
@@ -3745,8 +3747,30 @@ let _flappyEmotes = [];
 let _flappyRunning = false;
 let _flappyRAF = null;
 
+let _flappyMusicPlayer = null;
+const FLAPPY_MUSIC_ID = 'YzdAI3kseTg';
+const FLAPPY_MUSIC_TITLE = '♪ Johann Strauss — Blue Danube';
+const FLAPPY_MUSIC_VOL = 49; // ~70% of 70 (30% quieter)
+
+function initFlappyMusic() {
+  if (_flappyMusicPlayer) return;
+  if (!window.YT || !YT.Player) { setTimeout(initFlappyMusic, 500); return; }
+  _flappyMusicPlayer = new YT.Player('flappyMusicEl', {
+    videoId: FLAPPY_MUSIC_ID,
+    playerVars: { autoplay:0, controls:0, fs:0, loop:1, playlist:FLAPPY_MUSIC_ID },
+    events: {
+      onReady: e => { e.target.setVolume(FLAPPY_MUSIC_VOL); },
+      onStateChange: e => {
+        if(e.data === YT.PlayerState.ENDED) { e.target.seekTo(0,true); e.target.playVideo(); }
+      }
+    }
+  });
+}
+
 async function openFlappyShibez() {
   document.getElementById('flappyModal').style.display = 'flex';
+  initFlappyMusic();
+  try { if(_flappyMusicPlayer?.playVideo) { if(!_flappyMuted){_flappyMusicPlayer.unMute();_flappyMusicPlayer.setVolume(FLAPPY_MUSIC_VOL);} _flappyMusicPlayer.playVideo(); } } catch(e) {}
   if (!_flappyEmotes.length) {
     try {
       const r = await fetch('https://7tv.io/v3/emote-sets/' + FLAPPY_EMOTE_SET);
@@ -3946,9 +3970,17 @@ function startFlappy() {
     return false;
   }
 
-  // Jump SFX
-  const _flapSfx = new Audio('https://www.myinstants.com/media/sounds/gwe-short.mp3');
-  _flapSfx.volume = 0.20;
+  let _flappyMuted = false;
+  window.toggleFlappyMute = function() {
+    _flappyMuted = !_flappyMuted;
+    const btn = document.getElementById('flappyMuteBtn');
+    if(btn) btn.textContent = _flappyMuted ? '🔇' : '🔊';
+    try {
+      if(_flappyMuted) _flappyMusicPlayer?.mute();
+      else { _flappyMusicPlayer?.unMute(); _flappyMusicPlayer?.setVolume(FLAPPY_MUSIC_VOL); }
+    } catch(e) {}
+  };('https://badoge.github.io/soundboard/forsen/peppah/bark.mp3');
+  _flapSfx.volume = 0.35;
   _flapSfx.crossOrigin = 'anonymous';
 
   // Death SFX pool (forsen unlucky sounds)
@@ -3964,6 +3996,7 @@ function startFlappy() {
   let _currentDeathSfx = null;
 
   function playFlappyDeathSfx() {
+    if(_flappyMuted) return;
     if (_currentDeathSfx) { try { _currentDeathSfx.pause(); _currentDeathSfx.currentTime=0; } catch(e){} }
     const url = _deathSfxUrls[Math.floor(Math.random()*_deathSfxUrls.length)];
     _currentDeathSfx = new Audio(url);
@@ -3976,7 +4009,7 @@ function startFlappy() {
     if (state === 'waiting') { state = 'playing'; }
     if (state === 'playing') {
       bird.vy = FLAP;
-      try { _flapSfx.currentTime = 0; _flapSfx.play().catch(()=>{}); } catch(e) {}
+      try { if(!_flappyMuted){_flapSfx.currentTime = 0; _flapSfx.play().catch(()=>{});} } catch(e) {}
     }
     if (state === 'dead') { resetGame(); }
   }
@@ -4032,6 +4065,10 @@ function startFlappy() {
       ctx.font = '12px monospace';
       ctx.fillStyle = '#bbb';
       ctx.fillText('Click to play again', W/2, H/2 + 52);
+      // Song credit
+      ctx.font = '10px monospace';
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.fillText(FLAPPY_MUSIC_TITLE, W/2, H - 18);
     }
     ctx.textAlign = 'left';
   }
@@ -4148,6 +4185,7 @@ function closeFlappy() {
   const c = document.getElementById('flappyCanvas');
   if (c && c._flappyCleanup) { c._flappyCleanup(); c._flappyCleanup = null; }
   document.getElementById('flappyModal').style.display = 'none';
+  try { _flappyMusicPlayer?.pauseVideo(); } catch(e) {}
 }
 
 document.addEventListener('click', e => {
@@ -4570,34 +4608,34 @@ function startSpace() {
   // Track which weapons are unlocked this run
   const unlockedWeapons = new Set(['default']);
   const UPGRADE_DEFS = [
-    {key:'speed',       label:'🚀 Move Speed',      desc:'+8% speed per lvl',             maxLvl:10, cost:l=>Math.floor(3+l*l*1.2+l*2)},
-    {key:'atkSpeed',    label:'⚡ Attack Speed',     desc:'-6% shoot cooldown',            maxLvl:20, cost:l=>Math.floor(3+l*l*0.9+l*2)},
-    {key:'multishot',   label:'💥 I Need More Boolets', desc:'+1 extra bullet',           maxLvl:20, cost:l=>Math.floor(5+l*l*1.5+l*3)},
-    {key:'maxHp',       label:'❤️ Max HP',           desc:'+1 max heart',                  maxLvl:20, cost:l=>Math.floor(4+l*l*1.0+l*2)},
-    {key:'hpRegen',     label:'💚 HP Regen',         desc:'regen 1hp/30s',                 maxLvl:10, cost:l=>Math.floor(5+l*l*1.8+l*3)},
-    {key:'damage',      label:'🔥 Damage',           desc:'+1 bullet damage',              maxLvl:20, cost:l=>Math.floor(5+l*l*1.4+l*3)},
-    {key:'bulletSize',  label:'🔵 Bullet Size',      desc:'+16% bullet hitbox (capped)',   maxLvl:20, cost:l=>Math.floor(6+l*l*1.5+l*3)},
-    {key:'attackRange', label:'📏 Attack Range',     desc:'+8% bullet range/speed per lvl',maxLvl:15, cost:l=>Math.floor(5+l*l*1.6+l*3)},
-    {key:'coinMagnet',  label:'🧲 Coin Range',       desc:'+15% pickup radius',            maxLvl:20, cost:l=>Math.floor(3+l*l*0.8+l*2)},
-    {key:'armor',       label:'🛡 Armor',             desc:'↑block% per lvl',              maxLvl:20, cost:l=>Math.floor(7+l*l*2.0+l*4)},
-    {key:'enemySwarm',  label:'👹 Enemy Swarm',      desc:'+15% more enemies & +10% coin per lvl',maxLvl:20, cost:l=>Math.floor(3+l*l*0.8+l*2)},
-    {key:'riskReward',  label:'💰 Risk & Reward',    desc:'Enemies +20% hp, +20% coins per lvl',  maxLvl:20, cost:l=>Math.floor(6+l*l*1.6+l*4)},
-    {key:'pierce',      label:'🔫 Penetration',     desc:'+1 enemy pierced per shot (laser/flame/ice always pierce)',maxLvl:5, cost:l=>Math.floor(10+l*l*4+l*6)},
-    {key:'weaponSlots', label:'🗡️ I Need More Weapons', desc:'Unlock extra weapon slots (1→4 slots total)', maxLvl:3, cost:l=>[120,200,300][l]||999},
+    {key:'speed',       label:'🚀 Movement Speed',  desc:'+5% movement speed per lvl',    maxLvl:10, cost:l=>Math.floor(3+l*l*1.2+l*2)},
+    {key:'atkSpeed',    label:'⚡ Attack Speed',     desc:'+8% attack speed per lvl',      maxLvl:20, cost:l=>Math.floor(3+l*l*0.9+l*2)},
+    {key:'multishot',   label:'💥 I Need More Boolets', desc:'+1 bullet',                 maxLvl:20, cost:l=>Math.floor(5+l*l*1.5+l*3)},
+    {key:'maxHp',       label:'❤️ Max HP',           desc:'+1 max HP',                     maxLvl:20, cost:l=>Math.floor(4+l*l*1.0+l*2)},
+    {key:'hpRegen',     label:'💚 HP Regen',         desc:'+0.02 HP/s per lvl',            maxLvl:10, cost:l=>Math.floor(5+l*l*1.8+l*3)},
+    {key:'damage',      label:'🔥 Damage',           desc:'+1 DMG per lvl',                maxLvl:20, cost:l=>Math.floor(5+l*l*1.4+l*3)},
+    {key:'bulletSize',  label:'🔵 Size Upgrade',     desc:'+16% size per lvl',             maxLvl:20, cost:l=>Math.floor(6+l*l*1.5+l*3)},
+    {key:'attackRange', label:'📏 Attack Range',     desc:'+8% bullet range/speed',        maxLvl:15, cost:l=>Math.floor(5+l*l*1.6+l*3)},
+    {key:'coinMagnet',  label:'🧲 Pickup Range',     desc:'+15% pickup radius',            maxLvl:20, cost:l=>Math.floor(3+l*l*0.8+l*2)},
+    {key:'armor',       label:'🛡 Armor',             desc:'Chance to negate incoming damage', maxLvl:20, cost:l=>Math.floor(7+l*l*2.0+l*4)},
+    {key:'enemySwarm',  label:'👹 Enemy Swarm',      desc:'+15% more enemies & +10% coin', maxLvl:20, cost:l=>Math.floor(3+l*l*0.8+l*2)},
+    {key:'riskReward',  label:'💰 Risk & Reward',    desc:'Enemies +20% hp, +20% coins',   maxLvl:20, cost:l=>Math.floor(6+l*l*1.6+l*4)},
+    {key:'pierce',      label:'🔫 Penetration',     desc:'+1 enemy pierced (laser/flame/ice always pierce)', maxLvl:5, cost:l=>Math.floor(10+l*l*4+l*6)},
+    {key:'weaponSlots', label:'🗡️ I Need More Weapons', desc:'Unlock extra weapon slots', maxLvl:2, cost:l=>[120,200][l]||999},
   ];
 
   let coins = window._spaceCoins||0;
   function saveCoins(n){coins=n;window._spaceCoins=n;document.getElementById('spaceCoins').textContent=coins;document.getElementById('shopCoinsDisp').textContent=coins;}
 
   const WEAPON_DEFS = [
-    {key:'default',      label:'🔫 Pistol',         desc:'Auto-aims at nearest enemy to cursor. Scales with upgrades.',                       color:'#60ddff', cost:0,   tier2:{key:'tier2_default',    label:'🔫+ Triple Shot',       desc:'Fires 3 parallel projectiles at once',  cost:22}},
-    {key:'sniper',       label:'🔴 Laser Gun',      desc:'Piercing laser beam, insane dmg, slow cooldown',                                    color:'#ff6644', cost:30,  tier2:{key:'tier2_sniper',     label:'🔴+ Bouncing Laser',    desc:'Beam bounces once off world edges',      cost:28}},
-    {key:'minigun',      label:'⚙️ Minigun',        desc:'6 bullet spray, rapid fire, low dmg each. Slows you 10% while firing.',            color:'#fbbf24', cost:38,  tier2:{key:'tier2_minigun',    label:'⚙️+ Heavy Minigun',     desc:'9 bullets, wider spread, faster',        cost:28}},
-    {key:'towerGun',     label:'🗼 Tower Gun',      desc:'8-shot radial burst in all directions',                                             color:'#a855f7', cost:45,  tier2:{key:'tier2_towerGun',   label:'🗼+ Double Burst',      desc:'Every 4th attack fires 16 shots (2×) in a rotating circle',  cost:32}},
-    {key:'flamethrower', label:'🔥 Flamethrower',   desc:'Short range cone, deals burn over time',                                            color:'#ff4400', cost:52,  tier2:{key:'tier2_flamethrower',label:'🔥+ Inferno',           desc:'Longer range + burn dmg 1/3s',           cost:35}},
-    {key:'multiGun',     label:'💥 Multi-Gun',      desc:'6-way spread, medium dmg',                                                          color:'#4ade80', cost:65,  tier2:{key:'tier2_multiGun',   label:'💥+ Wide Shotgun',      desc:'12-way, much wider spread + longer range',cost:42}},
-    {key:'frozenStaff',  label:'❄️ Frozen Staff',   desc:'Ice cone slows hit enemies. Tier 2: after 3s of hits, freezes enemy for 1.5s.',  color:'#88ddff', cost:48,  tier2:{key:'tier2_frozenStaff',label:'❄️+ Deep Freeze',       desc:'After 3s of continuous hits, fully freezes the enemy for 1.5s',cost:36}},
-    {key:'friends',      label:'👾 Friends',        desc:'Orbital mini-ships orbit you (1 per level, max 12). Each auto-aims and shoots nearest enemy. -12% fire rate when active.',  color:'#f0abfc', cost:30,  maxLvl:12, costPerLvl:l=>Math.floor(30+l*22)},
+    {key:'default',      label:'🔫 Pistol',         desc:'Auto-aims at nearest enemy to cursor.',                       color:'#60ddff', cost:0,   tier2:{key:'tier2_default',    label:'🔫+ Triple Shot',       desc:'Fires 3 parallel projectiles at once',  cost:22}},
+    {key:'sniper',       label:'🔴 Laser Gun',      desc:'Piercing laser beam, high dmg, slow attack speed',                                    color:'#ff6644', cost:30,  tier2:{key:'tier2_sniper',     label:'🔴+ Bouncing Laser',    desc:'Beam bounces off walls, increased width',      cost:28}},
+    {key:'minigun',      label:'⚙️ Minigun',        desc:'6 bullet spray, rapid fire, low dmg each.',            color:'#fbbf24', cost:38,  tier2:{key:'tier2_minigun',    label:'⚙️+ Heavy Minigun',     desc:'9 bullets, even wider spread, -10% attack speed',        cost:28}},
+    {key:'towerGun',     label:'🗼 Tower Gun',      desc:'8-shot radial burst',                                             color:'#a855f7', cost:45,  tier2:{key:'tier2_towerGun',   label:'🗼+ Double Burst',      desc:'Every 4th attack fires 16 shots',  cost:32}},
+    {key:'flamethrower', label:'🔥 Flamethrower',   desc:'Short range cone, burn focus, low base dmg',                                            color:'#ff4400', cost:52,  tier2:{key:'tier2_flamethrower',label:'🔥+ Inferno',           desc:'Increased range + burn dmg',           cost:35}},
+    {key:'multiGun',     label:'💥 Multi-Gun',      desc:'6-way spread, medium dmg',                                                          color:'#4ade80', cost:65,  tier2:{key:'tier2_multiGun',   label:'💥+ Wide Shotgun',      desc:'12-way spread',cost:42}},
+    {key:'frozenStaff',  label:'❄️ Frozen Staff',   desc:'Slows enemies hit.',  color:'#88ddff', cost:48,  tier2:{key:'tier2_frozenStaff',label:'❄️+ Deep Freeze',       desc:'After 3s of continuous hits, freezes enemy for 1.5s',cost:36}},
+    {key:'friends',      label:'👾 Friends',        desc:'Orbital follower that auto-shoots nearest enemy',  color:'#f0abfc', cost:30,  maxLvl:12, costPerLvl:l=>Math.floor(30+l*22)},
   ];
 
   window.renderShopGrid = function renderShopGrid() {
@@ -4637,7 +4675,7 @@ function startSpace() {
       const t1BuyFn = isFriendsKey ? `spaceBuyFriendsUnlock()` : `spaceBuyWeapon('${def.key}')`;
       const t1Btn = t1owned
         ? (isActive
-            ? `<button onclick="spaceDeequipWeapon('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:rgba(255,60,60,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff8888;padding:4px 9px;border-radius:3px;cursor:pointer;white-space:nowrap">✕ ${activeSlotLabel}</button>`
+            ? `<button onclick="spaceDeequipWeapon('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:rgba(255,60,60,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff8888;padding:4px 9px;border-radius:3px;cursor:pointer;white-space:nowrap">✕</button>`
             : `<button onclick="spaceEquipWeaponAuto('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.4);color:#60ddff;padding:4px 10px;border-radius:3px;cursor:pointer;white-space:nowrap">EQUIP</button>`)
         : `<button onclick="${t1BuyFn}" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${t1CanAfford?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${t1CanAfford?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${t1CanAfford?'#ffd700':'#aaa'};padding:4px 10px;border-radius:4px;cursor:${t1CanAfford?'pointer':'default'};white-space:nowrap">🪙${t1Cost}</button>`;
       const t1Row = `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:5px;background:${t1owned?'rgba(100,200,255,0.08)':'rgba(255,255,255,0.03)'};border:1px solid ${t1owned?'rgba(100,200,255,0.3)':'rgba(255,255,255,0.08)'}">
@@ -4729,22 +4767,22 @@ function startSpace() {
   // Auto-equip: find first available slot (or replace slot 0)
   window.spaceEquipWeaponAuto = function(key) {
     const maxSlots = getMaxWeaponSlots();
-    // Find first empty/default slot
-    let slot = activeWeapons.findIndex((w,si)=>si<maxSlots && (w==='default'||!w));
-    if(slot<0) slot=0; // no empty slot, use slot 0
-    while(activeWeapons.length<=slot) activeWeapons.push('default');
-    activeWeapons[slot]=key;
-    activeWeapon=activeWeapons[0];
-    window._spaceWeapon=activeWeapon;
+    if(activeWeapons.includes(key)) return; // already equipped
+    if(activeWeapons.length < maxSlots) {
+      activeWeapons.push(key); // add to new slot
+    } else {
+      activeWeapons[0] = key; // replace slot 0
+    }
+    activeWeapon = activeWeapons[0];
+    window._spaceWeapon = activeWeapon;
     renderShopGrid();
   };
-  // Deequip: remove weapon from all slots it's in, replace with 'default'
+  // Deequip: remove weapon from all slots, compact the array (no 'default' gaps)
   window.spaceDeequipWeapon = function(key) {
-    for(let si=0;si<activeWeapons.length;si++){
-      if(activeWeapons[si]===key) activeWeapons[si]='default';
-    }
-    activeWeapon=activeWeapons[0];
-    window._spaceWeapon=activeWeapon;
+    activeWeapons = activeWeapons.filter(w => w !== key);
+    if(activeWeapons.length === 0) activeWeapons = ['default']; // must have at least 1
+    activeWeapon = activeWeapons[0];
+    window._spaceWeapon = activeWeapon;
     renderShopGrid();
   };
   window.spaceBuyTier2 = function(weaponKey) {
@@ -4770,11 +4808,11 @@ function startSpace() {
     }
   };
 
-  function getShipSpeed()   { return 2.03*(1+upgrades.speed*0.13); }
+  function getShipSpeed()   { return 2.03*(1+upgrades.speed*0.05); } // 5% per level
   function getShootCd()     {
-    const base=Math.max(5,Math.floor(47-upgrades.atkSpeed*2));
+    const base=Math.max(5,Math.floor(75-upgrades.atkSpeed*2)); // -60% base attack speed
     const t2Mod = upgrades.tier2_default ? Math.max(4,Math.floor(base*0.78)) : base;
-    const friendsMod = (activeWeapon==='friends'||activeWeapons.includes('friends')) ? Math.ceil(t2Mod*1.12) : t2Mod;
+    const friendsMod = (activeWeapon==='friends'||activeWeapons.includes('friends')) ? Math.ceil(t2Mod*1.15) : t2Mod; // -15% fire rate
     return friendsMod;
   }
   function getBulletCount() { return 1+upgrades.multishot+(_hasPowerup('triple')?2:0)+(_hasPowerup('double')?1:0); }
@@ -4903,7 +4941,15 @@ function startSpace() {
     if(e.type==='keydown'){
       if(e.key==='p'||e.key==='P'){toggleSpacePause();return;}
       if((e.key==='m'||e.key==='M')&&state==='playing'){
-        if(invincible>99999){invincible=0;}else{saveCoins(coins+10000);invincible=9999999;spawnParticles(ship.x,ship.y,'#ffd700',30);}
+        if(invincible>99999){
+          invincible=0;
+        } else {
+          saveCoins(coins+10000);
+          invincible=9999999;
+          spawnParticles(ship.x,ship.y,'#ffd700',30);
+          // Play cheat activation sound
+          try{const _cs=new Audio('https://badoge.github.io/soundboard/forsen/10lines/slice%20em%20up%20doc.mp3');_cs.volume=0.5;_cs.play().catch(()=>{});}catch(e){}
+        }
         return;
       }
       if((e.key==='c'||e.key==='C')&&state==='playing'){_autoShoot=!_autoShoot;sfxPowerup();return;}
@@ -5051,32 +5097,33 @@ function startSpace() {
       bullets.push({
         laser:true, x:ship.x, y:ship.y, angle:baseAngle,
         dmg:sd, life:8, maxLife:8,
-        width: (upgrades.tier2_sniper?(sz*38+18):(sz*14+8)),
+        width: (upgrades.tier2_sniper?(sz*38+18+10):(sz*8+5)), // base -40%, tier2 +10
         color:'#ff6644', weaponType:'sniper',
         hitEnemies:new Set(),
         bounceCount: upgrades.tier2_sniper?1:0, bounced: false,
       });
-      setCd(Math.floor((upgrades.tier2_sniper?44:60)*rapidMod));
+      setCd(Math.floor((upgrades.tier2_sniper?44:102)*rapidMod)); // base -70% slower attack speed
       sfxShoot(); return;
 
     } else if(wKey==='minigun'){
-      const mgCount=upgrades.tier2_minigun?9:6;
-      const mgSpread=upgrades.tier2_minigun?0.323:0.153; // -15% spread from previous
+      const mgCount=upgrades.tier2_minigun?9:5; // 5 default bullets
+      const mgSpread=upgrades.tier2_minigun?0.52:0.153; // tier2 even wider spread
       for(let mi=0;mi<mgCount;mi++){
         const spread=(Math.random()-0.5)*mgSpread;
-        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*18*rm,vy:Math.sin(baseAngle+spread)*18*rm,dmg:Math.max(1,Math.floor(dmg*0.55)),size:sz*0.65,color:'#fbbf24',weaponType:'minigun',pierce:upgrades.pierce||0});
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*18*rm,vy:Math.sin(baseAngle+spread)*18*rm,dmg:Math.max(1,Math.floor(dmg*0.275)),size:sz*0.65,color:'#fbbf24',weaponType:'minigun',pierce:upgrades.pierce||0}); // -50% dmg
       }
       _minigunShooting=true;
-      setCd(Math.floor((upgrades.tier2_minigun?2.4:3.6)*rapidMod)); // 20% slower
+      setCd(Math.floor((upgrades.tier2_minigun?2.88:5.62)*rapidMod)); // default 30% slower
 
     } else if(wKey==='towerGun'){
       const hasTier2=!!upgrades.tier2_towerGun;
       if(hasTier2) _towerGunBurstCount++;
       const isDoubleBurst=hasTier2&&(_towerGunBurstCount%4===0);
       const shotCount=isDoubleBurst?16:8;
-      const _rotOff=hasTier2?(frame*0.05):0;
+      // Tower gun rotates around the aim direction
+      const _rotOff=hasTier2?(frame*0.05):baseAngle; // tier2 spins, base follows cursor
       for(let i=0;i<shotCount;i++){
-        const a=(i/shotCount)*Math.PI*2+_rotOff;
+        const a=_rotOff+(i/shotCount)*Math.PI*2;
         const spd=isDoubleBurst?15*rm:13*rm;
         const bulletSz=isDoubleBurst?sz*1.35:sz*1.1;
         const col=isDoubleBurst?'#e879f9':'#c084fc';
@@ -5087,12 +5134,18 @@ function startSpace() {
 
     } else if(wKey==='flamethrower'){
       const spread=upgrades.tier2_flamethrower?0.85:0.45;
-      const rangeBonus=upgrades.tier2_flamethrower?1.08:1.0;
+      const rangeBonus=upgrades.tier2_flamethrower?1.15:1.0;
       for(let i=0;i<3;i++){
         const a=baseAngle+(Math.random()-0.5)*spread;
         const spd=(6+Math.random()*4.5)*rangeBonus*rm;
         const life=(30+Math.random()*18)*rangeBonus*rm;
-        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:Math.max(1,Math.floor(dmg*0.45)),size:sz*1.6,color:'#ff4400',flame:true,life,maxLife:life,burns:!!upgrades.tier2_flamethrower});
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,
+          dmg:Math.max(1,Math.floor(dmg*0.315)), // -30% base dmg, burn is the focus
+          size:sz*1.6,color:'#ff4400',flame:true,life,maxLife:life,
+          burns:true, // always burns now
+          _burnDur:upgrades.tier2_flamethrower?240:180,
+          _burnDmg:upgrades.tier2_flamethrower?3:2,
+        });
       }
       setCd(Math.floor(5*rapidMod));
 
@@ -5101,16 +5154,16 @@ function startSpace() {
       const spread=upgrades.tier2_multiGun?Math.PI*1.05:0.72;
       for(let i=0;i<count;i++){
         const a=baseAngle+(i-(count-1)/2)*(spread/(count-1));
-        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*12*rm,vy:Math.sin(a)*12*rm,dmg:dmg,size:sz,color:'#4ade80',weaponType:'multi',pierce:upgrades.pierce||0});
+        bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*12*rm,vy:Math.sin(a)*12*rm,dmg:Math.max(1,Math.floor(dmg*0.80)),size:sz,color:'#4ade80',weaponType:'multi',pierce:upgrades.pierce||0}); // -20% dmg
       }
-      setCd(Math.floor(18*rapidMod));
+      setCd(Math.floor(27*rapidMod)); // -50% attack speed total
 
     } else if(wKey==='frozenStaff'){
       const spread=upgrades.tier2_frozenStaff?0.65:0.40;
       for(let i=0;i<3;i++){
         const a=baseAngle+(Math.random()-0.5)*spread;
-        const spd=(5+Math.random()*3.5)*rm;
-        const life=(28+Math.random()*16)*rm;
+        const spd=(5+Math.random()*3.5)*1.12*rm; // +12% range base
+        const life=(28+Math.random()*16)*1.12*rm;
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:Math.max(1,Math.floor(dmg*0.35)),size:sz*1.4,color:'#88ddff',flame:true,life,maxLife:life,freezing:true,deepFreeze:!!upgrades.tier2_frozenStaff});
       }
       const _ac=getACtx();if(_ac){
@@ -5136,7 +5189,7 @@ function startSpace() {
       if(upgrades.tier2_default){
         // 3 parallel shots: center + offset perpendicular to aim direction
         const perpX=Math.cos(baseAngle+Math.PI/2), perpY=Math.sin(baseAngle+Math.PI/2);
-        const spread=10; // pixel offset between parallel shots
+        const spread=30; // 3x distance between parallel shots
         [-1,0,1].forEach(i=>{
           bullets.push({
             x:ship.x+perpX*spread*i, y:ship.y+perpY*spread*i,
@@ -5209,7 +5262,7 @@ function startSpace() {
     const x=cam.x+W+size, y=cam.y+H*0.3+Math.random()*H*0.4;
     const tx=ship.x, ty=ship.y;
     const dx=tx-x, dy=ty-y, len=Math.sqrt(dx*dx+dy*dy)||1;
-    const speed=(0.3+Math.random()*0.2)*0.90*0.90; // 10% slower
+    const speed=(0.3+Math.random()*0.2)*0.90*0.90*0.80; // additional 20% slower
     const timeMins=survivalFrames/3600;
     const dmgScale=Math.max(1,getBulletDmg()*0.7);
     const titanHp=Math.ceil((180+timeMins*48)*dmgScale);
@@ -5449,7 +5502,9 @@ function startSpace() {
     });
 
     const DOME_R = 18;
-    const shipHide2 = state==='dead' || (invincible>0 && Math.floor(frame/5)%2===1);
+    const shipHide2 = state==='dead';
+    const isCheatInv2 = invincible > 99999;
+    const shipInvAlpha = (invincible>0&&!isCheatInv2) ? '0.20' : '1';
     const shipScrX = (ship.x - cam.x) * scaleX;
     const shipScrY = (ship.y - cam.y) * scaleY;
     if(shipHide2){
@@ -5461,6 +5516,7 @@ function startSpace() {
       shipImg.style.left   = (shipScrX - pilotSize/2) + 'px';
       shipImg.style.top    = (shipScrY - (2 + DOME_R*0.25)*scaleY - pilotSize/2) + 'px';
       shipImg.style.display = 'block';
+      shipImg.style.opacity = shipInvAlpha;
       shipImg.style.borderRadius = '0';
       shipImg.style.filter = '';
       shipImg.style.transform = '';
@@ -5500,7 +5556,7 @@ function startSpace() {
         const el=document.getElementById('spaceTimer');
         if(el) el.textContent=Math.floor(secs/60)+':'+(secs%60<10?'0':'')+(secs%60);
       }
-      const SPEED=getShipSpeed() * (_minigunShooting ? 0.90 : 1.0);
+      const SPEED=getShipSpeed() * (_minigunShooting ? 0.80 : 1.0); // -20% when minigun firing
       _minigunShooting=false; // reset each frame
       if(keys['ArrowUp']||keys['w']||keys['W'])    ship.y=Math.max(30,ship.y-SPEED);
       if(keys['ArrowDown']||keys['s']||keys['S'])  ship.y=Math.min(WH-30,ship.y+SPEED);
@@ -5522,13 +5578,18 @@ function startSpace() {
         }
       }
 
-      // Push ship out of boss/titan/big enemies (solid collision)
-      for(const e of enemies){
-        if(!e.isBoss&&!e.isTitan&&!e.isBig) continue;
-        const dx=ship.x-e.x, dy=ship.y-e.y;
-        const dist=Math.sqrt(dx*dx+dy*dy)||1;
-        const minDist=e.size*0.5+18;
-        if(dist<minDist){const push=(minDist-dist)/dist;ship.x+=dx*push;ship.y+=dy*push;}
+      // Big enemies can push each other (not player)
+      for(let ei=0;ei<enemies.length;ei++){
+        const e1=enemies[ei];
+        if(!e1.isBoss&&!e1.isTitan&&!e1.isBig) continue;
+        for(let ej=ei+1;ej<enemies.length;ej++){
+          const e2=enemies[ej];
+          if(!e2.isBoss&&!e2.isTitan&&!e2.isBig) continue;
+          const dx=e1.x-e2.x, dy=e1.y-e2.y;
+          const dist=Math.sqrt(dx*dx+dy*dy)||1;
+          const minD=e1.size*0.5+e2.size*0.5;
+          if(dist<minD){const push=(minD-dist)/dist*0.5;e1.x+=dx*push;e1.y+=dy*push;e2.x-=dx*push;e2.y-=dy*push;}
+        }
       }
 
       // Abandoned ship respawn: dead ships come back every ~3 minutes at a random spot
@@ -5547,11 +5608,10 @@ function startSpace() {
         });
       }
       if(keys[' ']||keys['Space']||mouseHeld||_autoShoot){
-        // Fire all equipped weapon slots independently (each has its own cooldown)
         const maxSlots=getMaxWeaponSlots();
-        for(let si=0;si<maxSlots&&si<activeWeapons.length;si++){
-          const wk=activeWeapons[si]||'default';
-          fireBulletDir(wk, si);
+        for(let si=0;si<Math.min(maxSlots,activeWeapons.length);si++){
+          const wk=activeWeapons[si];
+          if(wk) fireBulletDir(wk, si);
         }
       }
 
@@ -5568,7 +5628,7 @@ function startSpace() {
         _followers=[];
       }
       _followers.forEach((f,fi)=>{
-        f.angle+=0.012; // slower orbit (was 0.022)
+        f.angle+=0.0108; // 10% slower orbit (was 0.012)
         f.x=ship.x+Math.cos(f.angle)*FOLLOWER_ORBIT_R;
         f.y=ship.y+Math.sin(f.angle)*FOLLOWER_ORBIT_R;
         if(enemies.length>0){
@@ -5577,7 +5637,7 @@ function startSpace() {
           f.shootTimer=(f.shootTimer||0)-1;
           if(nearest&&f.shootTimer<=0){
             const fa=Math.atan2(nearest.y-f.y,nearest.x-f.x);
-            bullets.push({x:f.x,y:f.y,vx:Math.cos(fa)*12,vy:Math.sin(fa)*12,dmg:getBulletDmg(),size:getBulletSize(),color:'#f0abfc',fromFollower:true});
+            bullets.push({x:f.x,y:f.y,vx:Math.cos(fa)*12,vy:Math.sin(fa)*12,dmg:Math.max(1,Math.floor(getBulletDmg()*0.9)),size:getBulletSize(),color:'#f0abfc',fromFollower:true});
             f.shootTimer=40;
             playTone(900,'square',0.04,0.07);
           }
@@ -5655,7 +5715,7 @@ function startSpace() {
         const swarmMod=upgrades.enemySwarm?1/(1+upgrades.enemySwarm*0.15):1;
         // Ease-in: doubled base values (half spawn rate)
         const secIn=survivalFrames/60;
-        const easeBase= secIn<30 ? 650 : secIn<60 ? 530 : secIn<120 ? 415 : secIn<240 ? 300 : 235;
+        const easeBase= secIn<30 ? 598 : secIn<60 ? 488 : secIn<120 ? 382 : secIn<240 ? 276 : 216;
         const scoreRamp=Math.max(0.65,1-score*0.003);
         const baseSpawn=Math.floor(easeBase*scoreRamp);
         enemyTimer=Math.max(22,Math.floor(baseSpawn*timeFactor*swarmMod));
@@ -5868,7 +5928,7 @@ function startSpace() {
               e.hp-=b.dmg;
               spawnParticles(e.x,e.y, b.freezing?'#88ddff':'#fc5c7d', 5);
               sfxHit();
-              if(b.burns&&!e.burnTimer){e.burnTimer=180;e.burnDmg=1;}
+              if(b.burns&&!e.burnTimer){e.burnTimer=b._burnDur||180;e.burnDmg=b._burnDmg||1;}
               if(b.freezing){
                 e.slowTimer=(e.slowTimer||0)+8;
                 e.slowLinger=162;
@@ -6254,7 +6314,7 @@ function startSpace() {
     drops.forEach(d=>{
       if(d._merging||d.life<=0) return;
       const cr=d.gold?9:d.green?8:d.silver?7:8; // base coin bigger (was 6.5)
-      ctx.globalAlpha=d.gold?0.82:d.green?0.72:d.silver?0.65:0.80; // base coins brighter (was 0.58)
+      ctx.globalAlpha=d.gold?0.82:d.green?0.72:d.silver?0.65:0.96; // base coins 20% brighter
       if(d.gold){
         // Rainbow glow — cycling hue ring around coin
         const rainbowHue=(frame*3)%360; // spin hue each frame
@@ -6294,7 +6354,7 @@ function startSpace() {
       const bob=Math.sin(frame*0.08+d.x*0.1)*2; // gentle bob
       ctx.save();
       ctx.globalAlpha=0.92;
-      ctx.font='30px serif';
+      ctx.font='26px serif';
       ctx.textAlign='center';
       ctx.textBaseline='middle';
       ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=4;
@@ -6339,27 +6399,23 @@ function startSpace() {
         ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(b.x,b.y,(b.size||1)*2,0,Math.PI*2);ctx.fill();
 
       } else if(wt==='sniper'||b.laser){
-        // Laser Gun — full beam from origin across screen
+        // Laser Gun — fade in then fade out (no harsh flash)
         const angle = b.angle !== undefined ? b.angle : Math.atan2(b.vy||0,b.vx||1);
         const sz=b.size||1;
-        const t=b.life!==undefined?(b.life/b.maxLife):1;
+        const tRaw=b.life!==undefined?(b.life/b.maxLife):1;
+        // Smooth bell curve: peaks at 0.5 life, 0 at start and end
+        const t=Math.sin(tRaw*Math.PI); // 0→1→0 over lifetime
         const beamLen=Math.sqrt(WW*WW+WH*WH)*1.1;
-        const bw=(b.width||6)*t;
+        const bw=(b.width||6)*Math.max(0.2,t);
         ctx.translate(b.x,b.y);ctx.rotate(angle);
-        // Outer glow (subtle)
         const og=ctx.createLinearGradient(0,0,beamLen,0);
-        og.addColorStop(0,`rgba(255,80,30,${0.12*t})`);og.addColorStop(0.5,`rgba(255,50,10,${0.06*t})`);og.addColorStop(1,'rgba(255,30,0,0)');
+        og.addColorStop(0,`rgba(255,80,30,${0.15*t})`);og.addColorStop(0.5,`rgba(255,50,10,${0.08*t})`);og.addColorStop(1,'rgba(255,30,0,0)');
         ctx.strokeStyle=og;ctx.lineWidth=bw*2.2;ctx.lineCap='round';
         ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(beamLen,0);ctx.stroke();
-        // Core beam — fades out as life drops
         const cg=ctx.createLinearGradient(0,0,beamLen,0);
-        cg.addColorStop(0,`rgba(255,180,120,${t*0.85})`);cg.addColorStop(0.35,`rgba(255,60,10,${0.7*t})`);cg.addColorStop(1,'rgba(255,30,0,0)');
+        cg.addColorStop(0,`rgba(255,180,120,${t*0.9})`);cg.addColorStop(0.35,`rgba(255,60,10,${0.75*t})`);cg.addColorStop(1,'rgba(255,30,0,0)');
         ctx.strokeStyle=cg;ctx.lineWidth=bw;
         ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(beamLen,0);ctx.stroke();
-        // Small dim origin point (no big flash)
-        const og2=ctx.createRadialGradient(0,0,0,0,0,bw*1.5);
-        og2.addColorStop(0,`rgba(255,200,150,${t*0.6})`);og2.addColorStop(1,'rgba(255,60,0,0)');
-        ctx.fillStyle=og2;ctx.beginPath();ctx.arc(0,0,bw*1.5,0,Math.PI*2);ctx.fill();
 
       } else if(wt==='minigun'){
         // Minigun — tiny fast yellow/white round
@@ -6558,8 +6614,20 @@ function startSpace() {
     }
 
     // UFO ship (world-space)
-    if(state!=='dead'&&(invincible<=0||Math.floor(frame/5)%2===0)){
+    if(state!=='dead'){
+      // Cheat invincibility (very large value): pulsing gold glow. Normal invincibility: 80% transparent
+      const isCheatInv = invincible > 99999;
+      if(isCheatInv){
+        ctx.save(); ctx.globalAlpha=0.3+0.15*Math.sin(frame*0.15);
+        const cg=ctx.createRadialGradient(ship.x,ship.y,10,ship.x,ship.y,50);
+        cg.addColorStop(0,'rgba(255,215,0,0.5)');cg.addColorStop(1,'rgba(255,215,0,0)');
+        ctx.fillStyle=cg;ctx.beginPath();ctx.arc(ship.x,ship.y,50,0,Math.PI*2);ctx.fill();
+        ctx.restore();
+      }
+      ctx.save();
+      if(invincible>0&&!isCheatInv) ctx.globalAlpha=0.20; // 80% transparent during normal invincibility
       drawUFO(ship.x, ship.y, null, 0, 1);
+      ctx.restore();
     }
 
     ctx.restore(); // ── END world-space translate ──
