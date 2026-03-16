@@ -1381,7 +1381,7 @@
             <button id="spaceAutoShootBtn" onclick="spaceToggleAutoShoot()" title="Toggle auto-shoot" style="display:none;background:rgba(255,200,0,0.15);border:1px solid rgba(255,200,0,0.4);color:#ffd700;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--mono);line-height:1;padding:4px 9px;border-radius:4px">AUTO 🔫</button>
             <div style="display:flex;flex-direction:column;gap:1px">
               <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ</span>
-              <span style="font-family:var(--mono);font-size:9px;color:#444">WASD · Space/Click · C auto-fire · E shop · P pause</span>
+              <span style="font-family:var(--mono);font-size:9px;color:#aaa">WASD · Space/Click · C auto-fire · E shop · P pause</span>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;justify-content:flex-end;overflow:hidden">
@@ -4476,16 +4476,34 @@ const _BG_TRACKS = [
   { id:'UasTjym-GGs', title:'Karabast - ♂ Gachi Tower ♂' },
   { id:'B7gGacb8cO4', title:"Pizza Tower - It's Pizza Time!" },
   { id:'R0hfS1Qhhkw', title:'Cult of the Lamb - Start a Cult' },
+  { id:'icw9_XehNWo', title:'DJ FGT - ♂ The Time Wizard Returns ♂' },
+  { id:'21_YJ2uZBL0', title:'gachiGASM - ♂ Stereo Love ♂' },
+  { id:'wv3eBkIyGEs', title:'NymN - ♂ Gachi Doctor ♂' },
+  { id:'M0sflDPa9zY', title:"The Witcher 3 - Drink Up, There's More!" },
+  { id:'prvAdHXUvbs', title:'The Witcher 3 - Hunt or Be Hunted' },
+  { id:'jRG0gyVFP60', title:'The Witcher 3 - Silver for Monsters' },
+  { id:'8LOR9JXK1Og', title:'Bloodborne - Cleric Beast' },
+  { id:'NjzF3XWrDdA', title:'Bloodborne - Ludwig, The Holy Blade Phase 2' },
+  { id:'EnDXGQmCz3U', title:'Mittsies - Vitality' },
+  { id:'SeAAi7jWOl8', title:'The Toxic Avenger - My Only Chance' },
+  { id:'U-3kJcBfQ9w', title:'DOOM - Rip & Tear' },
+  { id:'LvwtuRUM5oU', title:'Payday 2 - Alesso: Payday' },
+  { id:'EGXPAoyP_cg', title:'Chris Christodoulou - The Rain Formerly Known as Purple' },
+  { id:'SqFaCDvHxU4', title:'Hades - Out of Tartarus' },
+  { id:'s5sTI_zBg40', title:'TES V Skyrim - From Past to Present' },
 ];
 let _bgTrackIdx = Math.floor(Math.random() * _BG_TRACKS.length);
-let _songTitleTimer = 0;
-let _songTitleText = '';
-let _songTitleAlpha = 0; // 0=hidden, 1=fully visible — used for fade
+// Track last 3 played indices to avoid repeats
+let _bgRecentTracks = [];
 
 function _nextBgTrack() {
-  // Pick a different random track
-  let next;
-  do { next = Math.floor(Math.random() * _BG_TRACKS.length); } while(next === _bgTrackIdx && _BG_TRACKS.length > 1);
+  let next, tries = 0;
+  do {
+    next = Math.floor(Math.random() * _BG_TRACKS.length);
+    tries++;
+  } while((_bgRecentTracks.includes(next) || next === _bgTrackIdx) && tries < 20);
+  _bgRecentTracks.push(_bgTrackIdx);
+  if(_bgRecentTracks.length > 3) _bgRecentTracks.shift(); // keep last 3
   _bgTrackIdx = next;
   return _BG_TRACKS[_bgTrackIdx];
 }
@@ -4684,7 +4702,7 @@ function _renderSpaceLbPanel(canvas) {
   wrap.style.position = 'relative';
   const div = document.createElement('div');
   div.id = 'spaceLbPanel';
-  div.style.cssText = 'position:absolute;left:8px;top:8px;width:200px;background:rgba(5,5,18,0.92);border:1px solid #2a2a4a;border-radius:8px;padding:10px;pointer-events:auto;z-index:15';
+  div.style.cssText = 'position:absolute;right:8px;top:8px;width:200px;background:rgba(5,5,18,0.92);border:1px solid #2a2a4a;border-radius:8px;padding:10px;pointer-events:auto;z-index:15';
   div.innerHTML = `
     <div style="font-family:var(--mono,monospace);font-size:11px;font-weight:900;color:#a78bfa;margin-bottom:6px;letter-spacing:1px">🏆 TOP SCORES</div>
     <div style="display:flex;flex-direction:column;gap:1px">
@@ -7815,11 +7833,11 @@ function startSpace() {
     if(state==='waiting'){
       ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
       ctx.textAlign='center';
-      ctx.font='bold 26px monospace';ctx.fillStyle='#fff';ctx.fillText('SPACEBEZ',W/2,H/2-36);
-      ctx.font='13px monospace';ctx.fillStyle='#aaa';ctx.fillText('WASD / Arrows to move · Space or click to shoot · C = auto-fire',W/2,H/2-4);
-      ctx.fillStyle='#ffd700';ctx.fillText('Press E or Tab to open SHOP 🛒',W/2,H/2+20);
-      ctx.fillStyle='#60ddff';ctx.fillText('Enemies come from all directions!',W/2,H/2+42);
-      ctx.fillStyle='#aaa';ctx.fillText('Press Space or tap to start',W/2,H/2+66);
+      ctx.font=`bold ${Math.floor(W*0.07)}px monospace`;ctx.fillStyle='#fff';ctx.fillText('SPACEBEZ',W/2,H/2-90);
+      ctx.font='13px monospace';ctx.fillStyle='#aaa';ctx.fillText('WASD / Arrows to move · Space or click to shoot · C = auto-fire',W/2,H/2+10);
+      ctx.fillStyle='#ffd700';ctx.fillText('Press E or Tab to open SHOP 🛒',W/2,H/2+34);
+      ctx.fillStyle='#60ddff';ctx.fillText('Enemies come from all directions!',W/2,H/2+56);
+      ctx.fillStyle='#aaa';ctx.fillText('Press Space or tap to start',W/2,H/2+80);
       ctx.textAlign='left';
       // Leaderboard panel — left side
       if(!canvas._spaceLbEl) _renderSpaceLbPanel(canvas);
