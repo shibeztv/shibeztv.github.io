@@ -4195,34 +4195,45 @@ function startFlappy() {
     document.getElementById('flappyLbOverlay')?.remove();
     const div = document.createElement('div');
     div.id = 'flappyLbOverlay';
-    // Full-screen backdrop — clicking it dismisses overlay and lets you play again
     div.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;pointer-events:auto;z-index:20;cursor:pointer';
     div.onclick = function(e){ if(e.target===div){ div.remove(); resetGame(); } };
     div.innerHTML = `
-      <div onclick="event.stopPropagation()" style="background:rgba(8,8,20,0.97);border:1px solid #2a2a4a;border-radius:10px;padding:16px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:10px;cursor:default">
+      <div onclick="event.stopPropagation()" style="background:rgba(8,8,20,0.97);border:1px solid #2a2a4a;border-radius:10px;padding:18px;width:100%;max-width:330px;display:flex;flex-direction:column;gap:10px;cursor:default">
         <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:900;color:#fff;text-align:center;letter-spacing:1px">🏆 LEADERBOARD</div>
-        <div style="font-family:var(--mono,monospace);font-size:10px;color:#666;text-align:center">Score: <span style="color:#ffd700;font-weight:700">${finalScore}</span> · Submit optional · Click outside to play again</div>
+        <div style="font-family:var(--mono,monospace);font-size:10px;color:#666;text-align:center">Score: <span style="color:#ffd700;font-weight:700">${finalScore}</span> · Click outside to play again without submitting</div>
         <div style="display:flex;gap:6px">
-          <input id="flappyLbName" placeholder="Your name (optional)" maxlength="20"
-            style="flex:1;background:#0a0a18;border:1px solid #333;color:#eee;font-family:var(--mono,monospace);font-size:12px;padding:6px 10px;border-radius:4px;outline:none;min-width:0"
+          <input id="flappyLbName" placeholder="Enter your name" maxlength="20" required
+            style="flex:1;background:#0a0a18;border:1px solid #333;color:#eee;font-family:var(--mono,monospace);font-size:12px;padding:7px 10px;border-radius:4px;outline:none;min-width:0"
             value="${localStorage.getItem('shibez_lb_name')||''}" />
           <button id="flappyLbSubmitBtn" onclick="(()=>{
-            const n=document.getElementById('flappyLbName').value.trim()||'Anonymous';
+            const n=document.getElementById('flappyLbName').value.trim();
+            if(!n){
+              const inp=document.getElementById('flappyLbName');
+              inp.style.border='1px solid #fc5c7d';
+              inp.placeholder='Name required!';
+              inp.focus();
+              return;
+            }
+            if(${finalScore}<5){
+              const btn=document.getElementById('flappyLbSubmitBtn');
+              if(btn){const orig=btn.textContent;btn.textContent='Need score ≥ 5';setTimeout(()=>{if(btn)btn.textContent=orig;},1500);}
+              return;
+            }
             localStorage.setItem('shibez_lb_name',n);
             lbSubmit(LB_FLAPPY_KEY,n,${finalScore},'');
             document.getElementById('flappyLbRows').innerHTML=lbRenderRows(LB_FLAPPY_KEY,${finalScore});
             const btn=document.getElementById('flappyLbSubmitBtn');
-            if(btn){btn.textContent='✓';btn.disabled=true;btn.style.background='#1a3a1a';}
+            if(btn){btn.textContent='✓ Done';btn.disabled=true;btn.style.background='#1a3a1a';}
           })()"
-            style="background:#7c5cfc;border:none;color:#fff;font-family:var(--mono,monospace);font-size:11px;font-weight:700;padding:6px 12px;border-radius:4px;cursor:pointer;white-space:nowrap">
+            style="background:#7c5cfc;border:none;color:#fff;font-family:var(--mono,monospace);font-size:11px;font-weight:700;padding:7px 14px;border-radius:4px;cursor:pointer;white-space:nowrap">
             Submit
           </button>
         </div>
-        <div id="flappyLbRows" style="display:flex;flex-direction:column;gap:1px;max-height:160px;overflow-y:auto">
-          ${lbRenderRows(LB_FLAPPY_KEY, finalScore)}
+        <div id="flappyLbRows" style="display:flex;flex-direction:column;gap:2px;max-height:340px;overflow-y:auto">
+          ${lbRenderRows(LB_FLAPPY_KEY, finalScore, 15)}
         </div>
         <button onclick="document.getElementById('flappyLbOverlay')?.remove(); resetGame();"
-          style="background:rgba(255,255,255,0.06);border:1px solid #333;color:#aaa;font-family:var(--mono,monospace);font-size:11px;padding:5px;border-radius:4px;cursor:pointer">
+          style="background:rgba(255,255,255,0.06);border:1px solid #333;color:#aaa;font-family:var(--mono,monospace);font-size:11px;padding:6px;border-radius:4px;cursor:pointer">
           ▶ Play Again
         </button>
       </div>`;
@@ -4691,28 +4702,33 @@ function _showSpaceLbDeath(finalScore, finalFrames, canvas) {
   const timeStr = Math.floor(finalSecs/60)+':'+(finalSecs%60<10?'0':'')+(finalSecs%60);
   const div = document.createElement('div');
   div.id = 'spaceLbDeathOverlay';
-  div.style.cssText = 'position:absolute;right:8px;bottom:36px;width:220px;background:rgba(5,5,18,0.95);border:1px solid #3a2a6a;border-radius:8px;padding:12px;pointer-events:auto;z-index:20';
+  // Full-height right panel — matches the red rectangle position in the screenshot
+  div.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:280px;background:rgba(4,4,16,0.97);border-left:1px solid #3a2a6a;display:flex;flex-direction:column;padding:16px 14px;box-sizing:border-box;pointer-events:auto;z-index:20;gap:10px';
   div.innerHTML = `
-    <div style="font-family:var(--mono,monospace);font-size:11px;font-weight:900;color:#a78bfa;margin-bottom:8px;letter-spacing:1px">🏆 LEADERBOARD</div>
-    <div style="font-family:var(--mono,monospace);font-size:10px;color:#888;margin-bottom:8px">Your score: <span style="color:#ffd700;font-weight:700">${finalScore}</span> · ⏱ ${timeStr}</div>
-    <div style="display:flex;gap:5px;margin-bottom:8px">
-      <input id="spaceLbName" placeholder="Your name" maxlength="20"
-        style="flex:1;background:#0a0a18;border:1px solid #333;color:#eee;font-family:var(--mono,monospace);font-size:11px;padding:5px 8px;border-radius:4px;outline:none;min-width:0"
+    <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:900;color:#a78bfa;letter-spacing:1px">🏆 LEADERBOARD</div>
+    <div style="font-family:var(--mono,monospace);font-size:10px;color:#888">
+      Your run: <span style="color:#ffd700;font-weight:700">${finalScore} pts</span> · ⏱ ${timeStr}
+    </div>
+    <div style="display:flex;gap:6px">
+      <input id="spaceLbName" placeholder="Enter name to submit" maxlength="20"
+        style="flex:1;background:#0a0a18;border:1px solid #333;color:#eee;font-family:var(--mono,monospace);font-size:11px;padding:6px 8px;border-radius:4px;outline:none;min-width:0"
         value="${localStorage.getItem('shibez_lb_name')||''}" />
       <button id="spaceLbSubmitBtn" onclick="(()=>{
-        const n=document.getElementById('spaceLbName')?.value.trim()||'Anonymous';
+        const n=document.getElementById('spaceLbName')?.value.trim();
+        if(!n){ document.getElementById('spaceLbName').style.border='1px solid #fc5c7d'; document.getElementById('spaceLbName').placeholder='Name required!'; return; }
+        if(${finalScore}<5){ document.getElementById('spaceLbSubmitBtn').textContent='Need score ≥ 5'; setTimeout(()=>{const b=document.getElementById('spaceLbSubmitBtn');if(b)b.textContent='Submit';},1500); return; }
         localStorage.setItem('shibez_lb_name',n);
         lbSubmit(LB_SPACE_KEY,n,${finalScore},'⏱${timeStr}');
         document.getElementById('spaceLbDeathRows').innerHTML=lbRenderRows(LB_SPACE_KEY,${finalScore});
         const btn=document.getElementById('spaceLbSubmitBtn');
-        if(btn){btn.textContent='✓';btn.disabled=true;btn.style.background='#1a3a1a';}
+        if(btn){btn.textContent='✓ Done';btn.disabled=true;btn.style.background='#1a3a1a';}
       })()"
-        style="background:#7c5cfc;border:none;color:#fff;font-family:var(--mono,monospace);font-size:11px;font-weight:700;padding:5px 10px;border-radius:4px;cursor:pointer;flex-shrink:0">
+        style="background:#7c5cfc;border:none;color:#fff;font-family:var(--mono,monospace);font-size:11px;font-weight:700;padding:6px 10px;border-radius:4px;cursor:pointer;flex-shrink:0">
         Submit
       </button>
     </div>
-    <div id="spaceLbDeathRows" style="display:flex;flex-direction:column;gap:1px;max-height:160px;overflow-y:auto">
-      ${lbRenderRows(LB_SPACE_KEY, finalScore)}
+    <div id="spaceLbDeathRows" style="flex:1;display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0">
+      ${lbRenderRows(LB_SPACE_KEY, finalScore, 20)}
     </div>`;
   wrap.appendChild(div);
 }
@@ -7800,10 +7816,6 @@ function startSpace() {
           const earnedCoins=Math.floor(score/10);const keptCoins=Math.floor(coins/2)+earnedCoins;const finalSecs=Math.floor(survivalFrames/60);const finalTime=Math.floor(finalSecs/60)+':'+(finalSecs%60<10?'0':'')+(finalSecs%60);ctx.fillText('🪙 '+keptCoins+' coins next run  ·  ⏱ '+finalTime,W/2,H/2+W*0.09);
           const best2=parseInt(localStorage.getItem('spaceBest')||'0');
           if(score>best2){localStorage.setItem('spaceBest',score);ctx.globalAlpha=sf;ctx.fillStyle='#4ade80';ctx.font=`bold ${scoreFontPx}px monospace`;ctx.fillText('🏆 NEW BEST!',W/2,H/2+W*0.125);}
-          // Leaderboard submit hint
-          ctx.globalAlpha=sf*0.7;
-          ctx.font=`${Math.floor(W*0.016)}px monospace`;ctx.fillStyle='#a78bfa';
-          ctx.fillText('📋 Leaderboard  →  bottom right',W/2,H/2+W*0.16);
           if(!canvas._spaceLbDeathShown){ canvas._spaceLbDeathShown=true; _showSpaceLbDeath(score,survivalFrames,canvas); }
         }
         ctx.globalAlpha=1;ctx.textAlign='left';
