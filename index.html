@@ -6685,7 +6685,49 @@ function startSpace() {
         }
         const collectR=(isMagnet||d._superMagnet>0)?52:getCoinRange();
         if(Math.sqrt((d.x-ship.x)**2+(d.y-ship.y)**2)<collectR&&!d.collected){
-          d.collected=true;const _cv=d.value||1;saveCoins(coins+_cv);spawnParticles(d.x,d.y,d.gold?'#ffd700':d.green?'#4ade80':d.silver?'#aaa':'#ffd700',d.gold?18:d.green?12:d.silver?8:4);if(_cv>=25){sfxPowerup();if(_cv>=100){playTone(1800,'sine',0.12,0.2);setTimeout(()=>playTone(2200,'sine',0.10,0.18),60);}}else if(_cv>1){sfxPowerup();}else{sfxCoin();}return false;
+          d.collected=true;const _cv=d.value||1;saveCoins(coins+_cv);
+          // Particles by tier
+          spawnParticles(d.x,d.y,d.rainbow?'#fff':d.gold?'#ffd700':d.green?'#4ade80':d.silver?'#aaa':'#ffd700',d.rainbow?24:d.gold?18:d.green?12:d.silver?8:4);
+          if(d.rainbow){
+            // Extra multicolour burst
+            for(let _ri=0;_ri<5;_ri++) spawnParticles(d.x+(Math.random()-0.5)*40,d.y+(Math.random()-0.5)*40,`hsl(${_ri*72},100%,70%)`,8);
+            const _rac=getACtx();if(_rac){const _rv=getSfxVol();
+              [523,659,784,1047,1319,1568,2093,2637].forEach((f,i)=>setTimeout(()=>{
+                const g=_rac.createGain();g.gain.setValueAtTime(_rv*0.30,_rac.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,_rac.currentTime+0.18);
+                const o=_rac.createOscillator();o.type='sine';o.frequency.setValueAtTime(f,_rac.currentTime);o.frequency.exponentialRampToValueAtTime(f*1.05,_rac.currentTime+0.15);
+                o.connect(g);g.connect(_rac.destination);o.start();o.stop(_rac.currentTime+0.19);
+              },i*28));
+              // Bass boom
+              const bg=_rac.createGain();bg.gain.setValueAtTime(_rv*0.4,_rac.currentTime);bg.gain.exponentialRampToValueAtTime(0.0001,_rac.currentTime+0.4);
+              const bo=_rac.createOscillator();bo.type='sine';bo.frequency.setValueAtTime(80,_rac.currentTime);bo.frequency.exponentialRampToValueAtTime(40,_rac.currentTime+0.4);
+              bo.connect(bg);bg.connect(_rac.destination);bo.start();bo.stop(_rac.currentTime+0.41);
+            }
+          } else if(_cv>=100){
+            const _gac=getACtx();if(_gac){const _gv=getSfxVol();
+              [1047,1319,1568,1976,2093,2637].forEach((f,i)=>setTimeout(()=>{
+                const g=_gac.createGain();g.gain.setValueAtTime(_gv*0.28,_gac.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,_gac.currentTime+0.14);
+                const o=_gac.createOscillator();o.type='sine';o.frequency.setValueAtTime(f,_gac.currentTime);o.frequency.exponentialRampToValueAtTime(f*1.05,_gac.currentTime+0.12);
+                o.connect(g);g.connect(_gac.destination);o.start();o.stop(_gac.currentTime+0.15);
+              },i*32));
+            }
+          } else if(_cv>=25){
+            const _eac=getACtx();if(_eac){const _ev=getSfxVol();
+              [784,988,1175,1568,1976].forEach((f,i)=>setTimeout(()=>{
+                const g=_eac.createGain();g.gain.setValueAtTime(_ev*0.24,_eac.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,_eac.currentTime+0.11);
+                const o=_eac.createOscillator();o.type='sine';o.frequency.setValueAtTime(f,_eac.currentTime);
+                o.connect(g);g.connect(_eac.destination);o.start();o.stop(_eac.currentTime+0.12);
+              },i*30));
+            }
+          } else if(_cv>=5){
+            const _sac=getACtx();if(_sac){const _sv=getSfxVol();
+              [880,1047,1319].forEach((f,i)=>setTimeout(()=>{
+                const g=_sac.createGain();g.gain.setValueAtTime(_sv*0.20,_sac.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,_sac.currentTime+0.10);
+                const o=_sac.createOscillator();o.type='sine';o.frequency.setValueAtTime(f,_sac.currentTime);
+                o.connect(g);g.connect(_sac.destination);o.start();o.stop(_sac.currentTime+0.11);
+              },i*28));
+            }
+          } else{sfxCoin();}
+          return false;
         }
         return true;
       });
@@ -6719,6 +6761,16 @@ function startSpace() {
             const group=[greens[i],...near.slice(0,3)];
             group.forEach(d=>{d._merging=true;d.life=0;});
             drops.push({x:greens[i].x,y:greens[i].y,vx:0,vy:0,life:99999,collected:false,settled:true,gold:true,value:100});
+          }
+        }
+        // Merge gold coins (100-value) × 5 → rainbow coin (500-value)
+        const golds=drops.filter(d=>d.settled&&!d.collected&&d.gold&&!d.rainbow);
+        for(let i=0;i<golds.length;i++){
+          const near=golds.filter((d2,j)=>j!==i&&Math.sqrt((d2.x-golds[i].x)**2+(d2.y-golds[i].y)**2)<80&&!d2._merging);
+          if(near.length>=4){
+            const group=[golds[i],...near.slice(0,4)];
+            group.forEach(d=>{d._merging=true;d.life=0;});
+            drops.push({x:golds[i].x,y:golds[i].y,vx:0,vy:0,life:99999,collected:false,settled:true,rainbow:true,value:500});
           }
         }
       }
@@ -6957,16 +7009,43 @@ function startSpace() {
 
 
 
-    // Coins — tiered sizes: base 7.8, silver 8.74 (+12%), green 9.79 (+12%), gold 10.96 (+12%)
+    // Coins — tiers: base 7.8, silver 8.74, green 9.79, gold 10.96, rainbow 13.2
     drops.forEach(d=>{
       if(d._merging||d.life<=0) return;
-      const cr = d.gold ? 10.96 : d.green ? 9.79 : d.silver ? 8.74 : 7.8;
-      // Higher tiers are fully opaque and bright
-      ctx.globalAlpha = d.gold ? 1.0 : d.green ? 0.97 : d.silver ? 0.95 : 0.96;
+      const cr = d.rainbow ? 13.2 : d.gold ? 10.96 : d.green ? 9.79 : d.silver ? 8.74 : 7.8;
+      ctx.globalAlpha = 1.0;
 
-      // Glow rings — bigger and more elaborate for higher tiers
-      if(d.gold){
-        // Gold: large spinning rainbow halo + inner shimmer
+      // Glow rings
+      if(d.rainbow){
+        // Rainbow: massive fast-cycling halo + 8 orbiting sparkles + outer stroke ring
+        const rh=(frame*9)%360;
+        // Outer stroke rings
+        ctx.save();
+        ctx.globalAlpha=0.4+0.2*Math.sin(frame*0.14);
+        ctx.strokeStyle=`hsl(${rh},100%,70%)`; ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.arc(d.x,d.y,cr*3.8,0,Math.PI*2);ctx.stroke();
+        ctx.strokeStyle=`hsl(${(rh+180)%360},100%,70%)`; ctx.lineWidth=1.2;
+        ctx.beginPath();ctx.arc(d.x,d.y,cr*3.0,0,Math.PI*2);ctx.stroke();
+        ctx.restore();
+        // Core radial glow
+        const cg=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,cr*4.2);
+        cg.addColorStop(0,`hsla(${rh},100%,90%,0.85)`);
+        cg.addColorStop(0.3,`hsla(${(rh+90)%360},100%,70%,0.5)`);
+        cg.addColorStop(0.6,`hsla(${(rh+200)%360},100%,55%,0.2)`);
+        cg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.globalAlpha=1.0;
+        ctx.fillStyle=cg;ctx.beginPath();ctx.arc(d.x,d.y,cr*4.2,0,Math.PI*2);ctx.fill();
+        // 8 orbiting sparkles
+        for(let si=0;si<8;si++){
+          const sa=(frame*0.10+si*Math.PI/4)%(Math.PI*2);
+          const sr=cr*2.6+Math.sin(frame*0.18+si*1.3)*cr*0.45;
+          ctx.globalAlpha=0.65+0.35*Math.sin(frame*0.22+si);
+          ctx.fillStyle=`hsl(${(rh+si*45)%360},100%,80%)`;
+          ctx.beginPath();ctx.arc(d.x+Math.cos(sa)*sr,d.y+Math.sin(sa)*sr,2.0,0,Math.PI*2);ctx.fill();
+        }
+        ctx.globalAlpha=1.0;
+      } else if(d.gold){
+        // Gold: spinning hue halo + 4 sparkles
         const rh=(frame*4)%360;
         const cg=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,cr*3.5);
         cg.addColorStop(0,`hsla(${rh},100%,70%,0.8)`);
@@ -6974,7 +7053,6 @@ function startSpace() {
         cg.addColorStop(0.7,`hsla(${(rh+240)%360},100%,55%,0.2)`);
         cg.addColorStop(1,'rgba(0,0,0,0)');
         ctx.fillStyle=cg;ctx.beginPath();ctx.arc(d.x,d.y,cr*3.5,0,Math.PI*2);ctx.fill();
-        // Sparkle points
         for(let si=0;si<4;si++){
           const sa=(frame*0.06+si*Math.PI/2)%(Math.PI*2);
           const sr=cr*2.2+Math.sin(frame*0.12+si)*cr*0.4;
@@ -6984,7 +7062,6 @@ function startSpace() {
         }
         ctx.globalAlpha=1.0;
       } else if(d.green){
-        // Green: pulsing emerald glow
         const pulse=0.5+0.3*Math.sin(frame*0.1+d.x*0.05);
         const cg=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,cr*2.8);
         cg.addColorStop(0,'rgba(74,222,128,0.7)');
@@ -6992,20 +7069,21 @@ function startSpace() {
         cg.addColorStop(1,'rgba(22,163,74,0)');
         ctx.fillStyle=cg;ctx.beginPath();ctx.arc(d.x,d.y,cr*2.8,0,Math.PI*2);ctx.fill();
       } else if(d.silver){
-        // Silver: subtle cool glow
         const cg=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,cr*2.2);
         cg.addColorStop(0,'rgba(220,225,240,0.55)');
         cg.addColorStop(1,'rgba(148,163,184,0)');
         ctx.fillStyle=cg;ctx.beginPath();ctx.arc(d.x,d.y,cr*2.2,0,Math.PI*2);ctx.fill();
       }
 
-      // Draw coin image with tier-appropriate filter
+      // Draw coin image with tier filter
       const _cImg=_coinImg;
-      ctx.globalAlpha = d.gold ? 1.0 : d.green ? 0.97 : d.silver ? 0.95 : 0.96;
+      ctx.globalAlpha=1.0;
       if(_cImg&&_cImg.complete&&_cImg.naturalWidth>0){
         const csize=cr*2;
         ctx.save();
-        if(d.gold){
+        if(d.rainbow){
+          ctx.filter=`hue-rotate(${(frame*9)%360}deg) saturate(5) brightness(2.2) drop-shadow(0 0 6px white) drop-shadow(0 0 3px hsl(${(frame*9)%360},100%,70%))`;
+        } else if(d.gold){
           ctx.filter=`hue-rotate(${(frame*4)%360}deg) saturate(3) brightness(1.8) drop-shadow(0 0 4px gold)`;
         } else if(d.green){
           ctx.filter='hue-rotate(115deg) saturate(2.5) brightness(1.5) drop-shadow(0 0 3px #4ade80)';
@@ -7015,7 +7093,7 @@ function startSpace() {
         ctx.drawImage(_cImg,d.x-csize/2,d.y-csize/2,csize,csize);
         ctx.restore();
       } else {
-        ctx.fillStyle=d.gold?`hsl(${(frame*4)%360},100%,60%)`:d.green?'#22c55e':d.silver?'#e2e8f0':'#ffd700';
+        ctx.fillStyle=d.rainbow?`hsl(${(frame*9)%360},100%,70%)`:d.gold?`hsl(${(frame*4)%360},100%,60%)`:d.green?'#22c55e':d.silver?'#e2e8f0':'#ffd700';
         ctx.beginPath();ctx.arc(d.x,d.y,cr,0,Math.PI*2);ctx.fill();
       }
       ctx.globalAlpha=1;
@@ -8000,11 +8078,15 @@ function vqRenderSetupTab() {
 }
 
 function vqModRefresh() {
-  const q = vqLoad();
+  // Always update the now-playing label
   const current = vqLoadCurrent();
   const np = document.getElementById('vqNowPlaying');
   if(np) np.textContent = current ? `▶ Now: ${current.title.slice(0,30)}…` : '';
 
+  // Don't overwrite setup or history tab content on auto-refresh
+  if(_vqCurrentTab === 'setup' || _vqCurrentTab === 'history') return;
+
+  const q = vqLoad();
   const filtered = _vqCurrentTab === 'all' ? q : q.filter(v => v.status === _vqCurrentTab);
   const list = document.getElementById('vqList');
   if(!list) return;
