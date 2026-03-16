@@ -1588,8 +1588,7 @@
     <div class="site-footer">
       <span>Made by Shibez</span>
       <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveClick()" style="cursor:pointer" title="">
-    </div>
-  </div>
+    </div>  </div>
 
   <!-- PLAYER VIEW -->
   <div class="player-view" id="playerView">
@@ -3972,7 +3971,7 @@ function startFlappy() {
 
     if (state === 'playing') {
       // Scroll all ground emotes left
-      _gEmotes.forEach(g => { g.x -= PIPE_SPEED * delta; });
+      _gEmotes.forEach(g => { g.x -= PIPE_SPEED; });
       // Remove ones that scrolled off screen
       _gEmotes = _gEmotes.filter(g => g.x > -g.size - 10);
 
@@ -4146,7 +4145,6 @@ function startFlappy() {
   }
 
   function resetGame() {
-    _lastLoopTime = 0; // reset delta timer
     // Death sound keeps playing on restart — only stops on game close
     bird = { x: 80, y: H/2, vy: 0, rot: 0 };
     pipes = [];
@@ -4214,12 +4212,8 @@ function startFlappy() {
     ctx.textAlign = 'left';
   }
 
-  let _lastLoopTime = 0;
-  function loop(ts) {
+  function loop() {
     if (!_flappyRunning) return;
-    // Delta-time: catch up if frame was delayed (mobile touch throttling fix)
-    const delta = _lastLoopTime ? Math.min((ts - _lastLoopTime) / (1000/60), 3) : 1;
-    _lastLoopTime = ts;
 
     // Background — sunny green field
     const sky = ctx.createLinearGradient(0, 0, 0, H * 0.65);
@@ -4257,19 +4251,19 @@ function startFlappy() {
 
     if (state === 'playing') {
       frameCount++;
-      groundX = (groundX + PIPE_SPEED * delta) % W;
+      groundX = (groundX + PIPE_SPEED) % W;
 
       // Spawn pipes
       if (frameCount % 210 === 0 || (frameCount === 1)) spawnPipe();
 
       // Update bird
-      bird.vy += GRAVITY * delta;
-      bird.y += bird.vy * delta;
+      bird.vy += GRAVITY;
+      bird.y += bird.vy;
       bird.rot = bird.vy * 0.06;
 
       // Update pipes
       for (const p of pipes) {
-        p.x -= PIPE_SPEED * delta;
+        p.x -= PIPE_SPEED;
         if (!p.scored && p.x + PIPE_W < bird.x) {
           p.scored = true;
           score++;
@@ -4297,7 +4291,7 @@ function startFlappy() {
     }
 
     drawOverlay();
-    _flappyRAF = requestAnimationFrame(ts => loop(ts));
+    _flappyRAF = requestAnimationFrame(loop);
   }
 
   // Input handlers
@@ -4575,25 +4569,6 @@ async function openSpacebez() {
   startSpace();
 }
 
-// Resize canvas when fullscreen changes
-document.addEventListener('fullscreenchange', _spaceOnFullscreenChange);
-document.addEventListener('webkitfullscreenchange', _spaceOnFullscreenChange);
-function _spaceOnFullscreenChange() {
-  setTimeout(() => {
-    const canvas = document.getElementById('spaceCanvas');
-    const modal  = document.getElementById('spaceModal');
-    if(!canvas || !modal || modal.style.display === 'none') return;
-    // Give browser time to settle on new dimensions
-    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
-    const W = isFs ? Math.floor(screen.width * 0.92) : Math.floor(window.innerWidth * 0.92);
-    const H = isFs ? Math.floor(screen.height * 0.80) : Math.floor(window.innerHeight * 0.80);
-    if(Math.abs(canvas.width - W) > 10 || Math.abs(canvas.height - H) > 10){
-      canvas.width = W; canvas.height = H;
-      // Notify game of resize if running
-      if(window._spaceOnResize) window._spaceOnResize(W, H);
-    }
-  }, 120);
-}
 window.spaceToggleFullscreen = function() {
   const modal = document.getElementById('spaceModal');
   if(!modal) return;
@@ -8116,5 +8091,19 @@ function vqObsRefresh() {
 }
 // ────────────────────────────────────────────────────────────────────────────
 </script>
+<!-- Hidden Video Queue Launcher — bottom-right corner -->
+<div id="vqLauncher" style="position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:6px" onmouseleave="document.getElementById('vqMenu').style.display='none'">
+  <div id="vqMenu" style="display:none;background:#111;border:1px solid #333;border-radius:8px;padding:8px;display:none;flex-direction:column;gap:4px;min-width:180px">
+    <a href="?submit" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">🎬 Submit a Video</a>
+    <a href="?queue" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">🛡 Mod Queue Panel</a>
+    <a href="?obs" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">📺 OBS Source</a>
+  </div>
+  <button onmouseenter="document.getElementById('vqMenu').style.display='flex'" onclick="document.getElementById('vqMenu').style.display=document.getElementById('vqMenu').style.display==='flex'?'none':'flex'"
+    style="width:36px;height:36px;border-radius:50%;background:rgba(20,20,30,0.6);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(4px)"
+    onmouseover="this.style.color='rgba(255,255,255,0.7)';this.style.borderColor='rgba(255,255,255,0.25)'"
+    onmouseout="this.style.color='rgba(255,255,255,0.2)';this.style.borderColor='rgba(255,255,255,0.08)'"
+    title="Video Queue">🎬</button>
+</div>
+
 </body>
 </html>
