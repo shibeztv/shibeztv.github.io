@@ -6286,6 +6286,7 @@ function startSpace() {
 
   function loop() {
     if(!_spaceRunning) return;
+    try {
     frame++;
     window._spaceGameActive = (state==='playing' && !_spaceInShop);
   window._spaceAutoShootState = _autoShoot;
@@ -8092,6 +8093,10 @@ function startSpace() {
       _emoteLayer.style.opacity = (state==='playing' && !_shopOpen) ? '1' : '0.15';
     }
     _spaceRAF=requestAnimationFrame(loop);
+    } catch(err) {
+      console.error('SpaceBez loop error:', err);
+      _spaceRAF=requestAnimationFrame(loop); // always keep loop alive
+    }
   }
 
   canvas._spaceCleanup=()=>{
