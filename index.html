@@ -4881,7 +4881,6 @@ function startSpace() {
     setTimeout(startSpace, 50);
     return;
   }
-  console.log('SpaceBez startSpace: canvas', canvas.width, 'x', canvas.height, '_spaceRunning=', _spaceRunning);
   const W = canvas.width, H = canvas.height;
   // ── Open world camera (Vampire Survivors style)
   // Width = W*3.75 (prev 2.5 * 1.5 more), Height = 80% of width
@@ -4895,7 +4894,6 @@ function startSpace() {
   const shipImg = new Image(); shipImg.crossOrigin='anonymous'; shipImg.src = _shipUrl;
 
   const enemyPool = _spaceEmotes.filter(e=>e.url!==shipEmote.url).sort(()=>Math.random()-0.5).slice(0,24);
-  console.log('SpaceBez checkpoint A: enemyPool', enemyPool.length);
   // Add imgs to DOM so GIFs animate (canvas draws live frame from DOM img)
   // Emote overlay system: place real <img> elements over canvas for animated WebP
   const _emoteLayer = document.getElementById('spaceEmoteLayer');
@@ -4952,7 +4950,6 @@ function startSpace() {
   if(_imgPool) _imgPool.appendChild(_silverCoinImg);
 
   // ── Stars
-  console.log('SpaceBez checkpoint B: about to create stars');
   const stars = Array.from({length:200}, ()=>({
     x:Math.random()*W, y:Math.random()*H,
     r:Math.random()*1.5+0.2, a:0.2+Math.random()*0.8,
@@ -5397,7 +5394,6 @@ function startSpace() {
   };
   document.addEventListener('keydown',onKey);
   document.addEventListener('keyup',onKey);
-  console.log('SpaceBez checkpoint D: event listeners added');
 
   // Mouse aim + click to shoot
   let mouseX=W/2, mouseY=H/2;
@@ -5536,7 +5532,6 @@ function startSpace() {
     canvas.addEventListener('touchstart',onTouch,{passive:false});
     canvas.addEventListener('touchmove',onTouch,{passive:false});
   }
-  console.log('SpaceBez checkpoint D2: touch listeners set');
 
   // Bullets fire toward cursor (or forward if keys)
   let _dualToggle=0;
@@ -5550,7 +5545,7 @@ function startSpace() {
   const _slotCooldowns=[0,0,0,0];
 
   function fireBulletDir(weaponOverride, slotIdx) {
-    if(typeof window._spaceCpD==='undefined'){window._spaceCpD=true;console.log('SpaceBez checkpoint D: fireBulletDir defined');}
+    if(!_spaceRunning) return; // safety guard — don't fire before game is ready
     const slot = slotIdx||0;
     if(_slotCooldowns[slot]>0) return;
     const rapidMod=_hasPowerup('rapid')?(_hasPowerup('double')||_hasPowerup('triple')?0.35:0.4):1;
@@ -6155,7 +6150,6 @@ function startSpace() {
 
   // ── Draw UFO ship (emote sits IN cockpit dome — emote visible above hull)
   function drawUFO(x, y, emoteImg, angle, alpha=1) {
-    if(typeof window._spaceCpE==='undefined'){window._spaceCpE=true;console.log('SpaceBez checkpoint E: drawUFO defined');}
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.translate(x, y);
@@ -6299,10 +6293,8 @@ function startSpace() {
     });
   } // end positionEmoteOverlays
 
-  console.log('SpaceBez checkpoint E: about to define loop()');
   function loop() {
     if(!_spaceRunning) return;
-    if(frame<=2) console.log('SpaceBez loop() frame', frame, '- state:', state, 'W:', W, 'H:', H);
     frame++;
     window._spaceGameActive = (state==='playing' && !_spaceInShop);
   window._spaceAutoShootState = _autoShoot;
@@ -6313,7 +6305,6 @@ function startSpace() {
     const shopOpen=document.getElementById('spaceShop').style.display==='flex';
 
     if((state==='playing') && !shopOpen){
-      if(frame<=2) console.log('SpaceBez checkpoint loop-play: entering play block frame', frame);
       survivalFrames++;
       // Real-time timer (not frame-based — works correctly at 120Hz)
       if(!_gameStartTime) _gameStartTime=performance.now();
@@ -7195,7 +7186,6 @@ function startSpace() {
 
     // ── DRAW ──
     ctx.fillStyle='#02020e';ctx.fillRect(0,0,W,H);
-    if(frame<=2) console.log('SpaceBez checkpoint F: drawing frame', frame);
     // Stars — screen space with subtle parallax
     stars.forEach(s=>{
       const px=(s.x - cam.x*0.12 + W*20)%W;
@@ -8116,7 +8106,6 @@ function startSpace() {
     _spaceRAF=requestAnimationFrame(loop);
   }
 
-  console.log('SpaceBez checkpoint E2: about to set cleanup');
   canvas._spaceCleanup=()=>{
     document.removeEventListener('keydown',onKey);
     document.removeEventListener('keyup',onKey);
@@ -8126,8 +8115,6 @@ function startSpace() {
     canvas.removeEventListener('touchstart',onTouch);
     canvas.removeEventListener('touchmove',onTouch);
   };
-  console.log('SpaceBez checkpoint C2: cleanup set, about to call loop');
-  console.log('SpaceBez checkpoint C: about to start loop');
   _spaceRunning=true;
   loop();
 }
