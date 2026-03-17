@@ -8116,6 +8116,7 @@ function startSpace() {
     _spaceRAF=requestAnimationFrame(loop);
   }
 
+  console.log('SpaceBez checkpoint E2: about to set cleanup');
   canvas._spaceCleanup=()=>{
     document.removeEventListener('keydown',onKey);
     document.removeEventListener('keyup',onKey);
