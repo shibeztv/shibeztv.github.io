@@ -6312,6 +6312,7 @@ function startSpace() {
     const shopOpen=document.getElementById('spaceShop').style.display==='flex';
 
     if((state==='playing') && !shopOpen){
+      if(frame<=2) console.log('SpaceBez checkpoint loop-play: entering play block frame', frame);
       survivalFrames++;
       // Real-time timer (not frame-based — works correctly at 120Hz)
       if(!_gameStartTime) _gameStartTime=performance.now();
@@ -7193,6 +7194,7 @@ function startSpace() {
 
     // ── DRAW ──
     ctx.fillStyle='#02020e';ctx.fillRect(0,0,W,H);
+    if(frame<=2) console.log('SpaceBez checkpoint F: drawing frame', frame);
     // Stars — screen space with subtle parallax
     stars.forEach(s=>{
       const px=(s.x - cam.x*0.12 + W*20)%W;
