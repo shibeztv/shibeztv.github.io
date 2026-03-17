@@ -3967,7 +3967,7 @@ function startFlappy() {
   const EMOTE_SIZE = 52;
   const BIRD_SIZE = 48;
   // Speed ramps after score 10, caps at 2.4× base
-  function getPipeSpeed(){ return Math.min(PIPE_SPEED_BASE*2.4, PIPE_SPEED_BASE + Math.max(0,score-10)*0.035); }
+  function getPipeSpeed(){ return Math.min(PIPE_SPEED_BASE*3.2, PIPE_SPEED_BASE + Math.max(0,score-10)*0.055); }
 
   let bird = { x: 80, y: H/2, vy: 0, rot: 0 };
   let pipes = [];
@@ -4324,7 +4324,9 @@ function startFlappy() {
       groundX = (groundX + getPipeSpeed()) % W;
 
       // Spawn pipes
-      if (frameCount % 210 === 0 || (frameCount === 1)) spawnPipe();
+      // Spawn interval shrinks as speed increases — keeps pipe gap consistent
+      const _pipeInterval = Math.floor(210 * (PIPE_SPEED_BASE / getPipeSpeed()));
+      if (frameCount % _pipeInterval === 0 || (frameCount === 1)) spawnPipe();
 
       // Update bird
       bird.vy += GRAVITY;
@@ -8128,8 +8130,6 @@ document.addEventListener('visibilitychange', () => {
     }
   }
 });
-
-} // close startSpace
 
 </script>
 <!-- VIDEO QUEUE SYSTEM ─────────────────────────────────────────────────── -->
