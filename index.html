@@ -4895,6 +4895,7 @@ function startSpace() {
   const shipImg = new Image(); shipImg.crossOrigin='anonymous'; shipImg.src = _shipUrl;
 
   const enemyPool = _spaceEmotes.filter(e=>e.url!==shipEmote.url).sort(()=>Math.random()-0.5).slice(0,24);
+  console.log('SpaceBez checkpoint A: enemyPool', enemyPool.length);
   // Add imgs to DOM so GIFs animate (canvas draws live frame from DOM img)
   // Emote overlay system: place real <img> elements over canvas for animated WebP
   const _emoteLayer = document.getElementById('spaceEmoteLayer');
@@ -4951,6 +4952,7 @@ function startSpace() {
   if(_imgPool) _imgPool.appendChild(_silverCoinImg);
 
   // ── Stars
+  console.log('SpaceBez checkpoint B: about to create stars');
   const stars = Array.from({length:200}, ()=>({
     x:Math.random()*W, y:Math.random()*H,
     r:Math.random()*1.5+0.2, a:0.2+Math.random()*0.8,
@@ -8116,6 +8118,7 @@ function startSpace() {
     canvas.removeEventListener('touchstart',onTouch);
     canvas.removeEventListener('touchmove',onTouch);
   };
+  console.log('SpaceBez checkpoint C: about to start loop');
   _spaceRunning=true;
   loop();
 }
