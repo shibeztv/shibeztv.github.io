@@ -4875,9 +4875,11 @@ function startSpace() {
   const ctx = canvas.getContext('2d');
   // If canvas has no size yet (e.g. called before layout), abort and retry
   if(!canvas.width || !canvas.height) {
+    console.warn('SpaceBez: canvas not sized yet, retrying in 50ms', canvas.width, canvas.height);
     setTimeout(startSpace, 50);
     return;
   }
+  console.log('SpaceBez startSpace: canvas', canvas.width, 'x', canvas.height, '_spaceRunning=', _spaceRunning);
   const W = canvas.width, H = canvas.height;
   // ── Open world camera (Vampire Survivors style)
   // Width = W*3.75 (prev 2.5 * 1.5 more), Height = 80% of width
@@ -6291,6 +6293,7 @@ function startSpace() {
 
   function loop() {
     if(!_spaceRunning) return;
+    if(frame===0) console.log('SpaceBez loop() frame 0 - state:', state, 'W:', W, 'H:', H);
     frame++;
     window._spaceGameActive = (state==='playing' && !_spaceInShop);
   window._spaceAutoShootState = _autoShoot;
