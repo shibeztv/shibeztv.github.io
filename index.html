@@ -6146,7 +6146,7 @@ function startSpace() {
       }
       return; // block other clicks when paused
     }
-    if(state==='waiting'){ state='playing'; return; } // start game without shooting
+    if(state==='waiting'){ state='playing'; document.getElementById('spaceLbPanel')?.remove(); return; } // start game without shooting
     mouseHeld=true;
     if(state==='playing') fireBulletDir();
     if(state==='dead'){
@@ -6197,8 +6197,12 @@ function startSpace() {
       ];
       ctx.textAlign='left';
     }
-    if(state==='waiting'){state='playing';return;}
-    if(state==='dead'){resetSpace();return;}
+    if(state==='waiting'){state='playing';document.getElementById('spaceLbPanel')?.remove();return;}
+    if(state==='dead'){
+      const rr=canvas._retryRect;
+      if(rr&&mx>=rr.x&&mx<=rr.x+rr.w&&my>=rr.y&&my<=rr.y+rr.h) resetSpace();
+      return;
+    }
     // handled by joystick below
   };
   // ── Mobile dual joystick ─────────────────────────────────────────────────
@@ -6241,7 +6245,7 @@ function startSpace() {
           mouseX = (t.clientX - rect.left) * scaleX;
           mouseY = (t.clientY - rect.top) * scaleY;
           if(e.type === 'touchstart' && state === 'waiting'){ state='playing'; return; }
-          if(e.type === 'touchstart' && state === 'dead'){ resetSpace(); return; }
+          if(e.type === 'touchstart' && state === 'dead'){ /* require RETRY button click */ return; }
         }
       }
     }
@@ -6251,7 +6255,7 @@ function startSpace() {
         const cx = t.clientX - rect.left;
         if(cx < mid){
           if(state === 'waiting'){ state='playing'; return; }
-          if(state === 'dead'){ resetSpace(); return; }
+          if(state === 'dead'){ /* require RETRY button click */ return; }
         }
       }
     }
@@ -8949,10 +8953,6 @@ function startSpace() {
       // Leaderboard panel — left side
       if(!canvas._spaceLbEl) _renderSpaceLbPanel(canvas);
     } else {
-      const el=document.getElementById('spaceLbPanel');
-      if(el) el.remove(); canvas._spaceLbEl=false;
-    }
-    if(state==='dead'){
       const el=document.getElementById('spaceLbPanel');
       if(el) el.remove(); canvas._spaceLbEl=false;
     }
