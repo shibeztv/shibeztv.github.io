@@ -7028,6 +7028,7 @@ function startSpace() {
     const shopOpen=document.getElementById('spaceShop').style.display==='flex';
 
     if((state==='playing') && !shopOpen){
+      // ── GAME LOGIC (playing only) ─────────────────────────────────────────
       // Tick down all weapon slot cooldowns every frame
       for(let _ci=0;_ci<4;_ci++){ if(_slotCooldowns[_ci]>0) _slotCooldowns[_ci]--; }
       shootCooldown=_slotCooldowns[0];
@@ -7308,17 +7309,18 @@ function startSpace() {
       enemyTimer--;
       if(enemyTimer<=0){
         spawnEnemy();
-        // Occasionally double-spawn at high scores (halved thresholds vs before)
-        if(score>50&&Math.random()<0.12+score*0.002) spawnEnemy();
-        if(score>120&&Math.random()<0.08) spawnEnemy();
-        const timeFactor=Math.max(0.3,1-survivalFrames/36000);
+        // Occasionally double-spawn at high scores — reduced thresholds
+        if(score>80&&Math.random()<0.07+score*0.0008) spawnEnemy();
+        if(score>200&&Math.random()<0.05) spawnEnemy();
+        // timeFactor decays much more slowly — reaches 0.5 at 10 minutes instead of 0.7 at 3min
+        const timeFactor=Math.max(0.45,1-survivalFrames/72000);
         const swarmMod=upgrades.enemySwarm?1/(1+upgrades.enemySwarm*0.15):1;
-        // Ease-in: doubled base values (half spawn rate)
         const secIn=survivalFrames/60;
-        const easeBase= secIn<30 ? 598 : secIn<60 ? 488 : secIn<120 ? 382 : secIn<240 ? 276 : 216;
-        const scoreRamp=Math.max(0.65,1-score*0.003);
+        // Much higher base intervals, slower ramp — 2-3min range is now 500-600 frames base
+        const easeBase= secIn<30 ? 720 : secIn<60 ? 620 : secIn<120 ? 560 : secIn<180 ? 500 : secIn<300 ? 440 : 380;
+        const scoreRamp=Math.max(0.72,1-score*0.002);
         const baseSpawn=Math.floor(easeBase*scoreRamp);
-        enemyTimer=Math.max(22,Math.floor(baseSpawn*timeFactor*swarmMod));
+        enemyTimer=Math.max(28,Math.floor(baseSpawn*timeFactor*swarmMod));
       }
       difficulty=1+score*0.003; // slower speed scaling (was 0.007)
 
@@ -7946,9 +7948,9 @@ function startSpace() {
       particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=0.93;p.vy*=0.93;p.life--;});
       particles=particles.filter(p=>p.life>0);
       // planets are static world-space, no movement needed
-    }
+    } // end playing-only game logic
 
-    // ── DRAW ──
+    // ── DRAW (runs every frame regardless of state) ──
     ctx.fillStyle='#02020e';ctx.fillRect(0,0,W,H);
     // Stars — screen space with subtle parallax
     stars.forEach(s=>{
@@ -9041,14 +9043,14 @@ function startSpace() {
       ctx.beginPath(); ctx.arc(W*0.82, H*0.82, 45, 0, Math.PI*2); ctx.stroke();
       ctx.restore();
     }
-    positionEmoteOverlays();
-    // Dim emote overlay when game is not actively playing
-    if(_emoteLayer){
-      const _shopOpen = document.getElementById('spaceShop').style.display==='flex';
-      _emoteLayer.style.opacity = (state==='playing' && !_shopOpen) ? '1' : '0.15';
-    }
-    _spaceRAF=requestAnimationFrame(loop);
-  } // end inner if
+
+  positionEmoteOverlays();
+  // Dim emote overlay when game is not actively playing
+  if(_emoteLayer){
+    const _shopOpen = document.getElementById('spaceShop').style.display==='flex';
+    _emoteLayer.style.opacity = (state==='playing' && !_shopOpen) ? '1' : '0.15';
+  }
+  _spaceRAF=requestAnimationFrame(loop);
   } // end loop()
 
   canvas._spaceCleanup=()=>{
