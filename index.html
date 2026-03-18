@@ -5358,6 +5358,9 @@ async function openSpacebez() {
   }
   initSpaceMusic();
   setTimeout(initDeathSfx, 800);
+  // Cancel any existing loop before starting fresh to prevent double RAF
+  if (_spaceRAF) { cancelAnimationFrame(_spaceRAF); _spaceRAF = null; }
+  _spaceRunning = false;
   startSpace();
 }
 
@@ -5557,13 +5560,16 @@ function toggleSpacePause() {
   }
 }
 
+let _spaceGeneration = 0; // incremented each time startSpace is called, prevents stale setTimeout retries
+
 function startSpace() {
+  const myGen = ++_spaceGeneration;
   const canvas = document.getElementById('spaceCanvas');
   const ctx = canvas.getContext('2d');
   // If canvas has no size yet (e.g. called before layout), abort and retry
   if(!canvas.width || !canvas.height) {
     console.warn('SpaceBez: canvas not sized yet, retrying in 50ms', canvas.width, canvas.height);
-    setTimeout(startSpace, 50);
+    setTimeout(()=>{ if(myGen===_spaceGeneration) startSpace(); }, 50);
     return;
   }
   const W = canvas.width, H = canvas.height;
