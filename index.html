@@ -7154,7 +7154,7 @@ function startSpace() {
             if(dist<_nRadius+e.size*0.5){
               e.hp-=_nDmg;
               // Knockback
-              const kbForce=6;
+              const kbForce=24; // 4× original knockback (was 6)
               if(dist>0){e.x+=dx/dist*kbForce;e.y+=dy/dist*kbForce;}
               // T2 debuff: +20% dmg taken for 3s
               if(_nT2) e._narcDebuff=(e._narcDebuff||0)+180;
