@@ -7027,7 +7027,9 @@ function startSpace() {
 
     const shopOpen=document.getElementById('spaceShop').style.display==='flex';
 
-    if((state==='playing') && !shopOpen){
+    if((state==='playing' || state==='dead' || state==='waiting' || state==='paused') && !shopOpen){
+      const _isPlaying = state==='playing';
+      if(_isPlaying){
       // ── GAME LOGIC (playing only) ─────────────────────────────────────────
       // Tick down all weapon slot cooldowns every frame
       for(let _ci=0;_ci<4;_ci++){ if(_slotCooldowns[_ci]>0) _slotCooldowns[_ci]--; }
@@ -7944,9 +7946,9 @@ function startSpace() {
       particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=0.93;p.vy*=0.93;p.life--;});
       particles=particles.filter(p=>p.life>0);
       // planets are static world-space, no movement needed
-    } // end playing-only game logic
+      } // end _isPlaying game logic
 
-    // ── DRAW (runs every frame regardless of state) ──
+    // ── DRAW ──
     ctx.fillStyle='#02020e';ctx.fillRect(0,0,W,H);
     // Stars — screen space with subtle parallax
     stars.forEach(s=>{
@@ -9039,6 +9041,7 @@ function startSpace() {
       ctx.beginPath(); ctx.arc(W*0.82, H*0.82, 45, 0, Math.PI*2); ctx.stroke();
       ctx.restore();
     }
+    } // end if(state !== shop)
 
   positionEmoteOverlays();
   // Dim emote overlay when game is not actively playing
@@ -9047,6 +9050,7 @@ function startSpace() {
     _emoteLayer.style.opacity = (state==='playing' && !_shopOpen) ? '1' : '0.15';
   }
   _spaceRAF=requestAnimationFrame(loop);
+  } // end if(state || dead)
   } // end loop()
 
   canvas._spaceCleanup=()=>{
