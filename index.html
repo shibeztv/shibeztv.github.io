@@ -9043,14 +9043,14 @@ function startSpace() {
     }
     } // end if(state !== shop)
 
+  } // end if(state || dead)
+
   positionEmoteOverlays();
-  // Dim emote overlay when game is not actively playing
   if(_emoteLayer){
     const _shopOpen = document.getElementById('spaceShop').style.display==='flex';
     _emoteLayer.style.opacity = (state==='playing' && !_shopOpen) ? '1' : '0.15';
   }
-  _spaceRAF=requestAnimationFrame(loop);
-  } // end if(state || dead)
+  _spaceRAF=requestAnimationFrame(loop); // always schedule next frame
   } // end loop()
 
   canvas._spaceCleanup=()=>{
