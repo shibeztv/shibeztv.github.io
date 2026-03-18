@@ -763,6 +763,16 @@
   #egSuggest::-webkit-scrollbar { width: 4px; }
   #egSuggest::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
   #egSuggest::-webkit-scrollbar-track { background: transparent; }
+
+  @keyframes holCheckPop {
+    0%   { transform: scale(0.4); opacity: 0; }
+    60%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1.0); opacity: 1; }
+  }
+  @keyframes holCheckFade {
+    0%   { opacity: 1; transform: scale(1.0); }
+    100% { opacity: 0; transform: scale(0.8); }
+  }
   .space-emote-overlay {
     position: absolute;
     pointer-events: none;
@@ -1506,7 +1516,7 @@
         <!-- Game area -->
         <div id="holGame" style="width:100%;padding:20px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:16px">
           <!-- Emote comparison row — grid keeps VS pinned to center regardless of card content -->
-          <div style="display:grid;grid-template-columns:1fr 48px 1fr;align-items:center;gap:12px;width:100%">
+          <div style="display:grid;grid-template-columns:1fr 48px 1fr;align-items:center;gap:12px;width:100%;position:relative">
             <!-- Left emote (reference) — clicking it means "left is higher" -->
             <div id="holLeftCard" onclick="holGuessCard('left')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:200px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
               onmouseover="if(!window._holAnimating)this.style.borderColor='#4ade80'" onmouseout="if(!window._holAnimating)this.style.borderColor='var(--border)'">
@@ -1524,6 +1534,10 @@
               <img id="holRightImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto;pointer-events:none">
               <div id="holRightName" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
               <div id="holRightCount" style="font-family:var(--mono);font-size:13px;color:#aaa;font-weight:700;pointer-events:none">??? times typed</div>
+            </div>
+            <!-- Big checkmark overlay — shown in center on correct guess -->
+            <div id="holCheckmark" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;pointer-events:none;z-index:5">
+              <div style="font-size:100px;line-height:1;filter:drop-shadow(0 0 24px #4ade80);animation:holCheckPop 0.18s ease-out">✅</div>
             </div>
           </div>
           <!-- Buttons -->
@@ -4984,12 +4998,26 @@ function _holHandleGuess(correct) {
     _holScore++;
     resultEl.textContent = '✅ CORRECT!';
     resultEl.style.color = '#4ade80';
-    resultEl.style.fontSize = '24px';
-    resultEl.style.textShadow = '0 0 12px #4ade8066';
+    resultEl.style.fontSize = '26px';
+    resultEl.style.textShadow = '0 0 20px #4ade80, 0 0 40px #4ade8088';
     // Highlight the winning card with bright glow + background flash
     const winCard = (left && right && left.channels >= right.channels) ? leftCard : rightCard;
-    winCard.style.boxShadow = '0 0 0 2px #4ade80, 0 0 14px #4ade8055';
-    winCard.style.background = 'rgba(74,222,128,0.08)';
+    winCard.style.boxShadow = '0 0 0 3px #4ade80, 0 0 28px #4ade80aa';
+    winCard.style.background = 'rgba(74,222,128,0.15)';
+    // Show big checkmark in center
+    const _ck = document.getElementById('holCheckmark');
+    if (_ck) {
+      const _ckInner = _ck.querySelector('div');
+      if (_ckInner) _ckInner.style.animation = 'none';
+      _ck.style.display = 'flex';
+      requestAnimationFrame(() => {
+        if (_ckInner) _ckInner.style.animation = 'holCheckPop 0.18s ease-out forwards';
+      });
+      setTimeout(() => {
+        if (_ckInner) _ckInner.style.animation = 'holCheckFade 0.25s ease-in forwards';
+        setTimeout(() => { _ck.style.display = 'none'; }, 260);
+      }, 650);
+    }
     if (_holScore > holGetBest()) localStorage.setItem('holBest', _holScore);
     document.getElementById('holBest').textContent = holGetBest();
     document.getElementById('holScore').textContent = _holScore;
@@ -5000,6 +5028,8 @@ function _holHandleGuess(correct) {
       rightCard.style.boxShadow = '';
       leftCard.style.background = 'var(--surface2)';
       rightCard.style.background = 'var(--surface2)';
+      const _ckEl = document.getElementById('holCheckmark');
+      if (_ckEl) _ckEl.style.display = 'none';
       resultEl.style.fontSize = '';
       resultEl.style.textShadow = '';
       _holPickTwo();
