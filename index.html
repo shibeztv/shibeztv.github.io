@@ -1683,7 +1683,7 @@
 
     <!-- CLIP MODAL -->
     <div id="clipModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:min(1625px, calc((100vh - 40px) * 16/9 + 80px));overflow:hidden;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 40px)">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:min(1625px,calc((100vh - 100px) * 16/9));overflow:hidden;position:relative;display:flex;flex-direction:column">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text)" id="clipTitle">Loading clip…</div>
           <div style="display:flex;gap:8px;align-items:center">
@@ -1696,7 +1696,7 @@
             <button onclick="closeClipModal()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 4px">✕</button>
           </div>
         </div>
-        <div style="flex:1;min-height:0;background:#000;position:relative" id="clipEmbed"></div>
+        <div style="width:100%;aspect-ratio:16/9;background:#000;position:relative" id="clipEmbed"></div>
         <div style="padding:8px 14px;font-family:var(--mono);font-size:13px;color:#bbb;display:flex;gap:12px;flex-shrink:0" id="clipMeta"></div>
       </div>
     </div>
@@ -3706,7 +3706,7 @@ async function openRandomClip() {
     const parent = location.hostname || 'localhost';
     titleEl.textContent = clip.title || 'Untitled clip';
     const mutedParam = _clipMuted ? '&muted=true' : '';
-    embedEl.innerHTML = `<iframe id="clipIframe" src="https://clips.twitch.tv/embed?clip=${clip.id}&parent=${parent}&autoplay=true${mutedParam}" width="100%" height="100%" allowfullscreen style="display:block;border:none"></iframe>`;
+    embedEl.innerHTML = `<iframe id="clipIframe" src="https://clips.twitch.tv/embed?clip=${clip.id}&parent=${parent}&autoplay=true${mutedParam}" allowfullscreen style="display:block;border:none;width:100%;height:100%;position:absolute;inset:0"></iframe>`;
     // Listen for user unmuting via postMessage (Twitch player fires this)
     _clipMuted = false; // assume unmuted after first interaction — track conservatively
     const views = clip.view_count ? clip.view_count.toLocaleString() + ' views' : '';
@@ -7027,8 +7027,8 @@ function startSpace() {
 
     const shopOpen=document.getElementById('spaceShop').style.display==='flex';
 
-    if((state==='playing' || state==='dead' || state==='waiting' || state==='paused') && !shopOpen){
-      const _isPlaying = state==='playing';
+    if((state==='playing' || state==='dead' || state==='waiting' || state==='paused')){
+      const _isPlaying = state==='playing' && !shopOpen;
       if(_isPlaying){
       // ── GAME LOGIC (playing only) ─────────────────────────────────────────
       // Tick down all weapon slot cooldowns every frame
