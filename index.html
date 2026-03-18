@@ -1504,9 +1504,9 @@
           <!-- Emote comparison row — grid keeps VS pinned to center regardless of card content -->
           <div style="display:grid;grid-template-columns:1fr 48px 1fr;align-items:center;gap:12px;width:100%">
             <!-- Left emote (reference) — clicking it means "left is higher" -->
-            <div id="holLeftCard" onclick="holGuessCard('left')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:200px;justify-content:center;cursor:pointer;transition:border-color 0.15s,background 0.15s"
+            <div id="holLeftCard" onclick="holGuessCard('left')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:200px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
               onmouseover="if(!window._holAnimating)this.style.borderColor='#4ade80'" onmouseout="if(!window._holAnimating)this.style.borderColor='var(--border)'">
-              <img id="holLeftImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto;pointer-events:none" onerror="this.style.opacity=0.3">
+              <img id="holLeftImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto;pointer-events:none">
               <div id="holLeftName" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
               <div id="holLeftCount" style="font-family:var(--mono);font-size:13px;color:#f59e0b;font-weight:700;pointer-events:none"></div>
             </div>
@@ -1515,9 +1515,9 @@
               <div style="font-family:var(--mono);font-size:22px;font-weight:900;color:#aaa">VS</div>
             </div>
             <!-- Right emote (guess target) — clicking it means "right is higher" -->
-            <div id="holRightCard" onclick="holGuessCard('right')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:200px;justify-content:center;cursor:pointer;transition:border-color 0.15s,background 0.15s"
+            <div id="holRightCard" onclick="holGuessCard('right')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:200px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
               onmouseover="if(!window._holAnimating)this.style.borderColor='#4ade80'" onmouseout="if(!window._holAnimating)this.style.borderColor='var(--border)'">
-              <img id="holRightImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto;pointer-events:none" onerror="this.style.opacity=0.3">
+              <img id="holRightImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto;pointer-events:none">
               <div id="holRightName" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
               <div id="holRightCount" style="font-family:var(--mono);font-size:13px;color:#aaa;font-weight:700;pointer-events:none">??? times typed</div>
             </div>
@@ -4911,7 +4911,6 @@ function _holRender(revealRight = false) {
   document.getElementById('holScore').textContent = _holScore;
   document.getElementById('holBest').textContent = holGetBest();
   document.getElementById('holResult').textContent = '';
-  document.getElementById('holStreak').textContent = `Streak: ${_holScore} correct in a row`;
 }
 
 function holGetBest() {
@@ -5020,6 +5019,8 @@ function holRestart() {
   _holAnimating = false;
   window._holAnimating = false;
   const panel = document.getElementById('holLbPanel');
+  if (panel) panel.style.display = 'none';
+  const btn = document.getElementById('holLbSubmitBtn');
   if (btn) { btn.textContent = 'SUBMIT'; btn.disabled = false; btn.style.opacity = '1'; }
   _holPickTwo();
   _holRender(false);
