@@ -4766,7 +4766,9 @@ function setSpaceMusicVol(v) {
   if (_spaceInShop) {
     if (_spaceShopMusicPlayer?.setVolume) { _spaceShopMusicPlayer.unMute(); _spaceShopMusicPlayer.setVolume(Math.floor(vi*0.8025)); }
   } else {
-    if (_spaceMusicPlayer?.setVolume) { _spaceMusicPlayer.unMute(); _spaceMusicPlayer.setVolume(Math.floor(vi*0.6375)); }
+    const _curTrack = _BG_TRACKS[_bgTrackIdx];
+    const _trackMult = (_curTrack?.vol) || 1.0;
+    if (_spaceMusicPlayer?.setVolume) { _spaceMusicPlayer.unMute(); _spaceMusicPlayer.setVolume(Math.min(100, Math.floor(vi*0.6375*_trackMult))); }
   }
 }
 
@@ -4804,6 +4806,12 @@ const _BG_TRACKS = [
   { id:'EGXPAoyP_cg', title:'Chris Christodoulou - The Rain Formerly Known as Purple' },
   { id:'SqFaCDvHxU4', title:'Hades - Out of Tartarus' },
   { id:'s5sTI_zBg40', title:'TES V Skyrim - From Past to Present' },
+  { id:'5Amwk16RgEo', title:'Terraria - Night', vol:1.10 },
+  { id:'gXIdLLc8s-E', title:'Super Metroid - Ridley / Draygon Boss Theme', vol:1.05 },
+  { id:'cSj1m5CWLk0', title:'Persona 5 OST - Price', vol:1.05 },
+  { id:'FTicXQYw2ts', title:'Christopher Larkin - Choral Chambers', vol:1.15 },
+  { id:'fcAP-B1HGXA', title:'Christopher Larkin - Lost Lace', vol:1.15 },
+  { id:'L5q4uYj-gyg', title:'KEYGEN CHURCH - Tenebre Rosso Sangue (ULTRAKILL)', vol:0.90 },
 ];
 let _bgTrackIdx = Math.floor(Math.random() * _BG_TRACKS.length);
 // Track last 3 played indices to avoid repeats
@@ -4829,7 +4837,8 @@ function _loadBgTrack(track) {
   if (!_spaceMusicPlayer) return;
   try {
     _spaceMusicPlayer.loadVideoById(track.id);
-    const vol = Math.floor(parseInt(document.getElementById('spaceMusicVol')?.value||20)*0.6375); // 0.75*0.85 = -15% more
+    const baseVol = Math.floor(parseInt(document.getElementById('spaceMusicVol')?.value||20)*0.6375);
+    const vol = Math.min(100, Math.floor(baseVol * (track.vol || 1.0)));
     _spaceMusicPlayer.setVolume(vol);
     if (_spaceMusicMuted || _spaceAllMuted) _spaceMusicPlayer.mute();
     else _spaceMusicPlayer.unMute();
@@ -4852,7 +4861,8 @@ function initSpaceMusic() {
       playerVars: { autoplay:1, controls:0, fs:0, origin:location.origin },
       events: {
         onReady: e => {
-          e.target.setVolume(mainVol);
+          const _initVol = Math.min(100, Math.floor(mainVol * (startTrack.vol || 1.0)));
+          e.target.setVolume(_initVol);
           if(!_spaceMusicMuted && !_spaceAllMuted) e.target.playVideo(); else e.target.mute();
           _songTitleText = startTrack.title;
           _songTitleTimer = 1440;
