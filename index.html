@@ -1442,7 +1442,7 @@
 
     <!-- EMOTE GUESSER MODAL -->
     <div id="egModal" style="display:none;position:fixed;inset:0;z-index:9005;background:rgba(0,0,0,0.93);align-items:center;justify-content:center;padding:20px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:800px;max-height:calc(100vh - 40px)">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:800px;height:calc(100vh - 40px);max-height:900px">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
           <div style="display:flex;flex-direction:column;gap:2px">
@@ -1457,8 +1457,8 @@
         <!-- Game area -->
         <div style="width:100%;padding:24px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:16px">
           <!-- Pixelated emote display -->
-          <div style="position:relative;width:360px;height:360px;border-radius:8px;overflow:hidden;background:#111;border:1px solid var(--border);flex-shrink:0">
-            <canvas id="egCanvas" width="360" height="360" style="display:block;width:360px;height:360px;image-rendering:pixelated"></canvas>
+          <div style="position:relative;width:420px;height:420px;border-radius:8px;overflow:hidden;background:#111;border:1px solid var(--border);flex-shrink:0">
+            <canvas id="egCanvas" width="420" height="420" style="display:block;width:420px;height:420px;image-rendering:pixelated"></canvas>
           </div>
           <!-- Guess history -->
           <div id="egGuessHistory" style="width:100%;display:flex;flex-direction:column;gap:4px;min-height:28px"></div>
@@ -1539,8 +1539,8 @@
         </div>
         <!-- Leaderboard panel -->
         <div id="holLbPanel" style="display:none;position:absolute;inset:0;background:rgba(5,5,20,0.97);z-index:10;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
-          <div style="font-family:var(--mono);font-size:16px;font-weight:900;color:#f59e0b;margin-bottom:6px">GAME OVER</div>
-          <div id="holLbFinalScore" style="font-family:var(--mono);font-size:28px;font-weight:900;color:#fff;margin-bottom:16px"></div>
+          <div style="font-family:var(--mono);font-size:36px;font-weight:900;color:#f59e0b;margin-bottom:10px;letter-spacing:2px">GAME OVER</div>
+          <div id="holLbFinalScore" style="font-family:var(--mono);font-size:48px;font-weight:900;color:#fff;margin-bottom:20px"></div>
           <div style="display:flex;gap:8px;margin-bottom:14px;width:100%;max-width:340px">
             <input id="holLbName" placeholder="Your name" maxlength="20" style="flex:1;background:#111;border:1px solid #333;border-radius:4px;padding:8px 12px;color:#fff;font-family:var(--mono);font-size:12px;outline:none">
             <button id="holLbSubmitBtn" onclick="holSubmitScore()" style="font-family:var(--mono);font-size:11px;font-weight:700;background:#f59e0b;border:none;color:#000;padding:8px 16px;border-radius:4px;cursor:pointer">SUBMIT</button>
@@ -4612,7 +4612,7 @@ function _egDrawPixelated(img, pixelSize) {
   const canvas = document.getElementById('egCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = 360, H = 360;
+  const W = 420, H = 420;
   ctx.clearRect(0, 0, W, H);
   if (pixelSize <= 1) {
     ctx.drawImage(img, 0, 0, W, H);
@@ -4637,7 +4637,7 @@ function _egRender() {
   img.onload = () => _egDrawPixelated(img, pixelSize);
   img.onerror = () => {
     const canvas = document.getElementById('egCanvas');
-    if (canvas) { const ctx = canvas.getContext('2d'); ctx.fillStyle = '#222'; ctx.fillRect(0,0,360,360); ctx.fillStyle='#555'; ctx.font='14px monospace'; ctx.textAlign='center'; ctx.fillText('?',180,185); }
+    if (canvas) { const ctx = canvas.getContext('2d'); ctx.fillStyle = '#222'; ctx.fillRect(0,0,420,420); ctx.fillStyle='#555'; ctx.font='14px monospace'; ctx.textAlign='center'; ctx.fillText('?',210,215); }
   };
   img.src = _egCurrentEmote.url;
   // Update attempts badge
@@ -4791,11 +4791,11 @@ async function openEmoteGuesser() {
   if (canvas) {
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#111';
-    ctx.fillRect(0, 0, 360, 360);
+    ctx.fillRect(0, 0, 420, 420);
     ctx.fillStyle = '#444';
     ctx.font = '13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Loading…', 180, 185);
+    ctx.fillText('Loading…', 210, 215);
   }
   await _egLoadEmotes();
   document.getElementById('egResult').textContent = '';
@@ -5618,11 +5618,11 @@ function startSpace() {
   if(_imgPool) _imgPool.appendChild(_burnEmoteImg);
 
   // Slow effect emote overlay (for frozen staff)
-  const _slowEmoteImg = new Image();
-  _slowEmoteImg.crossOrigin='anonymous';
-  _slowEmoteImg.src='https://cdn.7tv.app/emote/01HZNCN74G000396FKBWMCGM33/2x.webp';
-  _slowEmoteImg.style.cssText='position:absolute;left:-9999px;top:0;pointer-events:none;';
-  if(_imgPool) _imgPool.appendChild(_slowEmoteImg);
+  const _milkEmoteImg = new Image();
+  _milkEmoteImg.crossOrigin='anonymous';
+  _milkEmoteImg.src='https://cdn.7tv.app/emote/01FKVAFQH80004X8QJ9S80K7SN/2x.webp';
+  _milkEmoteImg.style.cssText='position:absolute;left:-9999px;top:0;pointer-events:none;';
+  if(_imgPool) _imgPool.appendChild(_milkEmoteImg);
 
   // Coin emote images
   const _coinImg = new Image(); _coinImg.crossOrigin='anonymous';
@@ -6913,11 +6913,11 @@ function startSpace() {
         }
         return;
       }
-      const isSlowed = e.slowTimer>0||e.deepFrozen>0;
+      const isSlowed = (e.slowTimer>0||e.deepFrozen>0) && !_isMilked;
       const _isMilked = e._milkTimer>0;
       const _fil = (isFrozen||e.deepFrozen>0) ? 'hue-rotate(195deg) saturate(1.5) brightness(0.85)'
                  : isSlowed ? 'hue-rotate(195deg) saturate(1.4) brightness(1.1) drop-shadow(0 0 4px #88ddff)'
-                 : _isMilked ? 'saturate(0) brightness(2.0) drop-shadow(0 0 3px #fff)'
+                 : _isMilked ? 'saturate(0) brightness(2.2) drop-shadow(0 0 4px #fff)'
                  : e.isTeleporter ? 'hue-rotate(260deg) saturate(2) brightness(1.4)'
                  : 'none';
       // Teleporter flickers gently before teleporting — slow fade, not strobe
@@ -7138,12 +7138,12 @@ function startSpace() {
         }
       }
 
-      // Narcissism: passive aura — knockback + damage every 3s (180 frames)
+      // Narcissism: passive aura — knockback + damage every 3s (150 frames = 20% faster)
       if((activeWeapons.includes('narcissism')||activeWeapon==='narcissism') && unlockedWeapons.has('narcissism')){
         const _nT2=!!upgrades.tier2_narcissism;
         const _nRadius = 3*36*1.5*getRangeMult()*getBulletSize()*(_nT2?1.20:1.0);
-        const _nDmg = 0.3*1.12*0.80*getBulletDmg()*(_nT2?1.30:1.0);
-        if(frame%180===0){ // every 3 seconds
+        const _nDmg = 0.3*1.12*0.80*2.30*getBulletDmg()*(_nT2?3.0:1.0); // +130% base; T2 triple
+        if(frame%150===0){ // every 2.5 seconds (20% faster)
           enemies=enemies.map(e=>{
             const dx=e.x-ship.x, dy=e.y-ship.y;
             const dist=Math.sqrt(dx*dx+dy*dy);
@@ -7172,7 +7172,8 @@ function startSpace() {
             }
             return e;
           }).filter(Boolean);
-          sfxPowerup();
+          // Quieter sfx for narcissism pulse
+          playTone(800,'sine',0.025,0.15);
         }
         // Tick down narcissism debuffs
         enemies.forEach(e=>{ if(e._narcDebuff>0) e._narcDebuff--; });
@@ -8194,30 +8195,38 @@ function startSpace() {
         ctx.restore();
 
       } else if(b.flame){
-        // Flamethrower — fire blob with inner heat and outer smoke
+        // Flamethrower — elongated teardrop flame shape, longer visually
         const t=(b.life||1)/(b.maxLife||1);
         const r=(b.size||1)*7;
-        const flicker=0.85+0.15*Math.sin(frame*0.4+b.x*0.3); // flicker effect
+        const flicker=0.85+0.15*Math.sin(frame*0.4+b.x*0.3);
+        const angle=Math.atan2(b.vy||0.001,b.vx||0.001);
         ctx.save();
-        ctx.globalAlpha=t*0.85;
         ctx.translate(b.x,b.y);
-        // Outer smoke halo
-        const smoke=ctx.createRadialGradient(0,0,r*0.4,0,0,r*2);
-        smoke.addColorStop(0,'rgba(60,20,0,0.4)');
+        ctx.rotate(angle);
+        // Elongated smoke halo — wide ellipse (2x long, 1.2x wide)
+        ctx.globalAlpha=t*0.5;
+        const smoke=ctx.createRadialGradient(-r*0.6,0,0,-r*0.3,0,r*2.2);
+        smoke.addColorStop(0,'rgba(60,20,0,0.45)');
         smoke.addColorStop(1,'rgba(30,10,0,0)');
-        ctx.fillStyle=smoke;ctx.beginPath();ctx.arc(0,0,r*2,0,Math.PI*2);ctx.fill();
-        // Fire gradient (hot yellow core → orange → red edge)
+        ctx.fillStyle=smoke;
+        ctx.beginPath();ctx.ellipse(-r*0.3,0,r*2.2,r*1.2,0,0,Math.PI*2);ctx.fill();
+        // Fire body — elongated ellipse pointing forward
         ctx.globalAlpha=t*0.9*flicker;
-        const fg=ctx.createRadialGradient(0,-r*0.15,0,0,0,r);
-        fg.addColorStop(0,'rgba(255,255,200,0.95)');
-        fg.addColorStop(0.2,'rgba(255,180,20,0.9)');
-        fg.addColorStop(0.55,'rgba(255,60,0,0.75)');
-        fg.addColorStop(0.85,'rgba(180,20,0,0.4)');
+        const fg=ctx.createRadialGradient(r*0.3,0,0,0,0,r*1.1);
+        fg.addColorStop(0,'rgba(255,255,200,0.98)');
+        fg.addColorStop(0.15,'rgba(255,200,30,0.95)');
+        fg.addColorStop(0.4,'rgba(255,80,0,0.85)');
+        fg.addColorStop(0.7,'rgba(200,20,0,0.5)');
         fg.addColorStop(1,'rgba(100,10,0,0)');
-        ctx.fillStyle=fg;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
-        // Bright hot core
-        ctx.globalAlpha=t*0.7*flicker;
-        ctx.fillStyle='#fffde0';ctx.beginPath();ctx.arc(0,0,r*0.28,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=fg;
+        ctx.beginPath();ctx.ellipse(0,0,r*2.0,r*1.2,0,0,Math.PI*2);ctx.fill();
+        // Bright hot tip at front
+        ctx.globalAlpha=t*0.8*flicker;
+        const tip=ctx.createRadialGradient(r*0.8,0,0,r*0.8,0,r*0.55);
+        tip.addColorStop(0,'rgba(255,255,240,0.95)');
+        tip.addColorStop(1,'rgba(255,220,80,0)');
+        ctx.fillStyle=tip;
+        ctx.beginPath();ctx.ellipse(r*0.7,0,r*0.6,r*0.55,0,0,Math.PI*2);ctx.fill();
         ctx.restore();
 
       } else if(wt==='sniper'){
@@ -8377,7 +8386,7 @@ function startSpace() {
         const segs=4;
         const _seed2=(Math.floor(b.x*3+b.y*7))&255;
         const _rng2=(i)=>((_seed2*9301+i*49297)%233280)/233280;
-        ctx.strokeStyle=_lc;ctx.lineWidth=isRed?2.5:1.8;ctx.lineCap='round';
+        ctx.strokeStyle=_lc;ctx.lineWidth=isRed?3.5:2.6;ctx.lineCap='round';
         ctx.beginPath();ctx.moveTo(-tlen,0);
         for(let i=1;i<=segs;i++){
           const px=-tlen+i*(tlen/segs);
@@ -8407,10 +8416,10 @@ function startSpace() {
         const sz=b.size||1;
         const angle=Math.atan2(b.vy,b.vx);
         ctx.translate(b.x,b.y);ctx.rotate(angle);
-        const _plen=32*sz; // 60% longer
+        const _plen=32*sz;
         const bg2=ctx.createLinearGradient(-_plen,0,0,0);
         bg2.addColorStop(0,'rgba(96,221,255,0)');bg2.addColorStop(1,'#60ddff');
-        ctx.strokeStyle=bg2;ctx.lineWidth=9*sz; // 3x wider
+        ctx.strokeStyle=bg2;ctx.lineWidth=9*sz;
         ctx.beginPath();ctx.moveTo(-_plen,0);ctx.lineTo(0,0);ctx.stroke();
         ctx.fillStyle='#e0f8ff';ctx.beginPath();ctx.arc(0,0,4.5*sz,0,Math.PI*2);ctx.fill();
         } // end else follower check
@@ -8450,7 +8459,7 @@ function startSpace() {
         ctx.restore();
       }
       const _eFrozen=_hasPowerup('freeze');
-      const _eSlowed=(e.slowTimer>0||e.deepFrozen>0);
+      const _eSlowed=(e.slowTimer>0||e.deepFrozen>0) && !e._milkTimer;
       if(!e.img||!e.img.complete||!e.img.naturalWidth){
         ctx.fillStyle=(_eFrozen||e.deepFrozen>0)?'rgba(100,180,255,0.4)':_eSlowed?'rgba(100,200,255,0.25)':'rgba(255,100,100,0.3)';
         ctx.beginPath();ctx.arc(e.x,e.y,e.size/2,0,Math.PI*2);ctx.fill();
@@ -8467,15 +8476,18 @@ function startSpace() {
           ctx.restore();
         }
       }
-      if(_eSlowed){        // Draw snow/slow emote at 70% transparency above enemy
-        if(_slowEmoteImg&&_slowEmoteImg.complete&&_slowEmoteImg.naturalWidth>0){
-          const _seSz=Math.min(e.size*0.7,32);
-          ctx.save();ctx.globalAlpha=0.30; // 70% transparent
-          ctx.drawImage(_slowEmoteImg,e.x-_seSz/2,e.y-e.size*0.6-_seSz,_seSz,_seSz);
-          ctx.restore();
-        }
+      if(_eSlowed){        // Blue dashed ring for non-milk slows (frozen staff etc)
         ctx.save();ctx.globalAlpha=0.20;ctx.strokeStyle='#88ccff';ctx.lineWidth=2;ctx.setLineDash([4,4]);
         ctx.beginPath();ctx.arc(e.x,e.y,e.size*0.55,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+      }
+      // Milk icon above milked enemies
+      if(e._milkTimer>0){
+        if(_milkEmoteImg&&_milkEmoteImg.complete&&_milkEmoteImg.naturalWidth>0){
+          const _meSz=Math.min(e.size*0.85,38);
+          ctx.save();ctx.globalAlpha=0.55+0.15*Math.sin(frame*0.15+e.x*0.05);
+          ctx.drawImage(_milkEmoteImg,e.x-_meSz/2,e.y-e.size*0.6-_meSz,_meSz,_meSz);
+          ctx.restore();
+        }
       }
       // Milk glue visual — white splat overlay on canvas
       if(e._milkTimer>0){
@@ -8671,32 +8683,35 @@ function startSpace() {
       if(invincible>0&&!isCheatInv) ctx.globalAlpha = Math.floor(frame/4)%2===0 ? 1 : 0;
       drawUFO(ship.x, ship.y, null, 0, 1);
       ctx.restore();
-      // Narcissism: passive aura circle with floating math equations
+      // Narcissism: passive aura polygon with floating math equations
       if(activeWeapons.includes('narcissism')||activeWeapon==='narcissism'){
         const _nT2v=!!upgrades.tier2_narcissism;
         const _nRv = 3*36*1.5*getRangeMult()*getBulletSize()*(_nT2v?1.20:1.0);
         const _nPulse=0.5+0.25*Math.sin(frame*0.025);
-        // Pulse brightens every 3s
-        const _nBurst=((frame%180)<12)?(1-(frame%180)/12):0;
+        const _nBurst=((frame%150)<12)?(1-(frame%150)/12):0;
         ctx.save();
-        // Filled circle
+        // Helper: draw polygon path with N sides + wave distortion
+        const _drawNarcPoly=(sides, r, waveAmp, waveFreq, waveSpeed)=>{
+          ctx.beginPath();
+          for(let _pi=0;_pi<=sides;_pi++){
+            const _pa=(_pi/sides)*Math.PI*2;
+            const _pw=r+waveAmp*Math.sin(_pa*waveFreq+frame*waveSpeed);
+            const _px=ship.x+Math.cos(_pa)*_pw;
+            const _py=ship.y+Math.sin(_pa)*_pw;
+            _pi===0?ctx.moveTo(_px,_py):ctx.lineTo(_px,_py);
+          }
+          ctx.closePath();
+        };
+        const _nSides=_nT2v?6:5; // hexagon for T2, pentagon for T1
+        // Filled polygon
         ctx.globalAlpha=0.10+_nPulse*0.05+_nBurst*0.15;
         ctx.fillStyle=_nT2v?'rgba(160,60,220,0.25)':'rgba(150,150,150,0.18)';
-        ctx.beginPath();ctx.arc(ship.x,ship.y,_nRv,0,Math.PI*2);ctx.fill();
-        // Wavy outline
+        _drawNarcPoly(_nSides,_nRv,0,0,0);ctx.fill();
+        // Wavy polygon outline
         ctx.globalAlpha=0.5+_nPulse*0.3+_nBurst*0.4;
         ctx.strokeStyle=_nT2v?'rgba(200,100,255,0.8)':'rgba(180,180,180,0.7)';
         ctx.lineWidth=2;
-        const _nSegs=48, _nWaveAmp=2.5+_nBurst*6;
-        ctx.beginPath();
-        for(let _ni=0;_ni<=_nSegs;_ni++){
-          const _na=(_ni/_nSegs)*Math.PI*2;
-          const _nw=_nRv+_nWaveAmp*Math.sin(_na*5+frame*0.04);
-          const _nx=ship.x+Math.cos(_na)*_nw;
-          const _ny=ship.y+Math.sin(_na)*_nw;
-          _ni===0?ctx.moveTo(_nx,_ny):ctx.lineTo(_nx,_ny);
-        }
-        ctx.closePath();ctx.stroke();
+        _drawNarcPoly(_nSides*8,_nRv,2.5+_nBurst*6,5,0.04);ctx.stroke();
         // Floating math symbols inside the aura
         if(!window._narcSymbols){
           const _syms=['∑','π','∞','√','∫','≠','≈','Δ','α','β','42','IQ','3.14','e²','x²','±','69','777','67','1+1=3','2+2=5','91.5%=100%','140','1337','420','∂','λ','Ω','φ','∇','γ','μ','θ'];
@@ -8718,12 +8733,12 @@ function startSpace() {
           ctx.fillStyle=_nT2v?'#d8a0ff':'#cccccc';
           ctx.fillText(s.sym,sx,sy);
         });
-        // T2: clown emojis too
+        // T2: 8 clown emojis
         if(_nT2v){
           if(!window._narcClowns){
-            window._narcClowns=Array.from({length:5},(_,i)=>({
-              angle:(i/5)*Math.PI*2+Math.random(),
-              r:_nRv*0.5+Math.random()*_nRv*0.35,
+            window._narcClowns=Array.from({length:8},(_,i)=>({
+              angle:(i/8)*Math.PI*2+Math.random(),
+              r:_nRv*0.25+Math.random()*_nRv*0.65,
               speed:(Math.random()-0.5)*0.018,
             }));
           }
