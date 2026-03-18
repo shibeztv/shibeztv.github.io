@@ -6289,7 +6289,7 @@ function startSpace() {
       const mgSpread=isT2m?0.35:0.22;
       for(let mi=0;mi<mgCount;mi++){
         const spread=(Math.random()-0.5)*mgSpread;
-        const _mgSpd=isT2m?7.2*0.75*1.25*1.5:7.2*0.75*1.25;
+        const _mgSpd=isT2m?5.5*1.15:5.5; // T2 15% faster than T1, both reasonable
         const _mgLife=Math.floor(144*rm);
         const _mgDmg=(isT2m?0.15:0.10)*getBulletDmg();
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+spread)*_mgSpd,vy:Math.sin(baseAngle+spread)*_mgSpd,dmg:_mgDmg,size:sz*0.616,color:'#fbbf24',weaponType:'minigun',pierce:upgrades.pierce||0,fracDmg:true,life:_mgLife,maxLife:_mgLife});
@@ -6302,7 +6302,7 @@ function startSpace() {
       _towerGunBurstCount++;
       const isRingShot=hasTier2&&(_towerGunBurstCount%4===0);
       const shotCount=12+Math.floor(upgrades.multishot*0.7); // always 12
-      const _rotOff=hasTier2?(frame*0.05):baseAngle;
+      const _rotOff=hasTier2?(frame*0.012):baseAngle; // T2 slow auto-rotate
       for(let i=0;i<shotCount;i++){
         const a=_rotOff+(i/shotCount)*Math.PI*2;
         const spd=5.2*0.85;
@@ -6321,8 +6321,8 @@ function startSpace() {
       const isT2=!!upgrades.tier2_flamethrower;
       const spread=isT2?0.45*1.25:0.45; // T2 25% wider cone
       const rangeBonus=isT2?1.65:1.0;   // T2 +65% range
-      const _flameSpd=(4+Math.random()*3.0)*rangeBonus;
-      const _flameLife=(30+Math.random()*18)*rangeBonus*rm;
+      const _flameSpd=4.5+Math.random()*2.0; // constant speed regardless of range
+      const _flameLife=(35+Math.random()*20)*rangeBonus*rm; // range bonus only affects life/distance
       const _baseDmg=0.00415*0.15*getBulletDmg();
       const _flameDmg=_baseDmg*1.70; // +70% dmg
       const a=baseAngle+(Math.random()-0.5)*spread;
@@ -6343,7 +6343,7 @@ function startSpace() {
       const spread=isT2m2?Math.PI*0.61:0.55; // T2 ~110° arc
       for(let i=0;i<count;i++){
         const a=baseAngle+(i-(count-1)/2)*(spread/(count-1||1));
-        const _mSpd=8.55*0.80*0.75;
+        const _mSpd=5.5; // normalized to pistol speed
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*_mSpd,vy:Math.sin(a)*_mSpd,dmg:Math.max(1,Math.floor(dmg*0.80)),size:sz,color:'#fbbf24',weaponType:'multi',pierce:upgrades.pierce||0});
       }
       setCd(Math.floor(160*rapidMod*atkMod)); // 160 frames
@@ -6356,7 +6356,7 @@ function startSpace() {
       const _fsCount=(isT2f?8:5)+Math.floor(upgrades.multishot*0.5);
       for(let i=0;i<_fsCount;i++){
         const a=baseAngle+(i-(_fsCount-1)/2)*(coneSpread/(_fsCount-1||1));
-        const spd=(5+Math.random()*3.5)*rangeF*0.35*0.70*1.50; // +50% shard speed
+        const spd=(4.5+Math.random()*2.0)*(isT2f?1.20:1.0)*rm; // clean simple speed
         const life=(28+Math.random()*16)*rangeF*rm;
         bullets.push({x:ship.x,y:ship.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,
           dmg:(isT2f?0.05:0.0125)*getBulletDmg(),
@@ -6394,7 +6394,7 @@ function startSpace() {
       const perpX=Math.cos(baseAngle+Math.PI/2), perpY=Math.sin(baseAngle+Math.PI/2);
       const _lcol=isT2L?'#ff4444':'#7df9ff';
       const _lSpread=isT2L?14:22;
-      const _lBaseSpd=20*0.15*0.90*1.15; // +15% travel speed
+      const _lBaseSpd=6.5; // clean base speed
       const _lT2Extra=isT2L?1.12:1.0;    // T2 +12%
       for(let bi=0;bi<boltCount;bi++){
         const offset=(bi-(boltCount-1)/2)*_lSpread;
@@ -6473,13 +6473,13 @@ function startSpace() {
         [-1,0,1].forEach(i=>{
           bullets.push({
             x:ship.x+perpX*spread*i, y:ship.y+perpY*spread*i,
-            vx:Math.cos(baseAngle)*11*rm, vy:Math.sin(baseAngle)*11*rm,
+            vx:Math.cos(baseAngle)*5.5, vy:Math.sin(baseAngle)*5.5,
             dmg:dmg, size:sz, pierce:p
           });
         });
       }
       if(pw==='double'&&count<2){bullets.push({x:ship.x,y:ship.y-8,vx:Math.cos(baseAngle)*5.5,vy:Math.sin(baseAngle)*5.5,dmg:dmg,size:sz,pierce:p});}
-      if(pw==='triple'&&count<3){[-0.2,0.2].forEach(da=>bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*11*rm,vy:Math.sin(baseAngle+da)*11*rm,dmg:dmg,size:sz,pierce:p}));}
+      if(pw==='triple'&&count<3){[-0.2,0.2].forEach(da=>bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*5.5,vy:Math.sin(baseAngle+da)*5.5,dmg:dmg,size:sz,pierce:p}));}
       setCd(cd);
     }
     sfxShoot();
@@ -7140,8 +7140,8 @@ function startSpace() {
       if((activeWeapons.includes('narcissism')||activeWeapon==='narcissism') && unlockedWeapons.has('narcissism')){
         const _nT2=!!upgrades.tier2_narcissism;
         const _nRadius = 3*36*1.5*getRangeMult()*getBulletSize()*(_nT2?1.20:1.0);
-        const _nDmg = 0.3*1.12*0.80*2.30*getBulletDmg()*(_nT2?3.0:1.0); // +130% base; T2 triple
-        if(frame%150===0){ // every 2.5 seconds (20% faster)
+        const _nDmg = 0.3*1.12*0.80*getBulletDmg()*(_nT2?1.30:1.0); // back to original dmg (×2.30 was too high)
+        if(frame%240===0){ // every 4 seconds (slower)
           enemies=enemies.map(e=>{
             const dx=e.x-ship.x, dy=e.y-ship.y;
             const dist=Math.sqrt(dx*dx+dy*dy);
@@ -8686,7 +8686,7 @@ function startSpace() {
         const _nT2v=!!upgrades.tier2_narcissism;
         const _nRv = 3*36*1.5*getRangeMult()*getBulletSize()*(_nT2v?1.20:1.0);
         const _nPulse=0.5+0.25*Math.sin(frame*0.025);
-        const _nBurst=((frame%150)<12)?(1-(frame%150)/12):0;
+        const _nBurst=((frame%240)<12)?(1-(frame%240)/12):0;
         const _nSides=10; // decagon for both T1 and T2
         const _nSpinOffset=frame*0.004; // much slower spin (was 0.018)
         ctx.save();
