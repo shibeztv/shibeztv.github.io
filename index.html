@@ -759,6 +759,10 @@
   }
 
   #spaceModal *::-webkit-scrollbar { width: 0; height: 0; }
+
+  #egSuggest::-webkit-scrollbar { width: 4px; }
+  #egSuggest::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  #egSuggest::-webkit-scrollbar-track { background: transparent; }
   .space-emote-overlay {
     position: absolute;
     pointer-events: none;
@@ -1438,7 +1442,7 @@
 
     <!-- EMOTE GUESSER MODAL -->
     <div id="egModal" style="display:none;position:fixed;inset:0;z-index:9005;background:rgba(0,0,0,0.93);align-items:center;justify-content:center;padding:20px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:560px;max-height:calc(100vh - 40px);overflow-y:auto">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:680px;max-height:calc(100vh - 40px)">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
           <div style="display:flex;flex-direction:column;gap:2px">
@@ -1451,10 +1455,10 @@
           </div>
         </div>
         <!-- Game area -->
-        <div style="width:100%;padding:20px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:100%;padding:24px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:16px">
           <!-- Pixelated emote display -->
-          <div style="position:relative;width:200px;height:200px;border-radius:8px;overflow:hidden;background:#111;border:1px solid var(--border);flex-shrink:0">
-            <canvas id="egCanvas" width="200" height="200" style="display:block;width:200px;height:200px;image-rendering:pixelated"></canvas>
+          <div style="position:relative;width:280px;height:280px;border-radius:8px;overflow:hidden;background:#111;border:1px solid var(--border);flex-shrink:0">
+            <canvas id="egCanvas" width="280" height="280" style="display:block;width:280px;height:280px;image-rendering:pixelated"></canvas>
           </div>
           <!-- Guess history -->
           <div id="egGuessHistory" style="width:100%;display:flex;flex-direction:column;gap:4px;min-height:28px"></div>
@@ -1464,7 +1468,7 @@
               <input id="egInput" type="text" placeholder="Type emote name…" autocomplete="off" maxlength="60"
                 style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:9px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;box-sizing:border-box"
                 oninput="egOnInput()" onkeydown="if(event.key==='Enter')egSubmitGuess();if(event.key==='ArrowDown'||event.key==='ArrowUp')egNavSuggest(event)">
-              <div id="egSuggest" style="display:none;position:absolute;left:0;right:0;top:100%;background:#1a1a2e;border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;z-index:20;max-height:180px;overflow-y:auto"></div>
+              <div id="egSuggest" style="display:none;position:absolute;left:0;right:0;top:100%;background:#1a1a2e;border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;z-index:20;max-height:205px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent"></div>
             </div>
             <button onclick="egSubmitGuess()" style="font-family:var(--mono);font-size:12px;font-weight:700;background:rgba(232,121,249,0.15);border:2px solid #e879f9;color:#e879f9;padding:9px 18px;border-radius:4px;cursor:pointer;white-space:nowrap"
               onmouseover="this.style.background='rgba(232,121,249,0.28)'" onmouseout="this.style.background='rgba(232,121,249,0.15)'">GUESS</button>
@@ -4608,7 +4612,7 @@ function _egDrawPixelated(img, pixelSize) {
   const canvas = document.getElementById('egCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = 200, H = 200;
+  const W = 280, H = 280;
   ctx.clearRect(0, 0, W, H);
   if (pixelSize <= 1) {
     ctx.drawImage(img, 0, 0, W, H);
@@ -4633,7 +4637,7 @@ function _egRender() {
   img.onload = () => _egDrawPixelated(img, pixelSize);
   img.onerror = () => {
     const canvas = document.getElementById('egCanvas');
-    if (canvas) { const ctx = canvas.getContext('2d'); ctx.fillStyle = '#222'; ctx.fillRect(0,0,200,200); ctx.fillStyle='#555'; ctx.font='14px monospace'; ctx.textAlign='center'; ctx.fillText('?',100,105); }
+    if (canvas) { const ctx = canvas.getContext('2d'); ctx.fillStyle = '#222'; ctx.fillRect(0,0,280,280); ctx.fillStyle='#555'; ctx.font='14px monospace'; ctx.textAlign='center'; ctx.fillText('?',140,145); }
   };
   img.src = _egCurrentEmote.url;
   // Update attempts badge
@@ -4665,7 +4669,7 @@ function egOnInput() {
   const suggestEl = document.getElementById('egSuggest');
   _egSuggestIdx = -1;
   if (!val || val.length < 1) { suggestEl.style.display = 'none'; return; }
-  const matches = _egEmotes.filter(e => e.name.toLowerCase().includes(val)).slice(0, 8);
+  const matches = _egEmotes.filter(e => e.name.toLowerCase().includes(val)).slice(0, 5);
   if (!matches.length) { suggestEl.style.display = 'none'; return; }
   suggestEl.innerHTML = matches.map((e, i) =>
     `<div onclick="egSelectSuggest('${e.name.replace(/'/g,"\\'")}')"`+
@@ -4783,11 +4787,11 @@ async function openEmoteGuesser() {
   if (canvas) {
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#111';
-    ctx.fillRect(0, 0, 200, 200);
+    ctx.fillRect(0, 0, 280, 280);
     ctx.fillStyle = '#444';
     ctx.font = '13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Loading…', 100, 105);
+    ctx.fillText('Loading…', 140, 145);
   }
   await _egLoadEmotes();
   document.getElementById('egResult').textContent = '';
