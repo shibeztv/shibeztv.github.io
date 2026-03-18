@@ -1440,8 +1440,8 @@
             <span style="font-family:var(--mono);font-size:9px;color:#aaa">Which emote has a higher usage count?</span>
           </div>
           <div style="display:flex;align-items:center;gap:14px">
-            <span style="font-family:var(--mono);font-size:12px;color:#aaa">Score: <span id="holScore" style="color:#aaa;font-weight:900;font-size:15px">0</span></span>
-            <span style="font-family:var(--mono);font-size:12px;color:#aaa">Highscore: <span id="holBest" style="color:#aaa;font-weight:900">0</span></span>
+            <span style="font-family:var(--mono);font-size:12px;color:#aaa">Score: <span id="holScore" style="color:#f59e0b;font-weight:900;font-size:15px">0</span></span>
+            <span style="font-family:var(--mono);font-size:12px;color:#aaa">Highscore: <span id="holBest" style="color:#a78bfa;font-weight:900">0</span></span>
             <button onclick="closeHigherLower()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
@@ -1452,18 +1452,18 @@
             <!-- Left emote (reference) -->
             <div id="holLeftCard" style="flex:1;background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:200px;justify-content:center">
               <img id="holLeftImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto" onerror="this.style.opacity=0.3">
-              <div id="holLeftName" style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);text-align:center"></div>
-              <div id="holLeftCount" style="font-family:var(--mono);font-size:11px;color:#f59e0b;font-weight:700"></div>
+              <div id="holLeftName" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);text-align:center"></div>
+              <div id="holLeftCount" style="font-family:var(--mono);font-size:13px;color:#f59e0b;font-weight:700"></div>
             </div>
             <!-- VS divider -->
             <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0">
-              <div style="font-family:var(--mono);font-size:22px;font-weight:900;color:#555">VS</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:900;color:#aaa">VS</div>
             </div>
             <!-- Right emote (guess target) -->
             <div id="holRightCard" style="flex:1;background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:200px;justify-content:center">
               <img id="holRightImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto" onerror="this.style.opacity=0.3">
-              <div id="holRightName" style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);text-align:center"></div>
-              <div id="holRightCount" style="font-family:var(--mono);font-size:11px;color:#aaa;font-weight:700">Usage: ???</div>
+              <div id="holRightName" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);text-align:center"></div>
+              <div id="holRightCount" style="font-family:var(--mono);font-size:13px;color:#aaa;font-weight:700">Usage: ???</div>
             </div>
           </div>
           <!-- Buttons -->
