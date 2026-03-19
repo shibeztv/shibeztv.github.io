@@ -4694,19 +4694,34 @@ function _egRender() {
   const blurOverlay = document.getElementById('egBlurOverlay');
 
   if (_egCurrentEmote.animated) {
-    // Always show animated img — hide canvas
+    // Always show animated img — hide canvas, hide blur overlay
     if (canvas) canvas.style.display = 'none';
-    if (animImg) { animImg.src = _egCurrentEmote.url; animImg.style.display = 'block'; }
-    if (blurOverlay) {
+    if (blurOverlay) blurOverlay.style.display = 'none';
+    if (animImg) {
+      animImg.src = _egCurrentEmote.url;
+      animImg.style.display = 'block';
       if (pixelSize <= 1) {
-        // Fully revealed — no blur
-        blurOverlay.style.display = 'none';
+        // Fully revealed — normal size
+        animImg.style.width = '420px';
+        animImg.style.height = '420px';
+        animImg.style.imageRendering = 'auto';
+        animImg.style.transform = 'none';
+        animImg.style.transformOrigin = 'top left';
+        animImg.style.position = 'absolute';
+        animImg.style.left = '0';
+        animImg.style.top = '0';
       } else {
-        // Blur scales down with each attempt: 32px → 24 → 16 → 10 → 5 → 0
-        const blurPx = [32, 24, 16, 10, 5, 0][level] || 0;
-        blurOverlay.style.display = 'block';
-        blurOverlay.style.backdropFilter = `blur(${blurPx}px)`;
-        blurOverlay.style.webkitBackdropFilter = `blur(${blurPx}px)`;
+        // Pixelate by rendering tiny then scaling up with CSS pixelated rendering
+        const _scale = Math.max(1, Math.floor(420 / pixelSize));
+        const _tiny = Math.max(1, Math.floor(420 / _scale));
+        animImg.style.width = _tiny + 'px';
+        animImg.style.height = _tiny + 'px';
+        animImg.style.imageRendering = 'pixelated';
+        animImg.style.transform = `scale(${_scale})`;
+        animImg.style.transformOrigin = 'top left';
+        animImg.style.position = 'absolute';
+        animImg.style.left = '0';
+        animImg.style.top = '0';
       }
     }
   } else {
@@ -6563,10 +6578,9 @@ function startSpace() {
           vx:Math.cos(baseAngle)*milkSpd, vy:Math.sin(baseAngle)*milkSpd,
           ..._milkProps});
       };
-      // Fire 3 bullets in sequence with short delay between each
+      // Fire 3 bullets nearly touching — delay = bullet travels ~80% of its own diameter
+      const _delay = Math.round((milkSz / milkSpd) * 16 * 0.8);
       _fireOneMilk();
-      // Delay = time for bullet to travel ~1 bullet-diameter so they're nearly touching
-      const _delay = Math.round((milkSz / milkSpd) * 16 * 0.6);
       setTimeout(()=>{ if(_spaceRunning) _fireOneMilk(); }, _delay);
       setTimeout(()=>{ if(_spaceRunning) _fireOneMilk(); }, _delay*2);
       const milkCd=isT2milk?Math.floor(184*0.93):184;
@@ -8833,32 +8847,29 @@ function startSpace() {
         ctx.fillStyle=_fillGrad;
         _drawDecagon(_nRv, 0); ctx.fill();
 
-        // Static dim outline of the full decagon
-        ctx.globalAlpha=0.22+_nPulse*0.08;
-        ctx.strokeStyle=_nColorSolid;
-        ctx.lineWidth=2.5; ctx.lineJoin='round';
-        _drawDecagon(_nRv, 0); ctx.stroke();
+        const _nSpinOffset=frame*0.004*1.4; // +40% speed
+        // Solid fill with ring cutout
+        ctx.globalAlpha=0.18+_nPulse*0.10+_nBurst*0.20;
+        ctx.fillStyle=_nT2v?'rgba(220,140,255,0.35)':'rgba(210,210,210,0.28)';
+        _drawDecagon(_nRv*0.92, _nSpinOffset*0.3); ctx.fill();
+        ctx.globalAlpha=1;
+        ctx.globalCompositeOperation='destination-out';
+        ctx.globalAlpha=0.55;
+        _drawDecagon(_nRv*0.72, _nSpinOffset*0.3); ctx.fill();
+        ctx.globalCompositeOperation='source-over';
+        ctx.globalAlpha=1;
 
-        // ── Clock hand: single line from center rotating clockwise, +40% speed ──
-        const _clockAngle = (frame * 0.001 * 1.4 * Math.PI * 2) % (Math.PI * 2); // 40% faster
-        // Find where the hand intersects the decagon outline
-        const _handLen = _nRv; // reaches outline
-        const _handX = ship.x + Math.cos(_clockAngle) * _handLen;
-        const _handY = ship.y + Math.sin(_clockAngle) * _handLen;
-        ctx.save();
-        ctx.globalAlpha = 0.85 + _nPulse * 0.15 + _nBurst * 0.15;
-        ctx.strokeStyle = _nT2v ? 'rgba(240,180,255,0.95)' : 'rgba(255,255,255,0.95)';
-        ctx.lineWidth = 2.5 + _nBurst * 2;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(ship.x, ship.y);
-        ctx.lineTo(_handX, _handY);
-        ctx.stroke();
-        // Tip glow dot
-        ctx.globalAlpha = 0.95 + _nBurst * 0.05;
-        ctx.fillStyle = _nT2v ? '#f0c0ff' : '#ffffff';
-        ctx.beginPath(); ctx.arc(_handX, _handY, 3 + _nBurst * 3, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
+        // Spinning outer stroke — wider inner line
+        ctx.globalAlpha=0.65+_nPulse*0.25+_nBurst*0.35;
+        ctx.strokeStyle=_nT2v?'rgba(220,120,255,0.9)':'rgba(200,200,200,0.85)';
+        ctx.lineWidth=5; ctx.lineJoin='round';
+        _drawDecagon(_nRv, _nSpinOffset); ctx.stroke();
+
+        // Second spinning outline offset for depth
+        ctx.globalAlpha=0.30+_nPulse*0.15;
+        ctx.strokeStyle=_nT2v?'rgba(160,80,255,0.6)':'rgba(150,150,150,0.5)';
+        ctx.lineWidth=2;
+        _drawDecagon(_nRv*1.04, -_nSpinOffset*0.6); ctx.stroke();
 
         // Burst flash on attack
         if(_nBurst>0.05){
