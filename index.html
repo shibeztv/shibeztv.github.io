@@ -1463,6 +1463,11 @@
                 <input type="range" min="0" max="30" step="0.5" value="0" style="flex:1" oninput="window._devBulletSize=parseFloat(this.value);document.getElementById('devBulletSizeVal').textContent=this.value==0?'default':this.value+'x'">
                 <span id="devBulletSizeVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
               </label>
+              <label style="display:flex;align-items:center;gap:8px">
+                <span style="min-width:100px">Bullet dmg</span>
+                <input type="range" min="0" max="100" step="0.1" value="0" style="flex:1" oninput="window._devBulletDmg=parseFloat(this.value);document.getElementById('devBulletDmgVal').textContent=this.value==0?'default':parseFloat(this.value).toFixed(1)">
+                <span id="devBulletDmgVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
+              </label>
             </div>
             <button onclick="document.querySelectorAll('#spaceDevPanel input[type=range]').forEach(i=>{i.value=0;i.dispatchEvent(new Event('input'));})" style="margin-top:8px;width:100%;background:rgba(124,92,252,0.2);border:1px solid #3a2a6a;color:#a78bfa;font-family:monospace;font-size:9px;padding:3px;border-radius:3px;cursor:pointer">Reset all to default</button>
           </div>
@@ -6602,11 +6607,14 @@ function startSpace() {
         const _mag=Math.sqrt(_b.vx*_b.vx+_b.vy*_b.vy)||1;
         _b.vx=(_b.vx/_mag)*window._devBulletSpeed; _b.vy=(_b.vy/_mag)*window._devBulletSpeed;
       }
-      if(window._devBulletRange>0 && _b.life!==undefined){
-        const _spd=Math.sqrt(_b.vx**2+_b.vy**2)||1;
-        _b.life=Math.ceil(window._devBulletRange/_spd); _b.maxLife=_b.life;
+      if(window._devBulletRange>0){
+        _b._devMaxDist=window._devBulletRange;
+        _b._devDistTraveled=0;
+        // Also clear any life so it doesn't expire first
+        delete _b.life; delete _b.maxLife;
       }
       if(window._devBulletSize>0) _b.size=window._devBulletSize;
+      if(window._devBulletDmg>0) _b.dmg=window._devBulletDmg;
     }
     sfxShoot();
   }
@@ -8008,15 +8016,17 @@ function startSpace() {
       }
 
       bullets.forEach(b=>{
-        if(b.flame&&b.life!==undefined)b.life--;
+        if(b.flame&&b.life!==undefined)b.life-=dt;
 
       });
       bullets=bullets.filter(b=>{
         if(b.isLaserBeam)return b.life>0;
         if(b.flame)return b.life>0;
 
-        if(b.life!==undefined){b.life--;if(b.life<=0)return false;}
-        return b.x>cam.x-80&&b.x<cam.x+W+80&&b.y>cam.y-80&&b.y<cam.y+H+80;
+        if(b.life!==undefined){b.life-=dt;if(b.life<=0)return false;}
+        if(b._devMaxDist!==undefined){b._devDistTraveled=(b._devDistTraveled||0)+Math.sqrt(b.vx**2+b.vy**2)*dt;if(b._devDistTraveled>=b._devMaxDist)return false;}
+        const _bMargin=Math.max(80, (b.size||0)*0.6);
+        return b.x>cam.x-_bMargin&&b.x<cam.x+W+_bMargin&&b.y>cam.y-_bMargin&&b.y<cam.y+H+_bMargin;
       });
       enemies=enemies.filter(e=>{
         const keep=e.x>cam.x-300&&e.x<cam.x+W+300&&e.y>cam.y-300&&e.y<cam.y+H+300;
