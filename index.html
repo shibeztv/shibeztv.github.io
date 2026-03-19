@@ -4466,8 +4466,8 @@ function startFlappy() {
   const _TICK = 1000/165; // fixed tick = 165Hz
   function loop(timestamp) {
     if (!_flappyRunning) return;
-    const _elapsed = _flappyLastTime ? Math.min(33, timestamp - _flappyLastTime) : 8.609;
-    const dt = _elapsed / 8.609;
+    const _elapsed = _flappyLastTime ? Math.min(33, timestamp - _flappyLastTime) : 9;
+    const dt = _elapsed / 9;
     _flappyDt = dt;
     _flappyLastTime = timestamp;
 
@@ -7095,8 +7095,8 @@ function startSpace() {
   let _spaceLastTime = 0;
   function loop(timestamp) {
     if(!_spaceRunning) return;
-    const _elapsed = _spaceLastTime ? Math.min(33, timestamp - _spaceLastTime) : 8.609;
-    const dt = _elapsed / 8.609;
+    const _elapsed = _spaceLastTime ? Math.min(33, timestamp - _spaceLastTime) : 9;
+    const dt = _elapsed / 9;
     _spaceLastTime = timestamp;
     frame++;
     window._spaceGameActive = (state==='playing' && !_spaceInShop);
