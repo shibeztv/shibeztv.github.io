@@ -4637,7 +4637,7 @@ let _egStreak = 0;
 let _egBestStreak = 0;
 let _egSuggestIdx = -1;
 // Pixel sizes for each reveal level (1=most pixelated, 6=full)
-const EG_PIXEL_SIZES = [64, 32, 16, 8, 3, 1];
+const EG_PIXEL_SIZES = [24, 16, 10, 6, 3, 1];
 
 async function _egLoadEmotes() {
   if (_egLoaded && _egEmotes.length > 0) return;
@@ -4717,13 +4717,12 @@ function _egRender() {
       } else {
         // Pixelate: render at very small size then scale up with pixelated rendering
         // Divide by extra factor to get bigger blocks
-        const _tiny = Math.max(1, Math.floor(420 / pixelSize / 2));
+        const _tiny = Math.max(1, Math.floor(420 / pixelSize));
         const _scale = 420 / _tiny;
         animImg.style.width = _tiny + 'px';
         animImg.style.height = _tiny + 'px';
         animImg.style.imageRendering = 'pixelated';
-        // Extra blur on top for early levels to really hide it
-        const _blurPx = pixelSize >= 32 ? 4 : pixelSize >= 16 ? 2 : 0;
+        const _blurPx = pixelSize >= 16 ? 2 : 0;
         animImg.style.filter = _blurPx > 0 ? `blur(${_blurPx}px)` : '';
         animImg.style.transform = `scale(${_scale})`;
         animImg.style.transformOrigin = 'top left';
