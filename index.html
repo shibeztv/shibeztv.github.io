@@ -5765,6 +5765,12 @@ function startSpace() {
   _milkEmoteImg.style.cssText='position:absolute;left:-9999px;top:0;pointer-events:none;';
   if(_imgPool) _imgPool.appendChild(_milkEmoteImg);
 
+  const _narcDebuffImg = new Image();
+  _narcDebuffImg.crossOrigin='anonymous';
+  _narcDebuffImg.src='https://cdn.7tv.app/emote/01GT4TP560000A4ZYT4KM0DC15/2x.webp';
+  _narcDebuffImg.style.cssText='position:absolute;left:-9999px;top:0;pointer-events:none;';
+  if(_imgPool) _imgPool.appendChild(_narcDebuffImg);
+
   // Coin emote images
   const _coinImg = new Image(); _coinImg.crossOrigin='anonymous';
   _coinImg.src='https://cdn.7tv.app/emote/01HK8SDB6G000870SVK5KGZYWD/2x.webp';
@@ -6589,9 +6595,9 @@ function startSpace() {
       };
       // Burst: shot 1 fires on attack cooldown, shots 2+3 follow quickly (~4 frames apart)
       _fireOneMilk();
-      setTimeout(()=>{ if(_spaceRunning) _fireOneMilk(); }, 35);
-      setTimeout(()=>{ if(_spaceRunning) _fireOneMilk(); }, 70);
-      const milkCd=isT2milk?Math.floor(184*0.93):184;
+      setTimeout(()=>{ if(_spaceRunning) _fireOneMilk(); }, 50);
+      setTimeout(()=>{ if(_spaceRunning) _fireOneMilk(); }, 100);
+      const milkCd=isT2milk?Math.floor(184*0.93*1.75):Math.floor(184*1.75);
       setCd(Math.floor(milkCd*rapidMod*atkMod));
 
     } else if(wKey==='narcissism'){
@@ -7314,7 +7320,7 @@ function startSpace() {
       // Narcissism: passive aura — knockback + damage every 3s (150 frames = 20% faster)
       if((activeWeapons.includes('narcissism')||activeWeapon==='narcissism') && unlockedWeapons.has('narcissism')){
         const _nT2=!!upgrades.tier2_narcissism;
-        const _nRadius = 3*36*1.5*getRangeMult()*getBulletSize()*(_nT2?1.20:1.0);
+        const _nRadius = 3*36*1.5*0.8*getRangeMult()*getBulletSize()*(_nT2?1.20:1.0);
         const _nDmg = 0.3*1.12*0.80*getBulletDmg()*(_nT2?1.30:1.0); // back to original dmg (×2.30 was too high)
         if(Math.floor(frame)%240===0){ // every 4 seconds (slower)
           enemies=enemies.map(e=>{
@@ -7323,7 +7329,7 @@ function startSpace() {
             if(dist<_nRadius+e.size*0.5){
               e.hp-=_nDmg;
               // Knockback
-              const kbForce=15;
+              const kbForce=_nT2?18:15;
               if(dist>0){e.x+=dx/dist*kbForce;e.y+=dy/dist*kbForce;}
               // T2 debuff: +20% dmg taken for 3s
               if(_nT2) e._narcDebuff=(e._narcDebuff||0)+180;
@@ -8658,6 +8664,16 @@ function startSpace() {
           ctx.restore();
         }
       }
+      // Narc debuff icon above debuffed enemies
+      if(e._narcDebuff>0){
+        if(_narcDebuffImg&&_narcDebuffImg.complete&&_narcDebuffImg.naturalWidth>0){
+          const _ndSz=Math.min(e.size*0.85,38);
+          const _ndOffset=e._milkTimer>0?_ndSz+2:0; // offset if milk icon also showing
+          ctx.save();ctx.globalAlpha=0.6+0.15*Math.sin(frame*0.18+e.y*0.05);
+          ctx.drawImage(_narcDebuffImg,e.x-_ndSz/2+_ndOffset,e.y-e.size*0.6-_ndSz,_ndSz,_ndSz);
+          ctx.restore();
+        }
+      }
       // Milk glue visual — white splat overlay on canvas
       if(e._milkTimer>0){
         const _mFrac=e._milkTimer/180;
@@ -8836,7 +8852,7 @@ function startSpace() {
       // Narcissism: passive aura — 10-sided polygon, loading-bar spinning arc on outline
       if(activeWeapons.includes('narcissism')||activeWeapon==='narcissism'){
         const _nT2v=!!upgrades.tier2_narcissism;
-        const _nRv = 3*36*1.5*getRangeMult()*getBulletSize()*(_nT2v?1.20:1.0);
+        const _nRv = 3*36*1.5*0.8*getRangeMult()*getBulletSize()*(_nT2v?1.20:1.0);
         const _nPulse=0.5+0.25*Math.sin(frame*0.025);
         const _nBurst=((frame%240)<12)?(1-(frame%240)/12):0;
         const _nSides=10;
@@ -8870,7 +8886,7 @@ function startSpace() {
         _drawDecagon(_nRv, 0); ctx.stroke();
 
         // ── Loading bar: bright segment traveling along the outline ──
-        const _nSpinSpeed = 0.004 * 1.4; // +40% speed
+        const _nSpinSpeed = 0.004 * 1.4 * 0.5; // 50% slower
         // Compute perimeter
         const _nPts2=[];
         for(let _i=0;_i<_nSides;_i++){const _a=(_i/_nSides)*Math.PI*2;_nPts2.push({x:ship.x+Math.cos(_a)*_nRv,y:ship.y+Math.sin(_a)*_nRv});}
@@ -8882,26 +8898,26 @@ function startSpace() {
         ctx.globalAlpha=0.9;
         ctx.strokeStyle=_nT2v?'rgba(230,150,255,0.95)':'rgba(245,245,245,0.95)';
         ctx.lineWidth=5; ctx.lineJoin='round'; ctx.lineCap='round';
+        // Draw each overlapping segment separately to avoid cross-interior lines on wrap
         let _nAcc=0,_nDrw=0;
-        ctx.beginPath(); let _nSt=false;
         for(let _pass=0;_pass<2;_pass++){
           for(let _i=0;_i<_nSides;_i++){
-            const _sS=_nAcc,_sE=_nAcc+_nSL2[_i];
+            const _sS=_nAcc+_pass*_nPerim2,_sE=_sS+_nSL2[_i%_nSides];
             const _aS=_nStart2,_aE=_nStart2+_nBarLen2;
             const _oS=Math.max(_sS,_aS),_oE=Math.min(_sE,_aE);
             if(_oE>_oS){
-              const _p0=(_oS-_sS)/_nSL2[_i],_p1=(_oE-_sS)/_nSL2[_i];
-              const _pA=_nPts2[_i],_pB=_nPts2[(_i+1)%_nSides];
+              const _idx=_i%_nSides;
+              const _p0=(_oS-_sS)/_nSL2[_idx],_p1=(_oE-_sS)/_nSL2[_idx];
+              const _pA=_nPts2[_idx],_pB=_nPts2[(_idx+1)%_nSides];
               const _ax=_pA.x+(_pB.x-_pA.x)*_p0,_ay=_pA.y+(_pB.y-_pA.y)*_p0;
               const _bx=_pA.x+(_pB.x-_pA.x)*_p1,_by=_pA.y+(_pB.y-_pA.y)*_p1;
-              if(!_nSt){ctx.moveTo(_ax,_ay);_nSt=true;}else ctx.lineTo(_ax,_ay);
-              ctx.lineTo(_bx,_by);_nDrw+=(_oE-_oS);
+              ctx.beginPath(); ctx.moveTo(_ax,_ay); ctx.lineTo(_bx,_by); ctx.stroke();
+              _nDrw+=(_oE-_oS);
             }
-            _nAcc+=_nSL2[_i]; if(_nDrw>=_nBarLen2) break;
+            _nAcc+=_nSL2[_i%_nSides]; if(_nDrw>=_nBarLen2) break;
           }
           if(_nDrw>=_nBarLen2) break; _nAcc=0;
         }
-        ctx.stroke();
         ctx.restore();
 
         // Floating math symbols — colored to match the aura
