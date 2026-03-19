@@ -4829,7 +4829,7 @@ function egSubmitGuess() {
   // Add to history
   const hist = document.getElementById('egGuessHistory');
   const row = document.createElement('div');
-  const _rowLabel = raw.length === 0 ? '⏭ skipped' : raw;
+  const _rowLabel = raw.length === 0 ? 'skipped' : raw;
   row.style.cssText = `display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:4px;background:${isCorrect?'rgba(74,222,128,0.12)':raw.length===0?'rgba(100,100,100,0.08)':'rgba(252,92,125,0.08)'};border:1px solid ${isCorrect?'#4ade80':raw.length===0?'#444':'#333'}`;
   row.innerHTML = `<span style="font-family:var(--mono);font-size:11px;color:${isCorrect?'#4ade80':raw.length===0?'#666':'#fc5c7d'}">${isCorrect?'✅':raw.length===0?'⏭':'❌'}</span><span style="font-family:var(--mono);font-size:12px;color:${raw.length===0?'#555':'#ddd'}">${_rowLabel}</span>`;
   hist.appendChild(row);
@@ -6595,7 +6595,7 @@ function startSpace() {
       const isT2milk=!!upgrades.tier2_milkGun;
       const milkSpd=(5.5*0.30)*(isT2milk?1.10:1.0);
       const milkSz=isT2milk?sz*3.44:sz*1.08;
-      const milkDmg=dmg*0.6;
+      const milkDmg=dmg*0.4;
       const _milkProps={dmg:milkDmg,size:milkSz,color:'#f0f8ff',weaponType:'milkGun',
         pierce:upgrades.pierce||0, isMilk:true, milkT2:isT2milk,
         milkSlowPct:isT2milk?0.14:0.08, milkStun:isT2milk};
@@ -6608,7 +6608,7 @@ function startSpace() {
       _fireOneMilk();
       setTimeout(()=>{ if(_spaceRunning) _fireOneMilk(); }, 50);
       setTimeout(()=>{ if(_spaceRunning) _fireOneMilk(); }, 100);
-      const milkCd=isT2milk?210:250;
+      const milkCd=isT2milk?Math.floor(210*0.82*0.95):Math.floor(250*0.82*0.95);
       setCd(Math.floor(milkCd*rapidMod*atkMod));
 
     } else if(wKey==='narcissism'){
@@ -7349,8 +7349,20 @@ function startSpace() {
       if((activeWeapons.includes('narcissism')||activeWeapon==='narcissism') && unlockedWeapons.has('narcissism')){
         const _nT2=!!upgrades.tier2_narcissism;
         const _nRadius = 3*36*1.5*0.896*getRangeMult()*getBulletSize()*(_nT2?1.20:1.0);
-        const _nDmg = 2.3*getBulletDmg()*(_nT2?1.30:1.0);
+        const _nDmg = 1.5*getBulletDmg()*(_nT2?1.30:1.0);
         if(Math.floor(frame)%240===0){ // every 4 seconds (slower)
+          // Hit abandoned ships in range
+          for(let _nasi=0;_nasi<abandonedShips.length;_nasi++){
+            const _nas=abandonedShips[_nasi]; if(_nas.dead) continue;
+            const _ndx=_nas.x-ship.x,_ndy=_nas.y-ship.y;
+            if(Math.sqrt(_ndx*_ndx+_ndy*_ndy)<_nRadius+_nas.size*0.5){
+              _nas.hp-=_nDmg; spawnParticles(_nas.x,_nas.y,'#aaaaaa',4);
+              if(_nas.hp<=0){_nas.dead=true;_nas.deathFrame=frame;spawnParticles(_nas.x,_nas.y,'#ffd700',20);sfxExplode();
+                const _nc=_nas.maxHp>=200?100:_nas.maxHp>=100?20:10;
+                for(let _ci=0;_ci<_nc;_ci++){const _ca=Math.random()*Math.PI*2,_cr=Math.random()*_nas.size*0.8;spawnDrop(_nas.x+Math.cos(_ca)*_cr,_nas.y+Math.sin(_ca)*_cr,'coin');}
+              }
+            }
+          }
           enemies=enemies.map(e=>{
             const dx=e.x-ship.x, dy=e.y-ship.y;
             const dist=Math.sqrt(dx*dx+dy*dy);
@@ -7638,14 +7650,7 @@ function startSpace() {
         }
         if(b.isLaserBeam){
           const cosA=Math.cos(b.beamAngle), sinA=Math.sin(b.beamAngle);
-          // T2 bounce: reflect beam angle off world walls once
-          if(b.bounceOnce && !b._bounced){
-            const bx=b.beamX, by=b.beamY;
-            const checkLen=Math.sqrt(W*W+H*H)*2; // only check within 2 screen lengths
-            const endX=bx+cosA*checkLen, endY=by+sinA*checkLen;
-            if(endX<0||endX>WW){ b.beamAngle=Math.PI-b.beamAngle; b._bounced=true; }
-            else if(endY<0||endY>WH){ b.beamAngle=-b.beamAngle; b._bounced=true; }
-          }
+          // T2 bounce removed — caused aim confusion
           const cosA2=Math.cos(b.beamAngle), sinA2=Math.sin(b.beamAngle);
           enemies=enemies.map(e=>{
             if(b.hitEnemiesBeam.has(e)) return e;
@@ -9040,14 +9045,40 @@ function startSpace() {
       ctx.save();ctx.globalAlpha=0.55;
       ctx.fillStyle='rgba(5,5,25,0.85)';ctx.beginPath();ctx.roundRect(mm_x,mm_y,mm_w,mm_h,4);ctx.fill();
       ctx.strokeStyle='rgba(100,120,255,0.35)';ctx.lineWidth=1;ctx.stroke();
+      // Abandoned ships — yellow dot
+      ctx.globalAlpha=0.65;
+      abandonedShips.forEach(as=>{
+        if(as.dead) return;
+        ctx.fillStyle='#ffd700';
+        ctx.beginPath();ctx.rect(mm_x+Math.floor((as.x/WW)*mm_w)-2,mm_y+Math.floor((as.y/WH)*mm_h)-2,4,4);ctx.fill();
+      });
+      // Enemies — red dots, with ! for high HP
+      ctx.globalAlpha=0.55;ctx.fillStyle='#fc5c7d';
+      ctx.font='bold 7px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+      enemies.slice(0,60).forEach(e=>{
+        const _ex=mm_x+Math.floor((e.x/WW)*mm_w), _ey=mm_y+Math.floor((e.y/WH)*mm_h);
+        if(e.isTitan){
+          ctx.fillStyle='#ff6600';ctx.globalAlpha=0.9;
+          ctx.beginPath();ctx.arc(_ex,_ey,4,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle='#fff';ctx.globalAlpha=0.9;
+          ctx.fillText('!',_ex,_ey);
+        } else if(e.isBoss){
+          ctx.fillStyle='#ff8800';ctx.globalAlpha=0.75;
+          ctx.beginPath();ctx.arc(_ex,_ey,3,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle='#fff';ctx.globalAlpha=0.85;
+          ctx.fillText('!',_ex,_ey);
+        } else {
+          ctx.fillStyle='#fc5c7d';ctx.globalAlpha=0.55;
+          ctx.beginPath();ctx.arc(_ex,_ey,1.5,0,Math.PI*2);ctx.fill();
+        }
+      });
+      // Player dot
       ctx.globalAlpha=0.9;ctx.fillStyle='#60ddff';
       ctx.beginPath();ctx.arc(mm_x+Math.floor((ship.x/WW)*mm_w),mm_y+Math.floor((ship.y/WH)*mm_h),3,0,Math.PI*2);ctx.fill();
-      ctx.globalAlpha=0.55;ctx.fillStyle='#fc5c7d';
-      enemies.slice(0,60).forEach(e=>{
-        ctx.beginPath();ctx.arc(mm_x+Math.floor((e.x/WW)*mm_w),mm_y+Math.floor((e.y/WH)*mm_h),(e.isBoss||e.isTitan)?3:1.5,0,Math.PI*2);ctx.fill();
-      });
+      // Viewport rect
       ctx.globalAlpha=0.38;ctx.strokeStyle='#a0c0ff';ctx.lineWidth=1;
       ctx.strokeRect(mm_x+(cam.x/WW)*mm_w,mm_y+(cam.y/WH)*mm_h,(W/WW)*mm_w,(H/WH)*mm_h);
+      ctx.textAlign='left';ctx.textBaseline='alphabetic';
       ctx.restore();
     }
 
@@ -9255,10 +9286,60 @@ const VQ_KEY = 'shibez_video_queue';
 const VQ_HISTORY_KEY = 'shibez_video_history';
 const VQ_CURRENT_KEY = 'shibez_video_current';
 
+// ── Cloud storage via GitHub Gist — shared between browser and OBS ──
+// Create a secret Gist at https://gist.github.com with a file called "vq.json" containing {}
+// Then create a Personal Access Token (PAT) at https://github.com/settings/tokens with "gist" scope
+const _VQ_GIST_ID  = 'REPLACE_WITH_GIST_ID';   // e.g. 'abc123def456...'
+const _VQ_GIST_TOK = 'REPLACE_WITH_GITHUB_PAT'; // e.g. 'github_pat_...'
+const _VQ_GIST_FILE = 'vq.json';
+
+async function _vqGistGet() {
+  try {
+    const r = await fetch(`https://api.github.com/gists/${_VQ_GIST_ID}`, {
+      headers: { Authorization: `token ${_VQ_GIST_TOK}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    const content = d.files?.[_VQ_GIST_FILE]?.content;
+    return content ? JSON.parse(content) : null;
+  } catch(e) { return null; }
+}
+
+async function _vqGistSet(data) {
+  try {
+    await fetch(`https://api.github.com/gists/${_VQ_GIST_ID}`, {
+      method: 'PATCH',
+      headers: { Authorization: `token ${_VQ_GIST_TOK}`, 'Content-Type': 'application/json', Accept: 'application/vnd.github.v3+json' },
+      body: JSON.stringify({ files: { [_VQ_GIST_FILE]: { content: JSON.stringify(data) } } })
+    });
+  } catch(e) {}
+}
+
+async function vqSync() {
+  const data = await _vqGistGet();
+  if (!data) return;
+  if (data.queue !== undefined) localStorage.setItem(VQ_KEY, JSON.stringify(data.queue));
+  if (data.current !== undefined) localStorage.setItem(VQ_CURRENT_KEY, JSON.stringify(data.current));
+}
+
+async function _vqGistSaveAll() {
+  const queue = vqLoad();
+  const current = vqLoadCurrent();
+  await _vqGistSet({ queue, current });
+}
+
 function vqLoad() { try { return JSON.parse(localStorage.getItem(VQ_KEY)||'[]'); } catch(e){ return []; } }
-function vqSave(q) { localStorage.setItem(VQ_KEY, JSON.stringify(q)); window.dispatchEvent(new Event('storage')); }
+function vqSave(q) {
+  localStorage.setItem(VQ_KEY, JSON.stringify(q));
+  window.dispatchEvent(new Event('storage'));
+  _vqGistSaveAll();
+}
 function vqLoadCurrent() { try { return JSON.parse(localStorage.getItem(VQ_CURRENT_KEY)||'null'); } catch(e){ return null; } }
-function vqSaveCurrent(v) { localStorage.setItem(VQ_CURRENT_KEY, JSON.stringify(v)); window.dispatchEvent(new Event('storage')); }
+function vqSaveCurrent(v) {
+  localStorage.setItem(VQ_CURRENT_KEY, JSON.stringify(v));
+  window.dispatchEvent(new Event('storage'));
+  _vqGistSaveAll();
+}
 
 // Basic content safety filter — block obvious bad keywords in titles/descriptions
 const VQ_BLOCK_WORDS = ['porn','sex','nude','naked','gore','nsfw','hentai','xxx','onlyfans','18+','adult content','explicit','uncensored','rape','murder tutorial','how to kill','terrorist','isis','al-qaeda'];
@@ -9538,9 +9619,10 @@ function vqPlayNext() {
 function _vqRenderObs(app) {
   app.style.background = 'transparent';
   app.innerHTML = `<div id="vqObsWrap" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:transparent"></div>`;
-  vqObsRefresh();
-  window.addEventListener('storage', vqObsRefresh);
-  setInterval(vqObsRefresh, 2000);
+  // Poll cloud every 3 seconds so OBS stays in sync
+  const _obsPoll = async () => { await vqSync(); vqObsRefresh(); };
+  _obsPoll();
+  setInterval(_obsPoll, 3000);
 }
 
 let _vqObsCurrentId = null;
@@ -9562,7 +9644,7 @@ function vqObsRefresh() {
 }
 // ────────────────────────────────────────────────────────────────────────────
 </script>
-<!-- Hidden Video Queue Launcher — bottom-right corner -->
+<!-- Hidden Video Queue Launcher — bottom-right corner, hidden on OBS page -->
 <div id="vqLauncher" style="position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:6px" onmouseleave="document.getElementById('vqMenu').style.display='none'">
   <div id="vqMenu" style="display:none;background:#111;border:1px solid #333;border-radius:8px;padding:8px;display:none;flex-direction:column;gap:4px;min-width:180px">
     <a href="?submit" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">🎬 Submit a Video</a>
@@ -9575,6 +9657,7 @@ function vqObsRefresh() {
     onmouseout="this.style.color='rgba(255,255,255,0.2)';this.style.borderColor='rgba(255,255,255,0.08)'"
     title="Video Queue">🎬</button>
 </div>
+<script>if(new URLSearchParams(location.search).has('obs')){const _vql=document.getElementById('vqLauncher');if(_vql)_vql.style.display='none';}</script>
 
 </body>
 </html>
