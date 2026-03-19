@@ -1445,7 +1445,7 @@
             <div style="display:flex;flex-direction:column;gap:6px">
               <label style="display:flex;align-items:center;gap:8px">
                 <span style="min-width:100px">Atk frames</span>
-                <input type="range" min="0" max="300" step="1" value="0" style="flex:1" oninput="window._devAtkFrames=parseInt(this.value);document.getElementById('devAtkFramesVal').textContent=this.value==0?'default':this.value+'f'">
+                <input type="range" min="0" max="300" step="1" value="0" style="flex:1" oninput="const v=parseInt(this.value);window._devAtkFrames=v===0?0:(300-v+1);document.getElementById('devAtkFramesVal').textContent=v===0?'default':(300-v+1)+'f'">
                 <span id="devAtkFramesVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
               </label>
               <label style="display:flex;align-items:center;gap:8px">
@@ -1454,13 +1454,13 @@
                 <span id="devBulletSpeedVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
               </label>
               <label style="display:flex;align-items:center;gap:8px">
-                <span style="min-width:100px">Bullet range</span>
-                <input type="range" min="0" max="5" step="0.1" value="0" style="flex:1" oninput="window._devBulletRange=parseFloat(this.value);document.getElementById('devBulletRangeVal').textContent=this.value==0?'default':this.value+'x'">
+                <span style="min-width:100px">Bullet range (px)</span>
+                <input type="range" min="0" max="3000" step="10" value="0" style="flex:1" oninput="window._devBulletRange=parseInt(this.value);document.getElementById('devBulletRangeVal').textContent=this.value==0?'default':this.value+'px'">
                 <span id="devBulletRangeVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
               </label>
               <label style="display:flex;align-items:center;gap:8px">
                 <span style="min-width:100px">Bullet size</span>
-                <input type="range" min="0" max="5" step="0.1" value="0" style="flex:1" oninput="window._devBulletSize=parseFloat(this.value);document.getElementById('devBulletSizeVal').textContent=this.value==0?'default':this.value+'x'">
+                <input type="range" min="0" max="30" step="0.5" value="0" style="flex:1" oninput="window._devBulletSize=parseFloat(this.value);document.getElementById('devBulletSizeVal').textContent=this.value==0?'default':this.value+'x'">
                 <span id="devBulletSizeVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
               </label>
             </div>
@@ -4466,8 +4466,8 @@ function startFlappy() {
   const _TICK = 1000/165; // fixed tick = 165Hz
   function loop(timestamp) {
     if (!_flappyRunning) return;
-    const _elapsed = _flappyLastTime ? Math.min(33, timestamp - _flappyLastTime) : 7.576;
-    const dt = _elapsed / 7.576;
+    const _elapsed = _flappyLastTime ? Math.min(33, timestamp - _flappyLastTime) : 8.609;
+    const dt = _elapsed / 8.609;
     _flappyDt = dt;
     _flappyLastTime = timestamp;
 
@@ -6024,7 +6024,7 @@ function startSpace() {
   function getBulletSize()  { return window._devBulletSize>0 ? window._devBulletSize : Math.min(2.2, 1.15+upgrades.bulletSize*0.16); }
   function getCoinRange()   { return 32*(1+upgrades.coinMagnet*0.15); }
   function getMaxHp()       { return 5+upgrades.maxHp; } // 5 base lives
-  function getRangeMult()   { return window._devBulletRange>0 ? window._devBulletRange : (1+(upgrades.attackRange||0)*0.08); } // +8% range per level
+  function getRangeMult()   { return 1+(upgrades.attackRange||0)*0.08; } // +8% range per level
   function getSpeedMult()   { return 1.0; } // speed is NOT affected by attack range
   function getMaxWeaponSlots() { return 1+(upgrades.weaponSlots||0); } // 1–4
 
@@ -6594,15 +6594,19 @@ function startSpace() {
       if(pw==='triple'&&count<3){[-0.2,0.2].forEach(da=>bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*5.5,vy:Math.sin(baseAngle+da)*5.5,dmg:dmg,size:sz,pierce:p}));}
       setCd(cd);
     }
-    // Apply dev bullet speed override (exact pixels/frame)
-    if(window._devBulletSpeed>0) {
-      const _bsm = window._devBulletSpeed;
-      for(let _bi=_prevBulletLen;_bi<bullets.length;_bi++){
-        const _b=bullets[_bi];
-        if(_b.isLaserBeam) continue; // laser has no vx/vy travel
+    // Apply dev overrides to newly fired bullets
+    for(let _bi=_prevBulletLen;_bi<bullets.length;_bi++){
+      const _b=bullets[_bi];
+      if(_b.isLaserBeam) continue;
+      if(window._devBulletSpeed>0){
         const _mag=Math.sqrt(_b.vx*_b.vx+_b.vy*_b.vy)||1;
-        _b.vx=(_b.vx/_mag)*_bsm; _b.vy=(_b.vy/_mag)*_bsm;
+        _b.vx=(_b.vx/_mag)*window._devBulletSpeed; _b.vy=(_b.vy/_mag)*window._devBulletSpeed;
       }
+      if(window._devBulletRange>0 && _b.life!==undefined){
+        const _spd=Math.sqrt(_b.vx**2+_b.vy**2)||1;
+        _b.life=Math.ceil(window._devBulletRange/_spd); _b.maxLife=_b.life;
+      }
+      if(window._devBulletSize>0) _b.size=window._devBulletSize;
     }
     sfxShoot();
   }
@@ -7091,8 +7095,8 @@ function startSpace() {
   let _spaceLastTime = 0;
   function loop(timestamp) {
     if(!_spaceRunning) return;
-    const _elapsed = _spaceLastTime ? Math.min(33, timestamp - _spaceLastTime) : 7.576;
-    const dt = _elapsed / 7.576;
+    const _elapsed = _spaceLastTime ? Math.min(33, timestamp - _spaceLastTime) : 8.609;
+    const dt = _elapsed / 8.609;
     _spaceLastTime = timestamp;
     frame++;
     window._spaceGameActive = (state==='playing' && !_spaceInShop);
