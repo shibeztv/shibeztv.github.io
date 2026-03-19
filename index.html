@@ -4644,24 +4644,18 @@ async function _egLoadEmotes() {
   const results = [];
   await Promise.all(EG_CHANNELS.map(async ch => {
     try {
-      const r = await fetch('https://7tv.io/v3/gql', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ query: `{userByConnection(platform:TWITCH,id:"${ch.id}"){emote_sets{emotes{id name data{animated}}}}}` })
-      });
+      const r = await fetch(`https://7tv.io/v3/users/twitch/${ch.id}`);
       const d = await r.json();
-      const sets = d?.data?.userByConnection?.emote_sets || [];
-      sets.forEach(set => {
-        (set.emotes || []).forEach(e => {
-          if (!e.id || !e.name || seen.has(e.id)) return;
-          seen.add(e.id);
-          const animated = e.data?.animated || false;
-          results.push({ id: e.id, name: e.name, animated, url: `https://cdn.7tv.app/emote/${e.id}/2x.webp` });
-        });
+      const emotes = d.emote_set?.emotes || [];
+      emotes.forEach(e => {
+        if (!e.id || !e.name || seen.has(e.id)) return;
+        seen.add(e.id);
+        const animated = e.data?.animated || false;
+        results.push({ id: e.id, name: e.name, animated, url: `https://cdn.7tv.app/emote/${e.id}/2x.webp` });
       });
     } catch(err) { /* skip failed channels */ }
   }));
-  // Fallback: try emote-sets REST endpoint if GQL returned nothing
+  // Fallback: global emote set
   if (results.length === 0) {
     try {
       const r = await fetch('https://7tv.io/v3/emote-sets/global');
