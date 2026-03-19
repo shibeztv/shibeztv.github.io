@@ -1430,6 +1430,7 @@
               <input id="spaceSfxVol" type="range" min="0" max="100" value="20" style="width:100px;accent-color:#fc5c7d;cursor:pointer">
             </div>
             <button onclick="spaceShopToggle()" style="font-family:var(--mono);font-size:10px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 10px;border-radius:3px;cursor:pointer" title="Press E or Tab">🛒 SHOP [E]</button>
+            <button onclick="(()=>{const p=document.getElementById('spaceDevPanel');p.style.display=p.style.display==='none'?'block':'none';})()" style="font-family:var(--mono);font-size:10px;background:rgba(124,92,252,0.15);border:1px solid rgba(124,92,252,0.4);color:#a78bfa;padding:3px 10px;border-radius:3px;cursor:pointer">⚙ DEV</button>
             <button id="spaceMuteBtn" onclick="toggleMuteAll()" title="Mute all sound" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:16px;line-height:1;padding:3px 8px;border-radius:4px">🔊</button>
             <button onclick="closeSpace()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
@@ -1437,6 +1438,34 @@
         <div style="position:relative;flex:1;display:flex;flex-direction:column;width:100%">
           <canvas id="spaceCanvas" style="display:block;cursor:crosshair;touch-action:none;width:100%"></canvas>
           <div id="spaceEmoteLayer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
+
+          <!-- DEV PANEL -->
+          <div id="spaceDevPanel" style="position:absolute;bottom:32px;left:8px;background:rgba(4,4,20,0.92);border:1px solid #2a2a5a;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:10px;color:#aaa;z-index:15;pointer-events:auto;min-width:240px;display:none">
+            <div style="font-size:9px;font-weight:900;color:#7c5cfc;letter-spacing:1px;margin-bottom:8px">⚙ DEV — EXACT VALUES (0 = use game default)</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="display:flex;align-items:center;gap:8px">
+                <span style="min-width:100px">Atk frames</span>
+                <input type="range" min="0" max="300" step="1" value="0" style="flex:1" oninput="window._devAtkFrames=parseInt(this.value);document.getElementById('devAtkFramesVal').textContent=this.value==0?'default':this.value+'f'">
+                <span id="devAtkFramesVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px">
+                <span style="min-width:100px">Bullet speed</span>
+                <input type="range" min="0" max="20" step="0.5" value="0" style="flex:1" oninput="window._devBulletSpeed=parseFloat(this.value);document.getElementById('devBulletSpeedVal').textContent=this.value==0?'default':this.value+'px/f'">
+                <span id="devBulletSpeedVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px">
+                <span style="min-width:100px">Bullet range</span>
+                <input type="range" min="0" max="5" step="0.1" value="0" style="flex:1" oninput="window._devBulletRange=parseFloat(this.value);document.getElementById('devBulletRangeVal').textContent=this.value==0?'default':this.value+'x'">
+                <span id="devBulletRangeVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px">
+                <span style="min-width:100px">Bullet size</span>
+                <input type="range" min="0" max="5" step="0.1" value="0" style="flex:1" oninput="window._devBulletSize=parseFloat(this.value);document.getElementById('devBulletSizeVal').textContent=this.value==0?'default':this.value+'x'">
+                <span id="devBulletSizeVal" style="min-width:48px;text-align:right;color:#ffd700">default</span>
+              </label>
+            </div>
+            <button onclick="document.querySelectorAll('#spaceDevPanel input[type=range]').forEach(i=>{i.value=0;i.dispatchEvent(new Event('input'));})" style="margin-top:8px;width:100%;background:rgba(124,92,252,0.2);border:1px solid #3a2a6a;color:#a78bfa;font-family:monospace;font-size:9px;padding:3px;border-radius:3px;cursor:pointer">Reset all to default</button>
+          </div>
           <div id="spacePowerup" style="height:26px;padding:2px 16px;font-family:var(--mono);font-size:10px;color:#ffd700;background:#050510;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:8px"></div>
 
           <!-- SHOP OVERLAY — only over canvas, topbar stays visible -->
@@ -1469,6 +1498,7 @@
           <!-- Pixelated emote display -->
           <div style="position:relative;width:420px;height:420px;border-radius:8px;overflow:hidden;background:#111;border:1px solid var(--border);flex-shrink:0">
             <canvas id="egCanvas" width="420" height="420" style="display:block;width:420px;height:420px;image-rendering:pixelated"></canvas>
+            <img id="egAnimImg" src="" style="display:none;width:420px;height:420px;object-fit:contain;image-rendering:auto">
           </div>
           <!-- Guess history -->
           <div id="egGuessHistory" style="width:100%;display:flex;flex-direction:column;gap:4px;min-height:28px"></div>
@@ -4146,7 +4176,7 @@ function startFlappy() {
 
     if (state === 'playing') {
       // Scroll all ground emotes left
-      _gEmotes.forEach(g => { g.x -= getPipeSpeed(); });
+      _gEmotes.forEach(g => { g.x -= getPipeSpeed() * dt; });
       // Remove ones that scrolled off screen
       _gEmotes = _gEmotes.filter(g => g.x > -g.size - 10);
 
@@ -4430,8 +4460,11 @@ function startFlappy() {
     ctx.textAlign = 'left';
   }
 
-  function loop() {
+  let _flappyLastTime = 0;
+  function loop(timestamp) {
     if (!_flappyRunning) return;
+    const dt = _flappyLastTime ? Math.min(2, (timestamp - _flappyLastTime) / 16.667) : 1;
+    _flappyLastTime = timestamp;
 
     // Background — sunny green field
     const sky = ctx.createLinearGradient(0, 0, 0, H * 0.65);
@@ -4448,7 +4481,7 @@ function startFlappy() {
       }));
     }
     startFlappy._clouds.forEach(cl => {
-      if (state === 'playing') cl.x -= cl.speed;
+      if (state === 'playing') cl.x -= cl.speed * dt;
       if (cl.x + cl.w < 0) cl.x = W + cl.w;
       ctx.fillStyle = 'rgba(255,255,255,0.82)';
       ctx.beginPath();
@@ -4469,12 +4502,10 @@ function startFlappy() {
 
     if (state === 'playing') {
       frameCount++;
-      groundX = (groundX + getPipeSpeed()) % W;
+      groundX = (groundX + getPipeSpeed()*dt) % W;
 
       // Spawn pipes
-      // Spawn interval shrinks as speed increases — keeps pipe gap consistent
-      // Spawn interval shrinks as speed increases — keeps physical gap between pipes constant
-      _pipeSpawnTimer++;
+      _pipeSpawnTimer += dt;
       const _pipeInterval = Math.round(245 * (PIPE_SPEED_BASE / getPipeSpeed()));
       if (_pipeSpawnTimer >= _pipeInterval || frameCount === 1) {
         spawnPipe();
@@ -4482,13 +4513,13 @@ function startFlappy() {
       }
 
       // Update bird
-      bird.vy += GRAVITY;
-      bird.y += bird.vy;
+      bird.vy += GRAVITY * dt;
+      bird.y += bird.vy * dt;
       bird.rot = bird.vy * 0.06;
 
       // Update pipes
       for (const p of pipes) {
-        p.x -= getPipeSpeed();
+        p.x -= getPipeSpeed() * dt;
         if (!p.scored && p.x + PIPE_W < bird.x) {
           p.scored = true;
           score++;
@@ -4608,7 +4639,8 @@ async function _egLoadEmotes() {
       emotes.forEach(e => {
         if (!e.id || !e.name || seen.has(e.id)) return;
         seen.add(e.id);
-        results.push({ id: e.id, name: e.name, url: `https://cdn.7tv.app/emote/${e.id}/2x.webp` });
+        const animated = e.data?.animated || false;
+        results.push({ id: e.id, name: e.name, animated, url: `https://cdn.7tv.app/emote/${e.id}/2x.webp` });
       });
     } catch(err) { /* skip failed channels */ }
   }));
@@ -4646,15 +4678,32 @@ function _egRender() {
   const level = Math.min(_egAttempts, _egMaxAttempts - 1);
   const pixelSize = EG_PIXEL_SIZES[level];
   if (!_egCurrentEmote) return;
+  const canvas = document.getElementById('egCanvas');
+  const animImg = document.getElementById('egAnimImg');
+
+  if (pixelSize <= 1 && _egCurrentEmote.animated && animImg) {
+    // Show animated webp natively for animated emotes when fully revealed
+    if (canvas) canvas.style.display = 'none';
+    animImg.src = _egCurrentEmote.url;
+    animImg.style.display = 'block';
+    const badge = document.getElementById('egAttemptsBadge');
+    if (badge) badge.textContent = _egDone ? '' : `${_egAttempts}/${_egMaxAttempts}`;
+    return;
+  }
+  // Hide animated img, use canvas
+  if (animImg) animImg.style.display = 'none';
+  if (canvas) canvas.style.display = 'block';
+
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = () => _egDrawPixelated(img, pixelSize);
   img.onerror = () => {
-    const canvas = document.getElementById('egCanvas');
-    if (canvas) { const ctx = canvas.getContext('2d'); ctx.fillStyle = '#222'; ctx.fillRect(0,0,420,420); ctx.fillStyle='#555'; ctx.font='14px monospace'; ctx.textAlign='center'; ctx.fillText('?',210,215); }
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#222'; ctx.fillRect(0,0,420,420);
+    ctx.fillStyle='#555'; ctx.font='14px monospace'; ctx.textAlign='center'; ctx.fillText('?',210,215);
   };
   img.src = _egCurrentEmote.url;
-  // Update attempts badge
   const badge = document.getElementById('egAttemptsBadge');
   if (badge) badge.textContent = _egDone ? '' : `${_egAttempts}/${_egMaxAttempts}`;
 }
@@ -4663,6 +4712,10 @@ function _egStartRound() {
   _egCurrentEmote = _egPickEmote();
   _egAttempts = 0;
   _egDone = false;
+  const _egAnimImg = document.getElementById('egAnimImg');
+  if (_egAnimImg) { _egAnimImg.style.display = 'none'; _egAnimImg.src = ''; }
+  const _egCv = document.getElementById('egCanvas');
+  if (_egCv) _egCv.style.display = 'block';
   document.getElementById('egGuessHistory').innerHTML = '';
   document.getElementById('egResult').textContent = '';
   document.getElementById('egResult').style.color = '';
@@ -4770,21 +4823,20 @@ function egGiveUp() {
 
 function _egShowResult(won) {
   const resultEl = document.getElementById('egResult');
+  const _link = `<a href="https://7tv.app/emotes/${_egCurrentEmote.id}" target="_blank" style="color:inherit;text-decoration:underline;cursor:pointer">${_egCurrentEmote.name}</a>`;
   if (won) {
-    resultEl.textContent = `✅ Correct! It was ${_egCurrentEmote.name} (${_egAttempts} ${_egAttempts===1?'guess':'guesses'})`;
+    resultEl.innerHTML = `✅ Correct! It was ${_link} (${_egAttempts} ${_egAttempts===1?'guess':'guesses'})`;
     resultEl.style.color = '#4ade80';
   } else {
-    resultEl.innerHTML = `❌ The answer was: <span style="color:#e879f9;font-weight:900">${_egCurrentEmote.name}</span>`;
+    resultEl.innerHTML = `❌ The answer was: <span style="color:#e879f9;font-weight:900">${_link}</span>`;
     resultEl.style.color = '#fc5c7d';
   }
   document.getElementById('egInputRow').style.display = 'none';
   document.getElementById('egSkipBtn').style.display = 'none';
   document.getElementById('egNextBtn').style.display = '';
   // Draw full clear image at end
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => _egDrawPixelated(img, 1);
-  img.src = _egCurrentEmote.url;
+  _egAttempts = _egMaxAttempts - 1; // ensure pixelSize=1 path
+  _egRender();
 }
 
 function egNextEmote() {
@@ -5964,10 +6016,10 @@ function startSpace() {
   function getAtkSpeedMod() { return Math.max(0.50, 1 - upgrades.atkSpeed*0.02); } // -2% cd per level, min 50%
   function getBulletCount() { return 1+upgrades.multishot+(_hasPowerup('triple')?2:0)+(_hasPowerup('double')?1:0)+(_hasPowerup('multishot')?4:0); }
   function getBulletDmg()   { return 1*(1+upgrades.damage*0.15)*(_hasPowerup('overcharge')?1.40:1.0); }
-  function getBulletSize()  { return Math.min(2.2, 1.15+upgrades.bulletSize*0.16); }
+  function getBulletSize()  { return window._devBulletSize>0 ? window._devBulletSize : Math.min(2.2, 1.15+upgrades.bulletSize*0.16); }
   function getCoinRange()   { return 32*(1+upgrades.coinMagnet*0.15); }
   function getMaxHp()       { return 5+upgrades.maxHp; } // 5 base lives
-  function getRangeMult()   { return 1+(upgrades.attackRange||0)*0.08; } // +8% range per level
+  function getRangeMult()   { return window._devBulletRange>0 ? window._devBulletRange : (1+(upgrades.attackRange||0)*0.08); } // +8% range per level
   function getSpeedMult()   { return 1.0; } // speed is NOT affected by attack range
   function getMaxWeaponSlots() { return 1+(upgrades.weaponSlots||0); } // 1–4
 
@@ -6288,6 +6340,7 @@ function startSpace() {
     if(_slotCooldowns[slot]>0) return;
     const rapidMod=_hasPowerup('rapid')?(_hasPowerup('double')||_hasPowerup('triple')?0.35:0.4):1;
     const atkMod=getAtkSpeedMod(); // universal attack speed from upgrades
+    const _prevBulletLen = bullets.length; // for dev speed mult
     // Aim angle in world space — convert mouse from screen to world coords
     const mouseWorldX = mouseX + cam.x;
     const mouseWorldY = mouseY + cam.y;
@@ -6315,7 +6368,7 @@ function startSpace() {
     const rm=getRangeMult();        // range multiplier — affects life/range ONLY
     const sm=1.0;                   // speed mult (separate from range)
     const pw=activePowerup;
-    const setCd=(cd)=>{ _slotCooldowns[slot]=cd; shootCooldown=_slotCooldowns[0]; };
+    const setCd=(cd)=>{ const _dc=window._devAtkFrames; _slotCooldowns[slot]=(_dc>0?_dc:cd); shootCooldown=_slotCooldowns[0]; };
 
     if(wKey==='sniper'){
       const isT2s=!!upgrades.tier2_sniper;
@@ -6535,6 +6588,16 @@ function startSpace() {
       if(pw==='double'&&count<2){bullets.push({x:ship.x,y:ship.y-8,vx:Math.cos(baseAngle)*5.5,vy:Math.sin(baseAngle)*5.5,dmg:dmg,size:sz,pierce:p});}
       if(pw==='triple'&&count<3){[-0.2,0.2].forEach(da=>bullets.push({x:ship.x,y:ship.y,vx:Math.cos(baseAngle+da)*5.5,vy:Math.sin(baseAngle+da)*5.5,dmg:dmg,size:sz,pierce:p}));}
       setCd(cd);
+    }
+    // Apply dev bullet speed override (exact pixels/frame)
+    if(window._devBulletSpeed>0) {
+      const _bsm = window._devBulletSpeed;
+      for(let _bi=_prevBulletLen;_bi<bullets.length;_bi++){
+        const _b=bullets[_bi];
+        if(_b.isLaserBeam) continue; // laser has no vx/vy travel
+        const _mag=Math.sqrt(_b.vx*_b.vx+_b.vy*_b.vy)||1;
+        _b.vx=(_b.vx/_mag)*_bsm; _b.vy=(_b.vy/_mag)*_bsm;
+      }
     }
     sfxShoot();
   }
@@ -6932,7 +6995,7 @@ function startSpace() {
 
   // Get canvas bounding rect for coordinate mapping
   let _canvasRect = null;
-  function getCanvasRect(){ if(!_canvasRect || frame%60===0) _canvasRect=canvas.getBoundingClientRect(); return _canvasRect; }
+  function getCanvasRect(){ if(!_canvasRect || Math.floor(frame)%60===0) _canvasRect=canvas.getBoundingClientRect(); return _canvasRect; }
 
   // Track which imgs are in use this frame
   const _activeOverlayImgs = new Set();
@@ -7020,8 +7083,11 @@ function startSpace() {
     });
   } // end positionEmoteOverlays
 
-  function loop() {
+  let _spaceLastTime = 0;
+  function loop(timestamp) {
     if(!_spaceRunning) return;
+    const dt = _spaceLastTime ? Math.min(2, (timestamp - _spaceLastTime) / 16.667) : 1;
+    _spaceLastTime = timestamp;
     frame++;
     window._spaceGameActive = (state==='playing' && !_spaceInShop);
   window._spaceAutoShootState = _autoShoot;
@@ -7036,9 +7102,9 @@ function startSpace() {
       if(_isPlaying){
       // ── GAME LOGIC (playing only) ─────────────────────────────────────────
       // Tick down all weapon slot cooldowns every frame
-      for(let _ci=0;_ci<4;_ci++){ if(_slotCooldowns[_ci]>0) _slotCooldowns[_ci]--; }
+      for(let _ci=0;_ci<4;_ci++){ if(_slotCooldowns[_ci]>0) _slotCooldowns[_ci]-=dt; }
       shootCooldown=_slotCooldowns[0];
-      survivalFrames++;
+      survivalFrames+=dt;
       // Real-time timer (not frame-based — works correctly at 120Hz)
       if(!_gameStartTime) _gameStartTime=performance.now();
       const realMs=performance.now()-_gameStartTime-_gamePausedMs;
@@ -7052,12 +7118,12 @@ function startSpace() {
       const _frozenSpeedBonus=_frozenActive?(upgrades.tier2_frozenStaff?1.20:1.10):1.0; // T1+10%, T2+20%
       const SPEED=getShipSpeed() * (_minigunShooting ? 0.80 : 1.0) * _frozenSpeedBonus;
       _minigunShooting=false; // reset each frame
-      if(keys['ArrowUp']||keys['w']||keys['W'])    ship.y=Math.max(30,ship.y-SPEED);
-      if(keys['ArrowDown']||keys['s']||keys['S'])  ship.y=Math.min(WH-30,ship.y+SPEED);
-      if(keys['ArrowLeft']||keys['a']||keys['A'])  ship.x=Math.max(30,ship.x-SPEED);
-      if(keys['ArrowRight']||keys['d']||keys['D']) ship.x=Math.min(WW-30,ship.x+SPEED);
+      if(keys['ArrowUp']||keys['w']||keys['W'])    ship.y=Math.max(30,ship.y-SPEED*dt);
+      if(keys['ArrowDown']||keys['s']||keys['S'])  ship.y=Math.min(WH-30,ship.y+SPEED*dt);
+      if(keys['ArrowLeft']||keys['a']||keys['A'])  ship.x=Math.max(30,ship.x-SPEED*dt);
+      if(keys['ArrowRight']||keys['d']||keys['D']) ship.x=Math.min(WW-30,ship.x+SPEED*dt);
       // Mobile joystick movement
-      if(_joyDX||_joyDY){ ship.x=Math.max(30,Math.min(WW-30,ship.x+_joyDX*SPEED*1.4)); ship.y=Math.max(30,Math.min(WH-30,ship.y+_joyDY*SPEED*1.4)); }
+      if(_joyDX||_joyDY){ ship.x=Math.max(30,Math.min(WW-30,ship.x+_joyDX*SPEED*1.4*dt)); ship.y=Math.max(30,Math.min(WH-30,ship.y+_joyDY*SPEED*1.4*dt)); }
       // Camera follows ship, clamped to world
       cam.x=Math.max(0,Math.min(WW-W, ship.x-W/2));
       cam.y=Math.max(0,Math.min(WH-H, ship.y-H/2));
@@ -7089,7 +7155,7 @@ function startSpace() {
       }
 
       // Abandoned ship respawn: dead ships come back every ~3 minutes at a random spot
-      if(frame%1===0){ // check every frame for timer
+      if(true){ // check every frame for timer
         abandonedShips.forEach(as=>{
           if(!as.dead) return;
           if(!as._respawnFrame) as._respawnFrame=frame+Math.floor(10800+Math.random()*3600);
@@ -7124,7 +7190,7 @@ function startSpace() {
         _followers=[];
       }
       _followers.forEach((f,fi)=>{
-        f.angle+=0.00432; // 60% slower orbit
+        f.angle+=0.00432*dt; // 60% slower orbit
         f.x=ship.x+Math.cos(f.angle)*FOLLOWER_ORBIT_R;
         f.y=ship.y+Math.sin(f.angle)*FOLLOWER_ORBIT_R;
         {
@@ -7134,7 +7200,7 @@ function startSpace() {
           if(!target||nearD>600){
             abandonedShips.forEach(as=>{if(as.dead)return;const d=Math.sqrt((as.x-f.x)**2+(as.y-f.y)**2);if(d<400&&d<nearD){nearD=d;target=as;}});
           }
-          f.shootTimer=(f.shootTimer||0)-1;
+          f.shootTimer=(f.shootTimer||0)-dt;
           if(target&&f.shootTimer<=0){
             const fa=Math.atan2(target.y-f.y,target.x-f.x);
             bullets.push({x:f.x,y:f.y,vx:Math.cos(fa)*1.26,vy:Math.sin(fa)*1.26,dmg:Math.max(1,Math.floor(getBulletDmg()*0.585)),size:getBulletSize(),color:'#f0abfc',fromFollower:true,weaponType:'follower'}); // follower basic look
@@ -7164,7 +7230,7 @@ function startSpace() {
           const dx=e.x-ship.x, dy=e.y-ship.y;
           if(Math.sqrt(dx*dx+dy*dy)<_gRadius+e.size*0.5){
             e.hp-=_gDmg;
-            if(frame%30===0) spawnParticles(e.x,e.y,'#e8d5a3',2);
+            if(Math.floor(frame)%30===0) spawnParticles(e.x,e.y,'#e8d5a3',2);
             if(e.hp<=0){
               score++;document.getElementById('spaceScore').textContent=score;
               spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
@@ -7198,7 +7264,7 @@ function startSpace() {
         const _nT2=!!upgrades.tier2_narcissism;
         const _nRadius = 3*36*1.5*getRangeMult()*getBulletSize()*(_nT2?1.20:1.0);
         const _nDmg = 0.3*1.12*0.80*getBulletDmg()*(_nT2?1.30:1.0); // back to original dmg (×2.30 was too high)
-        if(frame%240===0){ // every 4 seconds (slower)
+        if(Math.floor(frame)%240===0){ // every 4 seconds (slower)
           enemies=enemies.map(e=>{
             const dx=e.x-ship.x, dy=e.y-ship.y;
             const dist=Math.sqrt(dx*dx+dy*dy);
@@ -7231,15 +7297,15 @@ function startSpace() {
           playTone(800,'sine',0.025,0.15);
         }
         // Tick down narcissism debuffs
-        enemies.forEach(e=>{ if(e._narcDebuff>0) e._narcDebuff--; });
+        enemies.forEach(e=>{ if(e._narcDebuff>0) e._narcDebuff-=dt; });
       }
-      if(invincible>0) invincible--;
+      if(invincible>0) invincible-=dt;
 
       // Ship faces cursor (world-space)
       ship.angle = Math.atan2((mouseY+cam.y) - ship.y, (mouseX+cam.x) - ship.x);
 
       if(upgrades.hpRegen>0){
-        regenTimer++;
+        regenTimer+=dt;
         if(regenTimer>=Math.floor(1800/upgrades.hpRegen)&&lives<getMaxHp()){
           lives++;regenTimer=0;updateHeartsDisplay(lives,silverLives,getMaxHp());
           spawnParticles(ship.x,ship.y,'#4ade80',6);
@@ -7248,13 +7314,13 @@ function startSpace() {
 
       // Tick all active powerups, remove expired
       activePowerups.forEach((t,key)=>{
-        const newT=t-1;
+        const newT=t-dt;
         if(newT<=0) activePowerups.delete(key);
         else activePowerups.set(key,newT);
       });
 
       // Aura: knockback all nearby enemies every 120 frames (2s)
-      if(_hasPowerup('aura') && frame%120===0){
+      if(_hasPowerup("aura") && Math.floor(frame)%120===0){
         const auraR=220;
         enemies.forEach(e=>{
           const dx=e.x-ship.x, dy=e.y-ship.y;
@@ -7310,9 +7376,9 @@ function startSpace() {
         lastTitanMinute=curMinMark;
         spawnTitan();
       }
-      if(_titanWarning>0) _titanWarning--;
+      if(_titanWarning>0) _titanWarning-=dt;
 
-      enemyTimer--;
+      enemyTimer-=dt;
       if(enemyTimer<=0){
         spawnEnemy();
         // timeFactor decays much more slowly — reaches 0.5 at 10 minutes instead of 0.7 at 3min
@@ -7328,7 +7394,7 @@ function startSpace() {
 
       // ── Mega-boss every 3 minutes (10800 frames = 180s)
       const bossInterval=10800;
-      if(survivalFrames>0 && survivalFrames%bossInterval===0){
+      if(survivalFrames>0 && Math.floor(survivalFrames)%bossInterval===0 && Math.floor(survivalFrames)!==Math.floor(survivalFrames-dt)){
         const bossWave=Math.floor(survivalFrames/bossInterval);
         const bossEmoteIdx=Math.floor(Math.random()*enemyPool.length);
         const bossImg=enemyImgs[bossEmoteIdx];
@@ -7387,17 +7453,17 @@ function startSpace() {
         // Skip AI for enemies far off screen — saves CPU with many enemies
         const _offX = e.x - cam.x, _offY = e.y - cam.y;
         const _farOff = _offX < -W*1.5 || _offX > W*2.5 || _offY < -H*1.5 || _offY > H*2.5;
-        if(_farOff && !e.isBoss && !e.isTitan){ e.age++; return; } // skip full AI
-        e.age++;
+        if(_farOff && !e.isBoss && !e.isTitan){ e.age+=dt; return; } // skip full AI
+        e.age+=dt;
         // Tick slow/deepFreeze/burn timers
-        if(e.slowLinger>0){ e.slowLinger--; if(e.slowLinger<=0){e.slowTimer=0;e._slowPct=undefined;} }
+        if(e.slowLinger>0){ e.slowLinger-=dt; if(e.slowLinger<=0){e.slowTimer=0;e._slowPct=undefined;} }
         if(e.slowTimer>0) e.slowTimer--;
-        if(e._narcDebuff>0) e._narcDebuff--;
-        if(e._milkTimer>0) e._milkTimer--;
+        if(e._narcDebuff>0) e._narcDebuff-=dt;
+        if(e._milkTimer>0) e._milkTimer-=dt;
         if(e.deepFrozen>0){ e.deepFrozen--; e.vx=0; e.vy=0; } // freeze this enemy only
         if(e._deepFreezeTimer>0&&!e.deepFrozen){e._deepFreezeTimer=Math.max(0,e._deepFreezeTimer-1);}
         // Deep freeze timer decay
-        if(e.burnTimer>0){ e.burnTimer--; if(e.burnTimer%60===0){const bd=e._burnFlat||1;e.hp-=bd;spawnParticles(e.x,e.y,'#ff4400',3);if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();const bc2=Math.ceil(Math.min(3,e.sizeScale||1));for(let bi=0;bi<bc2;bi++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');enemies=enemies.filter(x=>x!==e);return;}} }
+        if(e.burnTimer>0){ e.burnTimer-=dt; if(e.burnTimer%60===0){const bd=e._burnFlat||1;e.hp-=bd;spawnParticles(e.x,e.y,'#ff4400',3);if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();const bc2=Math.ceil(Math.min(3,e.sizeScale||1));for(let bi=0;bi<bc2;bi++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');enemies=enemies.filter(x=>x!==e);return;}} }
         if(isFrozen){e.vx=0;e.vy=0;return;}
         const _garlicSlowMult = e._garlicSlow ? 0.93 : 1.0; // T2 garlic: -7% speed
         e._garlicSlow = false; // cleared each frame, re-set by garlic logic if still in range
@@ -7419,7 +7485,7 @@ function startSpace() {
             e.vx=jdx/jl*crawlSpd; e.vy=jdy/jl*crawlSpd;
           }
           if(e.jumperState==='lunge'){e.vx*=0.92;e.vy*=0.92;}
-          e.x+=e.vx;e.y+=e.vy;
+          e.x+=e.vx*dt;e.y+=e.vy*dt;
         } else if(e.isZigzag){
           const dx=ship.x-e.x, dy=ship.y-e.y, len=Math.sqrt(dx*dx+dy*dy)||1;
           const s=(e.speed||(1.1*difficulty))*slowMult;
@@ -7427,25 +7493,25 @@ function startSpace() {
           const perpX=-dy/len, perpY=dx/len;
           const zz=Math.sin(e.zigzagPhase)*s*2.2;
           e.vx=dx/len*s + perpX*zz; e.vy=dy/len*s + perpY*zz;
-          e.x+=e.vx; e.y+=e.vy;
+          e.x+=e.vx*dt; e.y+=e.vy*dt;
         } else if(e.isBoomerang){
           const dxb=ship.x-e.x, dyb=ship.y-e.y, distb=Math.sqrt(dxb*dxb+dyb*dyb)||1;
           const sb=(e.speed||0.8)*slowMult*1.3;
           if(e.boomState==='outbound'){
             e.boomDist=(e.boomDist||0)+sb;
-            e.x+=e.vx*slowMult; e.y+=e.vy*slowMult;
+            e.x+=e.vx*slowMult*dt; e.y+=e.vy*slowMult*dt;
             if(e.boomDist>180 && distb>100){ e.boomState='curving'; e.boomDist=0; }
           } else {
             const tvx=dxb/distb*sb, tvy=dyb/distb*sb;
             e.vx=e.vx*0.96+tvx*0.04; e.vy=e.vy*0.96+tvy*0.04;
-            e.x+=e.vx; e.y+=e.vy;
+            e.x+=e.vx*dt; e.y+=e.vy*dt;
             if(distb<60) e.boomState='outbound';
           }
         } else if(e.isTeleporter){
           const dxt=ship.x-e.x, dyt=ship.y-e.y, distt=Math.sqrt(dxt*dxt+dyt*dyt)||1;
           const st=(e.speed||0.8)*slowMult;
           e.vx=dxt/distt*st; e.vy=dyt/distt*st;
-          e.x+=e.vx; e.y+=e.vy;
+          e.x+=e.vx*dt; e.y+=e.vy*dt;
           e.teleportCd=(e.teleportCd||220)-1;
           if(e.teleportCd<=10) e._flickering=true;
           if(e.teleportCd<=0){
@@ -7467,13 +7533,13 @@ function startSpace() {
           const amp=Math.min(ss*2.8, lens*0.4);
           e.vx=dxs/lens*ss + pxs*Math.sin(e.sinePhase)*amp*0.08;
           e.vy=dys/lens*ss + pys*Math.sin(e.sinePhase)*amp*0.08;
-          e.x+=e.vx; e.y+=e.vy;
+          e.x+=e.vx*dt; e.y+=e.vy*dt;
         } else {
           const dx=ship.x-e.x, dy=ship.y-e.y, len=Math.sqrt(dx*dx+dy*dy)||1;
           const s=(e.speed||(1.1*difficulty))*slowMult;
           e.vx=dx/len*s; e.vy=dy/len*s;
           if(e.wobble){e.vx+=Math.sin(e.age*e.wobbleFreq)*e.wobbleAmp;e.vy+=Math.cos(e.age*e.wobbleFreq)*e.wobbleAmp;}
-          e.x+=e.vx; e.y+=e.vy;
+          e.x+=e.vx*dt; e.y+=e.vy*dt;
         }
       });
       bullets.forEach(b=>{
@@ -7482,7 +7548,7 @@ function startSpace() {
           b.snakePhase=(b.snakePhase||0)+0.3;
           const perpX=-Math.sin(b.snakeAng), perpY=Math.cos(b.snakeAng);
           const snakeAmt=Math.sin(b.snakePhase)*0.7; // -80% shake
-          b.x+=b.vx+perpX*snakeAmt;b.y+=b.vy+perpY*snakeAmt;
+          b.x+=(b.vx+perpX*snakeAmt)*dt;b.y+=(b.vy+perpY*snakeAmt)*dt;
           return; // handled
         }
         if(b.isLaserBeam){
@@ -7526,7 +7592,7 @@ function startSpace() {
           b.life--;
           return;
         }
-        b.x+=b.vx;b.y+=b.vy;
+        b.x+=b.vx*dt;b.y+=b.vy*dt;
         // Narc bullet: expire after reaching max distance
         if(b.isNarc && b.maxDist){
           b.distTraveled=(b.distTraveled||0)+Math.sqrt(b.vx*b.vx+b.vy*b.vy);
@@ -7783,14 +7849,14 @@ function startSpace() {
         const isMagnet=_hasPowerup('magnet');
         // Super-magnet: strong pull for coins tagged by pickup (frames countdown)
         if(d._superMagnet>0){
-          if(d._superMagnet<99999) d._superMagnet--; // countdown (but tagged coins persist)
+          if(d._superMagnet<99999) d._superMagnet-=dt; // countdown (but tagged coins persist)
           const dx=ship.x-d.x,dy=ship.y-d.y,dist=Math.sqrt(dx*dx+dy*dy)||1;
-          const pull=2.64; // 130% of base player speed (2.03 * 1.3)
+          const pull=2.64*dt; // 130% of base player speed (2.03 * 1.3)
           d.x+=dx/dist*pull;d.y+=dy/dist*pull;
           d.settled=false; // keep moving
         } else if(isMagnet){
           const dx=ship.x-d.x,dy=ship.y-d.y,dist=Math.sqrt(dx*dx+dy*dy)||1;
-          const pull=Math.min(32,880/dist);
+          const pull=Math.min(32,880/dist)*dt;
           d.x+=dx/dist*pull;d.y+=dy/dist*pull;
         }
         const collectR=(isMagnet||d._superMagnet>0)?52:getCoinRange();
@@ -7800,7 +7866,7 @@ function startSpace() {
         return true;
       });
       // Coin combining: 5 settled coins within 40px → silver coin (gives 5), 5 silver → green (gives 25)
-      if(frame%30===0){ // check every 30 frames for perf
+      if(Math.floor(frame)%30===0){ // check every 30 frames for perf
         // Merge regular coins (1-value) → silver coins (5-value)
         const settled=drops.filter(d=>d.settled&&!d.collected&&!d.silver&&!d.green&&!d.gold);
         for(let i=0;i<settled.length;i++){
@@ -7947,7 +8013,7 @@ function startSpace() {
         if(!keep && e.img && e.img._cloned) { try{e.img.remove();}catch(_){} }
         return keep;
       });
-      particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=0.93;p.vy*=0.93;p.life--;});
+      particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.pow(0.93,dt);p.vy*=Math.pow(0.93,dt);p.life-=dt;});
       particles=particles.filter(p=>p.life>0);
       // planets are static world-space, no movement needed
       } // end _isPlaying game logic
@@ -8190,7 +8256,7 @@ function startSpace() {
 
     // Burst rings (tower gun tier2 every 4th shot)
     _burstRings=_burstRings.filter(ring=>{
-      ring.r+=ring.spd; ring.life--;
+      ring.r+=ring.spd*dt; ring.life-=dt;
       if(ring.life<=0) return false;
       const t=ring.life/ring.maxLife;
       // Deal damage to enemies at the ring edge
@@ -8735,17 +8801,18 @@ function startSpace() {
       if(invincible>0&&!isCheatInv) ctx.globalAlpha = Math.floor(frame/4)%2===0 ? 1 : 0;
       drawUFO(ship.x, ship.y, null, 0, 1);
       ctx.restore();
-      // Narcissism: passive aura — 10-sided polygon, solid fill, spinning outer line
+      // Narcissism: passive aura — 10-sided polygon, loading-bar spinning arc on outline
       if(activeWeapons.includes('narcissism')||activeWeapon==='narcissism'){
         const _nT2v=!!upgrades.tier2_narcissism;
         const _nRv = 3*36*1.5*getRangeMult()*getBulletSize()*(_nT2v?1.20:1.0);
         const _nPulse=0.5+0.25*Math.sin(frame*0.025);
         const _nBurst=((frame%240)<12)?(1-(frame%240)/12):0;
-        const _nSides=10; // decagon for both T1 and T2
-        const _nSpinOffset=frame*0.004; // much slower spin (was 0.018)
+        const _nSides=10;
+        const _nColor=_nT2v?'rgba(200,100,255,':'rgba(190,190,190,';
+        const _nColorSolid=_nT2v?'#d070ff':'#c8c8c8';
         ctx.save();
 
-        // Draw a 10-sided polygon path (no wave, clean solid shape)
+        // Build decagon path helper
         const _drawDecagon=(r, rotOffset)=>{
           ctx.beginPath();
           for(let _pi=0;_pi<=_nSides;_pi++){
@@ -8756,75 +8823,121 @@ function startSpace() {
           ctx.closePath();
         };
 
-        // Solid glowing fill — like a floating bar / energy field
+        // Very faint fill inside the shape
         const _fillGrad=ctx.createRadialGradient(ship.x,ship.y,0,ship.x,ship.y,_nRv);
-        if(_nT2v){
-          _fillGrad.addColorStop(0,'rgba(180,60,255,0.22)');
-          _fillGrad.addColorStop(0.6,'rgba(140,40,220,0.14)');
-          _fillGrad.addColorStop(1,'rgba(100,20,180,0.06)');
-        } else {
-          _fillGrad.addColorStop(0,'rgba(200,200,200,0.18)');
-          _fillGrad.addColorStop(0.6,'rgba(160,160,160,0.10)');
-          _fillGrad.addColorStop(1,'rgba(120,120,120,0.04)');
-        }
-        ctx.globalAlpha=0.85+_nPulse*0.1+_nBurst*0.15;
+        _fillGrad.addColorStop(0,_nT2v?'rgba(160,50,220,0.08)':'rgba(180,180,180,0.07)');
+        _fillGrad.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.globalAlpha=0.9+_nBurst*0.1;
         ctx.fillStyle=_fillGrad;
-        _drawDecagon(_nRv, _nSpinOffset*0.3); ctx.fill();
+        _drawDecagon(_nRv, 0); ctx.fill();
 
-        // Inner solid bright ring near the edge — the "bar" feel
-        ctx.globalAlpha=0.18+_nPulse*0.10+_nBurst*0.20;
-        ctx.fillStyle=_nT2v?'rgba(220,140,255,0.35)':'rgba(210,210,210,0.28)';
-        _drawDecagon(_nRv*0.92, _nSpinOffset*0.3); ctx.fill();
-        ctx.globalAlpha=1;
-        // Cut out inner — creates a ring band effect
-        ctx.globalCompositeOperation='destination-out';
-        ctx.globalAlpha=0.55;
-        _drawDecagon(_nRv*0.72, _nSpinOffset*0.3); ctx.fill();
-        ctx.globalCompositeOperation='source-over';
-        ctx.globalAlpha=1;
+        // Static dim outline of the full decagon
+        ctx.globalAlpha=0.22+_nPulse*0.08;
+        ctx.strokeStyle=_nColorSolid;
+        ctx.lineWidth=2.5; ctx.lineJoin='round';
+        _drawDecagon(_nRv, 0); ctx.stroke();
 
-        // Spinning outer stroke — solid decagon that rotates
-        ctx.globalAlpha=0.65+_nPulse*0.25+_nBurst*0.35;
-        ctx.strokeStyle=_nT2v?'rgba(220,120,255,0.9)':'rgba(200,200,200,0.85)';
-        ctx.lineWidth=2.5;
-        ctx.lineJoin='round';
-        _drawDecagon(_nRv, _nSpinOffset); ctx.stroke();
-
-        // Second spinning outline slightly offset for depth
-        ctx.globalAlpha=0.30+_nPulse*0.15;
-        ctx.strokeStyle=_nT2v?'rgba(160,80,255,0.6)':'rgba(150,150,150,0.5)';
-        ctx.lineWidth=1.2;
-        _drawDecagon(_nRv*1.04, -_nSpinOffset*0.6); ctx.stroke();
+        // ── Loading-bar arc: lighter segment spinning clockwise along the outline ──
+        // Compute decagon perimeter points
+        const _pts=[];
+        for(let _pi=0;_pi<_nSides;_pi++){
+          const _pa=(_pi/_nSides)*Math.PI*2;
+          _pts.push({x:ship.x+Math.cos(_pa)*_nRv, y:ship.y+Math.sin(_pa)*_nRv});
+        }
+        // Total perimeter length
+        let _perim=0;
+        const _segLens=[];
+        for(let _si=0;_si<_nSides;_si++){
+          const _nx=_pts[(_si+1)%_nSides], _cx=_pts[_si];
+          const _sl=Math.sqrt((_nx.x-_cx.x)**2+(_nx.y-_cx.y)**2);
+          _segLens.push(_sl); _perim+=_sl;
+        }
+        // Bar length = 30% of perimeter, spins with frame
+        const _barLen=_perim*0.30;
+        const _spinPos=(frame*0.012*_perim)%_perim; // clockwise travel
+        // Draw the arc segment
+        ctx.save();
+        ctx.lineWidth=4+_nBurst*3; ctx.lineJoin='round'; ctx.lineCap='round';
+        ctx.globalAlpha=0.75+_nPulse*0.20+_nBurst*0.25;
+        // Create gradient along segment for leading-edge glow
+        let _traveled=0, _drawn=0;
+        ctx.beginPath();
+        let _started=false;
+        for(let _pass=0;_pass<2;_pass++){ // two passes to handle wrap-around
+          for(let _si=0;_si<_nSides;_si++){
+            const _segStart=_traveled;
+            const _segEnd=_traveled+_segLens[_si];
+            const _activeStart=_spinPos, _activeEnd=_spinPos+_barLen;
+            // Check overlap
+            const _oStart=Math.max(_segStart,_activeStart), _oEnd=Math.min(_segEnd,_activeEnd);
+            if(_oEnd>_oStart){
+              const _p0=(_oStart-_segStart)/_segLens[_si];
+              const _p1=(_oEnd-_segStart)/_segLens[_si];
+              const _ptA=_pts[_si], _ptB=_pts[(_si+1)%_nSides];
+              const _ax=_ptA.x+(_ptB.x-_ptA.x)*_p0, _ay=_ptA.y+(_ptB.y-_ptA.y)*_p0;
+              const _bx=_ptA.x+(_ptB.x-_ptA.x)*_p1, _by=_ptA.y+(_ptB.y-_ptA.y)*_p1;
+              if(!_started){ ctx.moveTo(_ax,_ay); _started=true; } else ctx.lineTo(_ax,_ay);
+              ctx.lineTo(_bx,_by);
+              _drawn+=(_oEnd-_oStart);
+            }
+            _traveled+=_segLens[_si];
+            if(_drawn>=_barLen) break;
+          }
+          if(_drawn>=_barLen) break;
+          _traveled=0; // second pass for wrap-around
+        }
+        ctx.strokeStyle=_nT2v?'rgba(230,150,255,0.95)':'rgba(240,240,240,0.95)';
+        ctx.stroke();
+        // Leading glow dot
+        const _leadFrac=(_spinPos+_barLen)%_perim;
+        let _lAccum=0;
+        for(let _si=0;_si<_nSides;_si++){
+          if(_lAccum+_segLens[_si]>=_leadFrac){
+            const _lp=(_leadFrac-_lAccum)/_segLens[_si];
+            const _lx=_pts[_si].x+(_pts[(_si+1)%_nSides].x-_pts[_si].x)*_lp;
+            const _ly=_pts[_si].y+(_pts[(_si+1)%_nSides].y-_pts[_si].y)*_lp;
+            ctx.globalAlpha=0.9+_nBurst*0.1;
+            ctx.shadowColor=_nColorSolid; ctx.shadowBlur=12;
+            ctx.fillStyle=_nT2v?'#f0c0ff':'#ffffff';
+            ctx.beginPath(); ctx.arc(_lx,_ly,4+_nBurst*3,0,Math.PI*2); ctx.fill();
+            ctx.shadowBlur=0;
+            break;
+          }
+          _lAccum+=_segLens[_si];
+        }
+        ctx.restore();
 
         // Burst flash on attack
         if(_nBurst>0.05){
-          ctx.globalAlpha=_nBurst*0.5;
+          ctx.globalAlpha=_nBurst*0.4;
           ctx.strokeStyle=_nT2v?'#e0a0ff':'#ffffff';
-          ctx.lineWidth=4+_nBurst*8;
-          _drawDecagon(_nRv, _nSpinOffset); ctx.stroke();
+          ctx.lineWidth=5+_nBurst*6;
+          _drawDecagon(_nRv, 0); ctx.stroke();
         }
 
-        // Floating math symbols inside
+        // Floating math symbols — colored to match the aura
         if(!window._narcSymbols){
           const _syms=['∑','π','∞','√','∫','≠','≈','Δ','α','β','42','IQ','3.14','e²','x²','±','69','777','67','1+1=3','2+2=5','91.5%=100%','140','1337','420','∂','λ','Ω','φ','∇','γ','μ','θ'];
           window._narcSymbols=Array.from({length:30},(_,i)=>({
             sym:_syms[Math.floor(Math.random()*_syms.length)],
             angle:Math.random()*Math.PI*2,
-            r:(_nRv*0.12)+Math.random()*(_nRv*0.75),
+            r:(_nRv*0.12)+Math.random()*(_nRv*0.70),
             speed:(Math.random()-0.5)*0.012,
-            opacity:0.3+Math.random()*0.5,
+            opacity:0.45+Math.random()*0.45,
           }));
         }
-        ctx.font=`bold ${Math.floor(11+_nBurst*4)}px monospace`;
+        ctx.font=`bold ${Math.floor(12+_nBurst*4)}px monospace`;
         ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.shadowColor=_nColorSolid; ctx.shadowBlur=6;
         window._narcSymbols.forEach(s=>{
-          s.angle+=s.speed;
+          s.angle+=s.speed*dt;
           const sx=ship.x+Math.cos(s.angle)*s.r;
           const sy=ship.y+Math.sin(s.angle)*s.r;
-          ctx.globalAlpha=(s.opacity*0.7+_nPulse*0.2)*(1+_nBurst);
-          ctx.fillStyle=_nT2v?'#d8a0ff':'#cccccc';
+          ctx.globalAlpha=(s.opacity+_nPulse*0.15)*(1+_nBurst*0.5);
+          ctx.fillStyle=_nT2v?'#e0b0ff':'#dddddd';
           ctx.fillText(s.sym,sx,sy);
         });
+        ctx.shadowBlur=0;
 
         // T2: 8 clown emojis
         if(_nT2v){
@@ -8837,10 +8950,10 @@ function startSpace() {
           }
           ctx.font=`${Math.floor(14+_nBurst*5)}px serif`;
           window._narcClowns.forEach(c=>{
-            c.angle+=c.speed;
+            c.angle+=c.speed*dt;
             const cx=ship.x+Math.cos(c.angle)*c.r;
             const cy=ship.y+Math.sin(c.angle)*c.r;
-            ctx.globalAlpha=0.7+_nPulse*0.2+_nBurst*0.3;
+            ctx.globalAlpha=0.75+_nPulse*0.15+_nBurst*0.25;
             ctx.fillText('🤡',cx,cy);
           });
         }
@@ -8851,10 +8964,10 @@ function startSpace() {
 
     // ── Screen-space effects ──
     if(typeof _nukeFlash!=='undefined'&&_nukeFlash>0){
-      _nukeFlash--;ctx.save();ctx.globalAlpha=(_nukeFlash/20)*0.55;ctx.fillStyle='#ff8800';ctx.fillRect(0,0,W,H);ctx.restore();
+      _nukeFlash-=dt;ctx.save();ctx.globalAlpha=(_nukeFlash/20)*0.55;ctx.fillStyle='#ff8800';ctx.fillRect(0,0,W,H);ctx.restore();
     }
     if(typeof _freezeFlash!=='undefined'&&_freezeFlash>0){
-      _freezeFlash--;ctx.save();ctx.globalAlpha=(_freezeFlash/15)*0.40;ctx.fillStyle='#88ddff';ctx.fillRect(0,0,W,H);ctx.restore();
+      _freezeFlash-=dt;ctx.save();ctx.globalAlpha=(_freezeFlash/15)*0.40;ctx.fillStyle='#88ddff';ctx.fillRect(0,0,W,H);ctx.restore();
     }
 
     // Titan warning
@@ -9039,7 +9152,7 @@ function startSpace() {
           const earnedCoins=Math.floor(score/10);const keptCoins=Math.floor(coins/2)+earnedCoins;const finalSecs=Math.floor(survivalFrames/60);const finalTime=Math.floor(finalSecs/60)+':'+(finalSecs%60<10?'0':'')+(finalSecs%60);ctx.fillText('🪙 '+keptCoins+' coins next run  ·  ⏱ '+finalTime,W/2,H/2+W*0.09);
           const best2=parseInt(localStorage.getItem('spaceBest')||'0');
           if(score>best2){localStorage.setItem('spaceBest',score);ctx.globalAlpha=sf;ctx.fillStyle='#4ade80';ctx.font=`bold ${scoreFontPx}px monospace`;ctx.fillText('🏆 NEW BEST!',W/2,H/2+W*0.125);}
-          if(!canvas._spaceLbDeathShown){ canvas._spaceLbDeathShown=true; setTimeout(()=>_showSpaceLbDeath(score,survivalFrames,canvas), 2000); }
+          if(!canvas._spaceLbDeathShown){ canvas._spaceLbDeathShown=true; if(!_isMobile) setTimeout(()=>_showSpaceLbDeath(score,survivalFrames,canvas), 2000); }
         }
         ctx.globalAlpha=1;ctx.textAlign='left';
       }
