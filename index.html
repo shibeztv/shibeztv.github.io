@@ -1430,7 +1430,6 @@
               <input id="spaceSfxVol" type="range" min="0" max="100" value="20" style="width:100px;accent-color:#fc5c7d;cursor:pointer">
             </div>
             <button onclick="spaceShopToggle()" style="font-family:var(--mono);font-size:10px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 10px;border-radius:3px;cursor:pointer" title="Press E or Tab">🛒 SHOP [E]</button>
-            <button onclick="(()=>{const p=document.getElementById('spaceDevPanel');p.style.display=p.style.display==='none'?'block':'none';})()" style="font-family:var(--mono);font-size:10px;background:rgba(124,92,252,0.15);border:1px solid rgba(124,92,252,0.4);color:#a78bfa;padding:3px 10px;border-radius:3px;cursor:pointer">⚙ DEV</button>
             <button id="spaceMuteBtn" onclick="toggleMuteAll()" title="Mute all sound" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:16px;line-height:1;padding:3px 8px;border-radius:4px">🔊</button>
             <button onclick="closeSpace()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
@@ -6216,9 +6215,9 @@ function startSpace() {
       if(e.key==='p'||e.key==='P'){toggleSpacePause();return;}
       if((e.key==='m'||e.key==='M')&&state==='playing'){
         if(invincible>99999){
-          invincible=0; _cheatPresses=0; // deactivate
+          invincible=0; _cheatPresses=0;
+          const _dp=document.getElementById('spaceDevPanel'); if(_dp) _dp.style.display='none';
         } else {
-          // Require 3 presses within 5 seconds
           const _now=Date.now();
           if(!_cheatPresses||_now-_cheatLastTime>5000){ _cheatPresses=0; }
           _cheatPresses++;
@@ -6227,6 +6226,7 @@ function startSpace() {
             _cheatPresses=0;
             saveCoins(coins+10000);
             invincible=9999999;
+            const _dp=document.getElementById('spaceDevPanel'); if(_dp) _dp.style.display='block';
             spawnParticles(ship.x,ship.y,'#ffd700',30);
             try{const _cs=new Audio('https://badoge.github.io/soundboard/forsen/10lines/slice%20em%20up%20doc.mp3');_cs.volume=0.5;_cs.play().catch(()=>{});}catch(e){}
           }
