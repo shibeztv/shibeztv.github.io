@@ -9286,59 +9286,40 @@ const VQ_KEY = 'shibez_video_queue';
 const VQ_HISTORY_KEY = 'shibez_video_history';
 const VQ_CURRENT_KEY = 'shibez_video_current';
 
-// ── Cloud storage via GitHub Gist — shared between browser and OBS ──
-// Create a secret Gist at https://gist.github.com with a file called "vq.json" containing {}
-// Then create a Personal Access Token (PAT) at https://github.com/settings/tokens with "gist" scope
-const _VQ_GIST_ID  = 'REPLACE_WITH_GIST_ID';   // e.g. 'abc123def456...'
-const _VQ_GIST_TOK = 'REPLACE_WITH_GITHUB_PAT'; // e.g. 'github_pat_...'
-const _VQ_GIST_FILE = 'vq.json';
+// ── Cloud storage via Cloudflare Worker — token kept secret server-side ──
+const _VQ_WORKER = 'https://muddy-river-0109.shibezvods.workers.dev';
 
-async function _vqGistGet() {
+async function vqSync() {
   try {
-    const r = await fetch(`https://api.github.com/gists/${_VQ_GIST_ID}`, {
-      headers: { Authorization: `token ${_VQ_GIST_TOK}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    if (!r.ok) return null;
-    const d = await r.json();
-    const content = d.files?.[_VQ_GIST_FILE]?.content;
-    return content ? JSON.parse(content) : null;
-  } catch(e) { return null; }
-}
-
-async function _vqGistSet(data) {
-  try {
-    await fetch(`https://api.github.com/gists/${_VQ_GIST_ID}`, {
-      method: 'PATCH',
-      headers: { Authorization: `token ${_VQ_GIST_TOK}`, 'Content-Type': 'application/json', Accept: 'application/vnd.github.v3+json' },
-      body: JSON.stringify({ files: { [_VQ_GIST_FILE]: { content: JSON.stringify(data) } } })
-    });
+    const r = await fetch(_VQ_WORKER);
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.queue !== undefined) localStorage.setItem(VQ_KEY, JSON.stringify(data.queue));
+    if (data.current !== undefined) localStorage.setItem(VQ_CURRENT_KEY, JSON.stringify(data.current));
   } catch(e) {}
 }
 
-async function vqSync() {
-  const data = await _vqGistGet();
-  if (!data) return;
-  if (data.queue !== undefined) localStorage.setItem(VQ_KEY, JSON.stringify(data.queue));
-  if (data.current !== undefined) localStorage.setItem(VQ_CURRENT_KEY, JSON.stringify(data.current));
-}
-
-async function _vqGistSaveAll() {
-  const queue = vqLoad();
-  const current = vqLoadCurrent();
-  await _vqGistSet({ queue, current });
+async function _vqCloudSaveAll() {
+  try {
+    await fetch(_VQ_WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ queue: vqLoad(), current: vqLoadCurrent() })
+    });
+  } catch(e) {}
 }
 
 function vqLoad() { try { return JSON.parse(localStorage.getItem(VQ_KEY)||'[]'); } catch(e){ return []; } }
 function vqSave(q) {
   localStorage.setItem(VQ_KEY, JSON.stringify(q));
   window.dispatchEvent(new Event('storage'));
-  _vqGistSaveAll();
+  _vqCloudSaveAll();
 }
 function vqLoadCurrent() { try { return JSON.parse(localStorage.getItem(VQ_CURRENT_KEY)||'null'); } catch(e){ return null; } }
 function vqSaveCurrent(v) {
   localStorage.setItem(VQ_CURRENT_KEY, JSON.stringify(v));
   window.dispatchEvent(new Event('storage'));
-  _vqGistSaveAll();
+  _vqCloudSaveAll();
 }
 
 // Basic content safety filter — block obvious bad keywords in titles/descriptions
@@ -9496,9 +9477,8 @@ function _vqRenderMod(app) {
     </div>`;
 
   vqModTab('pending');
-  setInterval(vqModRefresh, 3000);
-
-  window.addEventListener('storage', vqModRefresh);
+  vqSync().then(() => vqModRefresh()); // sync from cloud on load
+  setInterval(async () => { await vqSync(); vqModRefresh(); }, 5000);
 }
 
 let _vqCurrentTab = 'pending';
