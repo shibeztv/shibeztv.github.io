@@ -4949,7 +4949,7 @@ function startFlappy() {
 
     if (state === 'playing') {
       // Scroll all ground emotes left
-      _gEmotes.forEach(g => { g.x -= getPipeSpeed() * _flappyDt; });
+      _gEmotes.forEach(g => { g.x -= getPipeSpeed(); });
       // Remove ones that scrolled off screen
       _gEmotes = _gEmotes.filter(g => g.x > -g.size - 10);
 
