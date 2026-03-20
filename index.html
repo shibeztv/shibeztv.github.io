@@ -4949,7 +4949,7 @@ function startFlappy() {
 
     if (state === 'playing') {
       // Scroll all ground emotes left
-      _gEmotes.forEach(g => { g.x -= getPipeSpeed(); });
+      _gEmotes.forEach(g => { g.x -= getPipeSpeed() * _flappyDt; });
       // Remove ones that scrolled off screen
       _gEmotes = _gEmotes.filter(g => g.x > -g.size - 10);
 
@@ -5117,7 +5117,6 @@ function startFlappy() {
     if (state === 'waiting') { state = 'playing'; }
     if (state === 'playing') {
       bird.vy = FLAP;
-      _flappyAccum = 0; // prevent queued steps causing instant drop
       try { if(!_flappyMuted){_flapSfx.currentTime = 0; _flapSfx.play().catch(()=>{});} } catch(e) {}
     }
     if (state === 'dead') {
@@ -5235,52 +5234,13 @@ function startFlappy() {
   }
 
   let _flappyLastTime = 0;
-  let _flappyAccum = 0;
-  const _FIXED_STEP = 1000 / 60; // 60Hz fixed physics step
-  const _FIXED_DT = 1;           // physics always advances by 1 unit per tick
-
-  function _physicsStep() {
-    if (state !== 'playing') return;
-    frameCount++;
-    groundX = (groundX + getPipeSpeed()) % W;
-
-    _pipeSpawnTimer += _FIXED_DT;
-    const _pipeInterval = Math.round(185 * (PIPE_SPEED_BASE / getPipeSpeed()));
-    if (_pipeSpawnTimer >= _pipeInterval || frameCount === 1) {
-      spawnPipe();
-      _pipeSpawnTimer = 0;
-    }
-
-    bird.vy += GRAVITY;
-    bird.y  += bird.vy;
-    bird.rot = bird.vy * 0.06;
-
-    for (const p of pipes) {
-      p.x -= getPipeSpeed();
-      if (!p.scored && p.x + PIPE_W < bird.x) {
-        p.scored = true; score++;
-        if (score > best) { best = score; localStorage.setItem('flappyBest', best); }
-        document.getElementById('flappyScore').textContent = score;
-      }
-    }
-    pipes = pipes.filter(p => p.x > -PIPE_W - 10);
-    if (checkCollision()) { state = 'dead'; playFlappyDeathSfx(); }
-  }
+  let _flappyDt = 1;
 
   function loop(timestamp) {
     if (!_flappyRunning) return;
-    // Simple fixed step — always exactly 1 physics tick per rendered frame
-    // Cap elapsed to avoid spiral-of-death after tab switches
-    const elapsed = _flappyLastTime ? Math.min(_FIXED_STEP * 1.5, timestamp - _flappyLastTime) : _FIXED_STEP;
+    const _elapsed = _flappyLastTime ? Math.min(33, timestamp - _flappyLastTime) : 16.667;
+    _flappyDt = _elapsed / 16.667;
     _flappyLastTime = timestamp;
-    _flappyAccum += elapsed;
-    let steps = 0;
-    while (_flappyAccum >= _FIXED_STEP && steps < 1) { // max 1 step per frame
-      _physicsStep();
-      _flappyAccum -= _FIXED_STEP;
-      steps++;
-    }
-    if (_flappyAccum > _FIXED_STEP) _flappyAccum = 0; // drain any leftover after tab switch
 
     // Background — sunny green field
     const sky = ctx.createLinearGradient(0, 0, 0, H * 0.65);
@@ -5297,7 +5257,7 @@ function startFlappy() {
       }));
     }
     startFlappy._clouds.forEach(cl => {
-      if (state === 'playing') cl.x -= cl.speed * (steps||1);
+      if (state === 'playing') cl.x -= cl.speed * _flappyDt;
       if (cl.x + cl.w < 0) cl.x = W + cl.w;
       ctx.fillStyle = 'rgba(255,255,255,0.82)';
       ctx.beginPath();
@@ -5316,7 +5276,32 @@ function startFlappy() {
     ctx.bezierCurveTo(W*0.7, H-60, W*0.85, H-150, W, H-90);
     ctx.lineTo(W, H-60); ctx.closePath(); ctx.fill();
 
-    // Physics handled by _physicsStep() via fixed accumulator above
+    if (state === 'playing') {
+      frameCount++;
+      groundX = (groundX + getPipeSpeed() * _flappyDt) % W;
+
+      _pipeSpawnTimer += _flappyDt;
+      const _pipeInterval = Math.round(185 * (PIPE_SPEED_BASE / getPipeSpeed()));
+      if (_pipeSpawnTimer >= _pipeInterval || frameCount === 1) {
+        spawnPipe();
+        _pipeSpawnTimer = 0;
+      }
+
+      bird.vy += GRAVITY * _flappyDt;
+      bird.y  += bird.vy * _flappyDt;
+      bird.rot = bird.vy * 0.06;
+
+      for (const p of pipes) {
+        p.x -= getPipeSpeed() * _flappyDt;
+        if (!p.scored && p.x + PIPE_W < bird.x) {
+          p.scored = true; score++;
+          if (score > best) { best = score; localStorage.setItem('flappyBest', best); }
+          document.getElementById('flappyScore').textContent = score;
+        }
+      }
+      pipes = pipes.filter(p => p.x > -PIPE_W - 10);
+      if (checkCollision()) { state = 'dead'; playFlappyDeathSfx(); }
+    }
 
     // Draw
     pipes.forEach(drawPipe);
