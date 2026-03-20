@@ -5284,7 +5284,7 @@ function startFlappy() {
 
       // Spawn pipes
       _pipeSpawnTimer += dt;
-      const _pipeInterval = Math.round(245 * (PIPE_SPEED_BASE / getPipeSpeed()));
+      const _pipeInterval = Math.round(185 * (PIPE_SPEED_BASE / getPipeSpeed())); // closer pipes
       if (_pipeSpawnTimer >= _pipeInterval || frameCount === 1) {
         spawnPipe();
         _pipeSpawnTimer = 0;
