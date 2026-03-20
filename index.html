@@ -1338,11 +1338,20 @@
     <a href="https://twitch.tv/shlbez" target="_blank" class="social-link" title="Twitch">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
     </a>
-    <a href="https://twitch.tv/shlbez" target="_blank" class="topbar-avatar" title="shlbez on Twitch">
-      <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-70x70.png" alt="shlbez">
-    </a>
+    <div style="position:relative" id="vqAvatarWrap">
+      <button onclick="(()=>{const m=document.getElementById('vqAvatarMenu');m.style.display=m.style.display==='flex'?'none':'flex';})()" class="topbar-avatar" title="Video Queue / Mod" style="cursor:pointer;background:none;border:none;padding:0">
+        <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-70x70.png" alt="shlbez">
+      </button>
+      <div id="vqAvatarMenu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#111;border:1px solid #333;border-radius:8px;padding:8px;flex-direction:column;gap:4px;min-width:180px;z-index:9999">
+        <a href="https://twitch.tv/shlbez" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">🟣 Twitch Channel</a>
+        <a href="?submit" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">🎬 Submit a Video</a>
+        <a href="?queue" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">🛡 Mod Queue</a>
+        <a href="?obs" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">📺 OBS Source</a>
+      </div>
+    </div>
   </div>
 </nav>
+<script>document.addEventListener('click',e=>{const w=document.getElementById('vqAvatarWrap');const m=document.getElementById('vqAvatarMenu');if(m&&w&&!w.contains(e.target))m.style.display='none';});</script>
 
 <!-- LAYOUT -->
 <div class="layout" id="mainLayout">
@@ -9460,6 +9469,23 @@ window.vqSubmit = async function() {
 
 // ── MOD PANEL ───────────────────────────────────────────────────────────────
 function _vqRenderMod(app) {
+  const _MOD_HASH = '2dec7be85048c86f60acdf5281ca89abec6520bf1e0413290a619a3c20401034';
+  const _MOD_SESSION_KEY = 'shibez_mod_auth';
+  const _MOD_PERSIST_KEY = 'shibez_mod_auth_persist';
+  // Allowed Twitch usernames (lowercase)
+  const _MOD_TWITCH_USERS = ['shlbez'];
+
+  async function _sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function _isAuthed() {
+    return sessionStorage.getItem(_MOD_SESSION_KEY) === _MOD_HASH
+        || localStorage.getItem(_MOD_PERSIST_KEY) === _MOD_HASH;
+  }
+
+  function _renderModContent() {
   app.innerHTML = `
     <div style="max-width:900px;margin:0 auto;padding:20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #222">
@@ -9484,8 +9510,84 @@ function _vqRenderMod(app) {
     </div>`;
 
   vqModTab('pending');
-  vqSync().then(() => vqModRefresh()); // sync from cloud on load
+  vqSync().then(() => vqModRefresh());
   setInterval(async () => { await vqSync(); vqModRefresh(); }, 5000);
+  } // end _renderModContent
+
+  // Check session/persist/twitch
+  // Handle Twitch OAuth callback
+  const _twitchFragment = new URLSearchParams(location.hash.replace('#',''));
+  const _twitchToken = _twitchFragment.get('access_token');
+  if(_twitchToken) {
+    // Verify token with Twitch API
+    fetch('https://api.twitch.tv/helix/users', {
+      headers: { 'Authorization': `Bearer ${_twitchToken}`, 'Client-Id': '61x4q55vai9w0lwsc1enqw9vktqzee' }
+    }).then(r=>r.json()).then(d=>{
+      const username = (d.data?.[0]?.login||'').toLowerCase();
+      if(_MOD_TWITCH_USERS.includes(username)) {
+        localStorage.setItem(_MOD_PERSIST_KEY, _MOD_HASH);
+        sessionStorage.setItem(_MOD_SESSION_KEY, _MOD_HASH);
+        history.replaceState(null,'',location.pathname+'?queue');
+        _renderModContent();
+      } else {
+        app.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0f;font-family:var(--mono,monospace);color:#fc5c7d;font-size:14px">❌ Twitch account <b>${username}</b> is not authorised.</div>`;
+      }
+    }).catch(()=>{});
+    return;
+  }
+
+  if(_isAuthed()) { _renderModContent(); return; }
+
+  // Login screen
+  const _twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=61x4q55vai9w0lwsc1enqw9vktqzee&redirect_uri=${encodeURIComponent(location.origin+location.pathname+'?queue')}&response_type=token&scope=user%3Aread%3Aemail`;
+
+  app.innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0f">
+      <div style="width:100%;max-width:340px;padding:20px">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:28px;margin-bottom:8px">🛡</div>
+          <div style="font-family:var(--mono,monospace);font-size:16px;font-weight:900;letter-spacing:1px;color:#fff">MOD ACCESS</div>
+          <div style="font-family:var(--mono,monospace);font-size:11px;color:#555;margin-top:4px">Mods only</div>
+        </div>
+
+        <a href="${_twitchAuthUrl}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;background:#9146ff;border:none;color:#fff;font-family:var(--mono,monospace);font-size:13px;font-weight:700;padding:12px;border-radius:6px;cursor:pointer;letter-spacing:1px;text-decoration:none;margin-bottom:16px">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+          LOGIN WITH TWITCH
+        </a>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="flex:1;height:1px;background:#222"></div>
+          <div style="font-family:var(--mono,monospace);font-size:10px;color:#444">or password</div>
+          <div style="flex:1;height:1px;background:#222"></div>
+        </div>
+
+        <input id="modPwInput" type="password" placeholder="Password"
+          style="width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#fff;font-family:var(--mono,monospace);font-size:14px;padding:12px 14px;border-radius:6px;outline:none;margin-bottom:10px"
+          onkeydown="if(event.key==='Enter') document.getElementById('modPwBtn').click()">
+
+        <label style="display:flex;align-items:center;gap:8px;font-family:var(--mono,monospace);font-size:11px;color:#555;margin-bottom:12px;cursor:pointer">
+          <input type="checkbox" id="modRemember" style="accent-color:#7c5cfc;width:14px;height:14px">
+          Remember this browser
+        </label>
+
+        <button id="modPwBtn"
+          style="width:100%;background:#7c5cfc;border:none;color:#fff;font-family:var(--mono,monospace);font-size:13px;font-weight:700;padding:12px;border-radius:6px;cursor:pointer;letter-spacing:1px"
+          onclick="(async()=>{
+            const val=document.getElementById('modPwInput').value;
+            const remember=document.getElementById('modRemember').checked;
+            const hash=await (${_sha256.toString()})(val);
+            if(hash==='${_MOD_HASH}'){
+              sessionStorage.setItem('${_MOD_SESSION_KEY}',hash);
+              if(remember) localStorage.setItem('${_MOD_PERSIST_KEY}',hash);
+              location.reload();
+            } else {
+              const i=document.getElementById('modPwInput');
+              i.style.borderColor='#fc5c7d';
+              setTimeout(()=>i.style.borderColor='#333',1200);
+            }
+          })()">ENTER</button>
+      </div>
+    </div>`;
 }
 
 let _vqCurrentTab = 'pending';
@@ -9687,19 +9789,6 @@ function vqObsRefresh() {
 }
 // ────────────────────────────────────────────────────────────────────────────
 </script>
-<!-- Hidden Video Queue Launcher — bottom-right corner, hidden on OBS page -->
-<div id="vqLauncher" style="position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:6px" onmouseleave="document.getElementById('vqMenu').style.display='none'">
-  <div id="vqMenu" style="display:none;background:#111;border:1px solid #333;border-radius:8px;padding:8px;display:none;flex-direction:column;gap:4px;min-width:180px">
-    <a href="?submit" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">🎬 Submit a Video</a>
-    <a href="?queue" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">🛡 Mod Queue Panel</a>
-    <a href="?obs" target="_blank" style="display:block;font-family:var(--mono);font-size:11px;color:#eee;text-decoration:none;padding:8px 12px;border-radius:4px;background:#1a1a1a;border:1px solid #2a2a2a" onmouseover="this.style.background='#252525'" onmouseout="this.style.background='#1a1a1a'">📺 OBS Source</a>
-  </div>
-  <button onmouseenter="document.getElementById('vqMenu').style.display='flex'" onclick="document.getElementById('vqMenu').style.display=document.getElementById('vqMenu').style.display==='flex'?'none':'flex'"
-    style="width:36px;height:36px;border-radius:50%;background:rgba(20,20,30,0.6);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(4px)"
-    onmouseover="this.style.color='rgba(255,255,255,0.7)';this.style.borderColor='rgba(255,255,255,0.25)'"
-    onmouseout="this.style.color='rgba(255,255,255,0.2)';this.style.borderColor='rgba(255,255,255,0.08)'"
-    title="Video Queue">🎬</button>
-</div>
 <script>if(new URLSearchParams(location.search).has('obs')){const _vql=document.getElementById('vqLauncher');if(_vql)_vql.style.display='none';}</script>
 
 </body>
