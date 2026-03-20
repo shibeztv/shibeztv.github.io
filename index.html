@@ -1398,6 +1398,7 @@
         onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
         🚀 SPACEBEZ
       </button>
+      <div style="flex:1"></div>
       <button onclick="openFollowerChecker()" id="followerCheckerBtn"
         style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
         onmouseover="this.style.borderColor='#9146ff';this.style.color='#9146ff'"
@@ -1414,8 +1415,8 @@
         <div style="padding:18px 24px 14px;border-bottom:1px solid #1a1a2a;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
           <div style="font-family:var(--mono);font-size:15px;font-weight:900;color:#fff">🔍 Twitch Follows Lookup</div>
           <div style="display:flex;align-items:center;gap:10px">
-            <div id="fcAuthStatus" style="font-family:var(--mono);font-size:10px;color:#555"></div>
-            <button onclick="closeFollowerChecker()" style="background:none;border:none;color:#555;font-size:20px;cursor:pointer;line-height:1">✕</button>
+            <div id="fcAuthStatus" style="font-family:var(--mono);font-size:10px;color:#bbb"></div>
+            <button onclick="closeFollowerChecker()" style="background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;line-height:1">✕</button>
           </div>
         </div>
 
@@ -1438,17 +1439,17 @@
               <div id="fcDisplayName" style="font-family:var(--mono);font-size:15px;font-weight:900;color:#fff"></div>
               <div style="display:flex;gap:10px;margin-top:3px;flex-wrap:wrap">
                 <span id="fcLogin" style="font-family:var(--mono);font-size:10px;color:#9146ff"></span>
-                <span id="fcMeta" style="font-family:var(--mono);font-size:10px;color:#555"></span>
+                <span id="fcMeta" style="font-family:var(--mono);font-size:10px;color:#bbb"></span>
               </div>
             </div>
             <div style="display:flex;gap:20px;text-align:center;flex-shrink:0">
               <div>
                 <div id="fcFollowerCount" style="font-family:var(--mono);font-size:18px;font-weight:900;color:#fff"></div>
-                <div style="font-family:var(--mono);font-size:9px;color:#555;letter-spacing:0.5px">FOLLOWERS</div>
+                <div style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:0.5px">FOLLOWERS</div>
               </div>
               <div>
                 <div id="fcFollowingCount" style="font-family:var(--mono);font-size:18px;font-weight:900;color:#fff"></div>
-                <div style="font-family:var(--mono);font-size:9px;color:#555;letter-spacing:0.5px">FOLLOWING</div>
+                <div style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:0.5px">FOLLOWING</div>
               </div>
             </div>
           </div>
@@ -1460,8 +1461,8 @@
             <button id="fcTabFollowers" onclick="fcShowTab('followers')" style="font-family:var(--mono);font-size:11px;font-weight:700;background:none;border:none;border-bottom:2px solid #9146ff;color:#fff;padding:10px 18px 8px;cursor:pointer">
               FOLLOWERS <span id="fcFollowersCountBadge" style="font-size:9px;color:#9146ff;margin-left:4px"></span>
             </button>
-            <button id="fcTabFollowing" onclick="fcShowTab('following')" style="font-family:var(--mono);font-size:11px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:#555;padding:10px 18px 8px;cursor:pointer">
-              FOLLOWING <span id="fcFollowingCountBadge" style="font-size:9px;color:#555;margin-left:4px"></span>
+            <button id="fcTabFollowing" onclick="fcShowTab('following')" style="font-family:var(--mono);font-size:11px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:#bbb;padding:10px 18px 8px;cursor:pointer">
+              FOLLOWING <span id="fcFollowingCountBadge" style="font-size:9px;color:#bbb;margin-left:4px"></span>
             </button>
           </div>
           <input id="fcFilter" type="text" placeholder="Filter…"
@@ -1484,7 +1485,7 @@
     <!-- PROFILE MODAL -->
     <div id="profileModal" style="display:none;position:fixed;inset:0;z-index:9010;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)shibezProfileClose()">
       <div style="background:#0d0d1a;border:1px solid #7c3aed;border-radius:12px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
-        <button onclick="shibezProfileClose()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#555;font-size:20px;cursor:pointer;line-height:1">✕</button>
+        <button onclick="shibezProfileClose()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;line-height:1">✕</button>
         <div id="profileModalContent" style="padding:24px"></div>
       </div>
     </div>
@@ -1612,13 +1613,13 @@
           </div>
           <!-- Result / give up -->
           <div id="egResult" style="font-family:var(--mono);font-size:13px;font-weight:700;text-align:center;min-height:18px"></div>
-          <button id="egSkipBtn" onclick="egGiveUp()" style="font-family:var(--mono);font-size:10px;background:none;border:1px solid #333;color:#555;padding:5px 14px;border-radius:4px;cursor:pointer"
-            onmouseover="this.style.color='#aaa';this.style.borderColor='#555'" onmouseout="this.style.color='#555';this.style.borderColor='#333'">Give up / skip</button>
+          <button id="egSkipBtn" onclick="egGiveUp()" style="font-family:var(--mono);font-size:10px;background:none;border:1px solid #333;color:#bbb;padding:5px 14px;border-radius:4px;cursor:pointer"
+            onmouseover="this.style.color='#aaa';this.style.borderColor='#555'" onmouseout="this.style.color='#bbb';this.style.borderColor='#333'">Give up / skip</button>
           <!-- Next emote button (shown after round ends) -->
           <button id="egNextBtn" onclick="egNextEmote()" style="display:none;font-family:var(--mono);font-size:12px;font-weight:700;background:rgba(232,121,249,0.15);border:2px solid #e879f9;color:#e879f9;padding:10px 28px;border-radius:4px;cursor:pointer"
             onmouseover="this.style.background='rgba(232,121,249,0.28)'" onmouseout="this.style.background='rgba(232,121,249,0.15)'">▶ NEXT EMOTE</button>
           <!-- Score row -->
-          <div style="font-family:var(--mono);font-size:10px;color:#555;text-align:center">
+          <div style="font-family:var(--mono);font-size:10px;color:#bbb;text-align:center">
             Score: <span id="egScore" style="color:#e879f9;font-weight:700">0</span> &nbsp;·&nbsp; Best streak: <span id="egBestStreak" style="color:#a78bfa;font-weight:700">0</span>
           </div>
         </div>
@@ -2001,18 +2002,18 @@ function lbSubmit(key,name,score,extra){
 }
 function lbRenderRows(key,highlightScore,limit){
   const entries=lbLoad(key);
-  if(!entries.length) return '<div style="color:#555;font-size:11px;padding:8px 4px;text-align:center">No scores yet!</div>';
+  if(!entries.length) return '<div style="color:#bbb;font-size:11px;padding:8px 4px;text-align:center">No scores yet!</div>';
   const _esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   return entries.slice(0,limit||10).map((e,i)=>{
     const isHL=highlightScore!==undefined&&e.score===highlightScore;
-    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:#666">${i+1}.</span>`;
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:#bbb">${i+1}.</span>`;
     const _dateStr=e.date?new Date(e.date).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
     return `<div style="display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:3px;background:${isHL?'rgba(124,92,252,0.22)':'transparent'};font-family:var(--mono,monospace);font-size:11px">
       <span style="width:22px;text-align:center;flex-shrink:0">${medal}</span>
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${isHL?'#a78bfa':'#ccc'}">${_esc(e.name)}</span>
       <span style="color:${isHL?'#ffd700':'#fff'};font-weight:700;flex-shrink:0">${_esc(e.score)}</span>
-      ${e.extra?`<span style="color:#666;font-size:9px;flex-shrink:0;margin-left:2px">${_esc(e.extra)}</span>`:''}
-      ${_dateStr?`<span style="color:#444;font-size:9px;flex-shrink:0;margin-left:2px">${_dateStr}</span>`:''}
+      ${e.extra?`<span style="color:#bbb;font-size:9px;flex-shrink:0;margin-left:2px">${_esc(e.extra)}</span>`:''}
+      ${_dateStr?`<span style="color:#bbb;font-size:9px;flex-shrink:0;margin-left:2px">${_dateStr}</span>`:''}
     </div>`;
   }).join('');
 }
@@ -2219,7 +2220,7 @@ function shibezProfileOpen() {
     <div style="background:#111;border:1px solid #222;border-radius:6px;padding:10px 14px;display:flex;align-items:center;gap:10px">
       <span style="font-size:18px">${icon}</span>
       <div>
-        <div style="font-family:var(--mono,monospace);font-size:10px;color:#555">${label}</div>
+        <div style="font-family:var(--mono,monospace);font-size:10px;color:#bbb">${label}</div>
         <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:700;color:#ddd">${val}</div>
       </div>
     </div>`;
@@ -2231,7 +2232,7 @@ function shibezProfileOpen() {
       <span style="font-size:16px;width:20px">${icon}</span>
       <span style="font-family:var(--mono,monospace);font-size:11px;color:#aaa;flex:1">${name}</span>
       <span style="font-family:var(--mono,monospace);font-size:11px;color:#ffd700">🏆 ${s.best}</span>
-      <span style="font-family:var(--mono,monospace);font-size:10px;color:#555">${s.plays} plays</span>
+      <span style="font-family:var(--mono,monospace);font-size:10px;color:#bbb">${s.plays} plays</span>
     </div>`;
   };
 
@@ -2324,7 +2325,7 @@ function shibezProfileOpen() {
         <div style="font-family:var(--mono,monospace);font-size:16px;font-weight:900;color:#fff">${p.displayName}</div>
         <div style="font-family:var(--mono,monospace);font-size:10px;color:#9146ff;margin-top:2px">@${p.login}</div>
         <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
-          ${p.followedAt ? `<span style="font-family:var(--mono,monospace);font-size:9px;background:rgba(145,70,255,0.15);border:1px solid rgba(145,70,255,0.3);color:#a78bfa;padding:2px 8px;border-radius:10px">💜 Following${followMonths!==null?' · '+followMonths+'mo':''}</span>` : '<span style="font-family:var(--mono,monospace);font-size:9px;color:#444">Not following</span>'}
+          ${p.followedAt ? `<span style="font-family:var(--mono,monospace);font-size:9px;background:rgba(145,70,255,0.15);border:1px solid rgba(145,70,255,0.3);color:#a78bfa;padding:2px 8px;border-radius:10px">💜 Following${followMonths!==null?' · '+followMonths+'mo':''}</span>` : '<span style="font-family:var(--mono,monospace);font-size:9px;color:#bbb">Not following</span>'}
           ${subLabel ? `<span style="font-family:var(--mono,monospace);font-size:9px;background:rgba(145,70,255,0.25);border:1px solid #9146ff;color:#e9d5ff;padding:2px 8px;border-radius:10px">⭐ Sub ${subLabel}</span>` : ''}
         </div>
       </div>
@@ -2340,7 +2341,7 @@ function shibezProfileOpen() {
 
     <!-- Achievements -->
     <div style="margin-bottom:20px">
-      <div style="font-family:var(--mono,monospace);font-size:10px;font-weight:900;color:#555;letter-spacing:1px;margin-bottom:10px">ACHIEVEMENTS <span style="color:#7c5cfc">${_earned.length}/${_ACHIEVEMENTS.length}</span></div>
+      <div style="font-family:var(--mono,monospace);font-size:10px;font-weight:900;color:#bbb;letter-spacing:1px;margin-bottom:10px">ACHIEVEMENTS <span style="color:#7c5cfc">${_earned.length}/${_ACHIEVEMENTS.length}</span></div>
       <div style="display:flex;flex-wrap:wrap;gap:10px">
         ${_earned.map(a=>_achBadge(a,false)).join('')}
         ${_locked.map(a=>_achBadge(a,true)).join('')}
@@ -2350,7 +2351,7 @@ function shibezProfileOpen() {
     <!-- Game scores -->
     ${Object.keys(scores).length ? `
     <div style="margin-bottom:20px">
-      <div style="font-family:var(--mono,monospace);font-size:10px;font-weight:900;color:#555;letter-spacing:1px;margin-bottom:8px">GAME SCORES</div>
+      <div style="font-family:var(--mono,monospace);font-size:10px;font-weight:900;color:#bbb;letter-spacing:1px;margin-bottom:8px">GAME SCORES</div>
       ${_gameRow('🚀','SpaceBez','space')}
       ${_gameRow('🐦','Flappy Shibez','flappy')}
       ${_gameRow('📊','Higher or Lower','hol')}
@@ -2360,13 +2361,13 @@ function shibezProfileOpen() {
     <!-- Last streams -->
     ${streams.length ? `
     <div style="margin-bottom:20px">
-      <div style="font-family:var(--mono,monospace);font-size:10px;font-weight:900;color:#555;letter-spacing:1px;margin-bottom:8px">LAST WATCHED</div>
+      <div style="font-family:var(--mono,monospace);font-size:10px;font-weight:900;color:#bbb;letter-spacing:1px;margin-bottom:8px">LAST WATCHED</div>
       ${streams.map(s=>`
         <div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #1a1a1a;align-items:center">
           <span style="font-size:14px">📺</span>
           <div style="flex:1;min-width:0">
             <div style="font-family:var(--mono,monospace);font-size:11px;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.title||'Stream'}</div>
-            <div style="font-family:var(--mono,monospace);font-size:9px;color:#444">${s.date||''}</div>
+            <div style="font-family:var(--mono,monospace);font-size:9px;color:#bbb">${s.date||''}</div>
           </div>
         </div>`).join('')}
     </div>` : ''}
@@ -2374,10 +2375,10 @@ function shibezProfileOpen() {
     <!-- Footer -->
     <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #1a1a2a">
       <div style="display:flex;gap:12px">
-        <a href="?submit" style="font-family:var(--mono,monospace);font-size:11px;color:#555;text-decoration:none" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#555'">🎬 Submit Video</a>
-        <a href="?queue" style="font-family:var(--mono,monospace);font-size:11px;color:#555;text-decoration:none" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#555'">🛡 Mod Queue</a>
+        <a href="?submit" style="font-family:var(--mono,monospace);font-size:11px;color:#bbb;text-decoration:none" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#bbb'">🎬 Submit Video</a>
+        <a href="?queue" style="font-family:var(--mono,monospace);font-size:11px;color:#bbb;text-decoration:none" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#bbb'">🛡 Mod Queue</a>
       </div>
-      <button onclick="profLogout()" style="background:none;border:1px solid #333;color:#555;font-family:var(--mono,monospace);font-size:10px;padding:5px 12px;border-radius:4px;cursor:pointer" onmouseover="this.style.color='#fc5c7d';this.style.borderColor='#fc5c7d'" onmouseout="this.style.color='#555';this.style.borderColor='#333'">Log out</button>
+      <button onclick="profLogout()" style="background:none;border:1px solid #555;color:#bbb;font-family:var(--mono,monospace);font-size:10px;padding:5px 12px;border-radius:4px;cursor:pointer" onmouseover="this.style.color='#fc5c7d';this.style.borderColor='#fc5c7d'" onmouseout="this.style.color='#bbb';this.style.borderColor='#555'">Log out</button>
     </div>`;
 }
 
@@ -4190,7 +4191,7 @@ async function openRandomClip() {
   const titleEl = document.getElementById('clipTitle');
   const metaEl = document.getElementById('clipMeta');
   modal.style.display = 'flex';
-  embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-family:var(--mono);font-size:12px">Loading…</div>';
+  embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-family:var(--mono);font-size:12px">Loading…</div>';
   titleEl.textContent = 'Fetching clip…';
   metaEl.innerHTML = '';
 
@@ -4218,7 +4219,7 @@ async function openRandomClip() {
     metaEl.innerHTML = `<span>${date}</span>${views ? `<span>·</span><span>${views}</span>` : ''}`;
   } catch(e) {
     titleEl.textContent = 'Could not load clip';
-    embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-family:var(--mono);font-size:12px">Error loading clip</div>';
+    embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-family:var(--mono);font-size:12px">Error loading clip</div>';
   }
 }
 
@@ -4355,7 +4356,7 @@ async function fcLookup() {
   errEl.textContent = '';
   _fcFollowersData = []; _fcFollowingData = [];
   _fcFollowersLoaded = false; _fcFollowingLoaded = false;
-  document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#555">Loading…</div>';
+  document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#bbb">Loading…</div>';
   document.getElementById('fcProfile').style.display = 'none';
   document.getElementById('fcTabsRow').style.display = 'none';
   document.getElementById('fcFooter').style.display = 'none';
@@ -4417,7 +4418,7 @@ async function fcShowTab(tab) {
   });
 
   if(tab==='following' && !_fcFollowingLoaded) {
-    document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#555">Loading…</div>';
+    document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#bbb">Loading…</div>';
     await _fcLoadList('following', _fcCurrentUserId);
     _fcFollowingLoaded = true;
     document.getElementById('fcFollowingCountBadge').textContent = `(${_fcFollowingData.length}${_fcFollowingData.length>=100?'+':''})`;
@@ -4437,7 +4438,7 @@ function fcApplyFilter() {
   }) : data;
 
   if(!filtered.length){
-    document.getElementById('fcList').innerHTML = `<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#555">${filter ? 'No results for "'+filter+'"' : 'No '+_fcCurrentTab+' found'}</div>`;
+    document.getElementById('fcList').innerHTML = `<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#bbb">${filter ? 'No results for "'+filter+'"' : 'No '+_fcCurrentTab+' found'}</div>`;
     return;
   }
 
@@ -4455,9 +4456,9 @@ function fcApplyFilter() {
       <div style="flex:1;min-width:0">
         <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${isMutual?'#c084fc':'#ddd'}">${name}</span>
         ${isMutual?'<span style="font-family:var(--mono);font-size:9px;color:#7c3aed;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);padding:1px 6px;border-radius:8px;margin-left:6px">mutual</span>':''}
-        <div style="font-family:var(--mono);font-size:9px;color:#555;margin-top:1px">@${login}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:#bbb;margin-top:1px">@${login}</div>
       </div>
-      <div style="font-family:var(--mono);font-size:10px;color:#444;white-space:nowrap;flex-shrink:0">${date}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:#bbb;white-space:nowrap;flex-shrink:0">${date}</div>
     </div>`;
   }).join('');
 }
@@ -4469,7 +4470,7 @@ async function fcLookup() {
   errEl.textContent = '';
   _fcFollowersData = []; _fcFollowingData = [];
   _fcFollowersLoaded = false; _fcFollowingLoaded = false;
-  document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#555">Loading…</div>';
+  document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#bbb">Loading…</div>';
   document.getElementById('fcProfile').style.display = 'none';
   document.getElementById('fcTabsRow').style.display = 'none';
   document.getElementById('fcFooter').style.display = 'none';
@@ -4545,7 +4546,7 @@ async function fcShowTab(tab) {
 
   const token = _fcGetToken(); if(!token) return;
   if(tab==='following' && !_fcFollowingLoaded) {
-    document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#555">Loading…</div>';
+    document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#bbb">Loading…</div>';
     await _fcLoadList('following', _fcCurrentUserId, token);
     _fcFollowingLoaded = true;
     document.getElementById('fcFollowingCountBadge').textContent = `(${_fcFollowingData.length}${_fcFollowingData.length>=100?'+':''})`;
@@ -4565,7 +4566,7 @@ function fcApplyFilter() {
   }) : data;
 
   if(!filtered.length){
-    document.getElementById('fcList').innerHTML = `<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#555">${filter ? 'No results for "'+filter+'"' : 'No '+_fcCurrentTab+' found'}</div>`;
+    document.getElementById('fcList').innerHTML = `<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#bbb">${filter ? 'No results for "'+filter+'"' : 'No '+_fcCurrentTab+' found'}</div>`;
     return;
   }
 
@@ -4583,9 +4584,9 @@ function fcApplyFilter() {
       <div style="flex:1;min-width:0">
         <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${isMutual?'#c084fc':'#ddd'}">${name}</span>
         ${isMutual?'<span style="font-family:var(--mono);font-size:9px;color:#7c3aed;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);padding:1px 6px;border-radius:8px;margin-left:6px">mutual</span>':''}
-        <div style="font-family:var(--mono);font-size:9px;color:#555;margin-top:1px">@${login}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:#bbb;margin-top:1px">@${login}</div>
       </div>
-      <div style="font-family:var(--mono);font-size:10px;color:#444;white-space:nowrap;flex-shrink:0">${date}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:#bbb;white-space:nowrap;flex-shrink:0">${date}</div>
     </div>`;
   }).join('');
 }
@@ -5152,7 +5153,7 @@ function startFlappy() {
     div.innerHTML = `
       <div onclick="event.stopPropagation()" style="background:rgba(8,8,20,0.97);border:1px solid #2a2a4a;border-radius:10px;padding:18px;width:100%;max-width:330px;display:flex;flex-direction:column;gap:10px;cursor:default">
         <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:900;color:#fff;text-align:center;letter-spacing:1px">🏆 LEADERBOARD</div>
-        <div style="font-family:var(--mono,monospace);font-size:10px;color:#666;text-align:center">Score: <span style="color:#ffd700;font-weight:700">${finalScore}</span> · Click outside to play again without submitting</div>
+        <div style="font-family:var(--mono,monospace);font-size:10px;color:#bbb;text-align:center">Score: <span style="color:#ffd700;font-weight:700">${finalScore}</span> · Click outside to play again without submitting</div>
         <div style="display:flex;gap:6px">
           <input id="flappyLbName" placeholder="Enter your name" maxlength="20" required
             style="flex:1;background:#0a0a18;border:1px solid #333;color:#eee;font-family:var(--mono,monospace);font-size:12px;padding:7px 10px;border-radius:4px;outline:none;min-width:0"
@@ -5928,7 +5929,7 @@ function _holShowGameOver() {
 
 function _holRenderLbRows(currentScore) {
   const entries = JSON.parse(localStorage.getItem(LB_HOL_KEY) || '[]');
-  if (!entries.length) return '<div style="text-align:center;color:#555;font-family:var(--mono);font-size:11px;padding:16px">No scores yet — be the first!</div>';
+  if (!entries.length) return '<div style="text-align:center;color:#bbb;font-family:var(--mono);font-size:11px;padding:16px">No scores yet — be the first!</div>';
   return entries.slice(0, 10).map((e, i) => {
     const isNew = e.score === currentScore && e.name === (document.getElementById('holLbName')?.value?.trim() || '');
     return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:${i===0?'rgba(245,158,11,0.12)':'rgba(255,255,255,0.04)'};border-radius:4px;font-family:var(--mono);font-size:11px">
@@ -6731,7 +6732,7 @@ function startSpace() {
           <span style="font-family:var(--mono);font-size:9px;font-weight:900;color:${t1owned?'#f0abfc':'#aaa'};min-width:56px;flex-shrink:0">ENHANCE</span>
           <span style="font-family:var(--mono);font-size:10px;color:#aaa;flex:1;min-width:0;line-height:1.4">+1 follower (${fl}/${maxFl})</span>
           ${fl>=maxFl?'<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900;white-space:nowrap">MAX</span>':
-            !t1owned?'<span style="font-family:var(--mono);font-size:9px;color:#444;white-space:nowrap">LOCKED</span>':
+            !t1owned?'<span style="font-family:var(--mono);font-size:9px;color:#bbb;white-space:nowrap">LOCKED</span>':
             `<button onclick="spaceBuyWeapon('friends')" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${fa?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${fa?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${fa?'#ffd700':'#aaa'};padding:4px 10px;border-radius:4px;cursor:${fa?'pointer':'default'};white-space:nowrap">🪙${fc}</button>`}
         </div>`;
       } else if(def.tier2){
@@ -6743,7 +6744,7 @@ function startSpace() {
           <span style="font-family:var(--mono);font-size:9px;font-weight:900;color:${t2owned?def.color:t1owned?'#aaa':'#aaa'};min-width:56px;flex-shrink:0">ENHANCE</span>
           <span style="font-family:var(--mono);font-size:10px;color:#aaa;flex:1;min-width:0;line-height:1.4">${t2desc}</span>
           ${t2owned?'<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900;white-space:nowrap">✓ ON</span>':
-            !t1owned?'<span style="font-family:var(--mono);font-size:9px;color:#444;white-space:nowrap">LOCKED</span>':
+            !t1owned?'<span style="font-family:var(--mono);font-size:9px;color:#bbb;white-space:nowrap">LOCKED</span>':
             `<button onclick="spaceBuyTier2('${def.key}')" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${t2CanAfford?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${t2CanAfford?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${t2CanAfford?'#ffd700':'#aaa'};padding:4px 10px;border-radius:4px;cursor:${t2CanAfford?'pointer':'default'};white-space:nowrap">🪙${def.tier2.cost}</button>`}
         </div>`;
       }
@@ -8245,7 +8246,7 @@ function startSpace() {
             const _wName=_wdef.label.replace(/^[^ ]+ /,'');
             const _t2Name=_hasT2?_wdef.tier2.label.replace(/^[^ ]+ /,'').replace(/\+/,'').trim():'';
             const _dispName=_hasT2?`${_wName} — ${_t2Name}`:_wName;
-            const slotLabel=maxSlots>1?`<span style="color:#666;font-size:9px;margin-right:2px">T${si+1}:</span>`:'';
+            const slotLabel=maxSlots>1?`<span style="color:#bbb;font-size:9px;margin-right:2px">T${si+1}:</span>`:'';
             hudParts.push(`<span style="display:inline-flex;align-items:center;color:${_wdef.color};font-weight:700;font-size:13px;border-right:1px solid rgba(255,255,255,0.12);padding-right:8px;margin-right:2px">${slotLabel}${_dispName}</span>`);
           }
         }
@@ -10203,7 +10204,7 @@ function _vqRenderSubmit(app) {
             SUBMIT FOR REVIEW
           </button>
         </div>
-        <div style="text-align:center;margin-top:20px;font-size:10px;color:#444">
+        <div style="text-align:center;margin-top:20px;font-size:10px;color:#bbb">
           Videos are reviewed by mods before playing on stream.
         </div>
       </div>
@@ -10274,7 +10275,7 @@ function _vqRenderMod(app) {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #222">
         <div>
           <div style="font-size:16px;font-weight:900;letter-spacing:1px">🎬 MOD QUEUE</div>
-          <div style="font-size:10px;color:#666;margin-top:2px">Review and manage video submissions</div>
+          <div style="font-size:10px;color:#bbb;margin-top:2px">Review and manage video submissions</div>
         </div>
         <div style="display:flex;gap:8px">
           <span id="vqNowPlaying" style="font-size:10px;color:#7c5cfc;align-self:center"></span>
@@ -10330,7 +10331,7 @@ function _vqRenderMod(app) {
         <div style="text-align:center;margin-bottom:28px">
           <div style="font-size:28px;margin-bottom:8px">🛡</div>
           <div style="font-family:var(--mono,monospace);font-size:16px;font-weight:900;letter-spacing:1px;color:#fff">MOD ACCESS</div>
-          <div style="font-family:var(--mono,monospace);font-size:11px;color:#555;margin-top:4px">Mods only</div>
+          <div style="font-family:var(--mono,monospace);font-size:11px;color:#bbb;margin-top:4px">Mods only</div>
         </div>
 
         <a href="${_twitchAuthUrl}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;background:#9146ff;border:none;color:#fff;font-family:var(--mono,monospace);font-size:13px;font-weight:700;padding:12px;border-radius:6px;cursor:pointer;letter-spacing:1px;text-decoration:none;margin-bottom:16px">
@@ -10340,7 +10341,7 @@ function _vqRenderMod(app) {
 
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
           <div style="flex:1;height:1px;background:#222"></div>
-          <div style="font-family:var(--mono,monospace);font-size:10px;color:#444">or password</div>
+          <div style="font-family:var(--mono,monospace);font-size:10px;color:#bbb">or password</div>
           <div style="flex:1;height:1px;background:#222"></div>
         </div>
 
@@ -10348,7 +10349,7 @@ function _vqRenderMod(app) {
           style="width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#fff;font-family:var(--mono,monospace);font-size:14px;padding:12px 14px;border-radius:6px;outline:none;margin-bottom:10px"
           onkeydown="if(event.key==='Enter') document.getElementById('modPwBtn').click()">
 
-        <label style="display:flex;align-items:center;gap:8px;font-family:var(--mono,monospace);font-size:11px;color:#555;margin-bottom:12px;cursor:pointer">
+        <label style="display:flex;align-items:center;gap:8px;font-family:var(--mono,monospace);font-size:11px;color:#bbb;margin-bottom:12px;cursor:pointer">
           <input type="checkbox" id="modRemember" style="accent-color:#7c5cfc;width:14px;height:14px">
           Remember this browser
         </label>
@@ -10388,7 +10389,7 @@ function vqRenderHistoryTab() {
   const list = document.getElementById('vqList');
   if(!list) return;
   const h = vqLoadHistory();
-  if(!h.length){ list.innerHTML = '<div style="text-align:center;padding:40px;color:#444;font-size:12px">No history yet</div>'; return; }
+  if(!h.length){ list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:12px">No history yet</div>'; return; }
   const _esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   list.innerHTML = h.map(v => {
     const _date = v.playedAt ? new Date(v.playedAt).toLocaleString() : '';
@@ -10399,7 +10400,7 @@ function vqRenderHistoryTab() {
         <div style="font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono,monospace)">${_esc(v.title||v.url)}</div>
         <div style="font-size:11px;font-weight:600;color:#aaa;margin-top:2px;font-family:var(--mono,monospace)">${_esc(v.submitter||'')}</div>
       </div>
-      <div style="font-size:11px;font-weight:600;color:#555;white-space:nowrap;font-family:var(--mono,monospace)">${_date}</div>
+      <div style="font-size:11px;font-weight:600;color:#bbb;white-space:nowrap;font-family:var(--mono,monospace)">${_date}</div>
     </div>`;
   }).join('');
 }
@@ -10413,7 +10414,7 @@ function vqRenderSetupTab() {
       <div style="background:#111;border:1px solid #7c5cfc55;border-radius:8px;padding:20px">
         <div style="font-size:13px;font-weight:900;color:#a78bfa;margin-bottom:12px">🎬 OBS Browser Source</div>
         <div style="font-size:11px;color:#aaa;line-height:1.8;margin-bottom:10px">Add this as a <b style="color:#fff">Browser Source</b> in OBS at your stream canvas size (e.g. 1920×1080). Videos will auto-play here when approved.</div>
-        <div style="background:#0a0a18;border:1px solid #333;border-radius:4px;padding:10px;font-size:11px;color:#60ddff;word-break:break-all;cursor:pointer" onclick="navigator.clipboard.writeText('${obsUrl}').then(()=>this.textContent='✓ Copied!').catch(()=>{})">${obsUrl} <span style="color:#555">— click to copy</span></div>
+        <div style="background:#0a0a18;border:1px solid #333;border-radius:4px;padding:10px;font-size:11px;color:#60ddff;word-break:break-all;cursor:pointer" onclick="navigator.clipboard.writeText('${obsUrl}').then(()=>this.textContent='✓ Copied!').catch(()=>{})">${obsUrl} <span style="color:#bbb">— click to copy</span></div>
       </div>
       <div style="background:#111;border:1px solid #9146ff55;border-radius:8px;padding:20px">
         <div style="font-size:13px;font-weight:900;color:#9146ff;margin-bottom:12px">🟣 Twitch Channel Point Reward Setup</div>
@@ -10423,12 +10424,12 @@ function vqRenderSetupTab() {
           <b style="color:#fff">Step 3</b> — Set the title to something like <b style="color:#ffd700">🎬 Play a Short/TikTok</b><br>
           <b style="color:#fff">Step 4</b> — Enable <b style="color:#fff">"Require Viewer to Enter Text"</b> and set the prompt to:<br>
         </div>
-        <div style="background:#0a0a18;border:1px solid #333;border-radius:4px;padding:10px;font-size:11px;color:#ffd700;margin-bottom:14px;cursor:pointer" onclick="navigator.clipboard.writeText('Paste a YouTube Shorts or TikTok link — it will be reviewed by mods before playing on stream!').then(()=>this.textContent='✓ Copied!').catch(()=>{})">Paste a YouTube Shorts or TikTok link — it will be reviewed by mods before playing on stream! <span style="color:#555">— click to copy</span></div>
+        <div style="background:#0a0a18;border:1px solid #333;border-radius:4px;padding:10px;font-size:11px;color:#ffd700;margin-bottom:14px;cursor:pointer" onclick="navigator.clipboard.writeText('Paste a YouTube Shorts or TikTok link — it will be reviewed by mods before playing on stream!').then(()=>this.textContent='✓ Copied!').catch(()=>{})">Paste a YouTube Shorts or TikTok link — it will be reviewed by mods before playing on stream! <span style="color:#bbb">— click to copy</span></div>
         <div style="font-size:11px;color:#aaa;line-height:2;margin-bottom:14px">
           <b style="color:#fff">Step 5</b> — In <b style="color:#fff">Streamlabs / StreamElements</b> (or a chatbot), add a redemption event that posts the redeemed text as a message or to a webhook.<br>
           <b style="color:#fff">Step 6 (easiest alt)</b> — Use the direct submit URL below — viewers can open it and paste their link, OR your chatbot can redirect redemptions there automatically:
         </div>
-        <div style="background:#0a0a18;border:1px solid #333;border-radius:4px;padding:10px;font-size:11px;color:#60ddff;word-break:break-all;cursor:pointer" onclick="navigator.clipboard.writeText('${submitUrl}').then(()=>this.textContent='✓ Copied!').catch(()=>{})">${submitUrl} <span style="color:#555">— click to copy</span></div>
+        <div style="background:#0a0a18;border:1px solid #333;border-radius:4px;padding:10px;font-size:11px;color:#60ddff;word-break:break-all;cursor:pointer" onclick="navigator.clipboard.writeText('${submitUrl}').then(()=>this.textContent='✓ Copied!').catch(()=>{})">${submitUrl} <span style="color:#bbb">— click to copy</span></div>
       </div>
       <div style="background:#111;border:1px solid #4ade8055;border-radius:8px;padding:20px">
         <div style="font-size:13px;font-weight:900;color:#4ade80;margin-bottom:10px">✓ Mod Workflow</div>
@@ -10453,7 +10454,7 @@ function vqModRefresh() {
   const list = document.getElementById('vqList');
   if(!list) return;
 
-  if(!filtered.length){ list.innerHTML = `<div style="text-align:center;padding:40px;color:#444;font-size:12px">${_vqCurrentTab==='pending'?'No pending submissions':'Queue is empty'}</div>`; return; }
+  if(!filtered.length){ list.innerHTML = `<div style="text-align:center;padding:40px;color:#bbb;font-size:12px">${_vqCurrentTab==='pending'?'No pending submissions':'Queue is empty'}</div>`; return; }
 
   list.innerHTML = filtered.map((v,i) => {
     const thumb = v.platform==='youtube' ? `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg` : '';
@@ -10463,8 +10464,8 @@ function vqModRefresh() {
       ${thumb?`<img src="${thumb}" style="width:120px;height:68px;object-fit:cover;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'">` : '<div style="width:120px;height:68px;background:#0a0a18;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🎵</div>'}
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml?escHtml(v.title):v.title}</div>
-        <div style="font-size:10px;color:#666;margin-bottom:8px">by <span style="color:#9146ff">${v.submittedBy}</span> · ${ageStr} · <span style="color:${v.status==='approved'?'#4ade80':'#ffd700'}">${v.status}</span></div>
-        <div style="font-size:10px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:10px">${v.url}</div>
+        <div style="font-size:10px;color:#bbb;margin-bottom:8px">by <span style="color:#9146ff">${v.submittedBy}</span> · ${ageStr} · <span style="color:${v.status==='approved'?'#4ade80':'#ffd700'}">${v.status}</span></div>
+        <div style="font-size:10px;color:#bbb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:10px">${v.url}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${v.status==='pending'?`<button onclick="vqApprove('${v.id}')" style="background:#1a3a1a;border:1px solid #3a5;color:#4ade80;font-family:var(--mono,monospace);font-size:10px;padding:5px 12px;border-radius:3px;cursor:pointer">✓ Approve</button>`:''}
           <button onclick="vqPlayNow('${v.id}')" style="background:#1a1a3a;border:1px solid #7c5cfc;color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;padding:5px 12px;border-radius:3px;cursor:pointer">▶ Play Now</button>
