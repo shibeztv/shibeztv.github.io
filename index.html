@@ -1434,7 +1434,7 @@
         <!-- User profile card -->
         <div id="fcProfile" style="display:none;padding:12px 24px 0;flex-shrink:0">
           <div style="display:flex;align-items:center;gap:14px;background:#111;border:1px solid #222;border-radius:8px;padding:14px 16px">
-            <img id="fcAvatar" src="" style="width:52px;height:52px;border-radius:50%;border:2px solid #9146ff;flex-shrink:0">
+            <a id="fcAvatarLink" href="#" target="_blank" style="flex-shrink:0"><img id="fcAvatar" src="" style="width:52px;height:52px;border-radius:50%;border:2px solid #9146ff;cursor:pointer;transition:opacity 0.15s" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"></a>
             <div style="flex:1;min-width:0">
               <div id="fcDisplayName" style="font-family:var(--mono);font-size:15px;font-weight:900;color:#fff"></div>
               <div style="display:flex;gap:10px;margin-top:3px;flex-wrap:wrap">
@@ -1472,11 +1472,11 @@
 
         <!-- List -->
         <div id="fcList" style="overflow-y:auto;flex:1;min-height:240px">
-          <div style="text-align:center;padding:60px 0;font-family:var(--mono);font-size:12px;color:#333">Enter a username to look them up</div>
+          <div style="text-align:center;padding:60px 0;font-family:var(--mono);font-size:12px;color:#bbb">Enter a username to look them up</div>
         </div>
 
         <!-- Footer note -->
-        <div id="fcFooter" style="display:none;padding:8px 24px;border-top:1px solid #1a1a2a;font-family:var(--mono);font-size:9px;color:#333;flex-shrink:0">
+        <div id="fcFooter" style="display:none;padding:8px 24px;border-top:1px solid #1a1a2a;font-family:var(--mono);font-size:9px;color:#bbb;flex-shrink:0">
           Showing first 100 results · <span style="color:#9146ff">purple = mutual follow</span>
         </div>
       </div>
@@ -4374,7 +4374,7 @@ async function fcLookup() {
     const followerCount = fcntD?.total ?? '?';
     const followingCount = fwcntD?.total ?? '?';
 
-    document.getElementById('fcAvatar').src = user.profile_image_url || '';
+    document.getElementById('fcAvatar').src = user.profile_image_url || ''; const _fcAL=document.getElementById('fcAvatarLink'); if(_fcAL) _fcAL.href='https://twitch.tv/'+user.login;
     document.getElementById('fcDisplayName').textContent = user.display_name;
     document.getElementById('fcLogin').textContent = '@'+user.login;
     const created = user.created_at ? 'Joined '+new Date(user.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '';
@@ -4499,7 +4499,7 @@ async function fcLookup() {
     const followerCount = fcntD.total ?? 0;
     const followingCount = fwcntD.total ?? 0;
 
-    document.getElementById('fcAvatar').src = user.profile_image_url || '';
+    document.getElementById('fcAvatar').src = user.profile_image_url || ''; const _fcAL=document.getElementById('fcAvatarLink'); if(_fcAL) _fcAL.href='https://twitch.tv/'+user.login;
     document.getElementById('fcDisplayName').textContent = user.display_name;
     document.getElementById('fcLogin').textContent = '@'+user.login;
     const created = user.created_at ? 'Joined '+new Date(user.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '';
