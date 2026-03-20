@@ -2312,9 +2312,9 @@ function shibezProfileOpen() {
   const _earned = _ACHIEVEMENTS.filter(a => { try { return a.check(p); } catch(e){ return false; }});
   const _locked = _ACHIEVEMENTS.filter(a => !_earned.find(e=>e.id===a.id));
 
-  const _achBadge = (a, dim) => `<div title="${a.desc}" style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:${dim?'0.22':'1'}">
+  const _achBadge = (a, dim) => `<div title="${a.desc}" style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:${dim?'0.5':'1'}">
     <div style="font-size:22px;filter:${dim?'grayscale(1)':'none'}">${a.icon}</div>
-    <div style="font-family:var(--mono,monospace);font-size:8px;color:${dim?'#444':'#aaa'};text-align:center;max-width:56px;line-height:1.2">${a.name}</div>
+    <div style="font-family:var(--mono,monospace);font-size:8px;color:${dim?'#bbb':'#fff'};text-align:center;max-width:56px;line-height:1.2">${a.name}</div>
   </div>`;
 
   content.innerHTML = `
@@ -4910,13 +4910,13 @@ function startFlappy() {
   const _fMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)||window.matchMedia('(pointer:coarse)').matches;
   const GRAVITY = _fMobile ? 0.15 : 0.10;
   const FLAP    = _fMobile ? -5.2 : -4.2;
-  const PIPE_SPEED_BASE = _fMobile ? 2.4 : 1.75;
+  const PIPE_SPEED_BASE = _fMobile ? 2.9 : 2.1; // faster
   const PIPE_W = 52;
   const PIPE_GAP = 245;
   const EMOTE_SIZE = 52;
   const BIRD_SIZE = 48;
   // Speed ramps after score 10, caps at 2.4× base
-  function getPipeSpeed(){ return Math.min(PIPE_SPEED_BASE*3.2, PIPE_SPEED_BASE + Math.max(0,score-10)*0.055); }
+  function getPipeSpeed(){ return Math.min(PIPE_SPEED_BASE*3.5, PIPE_SPEED_BASE + Math.max(0,score-8)*0.07); }
 
   let bird = { x: 80, y: H/2, vy: 0, rot: 0 };
   let pipes = [];
@@ -4989,7 +4989,7 @@ function startFlappy() {
     if (_lastGapY < 0) {
       gapY = minTop + Math.random() * (maxGapY - minTop);
     } else {
-      const maxDelta = ES * 7 + PIPE_GAP * 2; // 2 extra gap heights of movement
+      const maxDelta = ES * 7 + PIPE_GAP * 3.5; // bigger vertical swings between pipes
       const lo = Math.max(minTop, _lastGapY - maxDelta);
       const hi = Math.min(maxGapY, _lastGapY + maxDelta);
       gapY = lo + Math.random() * (hi - lo);
@@ -6317,11 +6317,28 @@ function _renderSpaceLbPanel(canvas) {
   wrap.style.position = 'relative';
   const div = document.createElement('div');
   div.id = 'spaceLbPanel';
-  div.style.cssText = 'position:absolute;right:8px;top:8px;width:200px;background:rgba(5,5,18,0.92);border:1px solid #2a2a4a;border-radius:8px;padding:10px;pointer-events:auto;z-index:15';
+  div.style.cssText = 'position:absolute;right:8px;top:8px;width:260px;background:rgba(5,5,18,0.92);border:1px solid #2a2a4a;border-radius:8px;padding:10px;pointer-events:auto;z-index:15';
+  // Compact render for overlay panel (no date, smaller font)
+  const _compactRows = (()=>{
+    const entries=lbLoad(LB_SPACE_KEY);
+    if(!entries.length) return '<div style="color:#bbb;font-size:10px;padding:6px 4px;text-align:center">No scores yet!</div>';
+    const _esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return entries.slice(0,8).map((e,i)=>{
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:#777">${i+1}.</span>`;
+      const isHL=false;
+      const nm=String(e.name||'').slice(0,14);
+      return `<div style="display:flex;align-items:center;gap:4px;padding:2px 4px;border-radius:3px;font-family:var(--mono,monospace);font-size:10px">
+        <span style="width:18px;text-align:center;flex-shrink:0">${medal}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ccc">${_esc(nm)}</span>
+        <span style="color:#ffd700;font-weight:700;flex-shrink:0">${_esc(e.score)}</span>
+        ${e.extra?`<span style="color:#888;font-size:9px;flex-shrink:0">${_esc(e.extra)}</span>`:''}
+      </div>`;
+    }).join('');
+  })();
   div.innerHTML = `
     <div style="font-family:var(--mono,monospace);font-size:11px;font-weight:900;color:#a78bfa;margin-bottom:6px;letter-spacing:1px">🏆 TOP SCORES</div>
     <div style="display:flex;flex-direction:column;gap:1px">
-      ${lbRenderRows(LB_SPACE_KEY, undefined, 8)}
+      ${_compactRows}
     </div>`;
   wrap.appendChild(div);
 }
