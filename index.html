@@ -9833,7 +9833,7 @@ function startSpace() {
 
     // Mini-map (bottom-right, above powerup bar)
     {
-      const mm_w=160, mm_h=Math.floor(mm_w*(WH/WW));
+      const mm_w=Math.floor(W*0.18), mm_h=Math.floor(mm_w*(WH/WW));
       const mm_x=W-mm_w-6, mm_y=H-mm_h-40;
       ctx.save();ctx.globalAlpha=0.55;
       ctx.fillStyle='rgba(5,5,25,0.85)';ctx.beginPath();ctx.roundRect(mm_x,mm_y,mm_w,mm_h,4);ctx.fill();
