@@ -10967,8 +10967,8 @@ function aionGuess(choice){
     icon.textContent='✅';
     text.textContent=`Correct! It was ${entry.label==='ai'?'🤖 AI':'📸 REAL'}`;
     text.style.color='#4ade80';
-    const _srcLink=entry.source?`<a href="${entry.source}" target="_blank" rel="noopener" style="color:${entry.label==='ai'?'#f87171':'#86efac'};font-size:11px;text-decoration:underline;cursor:pointer">${entry.hint} ↗</a>`:`<span style="font-size:11px;color:#888">${entry.hint}</span>`;
-    sub.innerHTML=_srcLink;
+    const _lensUrl1=`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(entry.url)}`;
+    sub.innerHTML=`<span style="font-size:11px;color:#888">${entry.hint}</span> <a href="${_lensUrl1}" target="_blank" rel="noopener" style="color:${entry.label==='ai'?'#f87171':'#86efac'};font-size:11px;text-decoration:underline;cursor:pointer">🔍 Google Lens</a>`;
     _aionScore++;
     document.getElementById('aionScore').textContent=_aionScore;
     // Forsen easter egg achievement
@@ -10981,8 +10981,8 @@ function aionGuess(choice){
     icon.textContent='❌';
     text.textContent=`Wrong! It was ${entry.label==='ai'?'🤖 AI':'📸 REAL'}`;
     text.style.color='#ef4444';
-    const _srcLink2=entry.source?`<a href="${entry.source}" target="_blank" rel="noopener" style="color:#f87171;font-size:11px;text-decoration:underline;cursor:pointer">${entry.hint} ↗</a>`:`<span style="font-size:11px;color:#888">${entry.hint}</span>`;
-    sub.innerHTML=_srcLink2;
+    const _lensUrl2=`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(entry.url)}`;
+    sub.innerHTML=`<span style="font-size:11px;color:#888">${entry.hint}</span> <a href="${_lensUrl2}" target="_blank" rel="noopener" style="color:#f87171;font-size:11px;text-decoration:underline;cursor:pointer">🔍 Google Lens</a>`;
     setTimeout(()=>{ _aionShowGameOver(entry); }, 1500);
   }
 }
@@ -10992,7 +10992,8 @@ function _aionShowGameOver(entry){
   go.style.display='flex';
   document.getElementById('aionGoImgEl').src=entry.url;
   const isAi=entry.label==='ai';
-  const _goSrc=entry.source?`<a href="${entry.source}" target="_blank" rel="noopener" style="color:#aaa;font-size:11px;text-decoration:underline">${entry.hint} ↗</a>`:`<span style="color:#888;font-size:11px">${entry.hint}</span>`;
+  const _lensUrl3=`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(entry.url)}`;
+  const _goSrc=`<span style="color:#888;font-size:11px">${entry.hint}</span> <a href="${_lensUrl3}" target="_blank" rel="noopener" style="color:#aaa;font-size:11px;text-decoration:underline">🔍 Google Lens</a>`;
   document.getElementById('aionGoText').innerHTML=`That was <strong style="color:${isAi?'#ef4444':'#4ade80'}">${isAi?'🤖 AI-generated':'📸 a REAL photo'}</strong><br>${_goSrc}`;
   document.getElementById('aionGoScore').textContent=`Score: ${_aionScore}`;
   if(_aionScore>_aionBest){_aionBest=_aionScore;localStorage.setItem('aion_best',_aionBest);document.getElementById('aionBest').textContent=_aionBest;}
