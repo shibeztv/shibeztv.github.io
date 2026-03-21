@@ -10896,13 +10896,13 @@ function aionRestart(){
   }
   _aionIdx=0;
   _aionGuessing=true;
-  _aionPreload(0, 5);
+  _aionPreload(0, 15);
   _aionLoadCard();
   _aionSetupSwipe();
 }
 // Preload cache — images preloaded into Image objects so browser has them ready
 const _aionPreloadCache = new Map();
-function _aionPreload(idx, count=3){
+function _aionPreload(idx, count=12){
   for(let i=idx; i<Math.min(idx+count, _aionPool.length); i++){
     const url = _aionPool[i]?.url;
     if(!url || _aionPreloadCache.has(url)) continue;
@@ -10950,7 +10950,7 @@ function _aionLoadCard(){
     loader.src = entry.url;
   }
   // Preload next 4 images in background
-  _aionPreload(_aionIdx+1, 4);
+  _aionPreload(_aionIdx+1, 12);
 }
 function aionGuess(choice){
   if(!_aionGuessing) return;
