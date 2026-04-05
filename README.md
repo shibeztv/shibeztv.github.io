@@ -1,6 +1,6 @@
 # Shibez VOD Archive
 
-A fan-built VOD archive and mini-game hub for the Twitch channel **shlbez**, hosted as a single HTML file on GitHub Pages. No backend, no build step — everything runs in the browser.
+A VOD archive and mini-game hub for the Twitch channel **shlbez**, hosted as a single HTML file on GitHub Pages.
 
 Live at: **https://shibeztv.github.io**
 
@@ -34,7 +34,6 @@ Live at: **https://shibeztv.github.io**
 - Log in with Twitch OAuth to track your site activity
 - Saves: visit count, time spent, last watched streams, game scores, follow/sub status
 - Unlockable achievements based on site usage and game scores
-- If logged in as shlbez: shows a **bot control panel** to manage the Markov chat bot (see below)
 
 ---
 
@@ -78,32 +77,3 @@ A Vampire Survivors-style bullet-hell game using 7TV emotes as enemies, with a f
 - **Game categories:** fetched from Twitch GQL chapters using a persisted query; falls back to description timestamp parsing if no Twitch VOD is matched. Multi-part streams fetch chapters per-part and merge them with correct cumulative offsets
 
 ---
-
-## Bot control panel (shlbez only)
-
-When logged in as shlbez via Twitch, the profile panel shows controls for a Markov-chain chat bot hosted on Railway. Requires the bot's API URL and secret token to be set in the page config (bottom of `index.html`):
-
-```js
-window._BOT_API_URL    = 'https://your-bot.up.railway.app';
-window._BOT_API_SECRET = 'your-secret';
-```
-
-Controls: start/stop auto-posting, interval slider, cooldown slider, channel management (auto-post / manual-only / learn-only), and a "post now" button.
-
----
-
-## Config
-
-All credentials are hardcoded in the `DEFAULTS` object near the top of the script block:
-
-```js
-const DEFAULTS = {
-  ytChannel:           'ShibezVods',
-  ytApiKey:            '...',
-  twitch:              'shlbez',
-  twitchClientId:      '...',
-  twitchClientSecret:  '...',
-};
-```
-
-To reuse this for a different streamer, update those values and swap out the 7TV emote set IDs (`FLAPPY_EMOTE_SET`, `HOL_EMOTE_SET`) and the hardcoded Twitch user ID in the profile OAuth flow.
