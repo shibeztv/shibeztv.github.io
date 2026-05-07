@@ -903,7 +903,7 @@
     margin-top: 14px;
     margin-bottom: 20px;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 10px;
   }
   .grid-header-title {
@@ -1452,48 +1452,52 @@
         🚀 SPACEBEZ
       </button>
       <div style="flex:1"></div>
-      <button onclick="openRandomShort()" id="shortsBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        😭 SHORTS
-      </button>
     </div>
 
-    <!-- SHORTS MODAL — fullscreen TikTok-style -->
-    <div id="shortsModal" style="display:none;position:fixed;inset:0;z-index:9000;background:#000;flex-direction:column;overflow:hidden;touch-action:none">
+    <!-- SHORTS MODAL — lightbox style -->
+    <div id="shortsModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);flex-direction:column;align-items:center;justify-content:center;overflow:hidden;touch-action:none" onclick="if(event.target===this)closeShorts()">
 
-      <!-- Top bar -->
-      <div style="position:absolute;top:0;left:0;right:0;z-index:10;padding:14px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,0.7) 0%,transparent 100%);pointer-events:none">
-        <div style="pointer-events:auto;flex:1;min-width:0;margin-right:12px">
-          <div id="shortTitle" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading…</div>
-          <div id="shortMeta" style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.6);margin-top:2px"></div>
+      <!-- Centered layout: prev arrow | video | next arrow -->
+      <div style="display:flex;align-items:center;gap:16px;position:relative" onclick="event.stopPropagation()">
+
+        <!-- Prev (up) arrow -->
+        <button id="shortsPrevBtn" onclick="shortsNav(-1)"
+          style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:22px;width:48px;height:72px;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;flex-shrink:0"
+          onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">&#8679;</button>
+
+        <!-- Video wrapper -->
+        <div style="position:relative;flex-shrink:0">
+          <!-- Top overlay: title + close -->
+          <div style="position:absolute;top:0;left:0;right:0;z-index:10;padding:12px 14px 28px;display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,0.75) 0%,transparent 100%);pointer-events:none;border-radius:8px 8px 0 0">
+            <div style="pointer-events:auto;flex:1;min-width:0;margin-right:10px">
+              <div id="shortTitle" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading…</div>
+              <div id="shortMeta" style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.6);margin-top:2px"></div>
+            </div>
+            <button onclick="closeShorts()" style="pointer-events:auto;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:16px;line-height:1;padding:5px 9px;border-radius:6px;flex-shrink:0">✕</button>
+          </div>
+
+          <!-- iframe lives here -->
+          <div id="shortEmbed" style="background:#000;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center"></div>
+
+          <!-- Counter bottom-right -->
+          <div id="shortsCounter" style="position:absolute;bottom:10px;right:12px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.4);z-index:10;pointer-events:none"></div>
+
+          <!-- Swipe hint -->
+          <div id="shortSwipeHint" style="position:absolute;bottom:32px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;z-index:10">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;opacity:0.5">
+              <div style="font-size:14px;color:#fff">↑</div>
+              <div style="font-family:var(--mono);font-size:8px;color:#fff;letter-spacing:1px">SCROLL OR USE ARROWS</div>
+              <div style="font-size:14px;color:#fff">↓</div>
+            </div>
+          </div>
         </div>
-        <button onclick="closeShorts()" style="pointer-events:auto;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:18px;line-height:1;padding:6px 10px;border-radius:6px;flex-shrink:0">✕</button>
+
+        <!-- Next (down) arrow -->
+        <button id="shortsNextBtn" onclick="shortsNav(1)"
+          style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:22px;width:48px;height:72px;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;flex-shrink:0"
+          onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">&#8681;</button>
+
       </div>
-
-      <!-- Video fill area -->
-      <div id="shortEmbed" style="position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center"></div>
-
-      <!-- Swipe hint + nav arrows -->
-      <div id="shortSwipeHint" style="position:absolute;bottom:24px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;z-index:10">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;opacity:0.55">
-          <div style="font-size:18px">↑</div>
-          <div style="font-family:var(--mono);font-size:9px;color:#fff;letter-spacing:1px">SWIPE OR SCROLL</div>
-          <div style="font-size:18px">↓</div>
-        </div>
-      </div>
-
-      <!-- Side nav buttons (desktop) -->
-      <button id="shortsPrevBtn" onclick="shortsNav(-1)"
-        style="position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:10;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.25);color:#fff;cursor:pointer;font-size:22px;width:44px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background 0.15s"
-        onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(0,0,0,0.45)'">&#8679;</button>
-      <button id="shortsNextBtn" onclick="shortsNav(1)"
-        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);z-index:10;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.25);color:#fff;cursor:pointer;font-size:22px;width:44px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background 0.15s"
-        onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(0,0,0,0.45)'">&#8681;</button>
-
-      <!-- Counter -->
-      <div id="shortsCounter" style="position:absolute;bottom:14px;right:16px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.4);z-index:10"></div>
     </div>
 
         <!-- PROFILE MODAL -->
@@ -1916,7 +1920,15 @@
     </div>
 
     <div class="grid-header">
-      <span class="grid-header-title">ARCHIVED STREAMS <span class="grid-header-count" id="gridCount"></span></span>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+        <span class="grid-header-title">ARCHIVED STREAMS <span class="grid-header-count" id="gridCount"></span></span>
+        <button onclick="openRandomShort()" id="shortsBtn"
+          style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+          onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+          😭 SHORTS
+        </button>
+      </div>
       <div id="dateFilterWrap" style="display:flex;align-items:center;gap:6px;margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted)">
         <div style="display:flex;flex-direction:column;gap:1px">
           <span style="font-size:9px;color:var(--text);letter-spacing:0.5px;opacity:0.7">FROM</span>
@@ -4111,6 +4123,10 @@ window.addEventListener('popstate', (e) => {
     shibleZoomClose();
     return;
   }
+  if (document.getElementById('shortsModal')?.style.display === 'flex' && !h.startsWith('#shorts')) {
+    closeShorts();
+    return;
+  }
   if (document.getElementById('clipModal')?.style.display === 'flex' && h !== '#randomclip') {
     const embedEl = document.getElementById('clipEmbed');
     if (embedEl) embedEl.innerHTML = '';
@@ -4575,7 +4591,10 @@ function _shortsRenderAt(idx) {
   document.getElementById('shortMeta').textContent = date;
   document.getElementById('shortsCounter').textContent = (idx + 1) + ' / ' + _cachedShorts.length;
 
-  // Build iframe — sized to fill screen while keeping 9:16
+  // Update URL so users can share a link to this specific short
+  try { history.replaceState(null, '', '#shorts/' + vid); } catch(e) {}
+
+  // Lightbox sizing: 9:16, fits within 88vh tall, max 420px wide
   const embedEl = document.getElementById('shortEmbed');
   embedEl.innerHTML = '';
   const iframe = document.createElement('iframe');
@@ -4583,15 +4602,15 @@ function _shortsRenderAt(idx) {
   iframe.allow = 'autoplay; fullscreen';
   iframe.allowFullscreen = true;
 
-  // 9:16 centered, fills as much screen as possible
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const ratio = 9 / 16;
-  let w, h;
-  if (vh * ratio <= vw) { h = vh; w = Math.round(vh * ratio); }
-  else { w = vw; h = Math.round(vw / ratio); }
+  const maxH = Math.round(window.innerHeight * 0.88);
+  const maxW = Math.min(420, Math.round(window.innerWidth * 0.92) - 128); // subtract arrow space
+  let h, w;
+  if (maxW * 16 / 9 <= maxH) { w = maxW; h = Math.round(maxW * 16 / 9); }
+  else { h = maxH; w = Math.round(maxH * 9 / 16); }
 
-  iframe.style.cssText = 'display:block;border:none;width:' + w + 'px;height:' + h + 'px;flex-shrink:0';
+  iframe.style.cssText = 'display:block;border:none;width:' + w + 'px;height:' + h + 'px';
+  embedEl.style.width  = w + 'px';
+  embedEl.style.height = h + 'px';
   embedEl.appendChild(iframe);
 
   // Hide swipe hint after first nav
@@ -4626,7 +4645,7 @@ function shortsNav(dir) {
   }
 }
 
-async function openRandomShort() {
+async function openRandomShort(targetVideoId) {
   const modal = document.getElementById('shortsModal');
   modal.style.display = 'flex';
   try { history.pushState(null, '', '#shorts'); } catch(e) {}
@@ -4637,8 +4656,15 @@ async function openRandomShort() {
   const items = await _fetchShortsPlaylist();
   if (!items.length) { document.getElementById('shortTitle').textContent = 'No shorts found :('; return; }
 
-  // Start fresh history
-  const startIdx = Math.floor(Math.random() * items.length);
+  let startIdx;
+  if (targetVideoId) {
+    // Deep link: find the specific video by ID
+    const found = items.findIndex(i => i.snippet.resourceId.videoId === targetVideoId);
+    startIdx = found >= 0 ? found : Math.floor(Math.random() * items.length);
+  } else {
+    startIdx = Math.floor(Math.random() * items.length);
+  }
+
   _shortsHistory = [startIdx];
   _shortsHistoryPos = 0;
   _shortsRenderAt(startIdx);
@@ -11118,8 +11144,17 @@ function _setHash(h){ history.replaceState(null,'','#'+h); }
 function _clearHash(){ history.replaceState(null,'', location.pathname+location.search); }
 
 function _routeFromHash() {
-  const hash = location.hash.replace('#','').toLowerCase().split('?')[0];
+  const raw  = location.hash.replace('#','').split('?')[0];
+  const hash = raw.toLowerCase();
   if(!hash) return;
+
+  // Handle #shorts/VIDEO_ID deep link
+  if (hash.startsWith('shorts/')) {
+    const videoId = raw.slice(7); // preserve original case
+    setTimeout(() => openRandomShort(videoId || null), 700);
+    return;
+  }
+
   const map = {
     'spacebez':openSpacebez, 'space':openSpacebez,
     'flappy':openFlappyShibez, 'flappyshibez':openFlappyShibez,
