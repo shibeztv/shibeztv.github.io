@@ -1452,109 +1452,41 @@
         🚀 SPACEBEZ
       </button>
       <div style="flex:1"></div>
-      <button onclick="openFollowerChecker()" id="followerCheckerBtn"
+      <button onclick="openRandomShort()" id="shortsBtn"
         style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#9146ff';this.style.color='#9146ff'"
+        onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444'"
         onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🔍 TWITCH LOOKUP
+        #&nbsp;SHORTS
       </button>
     </div>
 
-    <!-- FOLLOWER CHECKER MODAL -->
-    <div id="followerCheckerModal" style="display:none;position:fixed;inset:0;z-index:9010;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeFollowerChecker()">
-      <div style="background:#0d0d1a;border:1px solid #2a2a4a;border-radius:12px;width:100%;max-width:720px;max-height:92vh;display:flex;flex-direction:column;position:relative">
-
-        <!-- Header -->
-        <div style="padding:18px 24px 14px;border-bottom:1px solid #1a1a2a;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-          <div style="font-family:var(--mono);font-size:15px;font-weight:900;color:#fff">🔍 Twitch Follows Lookup</div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div id="fcAuthStatus" style="font-family:var(--mono);font-size:10px;color:#bbb"></div>
-            <button onclick="closeFollowerChecker()" style="background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;line-height:1">✕</button>
+    <!-- SHORTS MODAL -->
+    <div id="shortsModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeShorts()">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:420px;position:relative">
+        <!-- Header row -->
+        <div style="width:100%;display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">
+            <div id="shortTitle" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading…</div>
+            <div id="shortMeta" style="font-family:var(--mono);font-size:11px;color:#bbb"></div>
           </div>
-        </div>
-
-        <!-- Search bar -->
-        <div style="padding:14px 24px 0;flex-shrink:0">
-          <div style="display:flex;gap:8px">
-            <input id="fcInput" type="text" placeholder="Enter Twitch username…"
-              style="flex:1;background:#111;border:1px solid #333;color:#fff;font-family:var(--mono);font-size:13px;padding:10px 14px;border-radius:6px;outline:none"
-              onkeydown="if(event.key==='Enter')fcLookup()">
-            <button onclick="fcLookup()" style="background:#9146ff;border:none;color:#fff;font-family:var(--mono);font-size:12px;font-weight:700;padding:10px 20px;border-radius:6px;cursor:pointer">SEARCH</button>
-          </div>
-          <div id="fcError" style="font-family:var(--mono);font-size:11px;color:#fc5c7d;margin-top:6px;min-height:14px"></div>
-        </div>
-
-        <!-- User profile card -->
-        <div id="fcProfile" style="display:none;padding:12px 24px 0;flex-shrink:0">
-          <div style="display:flex;align-items:center;gap:14px;background:#111;border:1px solid #222;border-radius:8px;padding:14px 16px">
-            <a id="fcAvatarLink" href="#" target="_blank" style="flex-shrink:0"><img id="fcAvatar" src="" style="width:52px;height:52px;border-radius:50%;border:2px solid #9146ff;cursor:pointer;transition:opacity 0.15s" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"></a>
-            <div style="flex:1;min-width:0">
-              <div id="fcDisplayName" style="font-family:var(--mono);font-size:15px;font-weight:900;color:#fff"></div>
-              <div style="display:flex;gap:10px;margin-top:3px;flex-wrap:wrap">
-                <span id="fcLogin" style="font-family:var(--mono);font-size:10px;color:#9146ff"></span>
-                <span id="fcMeta" style="font-family:var(--mono);font-size:10px;color:#bbb"></span>
-              </div>
-            </div>
-            <div style="display:flex;gap:20px;text-align:center;flex-shrink:0">
-              <div>
-                <div id="fcFollowerCount" style="font-family:var(--mono);font-size:18px;font-weight:900;color:#fff"></div>
-                <div style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:0.5px">FOLLOWERS</div>
-              </div>
-              <div>
-                <div id="fcFollowingCount" style="font-family:var(--mono);font-size:18px;font-weight:900;color:#fff"></div>
-                <div style="font-family:var(--mono);font-size:9px;color:#bbb;letter-spacing:0.5px">FOLLOWING</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2807.eu External Tools -->
-        <div id="fcExternalTools" style="display:none;padding:8px 24px 10px;border-bottom:1px solid #1a1a2a;flex-shrink:0">
-          <div style="font-family:var(--mono);font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">More via tools.2807.eu ↗</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <a id="fc2807Follows" href="#" target="_blank" rel="noopener"
-              style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;font-weight:700;background:#0d0d1f;border:1px solid #2a2a4a;color:#9b9bcc;padding:5px 11px;border-radius:4px;text-decoration:none;transition:all 0.15s"
-              onmouseover="this.style.borderColor='#9146ff';this.style.color='#fff'" onmouseout="this.style.borderColor='#2a2a4a';this.style.color='#9b9bcc'">📋 Follows</a>
-            <a id="fc2807Mods" href="#" target="_blank" rel="noopener"
-              style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;font-weight:700;background:#0d0d1f;border:1px solid #2a2a4a;color:#9b9bcc;padding:5px 11px;border-radius:4px;text-decoration:none;transition:all 0.15s"
-              onmouseover="this.style.borderColor='#5865f2';this.style.color='#fff'" onmouseout="this.style.borderColor='#2a2a4a';this.style.color='#9b9bcc'">🛡️ Mods</a>
-            <a id="fc2807Vips" href="#" target="_blank" rel="noopener"
-              style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;font-weight:700;background:#0d0d1f;border:1px solid #2a2a4a;color:#9b9bcc;padding:5px 11px;border-radius:4px;text-decoration:none;transition:all 0.15s"
-              onmouseover="this.style.borderColor='#e879f9';this.style.color='#fff'" onmouseout="this.style.borderColor='#2a2a4a';this.style.color='#9b9bcc'">⭐ VIPs</a>
-            <a id="fc2807Founders" href="#" target="_blank" rel="noopener"
-              style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;font-weight:700;background:#0d0d1f;border:1px solid #2a2a4a;color:#9b9bcc;padding:5px 11px;border-radius:4px;text-decoration:none;transition:all 0.15s"
-              onmouseover="this.style.borderColor='#f59e0b';this.style.color='#fff'" onmouseout="this.style.borderColor='#2a2a4a';this.style.color='#9b9bcc'">🏅 Founders</a>
-          </div>
-        </div>
-
-        <!-- Tabs + filter row -->
-        <div id="fcTabsRow" style="display:none;flex-shrink:0;padding:0 24px;border-bottom:1px solid #1a1a2a;display:flex;align-items:center;justify-content:space-between;margin-top:10px">
-          <div style="display:flex">
-            <button id="fcTabFollowers" onclick="fcShowTab('followers')" style="font-family:var(--mono);font-size:11px;font-weight:700;background:none;border:none;border-bottom:2px solid #9146ff;color:#fff;padding:10px 18px 8px;cursor:pointer">
-              FOLLOWERS <span id="fcFollowersCountBadge" style="font-size:9px;color:#9146ff;margin-left:4px"></span>
+          <div style="display:flex;gap:8px;flex-shrink:0;margin-left:12px">
+            <button onclick="openRandomShort()" title="Another random short"
+              onmouseover="this.style.background='rgba(255,68,68,0.2)';this.style.borderColor='#ff4444'"
+              onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='#666'"
+              style="background:rgba(255,255,255,0.08);border:1px solid #666;color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;padding:6px 14px;border-radius:3px;cursor:pointer;transition:all 0.15s">
+              # Next
             </button>
-            <button id="fcTabFollowing" onclick="fcShowTab('following')" style="font-family:var(--mono);font-size:11px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:#bbb;padding:10px 18px 8px;cursor:pointer">
-              FOLLOWING <span id="fcFollowingCountBadge" style="font-size:9px;color:#bbb;margin-left:4px"></span>
-            </button>
+            <button onclick="closeShorts()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:20px;line-height:1;padding:2px 6px">✕</button>
           </div>
-          <input id="fcFilter" type="text" placeholder="Filter…"
-            style="background:#111;border:1px solid #222;color:#ccc;font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:4px;outline:none;width:140px"
-            oninput="fcApplyFilter()">
         </div>
-
-        <!-- List -->
-        <div id="fcList" style="overflow-y:auto;flex:1;min-height:240px">
-          <div style="text-align:center;padding:60px 0;font-family:var(--mono);font-size:12px;color:#bbb">Enter a username to look them up</div>
-        </div>
-
-        <!-- Footer note -->
-        <div id="fcFooter" style="display:none;padding:8px 24px;border-top:1px solid #1a1a2a;font-family:var(--mono);font-size:9px;color:#bbb;flex-shrink:0">
-          Showing first 100 results · <span style="color:#9146ff">purple = mutual follow</span>
+        <!-- 9:16 embed -->
+        <div style="width:100%;max-width:360px;aspect-ratio:9/16;background:#000;border-radius:8px;overflow:hidden;position:relative" id="shortEmbed">
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-family:var(--mono);font-size:12px">Loading…</div>
         </div>
       </div>
     </div>
 
-    <!-- PROFILE MODAL -->
+        <!-- PROFILE MODAL -->
     <div id="profileModal" style="display:none;position:fixed;inset:0;z-index:9010;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)shibezProfileClose()">
       <div style="background:#0d0d1a;border:1px solid #7c3aed;border-radius:12px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
         <button onclick="shibezProfileClose()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;line-height:1">✕</button>
@@ -4588,216 +4520,67 @@ function shibleZoomToggle() {
 // ── FOLLOWER CHECKER ────────────────────────────────────────────────────────
 const _FC_CLIENT = '61x4q55vai9w0lwsc1enqw9vktqzee';
 const _FC_WORKER = 'https://muddy-river-0109.shibezvods.workers.dev';
-let _fcCurrentUserId = null;
-let _fcCurrentTab = 'followers';
-let _fcFollowersData = [];
-let _fcFollowingData = [];
-let _fcFollowersLoaded = false;
-let _fcFollowingLoaded = false;
+// ── RANDOM SHORTS ─────────────────────────────────────────────────────────────
+const SHORTS_PLAYLIST = 'PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h';
+let _cachedShorts = [];
 
-function openFollowerChecker() {
-  document.getElementById('followerCheckerModal').style.display = 'flex';
-  _fcUpdateAuthStatus();
-  setTimeout(()=>document.getElementById('fcInput')?.focus(), 80);
-}
-function closeFollowerChecker() {
-  document.getElementById('followerCheckerModal').style.display = 'none';
-  _clearHash();
-}
-
-function _fcUpdateAuthStatus() {
-  const el = document.getElementById('fcAuthStatus');
-  if(!el) return;
-  const p = _profLoad();
-  if(p?.token && p?.displayName) {
-    el.innerHTML = `<span style="color:#4ade80">✓ ${p.displayName}</span>`;
-  } else {
-    el.innerHTML = `<a href="#" onclick="profTwitchLogin();return false;" style="display:inline-flex;align-items:center;gap:5px;background:#9146ff;color:#fff;font-family:var(--mono);font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;text-decoration:none">
-      <svg viewBox="0 0 24 24" fill="currentColor" style="width:10px;height:10px"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
-      Login for full access
-    </a>`;
-  }
-}
-
-// Twitch API via worker (no user token needed for basic lookups)
-async function _fcTwitchRequest(path) {
-  const p = _profLoad();
-  // Try user token first (richer data)
-  if(p?.token) {
-    try {
-      const r = await fetch(`https://api.twitch.tv/helix/${path}`, {
-        headers:{'Authorization':`Bearer ${p.token}`,'Client-Id':_FC_CLIENT}
-      });
-      if(r.ok) return await r.json();
-    } catch(e){}
-  }
-  // Fallback: worker proxy (app token, server-side)
+async function _fetchShortsPlaylist() {
+  if (_cachedShorts.length) return _cachedShorts;
+  const apiKey = (typeof config !== 'undefined' && config.ytApiKey) ? config.ytApiKey : DEFAULTS.ytApiKey;
+  let items = [], pageToken = '';
   try {
-    const r = await fetch(`${_FC_WORKER}/twitch?path=${encodeURIComponent(path)}`);
-    if(r.ok) return await r.json();
-  } catch(e){}
-  return null;
+    do {
+      const url = 'https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=' + SHORTS_PLAYLIST + '&maxResults=50&key=' + apiKey + (pageToken ? '&pageToken=' + pageToken : '');
+      const r = await fetch(url);
+      const d = await r.json();
+      const batch = (d.items || []).filter(i => i.snippet && i.snippet.resourceId && i.snippet.resourceId.videoId && i.snippet.title !== 'Private video' && i.snippet.title !== 'Deleted video');
+      items = items.concat(batch);
+      pageToken = d.nextPageToken || '';
+    } while (pageToken && items.length < 500);
+    _cachedShorts = items;
+  } catch(e) { console.warn('Shorts fetch failed:', e); }
+  return _cachedShorts;
 }
 
-function _fcGetToken() {
-  return _profLoad()?.token || null;
-}
-
-async function fcLookup() {
-  const errEl = document.getElementById('fcError');
-  const username = document.getElementById('fcInput')?.value?.trim().toLowerCase();
-  if(!username){ errEl.textContent='Enter a username'; return; }
-  errEl.textContent = '';
-  _fcFollowersData = []; _fcFollowingData = [];
-  _fcFollowersLoaded = false; _fcFollowingLoaded = false;
-  document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#bbb">Loading…</div>';
-  document.getElementById('fcProfile').style.display = 'none';
-  document.getElementById('fcExternalTools').style.display = 'none';
-  document.getElementById('fcTabsRow').style.display = 'none';
-  document.getElementById('fcFooter').style.display = 'none';
-
+async function openRandomShort() {
+  const modal = document.getElementById('shortsModal');
+  const embedEl = document.getElementById('shortEmbed');
+  const titleEl = document.getElementById('shortTitle');
+  const metaEl = document.getElementById('shortMeta');
+  modal.style.display = 'flex';
+  try { history.pushState(null, '', '#shorts'); } catch(e) {}
+  titleEl.textContent = 'Loading\u2026';
+  metaEl.textContent = '';
+  embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-family:var(--mono);font-size:12px">Loading\u2026</div>';
   try {
-    const ud = await _fcTwitchRequest(`users?login=${encodeURIComponent(username)}`);
-    const user = ud?.data?.[0];
-    if(!user){ errEl.textContent = `User "${username}" not found on Twitch`; document.getElementById('fcList').innerHTML=''; return; }
-    _fcCurrentUserId = user.id;
-
-    const [fcntD, fwcntD] = await Promise.all([
-      _fcTwitchRequest(`channels/followers?broadcaster_id=${user.id}&first=1`),
-      _fcTwitchRequest(`channels/followed?user_id=${user.id}&first=1`),
-    ]);
-    const followerCount = fcntD?.total ?? '?';
-    const followingCount = fwcntD?.total ?? '?';
-
-    document.getElementById('fcAvatar').src = user.profile_image_url || ''; const _fcAL=document.getElementById('fcAvatarLink'); if(_fcAL) _fcAL.href='https://twitch.tv/'+user.login;
-    document.getElementById('fcDisplayName').textContent = user.display_name;
-    document.getElementById('fcLogin').textContent = '@'+user.login;
-    const created = user.created_at ? 'Joined '+new Date(user.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '';
-    const btype = user.broadcaster_type ? ' · '+user.broadcaster_type : '';
-    document.getElementById('fcMeta').textContent = created+btype;
-    document.getElementById('fcFollowerCount').textContent = Number(followerCount).toLocaleString();
-    document.getElementById('fcFollowingCount').textContent = Number(followingCount).toLocaleString();
-    document.getElementById('fcProfile').style.display = 'block';
-
-    // Populate 2807.eu external tool links
-    const _lu = encodeURIComponent(user.login);
-    document.getElementById('fc2807Follows').href = `https://tools.2807.eu/follows?user=${_lu}`;
-    document.getElementById('fc2807Mods').href = `https://tools.2807.eu/mods?channel=${_lu}`;
-    document.getElementById('fc2807Vips').href = `https://tools.2807.eu/vips?channel=${_lu}`;
-    document.getElementById('fc2807Founders').href = `https://tools.2807.eu/founders?channel=${_lu}`;
-    document.getElementById('fcExternalTools').style.display = 'block';
-
-    document.getElementById('fcTabsRow').style.display = 'flex';
-    document.getElementById('fcFooter').style.display = 'block';
-    document.getElementById('fcFilter').value = '';
-
-    await _fcLoadList('followers', user.id);
-    _fcFollowersLoaded = true;
-    document.getElementById('fcFollowersCountBadge').textContent = `(${_fcFollowersData.length}${_fcFollowersData.length>=100?'+':''})`;
-    fcShowTab('followers');
-
-  } catch(e){ errEl.textContent = 'Error fetching data. Try again.'; console.error(e); }
-}
-
-async function _fcLoadList(type, userId) {
-  const path = type === 'followers'
-    ? `channels/followers?broadcaster_id=${userId}&first=100`
-    : `channels/followed?user_id=${userId}&first=100`;
-  try {
-    const d = await _fcTwitchRequest(path);
-    const results = d?.data || [];
-    if (type === 'followers') _fcFollowersData = results;
-    else _fcFollowingData = results;
-    // If Twitch API returned empty (no moderator scope), fall back to tools.2807.eu
-    if (results.length === 0) {
-      await _fcLoad2807(type, userId);
-    }
+    const items = await _fetchShortsPlaylist();
+    if (!items.length) { titleEl.textContent = 'No shorts found :('; return; }
+    const item = items[Math.floor(Math.random() * items.length)];
+    const vid   = item.snippet.resourceId.videoId;
+    const title = item.snippet.title || 'Untitled';
+    const date  = item.snippet.publishedAt ? new Date(item.snippet.publishedAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : '';
+    const ytUrl = 'https://www.youtube.com/shorts/' + vid;
+    titleEl.innerHTML = '<a href="' + ytUrl + '" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">' + title + ' \u2197</a>';
+    metaEl.textContent = date;
+    embedEl.innerHTML = '<iframe src="https://www.youtube.com/embed/' + vid + '?autoplay=1&loop=1&playlist=' + vid + '&rel=0" allow="autoplay; fullscreen" allowfullscreen style="display:block;border:none;width:100%;height:100%;position:absolute;inset:0"></iframe>';
   } catch(e) {
-    if (type === 'followers') _fcFollowersData = [];
-    else _fcFollowingData = [];
-    await _fcLoad2807(type, userId);
+    titleEl.textContent = 'Could not load short';
+    embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-family:var(--mono);font-size:12px">Error</div>';
   }
 }
 
-async function _fcLoad2807(type, userId) {
-  // Use the username stored on the profile display
-  const loginEl = document.getElementById('fcLogin');
-  const login = loginEl ? loginEl.textContent.replace('@','').trim() : '';
-  if (!login) return;
-  try {
-    const url = type === 'followers'
-      ? `https://tools.2807.eu/api/follows?channel=${encodeURIComponent(login)}&limit=100`
-      : `https://tools.2807.eu/api/follows?user=${encodeURIComponent(login)}&limit=100`;
-    const r = await fetch(url);
-    if (!r.ok) return;
-    const d = await r.json();
-    // tools.2807.eu returns array of {login, display_name, followed_at} or similar
-    const rows = (d.data || d || []).map(u => ({
-      user_login: u.login || u.user_login || '',
-      user_name: u.display_name || u.user_name || u.login || '',
-      followed_at: u.followed_at || '',
-    })).filter(u => u.user_login);
-    if (type === 'followers') _fcFollowersData = rows;
-    else _fcFollowingData = rows;
-  } catch(e) {}
+function closeShorts() {
+  const modal = document.getElementById('shortsModal');
+  if (modal) modal.style.display = 'none';
+  const embedEl = document.getElementById('shortEmbed');
+  if (embedEl) embedEl.innerHTML = '';
+  try { history.replaceState(null, '', location.pathname); } catch(e) {}
 }
 
-async function fcShowTab(tab) {
-  _fcCurrentTab = tab;
-  ['followers','following'].forEach(t => {
-    const btn = document.getElementById('fcTab'+t.charAt(0).toUpperCase()+t.slice(1));
-    if(!btn) return;
-    btn.style.borderBottomColor = t===tab ? '#9146ff' : 'transparent';
-    btn.style.color = t===tab ? '#fff' : '#555';
-    const badge = btn.querySelector('span');
-    if(badge) badge.style.color = t===tab ? '#9146ff' : '#555';
-  });
-
-  if(tab==='following' && !_fcFollowingLoaded) {
-    document.getElementById('fcList').innerHTML = '<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#bbb">Loading…</div>';
-    await _fcLoadList('following', _fcCurrentUserId);
-    _fcFollowingLoaded = true;
-    document.getElementById('fcFollowingCountBadge').textContent = `(${_fcFollowingData.length}${_fcFollowingData.length>=100?'+':''})`;
-  }
-  fcApplyFilter();
-}
-
-function fcApplyFilter() {
-  const filter = (document.getElementById('fcFilter')?.value||'').toLowerCase();
-  const data = _fcCurrentTab === 'followers' ? _fcFollowersData : _fcFollowingData;
-  const otherSet = new Set((_fcCurrentTab==='followers' ? _fcFollowingData : _fcFollowersData).map(u=>(u.user_login||u.broadcaster_login||'').toLowerCase()));
-
-  const filtered = filter ? data.filter(u => {
-    const n = (u.user_name||u.broadcaster_name||'').toLowerCase();
-    const l = (u.user_login||u.broadcaster_login||'').toLowerCase();
-    return n.includes(filter) || l.includes(filter);
-  }) : data;
-
-  if(!filtered.length){
-    document.getElementById('fcList').innerHTML = `<div style="text-align:center;padding:50px 0;font-family:var(--mono);font-size:12px;color:#bbb">${filter ? 'No results for "'+filter+'"' : 'No '+_fcCurrentTab+' found'}</div>`;
-    return;
-  }
-
-  document.getElementById('fcList').innerHTML = filtered.map(u => {
-    const name = u.user_name || u.broadcaster_name || '';
-    const login = u.user_login || u.broadcaster_login || '';
-    const date = u.followed_at ? new Date(u.followed_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '';
-    const isMutual = otherSet.has(login.toLowerCase());
-    const safeLogin = login.replace(/'/g,"\\'");
-    return `<div style="display:flex;align-items:center;gap:12px;padding:8px 24px;cursor:pointer;border-bottom:1px solid #0d0d1a;transition:background 0.1s"
-      onclick="document.getElementById('fcInput').value='${safeLogin}';fcLookup()"
-      onmouseover="this.style.background='rgba(145,70,255,0.07)'"
-      onmouseout="this.style.background='none'">
-      <div style="width:32px;height:32px;border-radius:50%;background:#1a1a2a;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:700;color:${isMutual?'#9146ff':'#444'};border:1px solid ${isMutual?'rgba(145,70,255,0.4)':'#222'}">${(name[0]||'?').toUpperCase()}</div>
-      <div style="flex:1;min-width:0">
-        <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${isMutual?'#c084fc':'#ddd'}">${name}</span>
-        ${isMutual?'<span style="font-family:var(--mono);font-size:9px;color:#7c3aed;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);padding:1px 6px;border-radius:8px;margin-left:6px">mutual</span>':''}
-        <div style="font-family:var(--mono);font-size:9px;color:#bbb;margin-top:1px">@${login}</div>
-      </div>
-      <div style="font-family:var(--mono);font-size:10px;color:#bbb;white-space:nowrap;flex-shrink:0">${date}</div>
-    </div>`;
-  }).join('');
-}
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('shortsModal');
+  if (modal && e.target === modal) closeShorts();
+});
 
 function openShible(randomMode) {
   if (!allStreams || !allStreams.length) { alert('Streams not loaded yet!'); return; }
@@ -11225,7 +11008,7 @@ function _routeFromHash() {
     'higherorlower':openHigherLower, 'higher':openHigherLower,
     'shible':()=>openShible(false),
     'randomclip':openRandomClip, 'random':openRandomClip,
-    'lookup':openFollowerChecker, 'follows':openFollowerChecker,
+    'shorts':openRandomShort,
     'profile':shibezProfileOpen,
     'twitch':shibezProfileOpen,
   };
@@ -11245,7 +11028,7 @@ document.addEventListener('click', e=>{
   if(btn.id==='randomClipBtn') setTimeout(()=>_setHash('randomclip'),100);
   if(btn.id==='shibleBtn') setTimeout(()=>_setHash('shible'),100);
   if(btn.id==='higherLowerBtn') setTimeout(()=>_setHash('higherorlower'),100);
-  if(btn.id==='followerCheckerBtn') setTimeout(()=>_setHash('lookup'),100);
+  if(btn.id==='shortsBtn') setTimeout(()=>_setHash('shorts'),100);
 });
 
 window.addEventListener('DOMContentLoaded', _routeFromHash);
