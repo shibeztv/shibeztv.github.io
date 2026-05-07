@@ -1456,34 +1456,44 @@
         style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
         onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444'"
         onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        #&nbsp;SHORTS
+        😭 SHORTS
       </button>
     </div>
 
-    <!-- SHORTS MODAL -->
-    <div id="shortsModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeShorts()">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:420px;position:relative">
-        <!-- Header row -->
-        <div style="width:100%;display:flex;align-items:center;justify-content:space-between">
-          <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">
-            <div id="shortTitle" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading…</div>
-            <div id="shortMeta" style="font-family:var(--mono);font-size:11px;color:#bbb"></div>
-          </div>
-          <div style="display:flex;gap:8px;flex-shrink:0;margin-left:12px">
-            <button onclick="openRandomShort()" title="Another random short"
-              onmouseover="this.style.background='rgba(255,68,68,0.2)';this.style.borderColor='#ff4444'"
-              onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='#666'"
-              style="background:rgba(255,255,255,0.08);border:1px solid #666;color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;padding:6px 14px;border-radius:3px;cursor:pointer;transition:all 0.15s">
-              # Next
-            </button>
-            <button onclick="closeShorts()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:20px;line-height:1;padding:2px 6px">✕</button>
-          </div>
+    <!-- SHORTS MODAL — fullscreen TikTok-style -->
+    <div id="shortsModal" style="display:none;position:fixed;inset:0;z-index:9000;background:#000;flex-direction:column;overflow:hidden;touch-action:none">
+
+      <!-- Top bar -->
+      <div style="position:absolute;top:0;left:0;right:0;z-index:10;padding:14px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,0.7) 0%,transparent 100%);pointer-events:none">
+        <div style="pointer-events:auto;flex:1;min-width:0;margin-right:12px">
+          <div id="shortTitle" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading…</div>
+          <div id="shortMeta" style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.6);margin-top:2px"></div>
         </div>
-        <!-- 9:16 embed -->
-        <div style="width:100%;max-width:360px;aspect-ratio:9/16;background:#000;border-radius:8px;overflow:hidden;position:relative" id="shortEmbed">
-          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-family:var(--mono);font-size:12px">Loading…</div>
+        <button onclick="closeShorts()" style="pointer-events:auto;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:18px;line-height:1;padding:6px 10px;border-radius:6px;flex-shrink:0">✕</button>
+      </div>
+
+      <!-- Video fill area -->
+      <div id="shortEmbed" style="position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center"></div>
+
+      <!-- Swipe hint + nav arrows -->
+      <div id="shortSwipeHint" style="position:absolute;bottom:24px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;z-index:10">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;opacity:0.55">
+          <div style="font-size:18px">↑</div>
+          <div style="font-family:var(--mono);font-size:9px;color:#fff;letter-spacing:1px">SWIPE OR SCROLL</div>
+          <div style="font-size:18px">↓</div>
         </div>
       </div>
+
+      <!-- Side nav buttons (desktop) -->
+      <button id="shortsPrevBtn" onclick="shortsNav(-1)"
+        style="position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:10;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.25);color:#fff;cursor:pointer;font-size:22px;width:44px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background 0.15s"
+        onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(0,0,0,0.45)'">&#8679;</button>
+      <button id="shortsNextBtn" onclick="shortsNav(1)"
+        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);z-index:10;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.25);color:#fff;cursor:pointer;font-size:22px;width:44px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background 0.15s"
+        onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(0,0,0,0.45)'">&#8681;</button>
+
+      <!-- Counter -->
+      <div id="shortsCounter" style="position:absolute;bottom:14px;right:16px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.4);z-index:10"></div>
     </div>
 
         <!-- PROFILE MODAL -->
@@ -4521,8 +4531,12 @@ function shibleZoomToggle() {
 const _FC_CLIENT = '61x4q55vai9w0lwsc1enqw9vktqzee';
 const _FC_WORKER = 'https://muddy-river-0109.shibezvods.workers.dev';
 // ── RANDOM SHORTS ─────────────────────────────────────────────────────────────
+// ── RANDOM SHORTS ─────────────────────────────────────────────────────────────
 const SHORTS_PLAYLIST = 'PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h';
 let _cachedShorts = [];
+let _shortsIdx = 0;           // current index into _cachedShorts
+let _shortsHistory = [];      // indices visited (for going back)
+let _shortsHistoryPos = -1;   // position in history for back/forward
 
 async function _fetchShortsPlaylist() {
   if (_cachedShorts.length) return _cachedShorts;
@@ -4537,36 +4551,138 @@ async function _fetchShortsPlaylist() {
       items = items.concat(batch);
       pageToken = d.nextPageToken || '';
     } while (pageToken && items.length < 500);
+    // Shuffle
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
     _cachedShorts = items;
   } catch(e) { console.warn('Shorts fetch failed:', e); }
   return _cachedShorts;
 }
 
+function _shortsRenderAt(idx) {
+  if (!_cachedShorts.length) return;
+  idx = ((idx % _cachedShorts.length) + _cachedShorts.length) % _cachedShorts.length;
+  _shortsIdx = idx;
+  const item  = _cachedShorts[idx];
+  const vid   = item.snippet.resourceId.videoId;
+  const title = item.snippet.title || 'Untitled';
+  const date  = item.snippet.publishedAt ? new Date(item.snippet.publishedAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
+  const ytUrl = 'https://www.youtube.com/shorts/' + vid;
+
+  document.getElementById('shortTitle').innerHTML = '<a href="' + ytUrl + '" target="_blank" rel="noopener" style="color:#fff;text-decoration:none" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">' + title + ' ↗</a>';
+  document.getElementById('shortMeta').textContent = date;
+  document.getElementById('shortsCounter').textContent = (idx + 1) + ' / ' + _cachedShorts.length;
+
+  // Build iframe — sized to fill screen while keeping 9:16
+  const embedEl = document.getElementById('shortEmbed');
+  embedEl.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.src = 'https://www.youtube.com/embed/' + vid + '?autoplay=1&loop=1&playlist=' + vid + '&rel=0&modestbranding=1';
+  iframe.allow = 'autoplay; fullscreen';
+  iframe.allowFullscreen = true;
+
+  // 9:16 centered, fills as much screen as possible
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const ratio = 9 / 16;
+  let w, h;
+  if (vh * ratio <= vw) { h = vh; w = Math.round(vh * ratio); }
+  else { w = vw; h = Math.round(vw / ratio); }
+
+  iframe.style.cssText = 'display:block;border:none;width:' + w + 'px;height:' + h + 'px;flex-shrink:0';
+  embedEl.appendChild(iframe);
+
+  // Hide swipe hint after first nav
+  if (_shortsHistoryPos > 0) {
+    const hint = document.getElementById('shortSwipeHint');
+    if (hint) hint.style.opacity = '0';
+  }
+}
+
+function shortsNav(dir) {
+  // dir: +1 = next (scroll down), -1 = prev (scroll up)
+  if (!_cachedShorts.length) return;
+  if (dir === 1) {
+    // Going forward — pick next in history or a new random
+    if (_shortsHistoryPos < _shortsHistory.length - 1) {
+      _shortsHistoryPos++;
+      _shortsRenderAt(_shortsHistory[_shortsHistoryPos]);
+    } else {
+      // Pick a new random index (not same as current)
+      let next;
+      do { next = Math.floor(Math.random() * _cachedShorts.length); } while (next === _shortsIdx && _cachedShorts.length > 1);
+      _shortsHistory.push(next);
+      _shortsHistoryPos = _shortsHistory.length - 1;
+      _shortsRenderAt(next);
+    }
+  } else {
+    // Going back
+    if (_shortsHistoryPos > 0) {
+      _shortsHistoryPos--;
+      _shortsRenderAt(_shortsHistory[_shortsHistoryPos]);
+    }
+  }
+}
+
 async function openRandomShort() {
   const modal = document.getElementById('shortsModal');
-  const embedEl = document.getElementById('shortEmbed');
-  const titleEl = document.getElementById('shortTitle');
-  const metaEl = document.getElementById('shortMeta');
   modal.style.display = 'flex';
   try { history.pushState(null, '', '#shorts'); } catch(e) {}
-  titleEl.textContent = 'Loading\u2026';
-  metaEl.textContent = '';
-  embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-family:var(--mono);font-size:12px">Loading\u2026</div>';
-  try {
-    const items = await _fetchShortsPlaylist();
-    if (!items.length) { titleEl.textContent = 'No shorts found :('; return; }
-    const item = items[Math.floor(Math.random() * items.length)];
-    const vid   = item.snippet.resourceId.videoId;
-    const title = item.snippet.title || 'Untitled';
-    const date  = item.snippet.publishedAt ? new Date(item.snippet.publishedAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : '';
-    const ytUrl = 'https://www.youtube.com/shorts/' + vid;
-    titleEl.innerHTML = '<a href="' + ytUrl + '" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">' + title + ' \u2197</a>';
-    metaEl.textContent = date;
-    embedEl.innerHTML = '<iframe src="https://www.youtube.com/embed/' + vid + '?autoplay=1&loop=1&playlist=' + vid + '&rel=0" allow="autoplay; fullscreen" allowfullscreen style="display:block;border:none;width:100%;height:100%;position:absolute;inset:0"></iframe>';
-  } catch(e) {
-    titleEl.textContent = 'Could not load short';
-    embedEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-family:var(--mono);font-size:12px">Error</div>';
-  }
+  document.getElementById('shortTitle').textContent = 'Loading\u2026';
+  document.getElementById('shortMeta').textContent = '';
+  document.getElementById('shortEmbed').innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:#bbb">Loading\u2026</div>';
+
+  const items = await _fetchShortsPlaylist();
+  if (!items.length) { document.getElementById('shortTitle').textContent = 'No shorts found :('; return; }
+
+  // Start fresh history
+  const startIdx = Math.floor(Math.random() * items.length);
+  _shortsHistory = [startIdx];
+  _shortsHistoryPos = 0;
+  _shortsRenderAt(startIdx);
+  _shortsAttachEvents();
+}
+
+// Swipe + scroll + keyboard handlers (attached once per open)
+let _shortsEventsAttached = false;
+let _shortsTouchStartY = 0;
+let _shortsScrollLock = false;
+
+function _shortsAttachEvents() {
+  if (_shortsEventsAttached) return;
+  _shortsEventsAttached = true;
+  const modal = document.getElementById('shortsModal');
+
+  // Wheel (desktop scroll)
+  modal.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    if (_shortsScrollLock) return;
+    _shortsScrollLock = true;
+    setTimeout(() => { _shortsScrollLock = false; }, 600);
+    shortsNav(e.deltaY > 0 ? 1 : -1);
+  }, { passive: false });
+
+  // Touch swipe
+  modal.addEventListener('touchstart', function(e) {
+    _shortsTouchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  modal.addEventListener('touchend', function(e) {
+    const dy = _shortsTouchStartY - e.changedTouches[0].clientY;
+    if (Math.abs(dy) > 40) shortsNav(dy > 0 ? 1 : -1);
+  }, { passive: true });
+
+  // Keyboard
+  document.addEventListener('keydown', _shortsKeyHandler);
+}
+
+function _shortsKeyHandler(e) {
+  const modal = document.getElementById('shortsModal');
+  if (!modal || modal.style.display === 'none') return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); shortsNav(1); }
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); shortsNav(-1); }
+  else if (e.key === 'Escape') closeShorts();
 }
 
 function closeShorts() {
@@ -4574,7 +4690,12 @@ function closeShorts() {
   if (modal) modal.style.display = 'none';
   const embedEl = document.getElementById('shortEmbed');
   if (embedEl) embedEl.innerHTML = '';
+  _shortsEventsAttached = false;
+  document.removeEventListener('keydown', _shortsKeyHandler);
   try { history.replaceState(null, '', location.pathname); } catch(e) {}
+  // Reset hint opacity for next open
+  const hint = document.getElementById('shortSwipeHint');
+  if (hint) hint.style.opacity = '1';
 }
 
 document.addEventListener('click', function(e) {
