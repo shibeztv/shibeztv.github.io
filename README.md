@@ -19,11 +19,10 @@ Live at: **https://shibeztv.github.io**
   - **Live chat replay** — synced Twitch chat fetched from Rustlog, rendered with 7TV and BTTV emotes
   - Date filter on the grid
 
-### Twitch Lookup
-- Look up any Twitch user by name to see their profile, follower/following counts, and lists
-- Falls back to tools.2807.eu for follower/following data when the Twitch API doesn't return results
-- Shows mutual follows in purple
-- Quick links to tools.2807.eu for mods, VIPs, founders
+### YouTube Shorts viewer
+- Starts playing a random youtube short uploaded by shibez to his channel
+- Similar to TikTok you can scrll up and down to change video
+- Shows video title, clicking it opens original short
 
 ### Random Clip
 - Picks a random clip from the shlbez Twitch channel and plays it in an iframe
