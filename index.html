@@ -1457,14 +1457,12 @@
     <!-- SHORTS MODAL — lightbox style -->
     <div id="shortsModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;touch-action:none" onclick="if(event.target===this)closeShorts()">
 
-      <!-- Title + date row ABOVE the video — completely outside iframe -->
-      <div style="display:flex;align-items:center;justify-content:space-between;width:min(calc(100vw - 160px), 600px);gap:12px;pointer-events:none" onclick="event.stopPropagation()">
-        <div style="pointer-events:auto;flex:1;min-width:0">
-          <div id="shortTitle" style="font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading…</div>
-          <div id="shortMeta" style="font-family:var(--mono);font-size:13px;color:rgba(255,255,255,0.7);margin-top:3px;font-weight:600"></div>
-        </div>
-        <button onclick="closeShorts()" style="pointer-events:auto;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:16px;line-height:1;padding:5px 9px;border-radius:6px;flex-shrink:0">✕</button>
-      </div>
+      <!-- Hidden title/meta — still updated in JS for the ↗ link, just not displayed -->
+      <div id="shortTitle" style="display:none"></div>
+      <div id="shortMeta" style="display:none"></div>
+
+      <!-- Close button — fixed top-right, outside video -->
+      <button onclick="closeShorts()" style="position:absolute;top:14px;right:16px;z-index:20;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:16px;line-height:1;padding:6px 11px;border-radius:6px">✕</button>
 
       <!-- Centered layout: prev arrow | video | next arrow -->
       <div style="display:flex;align-items:center;gap:16px" onclick="event.stopPropagation()">
@@ -4589,11 +4587,9 @@ function _shortsRenderAt(idx) {
   // Update URL so users can share a link to this specific short
   try { history.replaceState(null, '', '#shorts/' + vid); } catch(e) {}
 
-  // Sizing: fill as much vertical space as possible.
-  const HUD_COVER = 95; // black bar height to cover YouTube Shorts HUD at top
-
-  const visH = Math.round(window.innerHeight - 100);
-  const visW = Math.round(window.innerWidth  - 148);
+  // Sizing: fill screen, only hint row below (~40px) + a little padding
+  const visH = Math.round(window.innerHeight - 60);
+  const visW = Math.round(window.innerWidth  - 148); // minus arrows
   let w, h;
   if (visW * 16 / 9 <= visH) { w = visW; h = Math.round(visW * 16 / 9); }
   else                        { h = visH; w = Math.round(visH * 9 / 16); }
@@ -4611,14 +4607,8 @@ function _shortsRenderAt(idx) {
     + '&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1';
   iframe.allow = 'autoplay; fullscreen';
   iframe.allowFullscreen = true;
-  iframe.style.cssText = 'display:block;border:none;position:absolute;inset:0;width:' + w + 'px;height:' + h + 'px';
+  iframe.style.cssText = 'display:block;border:none;width:' + w + 'px;height:' + h + 'px';
   embedEl.appendChild(iframe);
-
-  // Solid black bar over the top of the iframe — covers the YouTube Shorts HUD (channel, title, icons)
-  // pointer-events:none so scroll/swipe on the video still works
-  const hudMask = document.createElement('div');
-  hudMask.style.cssText = 'position:absolute;top:0;left:0;right:0;height:' + HUD_COVER + 'px;background:#000;z-index:5;pointer-events:none';
-  embedEl.appendChild(hudMask);
 
   // Hide swipe hint after first nav
   if (_shortsHistoryPos > 0) {
