@@ -1457,28 +1457,25 @@
     <!-- SHORTS MODAL — lightbox style -->
     <div id="shortsModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;touch-action:none" onclick="if(event.target===this)closeShorts()">
 
+      <!-- Title + date row ABOVE the video — completely outside iframe -->
+      <div style="display:flex;align-items:center;justify-content:space-between;width:min(calc(100vw - 160px), 600px);gap:12px;pointer-events:none" onclick="event.stopPropagation()">
+        <div style="pointer-events:auto;flex:1;min-width:0">
+          <div id="shortTitle" style="font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading…</div>
+          <div id="shortMeta" style="font-family:var(--mono);font-size:13px;color:rgba(255,255,255,0.7);margin-top:3px;font-weight:600"></div>
+        </div>
+        <button onclick="closeShorts()" style="pointer-events:auto;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:16px;line-height:1;padding:5px 9px;border-radius:6px;flex-shrink:0">✕</button>
+      </div>
+
       <!-- Centered layout: prev arrow | video | next arrow -->
-      <div style="display:flex;align-items:center;gap:16px;position:relative" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;gap:16px" onclick="event.stopPropagation()">
 
         <!-- Prev (up) arrow -->
         <button id="shortsPrevBtn" onclick="shortsNav(-1)"
           style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:22px;width:48px;height:72px;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;flex-shrink:0"
           onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">&#8679;</button>
 
-        <!-- Video wrapper — NO overlapping children so YouTube controls are always reachable -->
-        <div style="position:relative;flex-shrink:0">
-          <!-- Top overlay: title + close — only covers top ~15% with gradient fading out -->
-          <div style="position:absolute;top:0;left:0;right:0;height:72px;z-index:10;padding:10px 12px;display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,0.8) 0%,transparent 100%);pointer-events:none;border-radius:8px 8px 0 0">
-            <div style="pointer-events:auto;flex:1;min-width:0;margin-right:10px">
-              <div id="shortTitle" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading…</div>
-              <div id="shortMeta" style="font-family:var(--mono);font-size:13px;color:rgba(255,255,255,0.75);margin-top:3px;font-weight:600"></div>
-            </div>
-            <button onclick="closeShorts()" style="pointer-events:auto;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;font-size:16px;line-height:1;padding:5px 9px;border-radius:6px;flex-shrink:0">✕</button>
-          </div>
-
-          <!-- iframe lives here — nothing overlaps it at the bottom -->
-          <div id="shortEmbed" style="background:#000;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center"></div>
-        </div>
+        <!-- Bare iframe wrapper — no children, nothing overlaps the video -->
+        <div id="shortEmbed" style="background:#000;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
 
         <!-- Next (down) arrow -->
         <button id="shortsNextBtn" onclick="shortsNav(1)"
@@ -1487,7 +1484,7 @@
 
       </div>
 
-      <!-- Counter + swipe hint BELOW the video, outside the iframe — never blocks controls -->
+      <!-- Counter + swipe hint BELOW the video — outside iframe -->
       <div style="display:flex;align-items:center;justify-content:center;gap:20px;pointer-events:none" onclick="event.stopPropagation()">
         <div id="shortSwipeHint" style="display:flex;align-items:center;gap:6px;opacity:0.45">
           <span style="font-size:13px;color:#fff">↑</span>
@@ -4592,9 +4589,7 @@ function _shortsRenderAt(idx) {
   // Update URL so users can share a link to this specific short
   try { history.replaceState(null, '', '#shorts/' + vid); } catch(e) {}
 
-  // Lightbox sizing: 9:16, fills as much vertical space as possible
-  // Reserve ~10px hint row below + 54px topbar + 16px margin = ~80px headroom
-  // Arrows are 48px wide + 16px gap each side = 128px total
+  // Lightbox sizing: 9:16, fits within 88vh tall, max 420px wide
   const embedEl = document.getElementById('shortEmbed');
   embedEl.innerHTML = '';
   const iframe = document.createElement('iframe');
@@ -4602,8 +4597,8 @@ function _shortsRenderAt(idx) {
   iframe.allow = 'autoplay; fullscreen';
   iframe.allowFullscreen = true;
 
-  const maxH = Math.round(window.innerHeight * 0.93) - 48; // reserve space for hint row
-  const maxW = Math.round(window.innerWidth * 0.98) - 128; // subtract both arrow columns
+  const maxH = Math.round(window.innerHeight * 0.88);
+  const maxW = Math.min(420, Math.round(window.innerWidth * 0.92) - 128); // subtract arrow space
   let h, w;
   if (maxW * 16 / 9 <= maxH) { w = maxW; h = Math.round(maxW * 16 / 9); }
   else { h = maxH; w = Math.round(maxH * 9 / 16); }
