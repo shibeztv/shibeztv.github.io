@@ -4590,37 +4590,35 @@ function _shortsRenderAt(idx) {
   try { history.replaceState(null, '', '#shorts/' + vid); } catch(e) {}
 
   // Sizing: fill as much vertical space as possible.
-  // Title row ~52px + two 10px gaps + hint row ~28px = ~100px overhead in the modal column.
-  // Arrows are 48px + 16px gap each side = 128px total horizontal overhead.
-  // HUD crop: the Shorts embed shows a ~90px overlay bar at the top (channel/title/controls).
-  // We make the iframe that much taller and shift it up so the bar is clipped by overflow:hidden.
-  const HUD_CROP = 90; // px to crop from top of iframe
+  const HUD_COVER = 95; // black bar height to cover YouTube Shorts HUD at top
 
-  const visH = Math.round(window.innerHeight - 100); // available height for the visible video
-  const visW = Math.round(window.innerWidth  - 148); // available width (minus arrows + a little padding)
+  const visH = Math.round(window.innerHeight - 100);
+  const visW = Math.round(window.innerWidth  - 148);
   let w, h;
-  // Fit 9:16 inside the available box
   if (visW * 16 / 9 <= visH) { w = visW; h = Math.round(visW * 16 / 9); }
   else                        { h = visH; w = Math.round(visH * 9 / 16); }
 
   const embedEl = document.getElementById('shortEmbed');
   embedEl.innerHTML = '';
-  // Container shows the cropped window
   embedEl.style.width    = w + 'px';
   embedEl.style.height   = h + 'px';
   embedEl.style.overflow = 'hidden';
   embedEl.style.position = 'relative';
 
   const iframe = document.createElement('iframe');
-  // nocookie domain + iv_load_policy=3 hides annotations; controls=0 removes bottom bar
   iframe.src = 'https://www.youtube-nocookie.com/embed/' + vid
     + '?autoplay=1&loop=1&playlist=' + vid
     + '&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1';
   iframe.allow = 'autoplay; fullscreen';
   iframe.allowFullscreen = true;
-  // Iframe is taller by HUD_CROP and shifted up so the top bar scrolls out of view
-  iframe.style.cssText = 'display:block;border:none;position:absolute;top:-' + HUD_CROP + 'px;left:0;width:' + w + 'px;height:' + (h + HUD_CROP) + 'px';
+  iframe.style.cssText = 'display:block;border:none;position:absolute;inset:0;width:' + w + 'px;height:' + h + 'px';
   embedEl.appendChild(iframe);
+
+  // Solid black bar over the top of the iframe — covers the YouTube Shorts HUD (channel, title, icons)
+  // pointer-events:none so scroll/swipe on the video still works
+  const hudMask = document.createElement('div');
+  hudMask.style.cssText = 'position:absolute;top:0;left:0;right:0;height:' + HUD_COVER + 'px;background:#000;z-index:5;pointer-events:none';
+  embedEl.appendChild(hudMask);
 
   // Hide swipe hint after first nav
   if (_shortsHistoryPos > 0) {
