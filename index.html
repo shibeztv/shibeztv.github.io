@@ -11204,7 +11204,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* ── Main container ── */
 .wm-box{
-  width:min(1020px,98vw);max-height:97vh;
+  width:min(1280px,99vw);max-height:99vh;
   background:linear-gradient(180deg,#1a1e24 0%,#141720 100%);
   border:1px solid #2e3340;border-radius:4px;
   display:flex;flex-direction:column;overflow:hidden;
@@ -11237,6 +11237,43 @@ window.addEventListener('hashchange', _routeFromHash);
 /* ── Body: reel area + side panel ── */
 .wm-body{display:flex;flex:1;min-height:0;overflow:hidden;}
 
+/* ── Left contents panel (like erobb221.live) ── */
+.wm-contents{
+  width:210px;flex-shrink:0;
+  border-right:1px solid #1e2028;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.wm-contents-title{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:2px;color:#6a7080;text-transform:uppercase;
+  padding:10px 12px 8px;border-bottom:1px solid #1e2028;flex-shrink:0;
+}
+.wm-contents-list{
+  flex:1;overflow-y:auto;padding:6px 8px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.wm-contents-list::-webkit-scrollbar{width:4px;}
+.wm-contents-list::-webkit-scrollbar-track{background:#0a0c10;}
+.wm-contents-list::-webkit-scrollbar-thumb{background:#1e2028;border-radius:2px;}
+.wm-citem{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;background:#0e1117;border-radius:2px;
+  border-left:3px solid #2a2e38;transition:background 0.1s;
+  cursor:default;
+}
+.wm-citem:hover{background:#121720;}
+.wm-citem-icon{
+  width:26px;height:26px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;line-height:1;
+}
+.wm-citem-icon img{width:26px;height:26px;object-fit:contain;}
+.wm-citem-label{
+  font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;
+  color:#c8d0dc;text-transform:uppercase;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
 /* ── Left: reel section ── */
 .wm-left{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;}
 
@@ -11244,7 +11281,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-subtitle{
   text-align:center;
   font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
-  color:#3a4050;text-transform:uppercase;padding:10px 0 6px;flex-shrink:0;
+  color:#6a7080;text-transform:uppercase;padding:10px 0 6px;flex-shrink:0;
 }
 
 /* ── Reel ── */
@@ -11253,7 +11290,7 @@ window.addEventListener('hashchange', _routeFromHash);
   padding:0;margin:0 0 0 0;
   background:linear-gradient(180deg,#0d0f14 0%,#111418 50%,#0d0f14 100%);
   border-top:1px solid #252930;border-bottom:1px solid #252930;
-  overflow:hidden;height:172px;
+  overflow:hidden;height:190px;
 }
 /* fade edges */
 .wm-reel-outer::before,.wm-reel-outer::after{
@@ -11272,7 +11309,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* single item card */
 .wm-item{
-  flex-shrink:0;width:150px;height:152px;
+  flex-shrink:0;width:160px;height:170px;
   display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
   border-radius:3px;cursor:default;
   position:relative;overflow:hidden;
@@ -11346,10 +11383,10 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-wtab.active{background:rgba(228,184,77,0.1);border-color:#e4b84d;color:#e4b84d;}
 .wm-newbtn{
   font-family:'Share Tech Mono',monospace;font-size:10px;
-  background:none;border:1px dashed #252930;color:#333;
+  background:none;border:1px dashed #3a4050;color:#6a7a8a;
   padding:5px 10px;border-radius:2px;cursor:pointer;transition:all 0.12s;
 }
-.wm-newbtn:hover{color:#888;border-color:#555;}
+.wm-newbtn:hover{color:#e4b84d;border-color:#e4b84d;}
 
 /* ── Spin button area ── */
 .wm-spinrow{
@@ -11414,11 +11451,35 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-edit-acts{display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid #1e2028;padding-top:8px;flex-shrink:0;}
 .wm-act{
   font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.5px;
-  background:#0e1117;border:1px solid #1e2028;color:#3a4050;
+  background:#0e1117;border:1px solid #2a2e38;color:#8a9aaa;
   padding:5px 8px;border-radius:2px;cursor:pointer;transition:all 0.12s;flex:1;
 }
 .wm-act:hover{border-color:#e4b84d;color:#e4b84d;}
 .wm-act.red:hover{border-color:#ef4444;color:#ef4444;}
+
+/* ── 7TV Emote picker ── */
+.wm-emote-pick{
+  position:fixed;z-index:9999;background:#0e1117;border:1px solid #2a2e38;
+  border-radius:4px;padding:8px;width:240px;max-height:220px;
+  overflow-y:auto;display:none;flex-wrap:wrap;gap:3px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.8);
+}
+.wm-emote-pick.open{display:flex;}
+.wm-emote-pick::-webkit-scrollbar{width:4px;}
+.wm-emote-pick::-webkit-scrollbar-thumb{background:#2a2e38;}
+.wm-ep-item{
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  border-radius:3px;cursor:pointer;border:1px solid transparent;
+  transition:border-color 0.1s;
+}
+.wm-ep-item:hover{border-color:#e4b84d;background:rgba(228,184,77,0.08);}
+.wm-ep-item img{width:28px;height:28px;object-fit:contain;}
+.wm-ep-search{
+  width:100%;background:#141720;border:1px solid #1e2028;color:#c8d0dc;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  padding:4px 8px;border-radius:2px;outline:none;margin-bottom:6px;
+}
+.wm-ep-search:focus{border-color:#e4b84d;}
 
 /* ── Win overlay flash ── */
 .wm-win-flash{
@@ -11432,6 +11493,118 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-item.winner{
   box-shadow:0 0 0 2px #e4b84d, 0 0 30px rgba(228,184,77,0.5) !important;
 }
+
+/* ── Description tooltip on case contents hover ── */
+.wm-citem{position:relative;}
+.wm-desc-tip{
+  display:none;
+  position:absolute;
+  left:calc(100% + 8px);top:50%;transform:translateY(-50%);
+  background:#0a0c10;border:1px solid #2a2e38;
+  color:#c8d0dc;font-family:'Share Tech Mono',monospace;font-size:10px;
+  line-height:1.6;letter-spacing:0.3px;
+  padding:8px 12px;border-radius:3px;width:220px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.8);
+  z-index:9999;pointer-events:none;
+  white-space:normal;word-break:break-word;
+}
+.wm-desc-tip::before{
+  content:'';position:absolute;
+  right:100%;top:50%;transform:translateY(-50%);
+  border:5px solid transparent;border-right-color:#2a2e38;
+}
+.wm-citem:hover .wm-desc-tip{display:block;}
+
+/* ── Win popup overlay ── */
+.wm-win-popup{
+  display:none;position:fixed;inset:0;z-index:9099;
+  background:rgba(0,0,0,0.88);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  align-items:center;justify-content:center;
+}
+.wm-win-popup.open{display:flex;}
+.wm-win-card{
+  width:min(480px,92vw);
+  background:linear-gradient(160deg,#14161c 0%,#0e1015 100%);
+  border:1px solid #2a2e38;border-radius:6px;
+  overflow:hidden;
+  box-shadow:0 0 80px rgba(0,0,0,0.9);
+  animation:wmPopIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275);
+  position:relative;
+}
+@keyframes wmPopIn{from{transform:scale(0.55) translateY(30px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+
+/* Glow border animated */
+.wm-win-card::before{
+  content:'';position:absolute;inset:-1px;border-radius:6px;
+  background:linear-gradient(135deg,var(--wm-win-color,#e4b84d),transparent 60%,var(--wm-win-color,#e4b84d));
+  pointer-events:none;z-index:0;opacity:0.7;
+  animation:wmBorderSpin 3s linear infinite;
+}
+.wm-win-card-inner{position:relative;z-index:1;background:linear-gradient(160deg,#14161c 0%,#0e1015 100%);border-radius:5px;}
+
+@keyframes wmBorderSpin{0%{opacity:0.4}50%{opacity:0.9}100%{opacity:0.4}}
+
+/* Big icon area */
+.wm-win-icon-area{
+  display:flex;align-items:center;justify-content:center;
+  height:170px;
+  background:radial-gradient(ellipse at center, rgba(255,255,255,0.04) 0%, transparent 70%);
+  position:relative;overflow:hidden;
+}
+/* radial glow behind icon */
+.wm-win-icon-area::after{
+  content:'';position:absolute;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle, var(--wm-win-color,#e4b84d) 0%, transparent 70%);
+  opacity:0.12;pointer-events:none;
+}
+.wm-win-big-icon{font-size:72px;line-height:1;position:relative;z-index:1;filter:drop-shadow(0 0 20px rgba(255,255,255,0.2));}
+.wm-win-big-icon img{width:80px;height:80px;object-fit:contain;}
+
+/* Rarity stripe */
+.wm-win-stripe{height:3px;width:100%;}
+
+/* Text block */
+.wm-win-text{padding:20px 28px 24px;text-align:center;}
+.wm-win-you-got{
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:#4a5060;margin-bottom:8px;
+}
+.wm-win-name{
+  font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:800;
+  letter-spacing:2px;text-transform:uppercase;
+  line-height:1.1;margin-bottom:12px;
+}
+.wm-win-divider{width:40px;height:1px;background:#2a2e38;margin:0 auto 12px;}
+.wm-win-desc{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:#8a9aaa;line-height:1.7;letter-spacing:0.3px;
+}
+.wm-win-close-row{
+  display:flex;justify-content:center;
+  padding:0 28px 22px;
+}
+.wm-win-close-btn{
+  font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;
+  background:rgba(255,255,255,0.05);border:1px solid #2a2e38;
+  color:#6a7080;padding:10px 32px;border-radius:3px;cursor:pointer;
+  transition:all 0.15s;
+}
+.wm-win-close-btn:hover{border-color:#e4b84d;color:#e4b84d;background:rgba(228,184,77,0.08);}
+
+/* Confetti particles (CSS only) */
+.wm-confetti{position:absolute;top:0;left:0;right:0;height:180px;pointer-events:none;overflow:hidden;}
+.wm-cp{
+  position:absolute;top:-10px;
+  width:7px;height:10px;opacity:0;border-radius:1px;
+  animation:wmFall 1.2s ease-in forwards;
+}
+@keyframes wmFall{
+  0%{opacity:1;transform:translateY(0) rotate(0deg);}
+  100%{opacity:0;transform:translateY(180px) rotate(720deg);}
+}
 </style>
 
 <!-- CS2 Case Opener Modal -->
@@ -11440,7 +11613,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
   <!-- Top bar -->
   <div class="wm-topbar">
-    <span class="wm-logo">🎰 Case Opening</span>
+    <span class="wm-logo">🎰 Wheel Spin</span>
     <input class="wm-case-name-inp" id="wmCaseNameInp" value="Main Wheel" oninput="wmRenameWheel(this.value)" placeholder="Wheel name…">
     <div class="wm-topbar-right">
       <span class="wm-vol-label">VOL</span>
@@ -11452,6 +11625,12 @@ window.addEventListener('hashchange', _routeFromHash);
 
   <!-- Body -->
   <div class="wm-body">
+
+    <!-- Contents sidebar (left) -->
+    <div class="wm-contents">
+      <div class="wm-contents-title">WHEEL CONTENTS</div>
+      <div class="wm-contents-list" id="wmContentsList"></div>
+    </div>
 
     <!-- Left: reel + controls -->
     <div class="wm-left">
@@ -11479,7 +11658,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
       <!-- Spin -->
       <div class="wm-spinrow">
-        <button class="wm-spinbtn" id="wmSpinBtn" onclick="wmSpin()">OPEN CASE</button>
+        <button class="wm-spinbtn" id="wmSpinBtn" onclick="wmSpin()">SPIN</button>
       </div>
 
     </div>
@@ -11488,26 +11667,53 @@ window.addEventListener('hashchange', _routeFromHash);
     <div class="wm-right">
       <div class="wm-ptabs">
         <button class="wm-ptab active" id="wmTabH" onclick="wmTab('h')">History</button>
-        <button class="wm-ptab" id="wmTabE" onclick="wmTab('e')">Edit Case</button>
+        <button class="wm-ptab" id="wmTabE" onclick="wmTab('e')">Edit Wheel</button>
       </div>
       <div class="wm-hist" id="wmHist">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1e2028;text-align:center;padding:24px 0">NO ITEMS RECEIVED</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#3a4050;text-align:center;padding:24px 0">NO ITEMS RECEIVED</div>
       </div>
       <div class="wm-edit" id="wmEdit">
         <div class="wm-seg-row" style="background:none;padding:0">
-          <input class="wm-seg-inp" style="flex:1" id="wmNameInp2" placeholder="Case name…" oninput="wmRenameWheel(this.value)">
+          <input class="wm-seg-inp" style="flex:1" id="wmNameInp2" placeholder="Wheel name…" oninput="wmRenameWheel(this.value)">
         </div>
         <div id="wmSegList"></div>
         <div class="wm-edit-acts">
           <button class="wm-act" onclick="wmAddItem()">+ Add Item</button>
           <button class="wm-act" onclick="wmRandCols()">🎨 Randomize</button>
-          <button class="wm-act red" onclick="wmDelWheel()">🗑 Delete Case</button>
+          <button class="wm-act red" onclick="wmDelWheel()">🗑 Delete Wheel</button>
         </div>
       </div>
     </div>
 
   </div>
 </div>
+</div>
+<!-- 7TV Emote picker (shared overlay) -->
+<div class="wm-emote-pick" id="wmEmotePick">
+  <input class="wm-ep-search" id="wmEpSearch" placeholder="Search emotes…" oninput="wmEmoteSearch(this.value)">
+  <div id="wmEpGrid" style="display:flex;flex-wrap:wrap;gap:3px;"></div>
+</div>
+
+<!-- Win popup -->
+<div class="wm-win-popup" id="wmWinPopup" onclick="if(event.target===this)wmCloseWin()">
+  <div class="wm-win-card" id="wmWinCard">
+    <div class="wm-win-card-inner">
+      <div class="wm-confetti" id="wmConfetti"></div>
+      <div class="wm-win-icon-area" id="wmWinIconArea">
+        <div class="wm-win-big-icon" id="wmWinBigIcon">🎲</div>
+      </div>
+      <div class="wm-win-stripe" id="wmWinStripe"></div>
+      <div class="wm-win-text">
+        <div class="wm-win-you-got">— You opened —</div>
+        <div class="wm-win-name" id="wmWinName">Item</div>
+        <div class="wm-win-divider"></div>
+        <div class="wm-win-desc" id="wmWinDesc"></div>
+      </div>
+      <div class="wm-win-close-row">
+        <button class="wm-win-close-btn" onclick="wmCloseWin()">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -11524,6 +11730,86 @@ const WM_RARITIES = [
   '#e4b84d', // rare special gold
 ];
 const WM_ICONS = ['⚔️','🛡️','💣','🔫','🎯','🏆','💀','🔥','⚡','🌊','🎲','🗡️','💎','🎰','🌀'];
+
+// 7TV emote set
+const WM_7TV_SET = '01F6YHT8TG0003S6SNNTMYB87P';
+let _wmEmotes = []; // [{name, url}]
+let _wmEmotePickTarget = null; // {itemIdx}
+
+async function _wmFetchEmotes() {
+  if (_wmEmotes.length) return _wmEmotes;
+  try {
+    const r = await fetch('https://7tv.io/v3/emote-sets/' + WM_7TV_SET);
+    const d = await r.json();
+    _wmEmotes = (d.emotes || []).map(e => ({
+      name: e.name,
+      url: 'https://cdn.7tv.app/emote/' + e.id + '/2x.webp'
+    }));
+  } catch(err) { console.warn('7TV emote fetch failed', err); }
+  return _wmEmotes;
+}
+
+function _wmRenderIcon(icon) {
+  if (!icon) return '<span style="font-size:36px;line-height:1">🎲</span>';
+  if (icon.startsWith('http') || icon.startsWith('/')) {
+    return '<img src="' + icon + '" style="width:42px;height:42px;object-fit:contain" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🎲',style:'font-size:36px;line-height:1'}))">';
+  }
+  return '<span style="font-size:36px;line-height:1">' + icon + '</span>';
+}
+
+function _wmContentsIcon(icon) {
+  if (!icon) return '<span>🎲</span>';
+  if (icon.startsWith('http') || icon.startsWith('/')) {
+    return '<img src="' + icon + '" loading="lazy">';
+  }
+  return '<span>' + icon + '</span>';
+}
+
+// Emote picker
+async function wmOpenEmotePick(itemIdx, btnEl) {
+  _wmEmotePickTarget = itemIdx;
+  const picker = document.getElementById('wmEmotePick');
+  const emotes = await _wmFetchEmotes();
+  _wmRenderEmoteGrid(emotes);
+  // Position near button
+  const rect = btnEl.getBoundingClientRect();
+  picker.style.top  = (rect.bottom + 4) + 'px';
+  picker.style.left = Math.max(4, rect.left - 100) + 'px';
+  picker.classList.add('open');
+  document.getElementById('wmEpSearch').value = '';
+  document.getElementById('wmEpSearch').focus();
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('mousedown', _wmClosePickerOnClick, {once:true});
+  }, 10);
+}
+
+function _wmClosePickerOnClick(e) {
+  const p = document.getElementById('wmEmotePick');
+  if (!p.contains(e.target)) p.classList.remove('open');
+  else setTimeout(() => document.addEventListener('mousedown', _wmClosePickerOnClick, {once:true}), 10);
+}
+
+function wmEmoteSearch(q) {
+  const filtered = q ? _wmEmotes.filter(e => e.name.toLowerCase().includes(q.toLowerCase())) : _wmEmotes;
+  _wmRenderEmoteGrid(filtered);
+}
+
+function _wmRenderEmoteGrid(emotes) {
+  document.getElementById('wmEpGrid').innerHTML = emotes.slice(0,80).map(e =>
+    '<div class="wm-ep-item" title="' + e.name + '" onclick="wmPickEmote(' + JSON.stringify(e.url) + ')"><img src="' + e.url + '" loading="lazy"></div>'
+  ).join('');
+}
+
+function wmPickEmote(url) {
+  if (_wmEmotePickTarget === null) return;
+  const w = _wmCurrent();
+  w.items[_wmEmotePickTarget].icon = url;
+  _wmSave();
+  _wmRenderEdit();
+  _wmRenderContents();
+  document.getElementById('wmEmotePick').classList.remove('open');
+}
 
 let _wm = {
   vol: 0.6, muted: false,
@@ -11602,18 +11888,18 @@ function _wmLoad() {
     _wm.wheels = [{
       id: 'w1', name: 'Main Wheel',
       items: [
-        {label:'Small Wheel',    color:'#4b69ff', icon:'🎲'},
-        {label:'Triple Threat',  color:'#8847ff', icon:'⚔️'},
-        {label:'Double Down',    color:'#d32ce6', icon:'🎯'},
-        {label:'Spin Twice',     color:'#4b69ff', icon:'🌀'},
-        {label:'Toilet Time!',   color:'#5e98d9', icon:'💀'},
-        {label:'Cuck Corner',    color:'#eb4b4b', icon:'🔥'},
-        {label:'Stare',          color:'#8847ff', icon:'👁️'},
-        {label:'Pizza Slice',    color:'#5e98d9', icon:'🍕'},
-        {label:'Horse Radish',   color:'#4b69ff', icon:'🌿'},
-        {label:'Hot Sauce',      color:'#eb4b4b', icon:'🌶️'},
-        {label:'4am Stream',     color:'#e4b84d', icon:'⭐'},
-        {label:'Cringe RP',      color:'#d32ce6', icon:'🎭'},
+        {label:'Small Wheel',   color:'#4b69ff', icon:'🎲', desc:'Spin the smaller punishment wheel — whatever it lands on, you must do immediately.'},
+        {label:'Triple Threat', color:'#8847ff', icon:'⚔️', desc:'Three random chatters pick three challenges. You must complete all three in one stream.'},
+        {label:'Double Down',   color:'#d32ce6', icon:'🎯', desc:'Play the next game on double the difficulty. No complaints, no excuses.'},
+        {label:'Spin Twice',    color:'#4b69ff', icon:'🌀', desc:'Spin the wheel TWO more times. Both punishments apply — no skipping either one.'},
+        {label:'Toilet Time!',  color:'#5e98d9', icon:'💀', desc:'AFK for 10 minutes. Stream stays on, you are gone. Chat watches the void.'},
+        {label:'Cuck Corner',   color:'#eb4b4b', icon:'🔥', desc:'Stand in the corner, face to the wall, for 15 minutes. No talking, no peeking.'},
+        {label:'Stare',         color:'#8847ff', icon:'👁️', desc:'Stare directly into the camera without blinking for 60 seconds. Chat counts.'},
+        {label:'Pizza Slice',   color:'#5e98d9', icon:'🍕', desc:'Order a pizza live on stream. Chat picks the toppings via poll. No vetoes.'},
+        {label:'Horse Radish',  color:'#4b69ff', icon:'🌿', desc:'Eat a full tablespoon of raw horseradish on stream. Film it. No water for 60 seconds.'},
+        {label:'Hot Sauce',     color:'#eb4b4b', icon:'🌶️', desc:'Drink a shot of the hottest hot sauce available in the house. One full shot, no chaser.'},
+        {label:'4am Stream',    color:'#e4b84d', icon:'⭐', desc:'Announce a surprise 4am stream this week. Chat sets the date. No backing out.'},
+        {label:'Cringe RP',     color:'#d32ce6', icon:'🎭', desc:'Roleplay as your current game character for 10 minutes. Full commitment. Chat will judge.'},
       ]
     }];
   }
@@ -11622,7 +11908,7 @@ function _wmLoad() {
 function _wmCurrent() { return _wm.wheels.find(w=>w.id===_wm.activeId) || _wm.wheels[0]; }
 
 // ── Reel building ─────────────────────────────────────────────────────────
-const ITEM_W = 154; // px per item including gap
+const ITEM_W = 164; // px per item including gap (160 + 4 gap)
 const ITEM_GAP = 4;
 const REEL_VISIBLE = 7; // items visible at once
 
@@ -11646,7 +11932,7 @@ function _wmBuildReel(winIdx) {
     el.style.cssText = `border-color:${item.color}33;`;
     el.innerHTML = `
       <div class="wm-item-inner">
-        <div class="wm-item-icon">${item.icon || '🎲'}</div>
+        <div class="wm-item-icon">${_wmRenderIcon(item.icon)}</div>
         <div class="wm-item-label">${item.label}</div>
       </div>
       <div class="wm-item-rarity" style="background:${item.color}"></div>
@@ -11693,15 +11979,9 @@ function wmSpin() {
   let lastTranslateX = 0;
   let lastTickX = 0;
 
-  // Easing: fast start, long slow deceleration (CS2 cubic-bezier feel)
-  function easeOutExpo(t) {
-    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-  }
-  // CS2 uses a custom curve: very fast for 80% of time, crawls the last 20%
+  // Easing: smooth ease-out quint — fast start, single smooth deceleration, no false stop
   function cs2Ease(t) {
-    if (t < 0.7) return easeOutExpo(t / 0.7) * 0.82;
-    const t2 = (t - 0.7) / 0.3;
-    return 0.82 + t2 * 0.18;
+    return 1 - Math.pow(1 - t, 5);
   }
 
   function frame(ts) {
@@ -11734,7 +12014,7 @@ function wmSpin() {
       // Flash
       document.getElementById('wmWinFlash').classList.add('show');
       setTimeout(() => document.getElementById('wmWinFlash')?.classList.remove('show'), 1200);
-      // Show result
+      // Show result text
       const winner = wheel.items[winIdx];
       const rl = document.getElementById('wmResultLabel');
       rl.textContent = winner.label;
@@ -11743,8 +12023,10 @@ function wmSpin() {
       document.getElementById('wmResultSub').textContent = '— YOU RECEIVED —';
       _wmReveal();
       // History
-      _wm.history.unshift({label:winner.label, color:winner.color, time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
+      _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
+      // Show win popup after brief delay for drama
+      setTimeout(() => wmShowWinPopup(winner), 900);
     }
   }
   _wm.animId = requestAnimationFrame(frame);
@@ -11755,7 +12037,7 @@ function _wmRenderHist() {
   const el = document.getElementById('wmHist'); if (!el) return;
   if (!_wm.history.length) { el.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:10px;color:#1e2028;text-align:center;padding:24px 0">NO ITEMS RECEIVED</div>'; return; }
   el.innerHTML = _wm.history.map((h,i) =>
-    `<div class="wm-hist-item" style="border-left-color:${h.color}">
+    `<div class="wm-hist-item" style="border-left-color:${h.color};position:relative;cursor:default" title="${(h.desc||'').replace(/"/g,'&quot;')}">
       <span class="wm-hist-n">#${_wm.history.length-i}</span>
       <span class="wm-hist-lbl" style="color:${h.color}">${h.label}</span>
       <span class="wm-hist-t">${h.time}</span>
@@ -11777,27 +12059,32 @@ function _wmRenderEdit() {
   const w = _wmCurrent();
   document.getElementById('wmNameInp2').value = w.name;
   document.getElementById('wmSegList').innerHTML = w.items.map((item, i) =>
-    `<div class="wm-seg-row">
-      <input type="color" class="wm-seg-col" value="${item.color}" oninput="wmItemColor(${i},this.value)" title="Rarity color">
-      <input class="wm-seg-inp" value="${item.label}" oninput="wmItemLabel(${i},this.value)" placeholder="Item name…">
-      <button class="wm-seg-del" onclick="wmDelItem(${i})">✕</button>
+    `<div class="wm-seg-row" style="flex-wrap:wrap;gap:5px">
+      <div style="display:flex;align-items:center;gap:5px;width:100%">
+        <input type="color" class="wm-seg-col" value="${item.color}" oninput="wmItemColor(${i},this.value)" title="Rarity color">
+        <button class="wm-seg-icon-btn" onclick="wmOpenEmotePick(${i},this)" title="Pick emote" style="width:28px;height:28px;background:#0a0c10;border:1px solid #2a2e38;border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;padding:0">${item.icon && (item.icon.startsWith('http')||item.icon.startsWith('/')) ? '<img src="'+item.icon+'" style="width:20px;height:20px;object-fit:contain">' : (item.icon||'🎲')}</button>
+        <input class="wm-seg-inp" style="flex:1" value="${item.label}" oninput="wmItemLabel(${i},this.value)" placeholder="Item name…">
+        <button class="wm-seg-del" onclick="wmDelItem(${i})">✕</button>
+      </div>
+      <textarea class="wm-seg-inp" rows="2" style="width:100%;resize:vertical;min-height:44px;font-size:11px;font-family:'Share Tech Mono',monospace" oninput="wmItemDesc(${i},this.value)" placeholder="Description… e.g. Stand in the corner for 15 minutes.">${item.desc||''}</textarea>
     </div>`
   ).join('');
 }
 function wmItemLabel(i,v){_wmCurrent().items[i].label=v;_wmSave();}
 function wmItemColor(i,v){_wmCurrent().items[i].color=v;_wmSave();}
+function wmItemDesc(i,v){_wmCurrent().items[i].desc=v;_wmSave();_wmRenderContents();}
 function wmDelItem(i){const w=_wmCurrent();w.items.splice(i,1);_wmSave();_wmRenderEdit();}
 function wmAddItem(){
   const w=_wmCurrent();
   const col=WM_RARITIES[Math.floor(Math.random()*WM_RARITIES.length)];
   const icon=WM_ICONS[Math.floor(Math.random()*WM_ICONS.length)];
-  w.items.push({label:'New Item',color:col,icon});
-  _wmSave();_wmRenderEdit();
+  w.items.push({label:'New Item',color:col,icon,desc:''});
+  _wmSave();_wmRenderEdit();_wmRenderContents();
 }
 function wmRandCols(){
   const w=_wmCurrent();
   w.items.forEach(it=>{it.color=WM_RARITIES[Math.floor(Math.random()*WM_RARITIES.length)];});
-  _wmSave();_wmRenderEdit();
+  _wmSave();_wmRenderEdit();_wmRenderContents();
 }
 function wmRenameWheel(v){
   _wmCurrent().name=v;
@@ -11806,8 +12093,8 @@ function wmRenameWheel(v){
   _wmSave();_wmRenderTabs();
 }
 function wmDelWheel(){
-  if(_wm.wheels.length<=1){alert('Cannot delete the last case!');return;}
-  if(!confirm('Delete this case?'))return;
+  if(_wm.wheels.length<=1){alert('Cannot delete the last wheel!');return;}
+  if(!confirm('Delete this wheel?'))return;
   _wm.wheels=_wm.wheels.filter(w=>w.id!==_wm.activeId);
   _wm.activeId=_wm.wheels[0].id;
   _wmSave();_wmRenderTabs();_wmRenderEdit();
@@ -11818,7 +12105,7 @@ function wmDelWheel(){
 function _wmRenderTabs(){
   document.getElementById('wmWheelTabs').innerHTML=
     _wm.wheels.map(w=>`<button class="wm-wtab${w.id===_wm.activeId?' active':''}" onclick="wmSelectCase('${w.id}')">${w.name}</button>`).join('')+
-    `<button class="wm-newbtn" onclick="wmNewCase()">+ New Case</button>`;
+    `<button class="wm-newbtn" onclick="wmNewCase()">+ New Wheel</button>`;
 }
 function wmSelectCase(id){
   _wm.activeId=id;
@@ -11827,13 +12114,14 @@ function wmSelectCase(id){
   document.getElementById('wmResultSub').textContent='';
   document.getElementById('wmReelTrack').innerHTML='';
   _wmRenderTabs();
+  _wmRenderContents();
   if(document.getElementById('wmEdit').classList.contains('active'))_wmRenderEdit();
 }
 function wmNewCase(){
-  const w={id:Date.now()+'',name:'New Case '+(_wm.wheels.length+1),items:[
-    {label:'Item 1',color:'#4b69ff',icon:'⚔️'},
-    {label:'Item 2',color:'#8847ff',icon:'🎯'},
-    {label:'Item 3',color:'#eb4b4b',icon:'🔥'},
+  const w={id:Date.now()+'',name:'New Wheel '+(_wm.wheels.length+1),items:[
+    {label:'Item 1',color:'#4b69ff',icon:'⚔️',desc:'Description for item 1.'},
+    {label:'Item 2',color:'#8847ff',icon:'🎯',desc:'Description for item 2.'},
+    {label:'Item 3',color:'#eb4b4b',icon:'🔥',desc:'Description for item 3.'},
   ]};
   _wm.wheels.push(w);_wm.activeId=w.id;
   _wmSave();_wmRenderTabs();
@@ -11841,12 +12129,80 @@ function wmNewCase(){
   wmTab('e');_wmRenderEdit();
 }
 
+// ── Contents sidebar ─────────────────────────────────────────────────────
+function _wmRenderContents() {
+  const el = document.getElementById('wmContentsList'); if (!el) return;
+  const w = _wmCurrent();
+  if (!w || !w.items.length) {
+    el.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:10px;color:#1e2028;text-align:center;padding:24px 8px">No items in this wheel yet.</div>';
+    return;
+  }
+  el.innerHTML = w.items.map(item => {
+    const iconHtml = _wmContentsIcon(item.icon);
+    const descHtml = item.desc ? `<div class="wm-desc-tip">${item.desc}</div>` : '';
+    return `<div class="wm-citem" style="border-left-color:${item.color}">
+      <div class="wm-citem-icon">${iconHtml}</div>
+      <div class="wm-citem-label" style="color:${item.color}">${item.label}</div>
+      ${descHtml}
+    </div>`;
+  }).join('');
+}
+
+// ── Win popup ─────────────────────────────────────────────────────────────
+function wmShowWinPopup(winner) {
+  const popup = document.getElementById('wmWinPopup');
+  const card  = document.getElementById('wmWinCard');
+  if (!popup || !card) return;
+
+  // Set color CSS var for border glow
+  card.style.setProperty('--wm-win-color', winner.color);
+  document.getElementById('wmWinIconArea').style.setProperty('--wm-win-color', winner.color);
+
+  // Icon
+  const iconEl = document.getElementById('wmWinBigIcon');
+  iconEl.innerHTML = _wmRenderIcon(winner.icon);
+
+  // Stripe color
+  document.getElementById('wmWinStripe').style.background = winner.color;
+
+  // Name
+  const nameEl = document.getElementById('wmWinName');
+  nameEl.textContent = winner.label;
+  nameEl.style.color = winner.color;
+  nameEl.style.textShadow = `0 0 30px ${winner.color}55`;
+
+  // Description
+  const descEl = document.getElementById('wmWinDesc');
+  descEl.textContent = winner.desc || 'You got this one. Time to face the consequences.';
+
+  // Confetti burst
+  const conf = document.getElementById('wmConfetti');
+  conf.innerHTML = '';
+  const colors = [winner.color, '#e4b84d', '#ffffff', '#a78bfa', '#fc5c7d'];
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('div');
+    p.className = 'wm-cp';
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDelay = (Math.random() * 0.4) + 's';
+    p.style.animationDuration = (0.9 + Math.random() * 0.5) + 's';
+    p.style.width = (5 + Math.random() * 6) + 'px';
+    p.style.height = (8 + Math.random() * 6) + 'px';
+    conf.appendChild(p);
+  }
+
+  popup.classList.add('open');
+}
+function wmCloseWin() {
+  document.getElementById('wmWinPopup').classList.remove('open');
+}
+
 // ── Open / Close ──────────────────────────────────────────────────────────
 function openWheelSpin(){
   _wmLoad();
   document.getElementById('wmModal').style.display='flex';
   document.getElementById('wmCaseNameInp').value=_wmCurrent().name;
-  _wmRenderTabs();_wmRenderHist();
+  _wmRenderTabs();_wmRenderHist();_wmRenderContents();
   document.getElementById('wmReelTrack').innerHTML='';
   _setHash('wheelspin');
   if(_wm.audioCtx?.state==='suspended')_wm.audioCtx.resume();
