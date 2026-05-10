@@ -11609,6 +11609,8 @@ window.addEventListener('hashchange', _routeFromHash);
 
 <!-- CS2 Case Opener Modal -->
 <div id="wmModal" onclick="if(event.target===this)closeWheelSpin()">
+  <!-- Hidden YT player for landing SFX -->
+  <div id="wmSfxPlayer" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden"></div>
 <div class="wm-box">
 
   <!-- Top bar -->
@@ -11826,6 +11828,38 @@ function _wmAC() {
 function wmSetVol(v) { _wm.vol = v / 100; }
 function wmToggleMute() { _wm.muted = !_wm.muted; document.getElementById('wmMuteBtn').textContent = _wm.muted ? '🔇' : '🔊'; }
 
+// Landing SFX — plays the YouTube audio as a one-shot sound effect
+let _wmSfxYT = null;
+let _wmSfxReady = false;
+
+function _wmInitSfxPlayer() {
+  if (_wmSfxYT || !window.YT?.Player) return;
+  _wmSfxYT = new YT.Player('wmSfxPlayer', {
+    width: '1', height: '1',
+    videoId: '0YQPHTrHbvA',
+    playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, rel: 0, start: 0 },
+    events: {
+      onReady: () => { _wmSfxReady = true; },
+    }
+  });
+}
+
+function _wmPlayLandingSfx() {
+  if (_wm.muted) return;
+  // Try YT player first
+  if (_wmSfxYT && _wmSfxReady) {
+    try {
+      _wmSfxYT.seekTo(0, true);
+      _wmSfxYT.playVideo();
+      // Auto-stop after ~5s so it doesn't keep playing
+      setTimeout(() => { try { _wmSfxYT?.stopVideo(); } catch(e){} }, 5000);
+      return;
+    } catch(e) {}
+  }
+  // Fallback: synthesised reveal sound
+  _wmReveal();
+}
+
 // CS2 tick sound — sharp metallic click
 let _wmLastTickTime = 0;
 function _wmTick(speed) {
@@ -11968,11 +12002,11 @@ function wmSpin() {
   const centerX = outerW / 2;
 
   // Position of winner card center: reelWinnerIdx * (ITEM_W + ITEM_GAP) + ITEM_W/2
-  const winnerCenter = reelWinnerIdx * (ITEM_W + ITEM_GAP) + ITEM_W / 2;
-  // We want winnerCenter - translateX = centerX
-  // So translateX = winnerCenter - centerX + random offset within card
-  const jitter = (Math.random() - 0.5) * (ITEM_W * 0.55); // don't go past edges
-  const targetX = -(winnerCenter - centerX + jitter);
+  const winnerCenter = reelWinnerIdx * ITEM_W + (ITEM_W - ITEM_GAP) / 2; // stride=ITEM_W(164), half-card=(164-4)/2=80
+  // We want the winner card center at the pointer (centerX)
+  // targetX so that: winnerCenter + targetX = centerX
+  const jitter = (Math.random() - 0.5) * ((ITEM_W - ITEM_GAP) * 0.5); // stay within card edges
+  const targetX = centerX - winnerCenter + jitter;
 
   const totalMs = 6500 + Math.random() * 1500; // 6.5-8s
   let startTime = null;
@@ -11995,8 +12029,8 @@ function wmSpin() {
 
     // Tick when crossing a new card boundary
     const speed = Math.abs(tx - lastTranslateX); // px per frame
-    const crossedCard = Math.floor(Math.abs(tx) / (ITEM_W + ITEM_GAP)) !== Math.floor(Math.abs(lastTranslateX) / (ITEM_W + ITEM_GAP));
-    if (crossedCard || Math.abs(tx - lastTickX) > ITEM_W + ITEM_GAP) {
+    const crossedCard = Math.floor(Math.abs(tx) / ITEM_W) !== Math.floor(Math.abs(lastTranslateX) / ITEM_W);
+    if (crossedCard || Math.abs(tx - lastTickX) > ITEM_W) {
       _wmTick(speed);
       lastTickX = tx;
     }
@@ -12021,7 +12055,8 @@ function wmSpin() {
       rl.style.color = winner.color;
       rl.style.textShadow = `0 0 30px ${winner.color}88`;
       document.getElementById('wmResultSub').textContent = '— YOU RECEIVED —';
-      _wmReveal();
+      _wmReveal(); // synthesised reveal (also used as fallback)
+      _wmPlayLandingSfx(); // YT audio sfx (plays over/instead of synth)
       // History
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
@@ -12206,6 +12241,9 @@ function openWheelSpin(){
   document.getElementById('wmReelTrack').innerHTML='';
   _setHash('wheelspin');
   if(_wm.audioCtx?.state==='suspended')_wm.audioCtx.resume();
+  // Init landing SFX player (needs YT API ready)
+  if (window.YT?.Player) _wmInitSfxPlayer();
+  else window.onYouTubeIframeAPIReady = (function(orig){ return function(){ if(orig) orig(); _wmInitSfxPlayer(); }; })(window.onYouTubeIframeAPIReady);
 }
 function closeWheelSpin(){
   document.getElementById('wmModal').style.display='none';
