@@ -11752,7 +11752,7 @@ async function _wmFetchEmotes() {
 function _wmRenderIcon(icon) {
   if (!icon) return '<span style="font-size:36px;line-height:1">🎲</span>';
   if (icon.startsWith('http') || icon.startsWith('/')) {
-    return '<img src="' + icon + '" style="width:42px;height:42px;object-fit:contain" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🎲',style:'font-size:36px;line-height:1'}))">';
+    return '<img src="' + icon + '" style="width:42px;height:42px;object-fit:contain" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'🎲\',style:\'font-size:36px;line-height:1\'}))">';
   }
   return '<span style="font-size:36px;line-height:1">' + icon + '</span>';
 }
