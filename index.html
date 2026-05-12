@@ -11249,7 +11249,7 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-contents-title{
   font-family:'Share Tech Mono',monospace;font-size:9px;
-  letter-spacing:2px;color:#6a7080;text-transform:uppercase;
+  letter-spacing:2px;color:#c8d0dc;text-transform:uppercase;
   padding:10px 12px 8px;border-bottom:1px solid #1e2028;flex-shrink:0;
 }
 .wm-contents-list{
@@ -11319,7 +11319,7 @@ window.addEventListener('hashchange', _routeFromHash);
 /* ── Reel ── */
 .wm-reel-outer{
   position:relative;flex-shrink:0;
-  padding:0;margin:0 0 0 0;
+  padding:0;margin:28px 0 0 0;
   background:linear-gradient(180deg,#0d0f14 0%,#111418 50%,#0d0f14 100%);
   border-top:1px solid #252930;border-bottom:1px solid #252930;
   overflow:hidden;height:190px;
@@ -11354,7 +11354,7 @@ window.addEventListener('hashchange', _routeFromHash);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
 }
 .wm-item-icon{
-  font-size:36px;line-height:1;
+  font-size:43px;line-height:1;
   filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6));
 }
 .wm-item-label{
@@ -11448,7 +11448,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-ptab{
   flex:1;text-align:center;
   font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;
-  padding:10px 4px;color:#3a4050;cursor:pointer;
+  padding:10px 4px;color:#c8d0dc;cursor:pointer;
   border-bottom:2px solid transparent;
   background:none;border-top:none;border-left:none;border-right:none;
   transition:all 0.12s;
@@ -11463,13 +11463,16 @@ window.addEventListener('hashchange', _routeFromHash);
   padding:7px 9px;background:#0e1117;border-radius:2px;
   border-left:3px solid #2a2e38;
 }
-.wm-hist-n{font-family:'Share Tech Mono',monospace;font-size:9px;color:#4a5060;min-width:20px;}
+.wm-hist-n{font-family:'Share Tech Mono',monospace;font-size:9px;color:#c8d0dc;min-width:20px;}
 .wm-hist-lbl{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;flex:1;text-transform:uppercase;}
-.wm-hist-t{font-family:'Share Tech Mono',monospace;font-size:9px;color:#4a5060;}
+.wm-hist-t{font-family:'Share Tech Mono',monospace;font-size:9px;color:#c8d0dc;}
 
 /* ── Edit panel ── */
 .wm-edit{flex:1;overflow-y:auto;padding:10px;display:none;flex-direction:column;gap:0;}
 .wm-edit.active{display:flex;}
+.wm-hist::-webkit-scrollbar,.wm-edit::-webkit-scrollbar{width:4px;}
+.wm-hist::-webkit-scrollbar-thumb,.wm-edit::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.wm-hist::-webkit-scrollbar-track,.wm-edit::-webkit-scrollbar-track{background:transparent;}
 
 /* lock bar at top of edit panel */
 .wm-lock-bar{
@@ -11478,12 +11481,12 @@ window.addEventListener('hashchange', _routeFromHash);
   background:#0a0c10;border:1px solid #1e2028;border-radius:3px;flex-shrink:0;
 }
 .wm-lock-bar-label{
-  font-family:'Share Tech Mono',monospace;font-size:10px;color:#4a5060;letter-spacing:1px;flex:1;
+  font-family:'Share Tech Mono',monospace;font-size:10px;color:#c8d0dc;letter-spacing:1px;flex:1;
 }
 .wm-lock-bar-label.locked{color:#fbbf24;}
 .wm-lock-action{
   font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;
-  background:none;border:1px solid #2a2e38;color:#6a7080;
+  background:none;border:1px solid #2a2e38;color:#c8d0dc;
   padding:3px 10px;border-radius:2px;cursor:pointer;transition:all 0.12s;
 }
 .wm-lock-action:hover{border-color:#fbbf24;color:#fbbf24;}
@@ -11497,8 +11500,8 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-item-card-header{display:flex;align-items:center;gap:8px;}
 .wm-item-card-num{
-  font-family:'Share Tech Mono',monospace;font-size:9px;color:#2a2e38;
-  min-width:16px;text-align:center;
+  font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;color:#c8d0dc;
+  min-width:20px;text-align:center;
 }
 
 /* color swatch button */
@@ -11671,7 +11674,7 @@ window.addEventListener('hashchange', _routeFromHash);
   display:flex;flex-direction:column;gap:5px;
   background:#0a0c10;border:1px solid #1e2028;border-radius:3px;padding:8px;
 }
-.wm-imgur-cfg label{font-family:'Share Tech Mono',monospace;font-size:9px;color:#4a5060;letter-spacing:1px;}
+.wm-imgur-cfg label{font-family:'Share Tech Mono',monospace;font-size:9px;color:#c8d0dc;letter-spacing:1px;}
 .wm-imgur-cfg-row{display:flex;gap:4px;}
 .wm-imgur-inp{
   flex:1;background:#141720;border:1px solid #1e2028;color:#c8d0dc;
@@ -11684,7 +11687,7 @@ window.addEventListener('hashchange', _routeFromHash);
   background:#e4b84d;border:none;color:#0a0c10;
   padding:4px 8px;border-radius:2px;cursor:pointer;white-space:nowrap;
 }
-.wm-imgur-link{font-family:'Share Tech Mono',monospace;font-size:8px;color:#4a5060;text-decoration:none;}
+.wm-imgur-link{font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;text-decoration:none;}
 .wm-imgur-link:hover{color:#e4b84d;}
 
 /* ── Win overlay flash ── */
@@ -11752,7 +11755,7 @@ window.addEventListener('hashchange', _routeFromHash);
 /* Big icon area */
 .wm-win-icon-area{
   display:flex;align-items:center;justify-content:center;
-  height:220px;
+  height:300px;
   background:radial-gradient(ellipse at center, rgba(255,255,255,0.04) 0%, transparent 70%);
   position:relative;overflow:hidden;
 }
@@ -11763,8 +11766,8 @@ window.addEventListener('hashchange', _routeFromHash);
   background:radial-gradient(circle, var(--wm-win-color,#e4b84d) 0%, transparent 70%);
   opacity:0.12;pointer-events:none;
 }
-.wm-win-big-icon{font-size:88px;line-height:1;position:relative;z-index:2;filter:drop-shadow(0 0 20px rgba(255,255,255,0.2));}
-.wm-win-big-icon img{width:96px;height:96px;object-fit:contain;}
+.wm-win-big-icon{font-size:160px;line-height:1;position:relative;z-index:2;filter:drop-shadow(0 0 20px rgba(255,255,255,0.2));}
+.wm-win-big-icon img{width:160px;height:160px;object-fit:contain;}
 
 /* Rarity stripe */
 .wm-win-stripe{height:3px;width:100%;}
@@ -11798,30 +11801,32 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-win-close-btn:hover{border-color:#e4b84d;color:#e4b84d;background:rgba(228,184,77,0.08);}
 
-/* ── Sunrays — SVG radial burst, slow rotation, behind icon ── */
+/* ── Win glow — soft radial pulse behind icon ── */
 .wm-sunrays{
   position:absolute;inset:0;pointer-events:none;
   display:flex;align-items:center;justify-content:center;
   z-index:0;
 }
-.wm-sunrays svg{
+.wm-sunrays-inner{
   position:absolute;
-  width:100%;height:100%;
-  top:0;left:0;
-  animation:wmSunRotate 18s linear infinite;
-  transform-origin:50% 50%;
+  width:340px;height:340px;
+  border-radius:50%;
+  background:radial-gradient(circle, var(--wm-glow-color,#e4b84d) 0%, transparent 70%);
+  opacity:0;
+  animation:wmGlowPulse 2.2s ease-in-out infinite;
+  filter:blur(18px);
 }
-.wm-sunrays svg.wm-sun-back{
-  animation:wmSunRotateBack 28s linear infinite;
-  opacity:0.5;
+.wm-sunrays-inner.layer2{
+  width:220px;height:220px;
+  animation-delay:0.6s;
+  opacity:0;
+  filter:blur(8px);
 }
-@keyframes wmSunRotate{
-  from{transform:rotate(0deg);}
-  to{transform:rotate(360deg);}
-}
-@keyframes wmSunRotateBack{
-  from{transform:rotate(0deg);}
-  to{transform:rotate(-360deg);}
+@keyframes wmGlowPulse{
+  0%{opacity:0;transform:scale(0.7);}
+  40%{opacity:0.55;}
+  70%{opacity:0.35;}
+  100%{opacity:0;transform:scale(1.15);}
 }
 /* Remove old confetti */
 .wm-confetti{display:none;}
@@ -11841,10 +11846,10 @@ window.addEventListener('hashchange', _routeFromHash);
     <!-- Mode toggle -->
     <div style="display:flex;align-items:center;gap:10px;margin-left:12px;flex-shrink:0">
       <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;color:#8a9aaa;letter-spacing:0.5px">
-        <input type="radio" name="wmMode" value="wheel" onchange="wmSetMode('wheel')" style="accent-color:#e4b84d;cursor:pointer"> Wheel Spin
+        <input type="radio" name="wmMode" value="case" checked onchange="wmSetMode('case')" style="accent-color:#e4b84d;cursor:pointer"> Case Opening
       </label>
       <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;color:#8a9aaa;letter-spacing:0.5px">
-        <input type="radio" name="wmMode" value="case" checked onchange="wmSetMode('case')" style="accent-color:#e4b84d;cursor:pointer"> Case Opening
+        <input type="radio" name="wmMode" value="wheel" onchange="wmSetMode('wheel')" style="accent-color:#e4b84d;cursor:pointer"> Wheel Spin
       </label>
     </div>
     <div class="wm-topbar-right">
@@ -11938,8 +11943,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
   </div>
 </div>
-</div>
-<!-- Icon Picker (7TV / Emoji / Upload) -->
+<!-- Icon Picker (7TV / Emoji / Upload) — inside wmModal to share stacking context -->
 <div class="wm-emote-pick" id="wmEmotePick">
   <div class="wm-ep-header">🎨 Pick Icon</div>
   <div class="wm-ep-tabs">
@@ -11956,7 +11960,7 @@ window.addEventListener('hashchange', _routeFromHash);
     <button class="wm-ep-ok" id="wmEpOkBtn" onclick="wmConfirmIcon()" disabled>✓ Apply</button>
   </div>
 </div>
-
+</div>
 <!-- Win popup -->
 <div class="wm-win-popup" id="wmWinPopup" onclick="if(event.target===this)wmCloseWin()">
   <div class="wm-win-card" id="wmWinCard">
@@ -12786,48 +12790,16 @@ function wmShowWinPopup(winner) {
   const descEl = document.getElementById('wmWinDesc');
   descEl.textContent = winner.desc || 'You got this one. Time to face the consequences.';
 
-  // SVG radial sunburst — soft tapered rays from center, icon stays on top
+  // Soft radial glow — two pulsing blurred circles behind the icon
   const rays = document.getElementById('wmSunrays');
   rays.innerHTML = '';
-
-  const col = winner.color;
-  function hexA(hex, a) {
-    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-    return `rgba(${r},${g},${b},${a})`;
-  }
-  const safeCol = /^#[0-9a-fA-F]{6}$/.test(col) ? col : '#e4b84d';
-
-  function makeSunSVG(numRays, startOpacity, endOpacity, gapFraction, svgClass) {
-    const cx = 50, cy = 50, R = 72;
-    const step = 360 / numRays;
-    const halfArc = step * (1 - gapFraction) / 2;
-    let defs = `<defs>
-      <radialGradient id="rg${numRays}${svgClass}" cx="50%" cy="50%" r="50%">
-        <stop offset="0%"   stop-color="${safeCol}" stop-opacity="0"/>
-        <stop offset="18%"  stop-color="${safeCol}" stop-opacity="${startOpacity}"/>
-        <stop offset="100%" stop-color="${safeCol}" stop-opacity="${endOpacity}"/>
-      </radialGradient>
-    </defs>`;
-    let paths = '';
-    for (let i = 0; i < numRays; i++) {
-      const midDeg = i * step;
-      const a1 = (midDeg - halfArc) * Math.PI / 180;
-      const a2 = (midDeg + halfArc) * Math.PI / 180;
-      const x1 = cx + R * Math.cos(a1), y1 = cy + R * Math.sin(a1);
-      const x2 = cx + R * Math.cos(a2), y2 = cy + R * Math.sin(a2);
-      paths += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} L${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="url(#rg${numRays}${svgClass})"/>`;
-    }
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="${svgClass}">${defs}${paths}</svg>`;
-  }
-
-  const back = document.createElement('div');
-  back.style.cssText = 'position:absolute;inset:0;';
-  back.innerHTML = makeSunSVG(12, 0.18, 0.0, 0.35, 'wm-sun-back');
-  const front = document.createElement('div');
-  front.style.cssText = 'position:absolute;inset:0;';
-  front.innerHTML = makeSunSVG(20, 0.28, 0.0, 0.55, 'wm-sun-front');
-  rays.appendChild(back);
-  rays.appendChild(front);
+  rays.style.setProperty('--wm-glow-color', winner.color);
+  const g1 = document.createElement('div');
+  g1.className = 'wm-sunrays-inner';
+  const g2 = document.createElement('div');
+  g2.className = 'wm-sunrays-inner layer2';
+  rays.appendChild(g1);
+  rays.appendChild(g2);
 
   popup.classList.add('open');
 }
