@@ -11620,6 +11620,44 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-ep-ok:disabled{background:#1e2028;color:#3a4050;cursor:default;}
 .wm-ep-ok:not(:disabled):hover{background:#f0cc6a;}
 
+/* ── Cloud upload ── */
+.wm-cloud-section{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+.wm-cloud-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;
+  background:linear-gradient(135deg,#0e4c7a,#1565a0);
+  border:1px solid #1e7ab8;color:#7dd3fc;
+  padding:8px 12px;border-radius:3px;cursor:pointer;transition:all 0.15s;width:100%;
+}
+.wm-cloud-btn:hover:not(:disabled){background:linear-gradient(135deg,#1565a0,#1d7fc4);border-color:#38bdf8;color:#bae6fd;}
+.wm-cloud-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.wm-cloud-status{
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.5px;
+  padding:6px 8px;border-radius:3px;display:none;word-break:break-all;line-height:1.5;
+}
+.wm-cloud-status.loading{display:block;background:#0a1a2a;color:#4a7a9a;border:1px solid #1e3a50;}
+.wm-cloud-status.success{display:block;background:#0a1a0a;color:#4ade80;border:1px solid #166534;}
+.wm-cloud-status.error{display:block;background:#1a0a0a;color:#f87171;border:1px solid #7f1d1d;}
+.wm-imgur-cfg{
+  display:flex;flex-direction:column;gap:5px;
+  background:#0a0c10;border:1px solid #1e2028;border-radius:3px;padding:8px;
+}
+.wm-imgur-cfg label{font-family:'Share Tech Mono',monospace;font-size:9px;color:#4a5060;letter-spacing:1px;}
+.wm-imgur-cfg-row{display:flex;gap:4px;}
+.wm-imgur-inp{
+  flex:1;background:#141720;border:1px solid #1e2028;color:#c8d0dc;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  padding:4px 7px;border-radius:2px;outline:none;
+}
+.wm-imgur-inp:focus{border-color:#e4b84d;}
+.wm-imgur-save{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  background:#e4b84d;border:none;color:#0a0c10;
+  padding:4px 8px;border-radius:2px;cursor:pointer;white-space:nowrap;
+}
+.wm-imgur-link{font-family:'Share Tech Mono',monospace;font-size:8px;color:#4a5060;text-decoration:none;}
+.wm-imgur-link:hover{color:#e4b84d;}
+
 /* ── Win overlay flash ── */
 .wm-win-flash{
   position:absolute;inset:0;pointer-events:none;
@@ -12008,11 +12046,27 @@ async function wmEpSwitchTab(tab) {
     _wmRenderEmojiGrid(WM_EMOJI_LIST);
   } else {
     if (search) search.style.display = 'none';
-    grid.innerHTML = `<div class="wm-ep-upload-area" onclick="document.getElementById('wmEpFileInput').click()">
-      <img id="wmUploadPreviewImg" class="wm-ep-upload-preview">
-      <label>📷 Click to upload image<br><span style="font-size:9px;color:#3a4050">PNG · JPG · GIF · WEBP</span></label>
-      <input type="file" id="wmEpFileInput" accept="image/*" style="display:none" onchange="wmHandleImageUpload(this)">
-    </div>`;
+    grid.innerHTML = `
+      <div class="wm-ep-upload-area" id="wmUploadClickArea" onclick="document.getElementById('wmEpFileInput').click()" style="min-height:64px">
+        <img id="wmUploadPreviewImg" class="wm-ep-upload-preview">
+        <label id="wmUploadLabel">📷 Click to upload image<br><span style="font-size:9px;color:#3a4050">PNG · JPG · GIF · WEBP</span></label>
+        <input type="file" id="wmEpFileInput" accept="image/*" style="display:none" onchange="wmHandleImageUpload(this)">
+      </div>
+      <div class="wm-cloud-section" id="wmCloudSection" style="display:none">
+        <button class="wm-cloud-btn" id="wmCloudBtn" onclick="wmUploadToCloud()">
+          ☁ Save to Cloud (ImgBB) — permanent URL
+        </button>
+        <div class="wm-cloud-status" id="wmCloudStatus"></div>
+      </div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#aaa;letter-spacing:1px">IMGBB API KEY</span>
+        <div style="display:flex;gap:4px">
+          <input id="wmImgbbKeyInp" placeholder="${_wmImgbbKey() ? '✓ Key saved' : 'Paste ImgBB API key…'}" type="password"
+            style="flex:1;background:#0a0c10;border:1px solid #2a2e38;color:#c8d0dc;font-family:'Share Tech Mono',monospace;font-size:10px;padding:5px 8px;border-radius:2px;outline:none">
+          <button onclick="wmSaveImgurCid()" style="background:#0e1117;border:1px solid #3a4050;color:#aaa;font-family:'Share Tech Mono',monospace;font-size:9px;padding:5px 10px;border-radius:2px;cursor:pointer;white-space:nowrap" onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d'" onmouseout="this.style.borderColor='#3a4050';this.style.color='#aaa'">Save</button>
+        </div>
+        <a href="https://api.imgbb.com" target="_blank" style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#4a5060;text-decoration:none" onmouseover="this.style.color='#e4b84d'" onmouseout="this.style.color='#4a5060'">Get free key at api.imgbb.com ↗</a>
+      </div>`;
   }
 }
 
@@ -12072,14 +12126,153 @@ function _wmEpUpdateOk() {
 function wmHandleImageUpload(input) {
   const file = input.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
-    const dataUrl = e.target.result;
-    _wmEpSelect(dataUrl, file.name);
-    const prev = document.getElementById('wmUploadPreviewImg');
-    if (prev) { prev.src = dataUrl; prev.style.display = 'block'; }
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      // Size constraints: min 48px, max 160px (fills wheel card nicely)
+      const MIN = 48;
+      const MAX = 160;
+      let w = img.width, h = img.height;
+
+      // Scale down if too big
+      if (w > MAX || h > MAX) {
+        const scale = Math.min(MAX / w, MAX / h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+      // Scale up if too small (blurry but better than tiny)
+      if (w < MIN && h < MIN) {
+        const scale = MIN / Math.max(w, h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+
+      w = Math.max(1, w);
+      h = Math.max(1, h);
+
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      const ctx2d = cv.getContext('2d');
+      ctx2d.imageSmoothingQuality = 'high';
+      ctx2d.drawImage(img, 0, 0, w, h);
+      // Use PNG for small icons (better quality), JPEG for large
+      const fmt  = w * h < 8000 ? 'image/png' : 'image/jpeg';
+      const qual = fmt === 'image/jpeg' ? 0.90 : undefined;
+      const dataUrl = cv.toDataURL(fmt, qual);
+      const cleanName = '📷 ' + (file.name.replace(/\.[^.]+$/, '') || 'Image');
+      _wmEpSelect(dataUrl, cleanName);
+      const prev = document.getElementById('wmUploadPreviewImg');
+      if (prev) { prev.src = dataUrl; prev.style.display = 'block'; }
+      const lbl = document.getElementById('wmUploadLabel');
+      if (lbl) lbl.innerHTML = '<span style="font-size:10px;color:#c8d0dc">' + cleanName + '</span><br><span style="font-size:8px;color:#3a4050">' + w + '×' + h + 'px · click to change</span>';
+      const cs = document.getElementById('wmCloudSection');
+      if (cs) cs.style.display = 'flex';
+      _wmCloudReset();
+      _wmPendingUploadFile = file;
+    };
+    img.onerror = () => {
+      // Fallback for GIFs/unusual formats — use as-is
+      const cleanName = '📷 ' + (file.name.replace(/\.[^.]+$/, '') || 'Image');
+      _wmEpSelect(ev.target.result, cleanName);
+      _wmPendingUploadFile = file;
+      const cs = document.getElementById('wmCloudSection');
+      if (cs) cs.style.display = 'flex';
+      _wmCloudReset();
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
   input.value = '';
+}
+
+let _wmPendingUploadFile = null; // original File object for cloud upload
+
+function _wmCloudReset() {
+  const st = document.getElementById('wmCloudStatus');
+  if (st) { st.className = 'wm-cloud-status'; st.textContent = ''; }
+  const btn = document.getElementById('wmCloudBtn');
+  if (btn) { btn.disabled = false; btn.textContent = '☁ Save to Cloud — permanent, visible to everyone'; }
+}
+
+// ── Cloud image upload via ImgBB ──────────────────────────────────────────
+// Get your free API key at https://api.imgbb.com (free account, instant key)
+// Paste it once in the wheel's Upload tab — saved to localStorage, never hardcoded.
+function _wmImgbbKey() { return localStorage.getItem('wm_imgbb_key') || ''; }
+
+function wmSaveImgurCid() {
+  // Now handles ImgBB key saving (keeping fn name for compat)
+  const inp = document.getElementById('wmImgbbKeyInp');
+  if (!inp) return;
+  const val = inp.value.trim();
+  if (!val) return;
+  localStorage.setItem('wm_imgbb_key', val);
+  inp.style.borderColor = '#4ade80';
+  inp.value = '';
+  inp.placeholder = '✓ Key saved';
+  setTimeout(() => { inp.style.borderColor = ''; inp.placeholder = 'Paste ImgBB API key…'; }, 2000);
+}
+
+async function wmUploadToCloud() {
+  const pending = _wmEpPending?.value;
+  if (!pending?.startsWith('data:') && !_wmPendingUploadFile) {
+    alert('No image selected to upload.'); return;
+  }
+
+  const apiKey = _wmImgbbKey();
+  const btn = document.getElementById('wmCloudBtn');
+  const st  = document.getElementById('wmCloudStatus');
+
+  if (!apiKey) {
+    if (st) { st.className = 'wm-cloud-status error'; st.textContent = '⚠ Paste your ImgBB API key below first (free at api.imgbb.com)'; }
+    // Scroll to key input
+    document.getElementById('wmImgbbKeyInp')?.focus();
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Uploading…'; }
+  if (st)  { st.className = 'wm-cloud-status loading'; st.textContent = 'Uploading to ImgBB…'; }
+
+  try {
+    // Get base64 — prefer original file, fall back to compressed canvas preview
+    let base64;
+    if (_wmPendingUploadFile) {
+      base64 = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result.split(',')[1]);
+        r.onerror = rej;
+        r.readAsDataURL(_wmPendingUploadFile);
+      });
+    } else {
+      base64 = pending.split(',')[1];
+    }
+
+    const form = new FormData();
+    form.append('key', apiKey);
+    form.append('image', base64);
+
+    const res  = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: form });
+    const data = await res.json();
+
+    if (!data.success) throw new Error(data.error?.message || 'ImgBB upload failed');
+    const url = data.data.display_url || data.data.url;
+    _wmCloudSuccess(url);
+  } catch(err) {
+    if (st)  { st.className = 'wm-cloud-status error'; st.textContent = '✗ ' + (err.message || 'Upload failed — try again'); }
+    if (btn) { btn.disabled = false; btn.textContent = '☁ Retry Upload'; }
+  }
+}
+
+function _wmCloudSuccess(url) {
+  const st  = document.getElementById('wmCloudStatus');
+  const btn = document.getElementById('wmCloudBtn');
+  if (st)  { st.className = 'wm-cloud-status success'; st.innerHTML = '✓ Uploaded! URL stored as icon:<br><span style="color:#86efac">' + url + '</span>'; }
+  if (btn) { btn.textContent = '✓ Saved to Cloud'; btn.style.background = 'linear-gradient(135deg,#064e1a,#166534)'; btn.style.borderColor = '#166534'; btn.style.color = '#4ade80'; }
+  // Replace the local base64 with the permanent Imgur URL
+  const cleanName = _wmEpPending?.name || '📷 Image';
+  _wmEpSelect(url, cleanName);
+  // Update preview img to use the remote URL too
+  const prev = document.getElementById('wmUploadPreviewImg');
+  if (prev) prev.src = url;
 }
 
 function wmConfirmIcon() {
@@ -12497,7 +12690,7 @@ function wmNewCase(){
     {label:'Cam Punishment',color:'#eb4b4b',icon:'🎥',desc:'Sit with the light directly in your face for 10 minutes. Full exposure.'},
     {label:'Hydration Check',color:'#5e98d9',icon:'🥤',desc:'You forgot to drink water. Drink a full glass right now on stream.'},
     {label:'Hot Sauce Shot',color:'#eb4b4b',icon:'🌶️',desc:'Take a shot of the hottest sauce you have in the house. No milk.'},
-    {label:'Bad Accent Mode',color:'#8847ff',icon:'🎤',desc:'You must stream with a terrible accent of chat's choosing for the next 10 minutes.'},
+    {label:'Bad Accent Mode',color:'#8847ff',icon:'🎤',desc:'You must stream with a terrible accent of chat\'s choosing for the next 10 minutes.'},
     {label:'Dance Break',color:'#e4b84d',icon:'🕺',desc:'Stand up and do a 30-second dance to whatever song chat picks. Full commitment required.'},
     {label:'Twitter Apology',color:'#4b69ff',icon:'🐦',desc:'Post a public tweet apologizing for your recent gameplay. Chat writes the text.'},
   ]};
@@ -12612,14 +12805,20 @@ function wmSetMode(mode) {
   }
 }
 function openWheelSpin(){
-  _wmLoad();
-  document.getElementById('wmModal').style.display='flex';
-  document.getElementById('wmCaseNameInp').value=_wmCurrent().name;
-  _wmRenderTabs();_wmRenderHist();_wmRenderContents();
-  document.getElementById('wmReelTrack').innerHTML='';
+  try { _wmLoad(); } catch(e) { console.error('_wmLoad failed:', e); }
+  const modal = document.getElementById('wmModal');
+  if (!modal) { console.error('wmModal not found'); return; }
+  modal.style.display = 'flex';
+  const nameInp = document.getElementById('wmCaseNameInp');
+  if (nameInp) nameInp.value = _wmCurrent().name;
+  try { _wmRenderTabs(); } catch(e) {}
+  try { _wmRenderHist(); } catch(e) {}
+  try { _wmRenderContents(); } catch(e) {}
+  const track = document.getElementById('wmReelTrack');
+  if (track) track.innerHTML = '';
   _setHash('wheelspin');
-  if(_wm.audioCtx?.state==='suspended')_wm.audioCtx.resume();
-
+  if (_wm.audioCtx?.state === 'suspended') _wm.audioCtx.resume();
+  try { _wmCheckImport(); } catch(e) {}
 }
 function closeWheelSpin(){
   document.getElementById('wmModal').style.display='none';
