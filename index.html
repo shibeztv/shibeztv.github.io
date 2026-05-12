@@ -1461,7 +1461,7 @@
     </div>
 
     <!-- SHORTS MODAL — lightbox style -->
-    <div id="shortsModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;touch-action:none" onclick="if(event.target===this)closeShorts()">
+    <div id="shortsModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9000;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;touch-action:none" onclick="if(event.target===this)closeShorts()">
 
       <!-- Hidden title/meta — still updated in JS for the ↗ link, just not displayed -->
       <div id="shortTitle" style="display:none"></div>
@@ -1500,16 +1500,16 @@
     </div>
 
         <!-- PROFILE MODAL -->
-    <div id="profileModal" style="display:none;position:fixed;inset:0;z-index:9010;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)shibezProfileClose()">
-      <div style="background:#0d0d1a;border:1px solid #7c3aed;border-radius:12px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
+    <div id="profileModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9010;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)shibezProfileClose()">
+      <div style="background:#0d0d1a;border:1px solid #7c3aed;border-radius:12px;width:100%;max-width:480px;max-height:calc(90vh - var(--topbar-h));overflow-y:auto;position:relative">
         <button onclick="shibezProfileClose()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;line-height:1">✕</button>
         <div id="profileModalContent" style="padding:24px"></div>
       </div>
     </div>
 
     <!-- SPACEBEZ MODAL -->
-    <div id="spaceModal" style="display:none;position:fixed;inset:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:10px;overflow:hidden">
-      <div style="background:#050510;border:1px solid #1a1a3a;border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;max-width:100%;max-height:calc(100vh - 20px)">
+    <div id="spaceModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:10px;overflow:hidden">
+      <div style="background:#050510;border:1px solid #1a1a3a;border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;max-width:100%;max-height:calc(100vh - var(--topbar-h) - 20px)">
         <div id="spaceMusicEl" style="display:none"></div>
         <div id="spaceShopMusicEl" style="display:none"></div>
         <div id="spaceShopMusicEl2" style="display:none"></div>
@@ -1594,8 +1594,8 @@
     </div>
 
     <!-- EMOTE GUESSER MODAL -->
-    <div id="egModal" style="display:none;position:fixed;inset:0;z-index:9005;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:20px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:800px;height:calc(100vh - 40px);max-height:900px">
+    <div id="egModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9005;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:20px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:800px;height:calc(100vh - var(--topbar-h) - 40px);max-height:900px">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
           <div style="display:flex;flex-direction:column;gap:2px">
@@ -1644,8 +1644,8 @@
     </div>
 
     <!-- HIGHER OR LOWER MODAL -->
-    <div id="holModal" style="display:none;position:fixed;inset:0;z-index:9004;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:12px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:1200px;max-height:calc(100vh - 24px)">
+    <div id="holModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9004;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:12px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:1200px;max-height:calc(100vh - var(--topbar-h) - 24px)">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
           <div style="display:flex;flex-direction:column;gap:2px">
@@ -1713,7 +1713,7 @@
 
 
     <!-- AI OR NOT MODAL -->
-    <div id="aionModal" style="display:none;position:fixed;inset:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:12px" onclick="if(event.target===this)closeAiOrNot()">
+    <div id="aionModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:12px" onclick="if(event.target===this)closeAiOrNot()">
       <div style="background:#0a0a14;border:1px solid #2a2a4a;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:680px;height:calc(100vh-24px);max-height:calc(100vh-24px)">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box">
@@ -1774,7 +1774,7 @@
     </div>
 
     <!-- FLAPPY SHIBEZ MODAL -->
-    <div id="flappyModal" style="display:none;position:fixed;inset:0;z-index:9002;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:20px">
+    <div id="flappyModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9002;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:20px">
       <div id="flappyMusicEl" style="display:none"></div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
@@ -1797,12 +1797,12 @@
             <button onclick="closeFlappy()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
-        <canvas id="flappyCanvas" width="680" height="880" style="display:block;cursor:pointer;max-width:100%;max-height:calc(100vh - 60px);width:auto;height:auto;touch-action:none;-webkit-tap-highlight-color:transparent"></canvas>
+        <canvas id="flappyCanvas" width="680" height="880" style="display:block;cursor:pointer;max-width:100%;max-height:calc(100vh - var(--topbar-h) - 60px);width:auto;height:auto;touch-action:none;-webkit-tap-highlight-color:transparent"></canvas>
       </div>
     </div>
 
     <!-- SHIB.LE MODAL -->
-    <div id="shibleModal" style="display:none;position:fixed;inset:0;z-index:9001;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:12px">
+    <div id="shibleModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9001;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:12px">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:1100px;overflow:hidden;position:relative;display:flex;flex-direction:column">
 
         <!-- Header -->
@@ -1899,8 +1899,8 @@
     </div>
 
     <!-- CLIP MODAL -->
-    <div id="clipModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:12px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:min(1800px,calc((100vh - 80px) * 16/9));overflow:hidden;position:relative;display:flex;flex-direction:column">
+    <div id="clipModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9000;background:rgba(5,7,14,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:12px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:min(1800px,calc((100vh - var(--topbar-h) - 80px) * 16/9));overflow:hidden;position:relative;display:flex;flex-direction:column">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text)" id="clipTitle">Loading clip…</div>
           <div style="display:flex;gap:8px;align-items:center">
