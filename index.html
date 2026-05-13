@@ -11260,7 +11260,7 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-contents-title{
   font-family:'Share Tech Mono',monospace;font-size:15px;font-weight:900;
-  letter-spacing:2px;color:#e4b84d;text-transform:uppercase;
+  letter-spacing:2px;color:#ffffff;text-transform:uppercase;
   padding:11px 12px 9px;border-bottom:1px solid #1e2028;flex-shrink:0;
 }
 .wm-contents-list{
@@ -11291,7 +11291,8 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* ── Left: reel section ── */
 .wm-left{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;}
-.wm-left .wm-result-area{flex:1;}
+/* result area should NOT steal flex from the wheel canvas */
+.wm-left .wm-result-area{flex:0 0 auto;}
 
 /* case subtitle */
 .wm-subtitle{
@@ -11596,14 +11597,14 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-emote-pick.open{display:flex;}
 .wm-ep-header{
-  font-family:'Share Tech Mono',monospace;font-size:15px;font-weight:800;letter-spacing:2px;
+  font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:800;letter-spacing:2px;
   color:#e4b84d;text-transform:uppercase;
 }
 .wm-ep-tabs{display:flex;gap:4px;flex-shrink:0;}
 .wm-ep-tab{
-  flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;
+  flex:1;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;
   background:#0a0c10;border:1px solid #1e2028;color:#c8d0dc;
-  padding:4px 6px;border-radius:2px;cursor:pointer;transition:all 0.12s;text-align:center;
+  padding:7px 8px;border-radius:2px;cursor:pointer;transition:all 0.12s;text-align:center;
 }
 .wm-ep-tab.active{background:rgba(228,184,77,0.1);border-color:#e4b84d;color:#e4b84d;}
 .wm-ep-search{
@@ -12169,7 +12170,15 @@ async function wmEpSwitchTab(tab) {
           <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#6a7080;margin-top:8px;letter-spacing:0.5px">PNG · JPG · GIF · WEBP</div>
           <input type="file" id="wmEpFileInput" accept="image/*" style="display:none" onchange="wmHandleImageUpload(this)">
         </div>
-        <div id="wmCropEditor" style="display:none;flex-direction:column;gap:8px;width:100%">
+        <div id="wmCropEditor" style="display:none;flex-direction:column;gap:8px;width:100%;position:relative"
+          ondragover="event.preventDefault();document.getElementById('wmCropEditorDropOverlay').style.display='flex'"
+          ondragleave="document.getElementById('wmCropEditorDropOverlay').style.display='none'"
+          ondrop="event.preventDefault();document.getElementById('wmCropEditorDropOverlay').style.display='none';var f=event.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){var inp=document.getElementById('wmEpFileInput');var dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;wmHandleImageUpload(inp);}">
+          <!-- Drop-to-replace overlay -->
+          <div id="wmCropEditorDropOverlay" style="display:none;position:absolute;inset:0;z-index:10;background:rgba(10,12,16,0.85);border:2px dashed #e4b84d;border-radius:4px;align-items:center;justify-content:center;flex-direction:column;gap:8px;pointer-events:none">
+            <div style="font-size:32px">📷</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#e4b84d;letter-spacing:1px">DROP TO REPLACE IMAGE</div>
+          </div>
           <div style="display:flex;gap:8px;align-items:flex-start;width:100%">
             <!-- Crop canvas -->
             <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
@@ -12182,7 +12191,7 @@ async function wmEpSwitchTab(tab) {
               <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;letter-spacing:1px">WHEEL PREVIEW</span>
               <canvas id="wmCropPreview" width="72" height="72"
                 style="border-radius:50%;border:2px solid #e4b84d;display:block;width:72px;height:72px"></canvas>
-              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;letter-spacing:1px">IN REEL</span>
+              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;letter-spacing:1px">IN CASE</span>
               <div id="wmCropReelPreview" style="width:72px;height:72px;background:#141720;border:1px solid #2a2e38;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden">
                 <img id="wmCropReelImg" style="width:43px;height:43px;object-fit:contain">
               </div>
@@ -12195,23 +12204,23 @@ async function wmEpSwitchTab(tab) {
               style="flex:1;accent-color:#e4b84d" oninput="_wmCropDraw()">
             <span id="wmCropZoomLbl" style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;min-width:32px;text-align:right">1.0×</span>
           </div>
-          <!-- Shape toggle -->
-          <div style="display:flex;gap:4px">
-            <button onclick="_wmCropSetShape('circle')" id="wmCropBtnCircle"
-              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #2a2e38;background:#0a0c10;color:#c8d0dc">● Circle</button>
+          <!-- Shape toggle — Square first, Circle second -->
+          <div style="display:flex;gap:6px">
             <button onclick="_wmCropSetShape('square')" id="wmCropBtnSquare"
-              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #e4b84d;background:rgba(228,184,77,0.12);color:#e4b84d">■ Square</button>
+              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;padding:8px 6px;border-radius:2px;cursor:pointer;border:1px solid #e4b84d;background:rgba(228,184,77,0.12);color:#e4b84d">&#9632; Square</button>
+            <button onclick="_wmCropSetShape('circle')" id="wmCropBtnCircle"
+              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;padding:8px 6px;border-radius:2px;cursor:pointer;border:1px solid #2a2e38;background:#0a0c10;color:#c8d0dc">&#9679; Circle</button>
             <button onclick="_wmCropReset()"
-              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #2a2e38;background:#0a0c10;color:#c8d0dc">↺ Reset</button>
+              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;padding:8px 6px;border-radius:2px;cursor:pointer;border:1px solid #2a2e38;background:#0a0c10;color:#c8d0dc">&#8635; Reset</button>
           </div>
           <!-- Apply buttons row -->
           <div style="display:flex;gap:6px">
             <button onclick="_wmCropApply()"
-              style="flex:2;font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:7px;border-radius:2px;cursor:pointer;border:none;background:#e4b84d;color:#0a0c10">
+              style="flex:2;font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:8px;border-radius:2px;cursor:pointer;border:none;background:#e4b84d;color:#0a0c10">
               ✓ USE THIS CROP
             </button>
             <button onclick="_wmUseOriginal()"
-              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:7px;border-radius:2px;cursor:pointer;border:1px solid #4a5568;background:#0a0c10;color:#c8d0dc">
+              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:8px;border-radius:2px;cursor:pointer;border:1px solid #4a5568;background:#0a0c10;color:#c8d0dc">
               Use Original
             </button>
           </div>
@@ -12321,6 +12330,8 @@ function wmHandleImageUpload(input) {
       _wmCropReset();
       document.getElementById('wmCropEditor').style.display = 'flex';
       document.getElementById('wmCropDropzone').style.display = 'none';
+      // Sync preview shapes to default (square)
+      _wmCropSetShape('square');
     };
     img.onerror = () => { alert('Could not load image.'); };
     img.src = dataUrl;
@@ -12417,6 +12428,11 @@ function _wmCropSetShape(s) {
   const bs = document.getElementById('wmCropBtnSquare');
   if (bc) { bc.style.borderColor = s==='circle'?'#e4b84d':'#2a2e38'; bc.style.background = s==='circle'?'rgba(228,184,77,0.12)':'#0a0c10'; bc.style.color = s==='circle'?'#e4b84d':'#c8d0dc'; }
   if (bs) { bs.style.borderColor = s==='square'?'#e4b84d':'#2a2e38'; bs.style.background = s==='square'?'rgba(228,184,77,0.12)':'#0a0c10'; bs.style.color = s==='square'?'#e4b84d':'#c8d0dc'; }
+  // Sync preview border-radius to selected shape
+  const prevCanvas = document.getElementById('wmCropPreview');
+  if (prevCanvas) prevCanvas.style.borderRadius = s === 'circle' ? '50%' : '4px';
+  const reelPrev = document.getElementById('wmCropReelPreview');
+  if (reelPrev) reelPrev.style.borderRadius = s === 'circle' ? '50%' : '4px';
   _wmCropDraw();
 }
 
@@ -13049,7 +13065,7 @@ function _wmRenderContents() {
     const descHtml = item.desc ? `<div class="wm-desc-tip">${item.desc}</div>` : '';
     // Use CSS custom properties so :hover can pick up the item's own color
     const hoverBg = item.color + '22'; // item color at ~13% opacity
-    const tipBg   = item.color + '38'; // item color at ~22% opacity for tooltip bg
+    const tipBg   = item.color + '22'; // item color at ~13% opacity for tooltip bg
     return `<div class="wm-citem" style="border-left-color:${item.color};--item-color:${item.color};--hover-bg:${hoverBg};--tip-bg:${tipBg}">
       <div class="wm-citem-icon">${iconHtml}</div>
       <div class="wm-citem-label" style="color:${item.color}">${item.label}</div>
