@@ -12065,6 +12065,11 @@ async function wmOpenEmotePick(itemIdx, btnEl) {
       const item = e.target.closest('[data-val]');
       if (!item) return;
       _wmEpSelect(item.dataset.val, item.dataset.name || item.dataset.val);
+      // Auto-apply immediately for emoji / 7TV tabs — user clicks once and it sticks.
+      // The upload tab keeps its own "USE THIS CROP" confirmation flow.
+      if (_wmEpTab !== 'upload') {
+        wmConfirmIcon();
+      }
     });
   }
   _wmEpPending = null;
@@ -12849,7 +12854,21 @@ function _wmRenderEdit() {
   }).join('');
 }
 function wmItemLabel(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].label=v;_wmSave();}
-function wmItemColor(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].color=v;_wmSave();_wmRenderEdit();_wmRenderContents();_wmDrawWheel();}
+function wmItemColor(i,v){
+  if(!_wmCheckLock(_wmCurrent()))return;
+  _wmCurrent().items[i].color=v;
+  _wmSave();
+  // Update just the swatch background in-place — do NOT call _wmRenderEdit() because
+  // that destroys and recreates the <input type=color> element, which closes the
+  // native OS color-picker dialog mid-selection.
+  const cards = document.querySelectorAll('.wm-item-card');
+  if (cards[i]) {
+    const swatch = cards[i].querySelector('.wm-col-btn');
+    if (swatch) swatch.style.background = v;
+  }
+  _wmRenderContents();
+  _wmDrawWheel(_wmWheelAngle);
+}
 function wmItemDesc(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].desc=v;_wmSave();_wmRenderContents();}
 function wmDelItem(i){if(!_wmCheckLock(_wmCurrent()))return;const w=_wmCurrent();w.items.splice(i,1);_wmSave();_wmRenderEdit();}
 function wmAddItem(){if(!_wmCheckLock(_wmCurrent()))return;
@@ -13187,16 +13206,15 @@ function wmSpinWheel() {
   const winIdx = Math.floor(Math.random() * wheel.items.length);
   const n   = wheel.items.length;
   const seg = (2 * Math.PI) / n;
-  // We want winIdx segment to be at the top pointer
-  // Segment i starts at angle i*seg - PI/2 (offset applied in draw)
-  // Center of segment i from zero: i*seg + seg/2
-  // Pointer at top = 0 in our normalized frame
-  // So we need: -finalAngle ≡ i*seg + seg/2 (mod 2PI)
-  // finalAngle = -(i*seg + seg/2) - jitter + extra full spins
-  const jitter   = (Math.random() - 0.5) * seg * 0.5;
-  const targetA  = _wmWheelAngle - (_wmWheelAngle % (2 * Math.PI))  // round to near-0 base
-                 + (6 + Math.floor(Math.random() * 4)) * 2 * Math.PI  // 6-9 full spins
-                 + (winIdx * seg + seg / 2 + jitter);                 // land on winner
+
+  // For segment i to land at the top pointer we need:
+  //   finalAngle = k*2π - (i*seg + seg/2)
+  // So we SUBTRACT the segment offset (sign was wrong before — it was added).
+  const jitter = (Math.random() - 0.5) * seg * 0.4;
+  // Round UP to next full rotation to guarantee forward spin, then add 6-9 extra spins.
+  const extraSpins = (6 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
+  const base     = Math.ceil(_wmWheelAngle / (2 * Math.PI)) * 2 * Math.PI;
+  const targetA  = base + extraSpins - (winIdx * seg + seg / 2) + jitter;
 
   const totalMs = 5500 + Math.random() * 1000;
   const startAngle = _wmWheelAngle;
