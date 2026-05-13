@@ -11276,7 +11276,7 @@ window.addEventListener('hashchange', _routeFromHash);
   border-left:3px solid #2a2e38;transition:background 0.1s;
   cursor:default;
 }
-.wm-citem:hover{background:#121720;}
+.wm-citem:hover{background:#1e2535;border-left-color:#e4b84d;}
 .wm-citem-icon{
   width:26px;height:26px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
@@ -11290,13 +11290,13 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 
 /* ── Left: reel section ── */
-.wm-left{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;}
+.wm-left{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;justify-content:center;}
 
 /* case subtitle */
 .wm-subtitle{
   text-align:center;
-  font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:3px;
-  color:#aaa;text-transform:uppercase;padding:14px 0 10px;flex-shrink:0;
+  font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;letter-spacing:3px;
+  color:#c8d0dc;text-transform:uppercase;padding:14px 0 10px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
 }
 
@@ -11577,7 +11577,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-edit-acts{display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid #1e2028;padding-top:8px;margin-top:4px;flex-shrink:0;}
 .wm-act{
   font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.5px;
-  background:#0e1117;border:1px solid #2a2e38;color:#8a9aaa;
+  background:#0e1117;border:1px solid #2a2e38;color:#c8d0dc;
   padding:5px 8px;border-radius:2px;cursor:pointer;transition:all 0.12s;flex:1;
 }
 .wm-act:hover{border-color:#e4b84d;color:#e4b84d;}
@@ -11598,7 +11598,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-ep-tabs{display:flex;gap:4px;flex-shrink:0;}
 .wm-ep-tab{
   flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;
-  background:#0a0c10;border:1px solid #1e2028;color:#4a5060;
+  background:#0a0c10;border:1px solid #1e2028;color:#c8d0dc;
   padding:4px 6px;border-radius:2px;cursor:pointer;transition:all 0.12s;text-align:center;
 }
 .wm-ep-tab.active{background:rgba(228,184,77,0.1);border-color:#e4b84d;color:#e4b84d;}
@@ -11626,7 +11626,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-ep-emoji-item{
   width:40px;height:40px;display:flex;align-items:center;justify-content:center;
   border-radius:3px;cursor:pointer;border:2px solid transparent;transition:all 0.1s;
-  background:#0a0c10;font-size:22px;
+  background:#0a0c10;font-size:22px;pointer-events:auto;position:relative;z-index:2;
 }
 .wm-ep-emoji-item:hover{border-color:#6a7a8a;}
 .wm-ep-emoji-item.sel{border-color:#e4b84d;background:rgba(228,184,77,0.12);}
@@ -11653,7 +11653,7 @@ window.addEventListener('hashchange', _routeFromHash);
   display:flex;align-items:center;justify-content:center;
 }
 .wm-ep-sel-name{
-  font-family:'Share Tech Mono',monospace;font-size:9px;color:#4a5060;
+  font-family:'Share Tech Mono',monospace;font-size:9px;color:#c8d0dc;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .wm-ep-ok{
@@ -11798,7 +11798,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-win-divider{width:50px;height:1px;background:#2a2e38;margin:0 auto 14px;}
 .wm-win-desc{
   font-family:'Share Tech Mono',monospace;font-size:12px;
-  color:#8a9aaa;line-height:1.8;letter-spacing:0.3px;
+  color:#c8d0dc;line-height:1.8;letter-spacing:0.3px;
 }
 .wm-win-close-row{
   display:flex;justify-content:center;
@@ -11857,10 +11857,10 @@ window.addEventListener('hashchange', _routeFromHash);
     <input class="wm-case-name-inp" id="wmCaseNameInp" value="Main Wheel" oninput="wmRenameWheel(this.value)" placeholder="Wheel name…">
     <!-- Mode toggle -->
     <div style="display:flex;align-items:center;gap:10px;margin-left:12px;flex-shrink:0">
-      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#8a9aaa;letter-spacing:0.5px">
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#c8d0dc;letter-spacing:0.5px">
         <input type="radio" name="wmMode" value="case" checked onchange="wmSetMode('case')" style="accent-color:#e4b84d;cursor:pointer"> Case Opening
       </label>
-      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#8a9aaa;letter-spacing:0.5px">
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#c8d0dc;letter-spacing:0.5px">
         <input type="radio" name="wmMode" value="wheel" onchange="wmSetMode('wheel')" style="accent-color:#e4b84d;cursor:pointer"> Wheel Spin
       </label>
     </div>
@@ -12057,6 +12057,16 @@ function _wmContentsIcon(icon) {
 // ── Open picker ──
 async function wmOpenEmotePick(itemIdx, btnEl) {
   _wmEmotePickTarget = itemIdx;
+  // Attach grid click delegation once
+  const grid = document.getElementById('wmEpGrid');
+  if (!grid._wmDelegated) {
+    grid._wmDelegated = true;
+    grid.addEventListener('click', function(e) {
+      const item = e.target.closest('[data-val]');
+      if (!item) return;
+      _wmEpSelect(item.dataset.val, item.dataset.name || item.dataset.val);
+    });
+  }
   _wmEpPending = null;
   const searchInp = document.getElementById('wmEpSearch');
   if (searchInp) searchInp.value = '';
@@ -12105,7 +12115,7 @@ async function wmEpSwitchTab(tab) {
   const grid = document.getElementById('wmEpGrid');
   if (tab === '7tv') {
     if (search) search.placeholder = 'Search 7TV emotes…';
-    grid.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;color:#4a5060;padding:12px;text-align:center">Loading emotes…</div>';
+    grid.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;color:#c8d0dc;padding:12px;text-align:center">Loading emotes…</div>';
     const emotes = await _wmFetchEmotes();
     if (_wmEpTab === '7tv') _wmRenderEmoteGrid(emotes);
   } else if (tab === 'emoji') {
@@ -12132,7 +12142,7 @@ async function wmEpSwitchTab(tab) {
             style="flex:1;background:#0a0c10;border:1px solid #2a2e38;color:#c8d0dc;font-family:'Share Tech Mono',monospace;font-size:10px;padding:5px 8px;border-radius:2px;outline:none">
           <button onclick="wmSaveImgurCid()" style="background:#0e1117;border:1px solid #3a4050;color:#aaa;font-family:'Share Tech Mono',monospace;font-size:9px;padding:5px 10px;border-radius:2px;cursor:pointer;white-space:nowrap" onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d'" onmouseout="this.style.borderColor='#3a4050';this.style.color='#aaa'">Save</button>
         </div>
-        <a href="https://api.imgbb.com" target="_blank" style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;text-decoration:none" onmouseover="this.style.color='#e4b84d'" onmouseout="this.style.color='#4a5060'">Get free key at api.imgbb.com ↗</a>
+        <a href="https://api.imgbb.com" target="_blank" style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;text-decoration:none" onmouseover="this.style.color='#e4b84d'" onmouseout="this.style.color='#c8d0dc'">Get free key at api.imgbb.com ↗</a>
       </div>`;
   }
 }
@@ -12152,14 +12162,14 @@ function wmEmoteSearch(q) {
 function _wmRenderEmoteGrid(emotes) {
   const cur = _wmEpPending?.value;
   document.getElementById('wmEpGrid').innerHTML = emotes.slice(0,100).map(e =>
-    `<div class="wm-ep-item${cur===e.url?' sel':''}" data-val="${e.url}" title="${e.name}" onclick="_wmEpSelect(${JSON.stringify(e.url)},${JSON.stringify(e.name)})"><img src="${e.url}" loading="lazy"></div>`
+    `<div class="wm-ep-item${cur===e.url?' sel':''}" data-val="${e.url}" data-name="${e.name}" title="${e.name}"><img src="${e.url}" loading="lazy"></div>`
   ).join('');
 }
 
 function _wmRenderEmojiGrid(list) {
   const cur = _wmEpPending?.value;
   document.getElementById('wmEpGrid').innerHTML = list.map(e =>
-    `<div class="wm-ep-emoji-item${cur===e?' sel':''}" data-val="${e}" onclick="_wmEpSelect(${JSON.stringify(e)},${JSON.stringify(e)})">${e}</div>`
+    `<div class="wm-ep-emoji-item${cur===e?' sel':''}" data-val="${e}" data-name="${e}">${e}</div>`
   ).join('');
 }
 
@@ -12709,7 +12719,7 @@ function _wmRenderEdit() {
   }).join('');
 }
 function wmItemLabel(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].label=v;_wmSave();}
-function wmItemColor(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].color=v;_wmSave();}
+function wmItemColor(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].color=v;_wmSave();_wmRenderEdit();_wmRenderContents();_wmDrawWheel();}
 function wmItemDesc(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].desc=v;_wmSave();_wmRenderContents();}
 function wmDelItem(i){if(!_wmCheckLock(_wmCurrent()))return;const w=_wmCurrent();w.items.splice(i,1);_wmSave();_wmRenderEdit();}
 function wmAddItem(){if(!_wmCheckLock(_wmCurrent()))return;
@@ -13021,17 +13031,15 @@ function _wmDrawWheel(angle) {
 
 // Determine winner from final angle
 function _wmWheelWinner(finalAngle) {
+  // Segment i midpoint is at canvas angle: finalAngle + i*seg - PI/2 + seg/2
+  // Pointer is at -PI/2. Segment at pointer: finalAngle + i*seg + seg/2 = 0 (mod 2PI)
+  // => i*seg = -finalAngle - seg/2 (mod 2PI)
+  // => i = floor((-finalAngle - seg/2) / seg) mod n
   const items = _wmCurrent().items;
-  const n     = items.length;
-  const seg   = (2 * Math.PI) / n;
-  // Draw places segment i with midpoint at canvas angle: finalAngle + i*seg - PI/2 + seg/2
-  // Pointer is at canvas angle -PI/2 (top)
-  // Segment i is under pointer when: finalAngle + i*seg + seg/2 ≡ 0 (mod 2PI)
-  // So effective angle for finding winner: -finalAngle, then find which seg mid is nearest 0
-  let a = ((-finalAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-  // a tells us where segment 0's start is. Shift by seg/2 so we hit the midpoint correctly
-  const idx = Math.floor(((a + seg / 2) % (2 * Math.PI)) / seg) % n;
-  return idx;
+  const n   = items.length;
+  const seg = (2 * Math.PI) / n;
+  let a = ((-finalAngle - seg / 2) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+  return Math.floor(a / seg) % n;
 }
 
 function wmSpinWheel() {
@@ -13064,8 +13072,8 @@ function wmSpinWheel() {
   const startAngle = _wmWheelAngle;
   let startTime = null;
 
-  // Play wheel SFX (tick at increasing intervals)
-  _wmPlayWheelSfx();
+  // Ticks now fired per-frame in _wmTickOnBoundary
+  _wmLastTickSeg = -1;
 
   function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
 
@@ -13075,6 +13083,7 @@ function wmSpinWheel() {
     const t = Math.min(elapsed / totalMs, 1);
     _wmWheelAngle = startAngle + (targetA - startAngle) * easeOut(t);
     _wmDrawWheel(_wmWheelAngle);
+    _wmTickOnBoundary(_wmWheelAngle, n);
 
     if (t < 1) {
       _wm.animId = requestAnimationFrame(frame);
@@ -13085,7 +13094,7 @@ function wmSpinWheel() {
       _wmStopWheelSfx();
       _wmPlayEndSfx();
 
-      // Show winner
+      // Show winner — use winIdx directly (already the correct segment)
       const winner = wheel.items[winIdx];
       const rl = document.getElementById('wmResultLabel');
       rl.textContent = winner.label;
@@ -13104,20 +13113,24 @@ function wmSpinWheel() {
 // Wheel-mode SFX (different from CS2 tick — more like a roulette click)
 let _wmWheelSfxInterval = null;
 let _wmWheelSfxSpeed = 60;
+let _wmLastTickSeg = -1; // tracks last segment boundary crossed
 
-function _wmPlayWheelSfx() {
-  if (_wm.muted) return;
-  _wmStopWheelSfx();
-  _wmWheelSfxSpeed = 60;
-  function tick() {
-    _wmWheelTick();
-    _wmWheelSfxSpeed = Math.min(_wmWheelSfxSpeed * 1.018, 500);
-    _wmWheelSfxInterval = setTimeout(tick, _wmWheelSfxSpeed);
-  }
-  _wmWheelSfxInterval = setTimeout(tick, _wmWheelSfxSpeed);
-}
+function _wmPlayWheelSfx() { /* no-op — ticks now fired from animation frame */ }
 function _wmStopWheelSfx() {
   if (_wmWheelSfxInterval) { clearTimeout(_wmWheelSfxInterval); _wmWheelSfxInterval = null; }
+  _wmLastTickSeg = -1;
+}
+
+// Call this each animation frame with the current angle and n segments
+function _wmTickOnBoundary(angle, n) {
+  if (_wm.muted || !n) return;
+  const seg = (2 * Math.PI) / n;
+  // Which segment is currently at the pointer?
+  const cur = _wmWheelWinner(angle);
+  if (cur !== _wmLastTickSeg) {
+    _wmLastTickSeg = cur;
+    _wmWheelTick();
+  }
 }
 function _wmWheelTick() {
   if (_wm.muted) return;
