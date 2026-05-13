@@ -11238,7 +11238,7 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-case-name-inp:focus{border-color:#e4b84d;}
 .wm-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
-.wm-vol-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:#aaa;letter-spacing:1px;}
+.wm-vol-label{font-family:'Share Tech Mono',monospace;font-size:13px;color:#c8d0dc;letter-spacing:1px;font-weight:700;}
 #wmVolSlider{width:80px;accent-color:#e4b84d;cursor:pointer;}
 #wmMuteBtn{background:rgba(255,255,255,0.05);border:1px solid #2a2e38;color:#666;font-size:14px;padding:3px 8px;border-radius:3px;cursor:pointer;}
 #wmMuteBtn:hover{color:#e4b84d;border-color:#e4b84d;}
@@ -11259,8 +11259,8 @@ window.addEventListener('hashchange', _routeFromHash);
   display:flex;flex-direction:column;overflow:hidden;
 }
 .wm-contents-title{
-  font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;
-  letter-spacing:2px;color:#c8d0dc;text-transform:uppercase;
+  font-family:'Share Tech Mono',monospace;font-size:15px;font-weight:900;
+  letter-spacing:2px;color:#e4b84d;text-transform:uppercase;
   padding:11px 12px 9px;border-bottom:1px solid #1e2028;flex-shrink:0;
 }
 .wm-contents-list{
@@ -11276,7 +11276,7 @@ window.addEventListener('hashchange', _routeFromHash);
   border-left:3px solid #2a2e38;transition:background 0.1s;
   cursor:default;
 }
-.wm-citem:hover{background:#1e2535;border-left-color:#e4b84d;}
+.wm-citem:hover{background:var(--hover-bg,#1e2535);border-left-color:var(--item-color,#e4b84d);}
 .wm-citem-icon{
   width:26px;height:26px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
@@ -11295,9 +11295,10 @@ window.addEventListener('hashchange', _routeFromHash);
 /* case subtitle */
 .wm-subtitle{
   text-align:center;
-  font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;letter-spacing:3px;
-  color:#c8d0dc;text-transform:uppercase;padding:14px 0 10px;flex-shrink:0;
+  font-family:'Share Tech Mono',monospace;font-size:16px;font-weight:900;letter-spacing:4px;
+  color:#ffffff;text-transform:uppercase;padding:30px 0 10px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
+  text-shadow:0 0 18px rgba(228,184,77,0.35);
 }
 
 /* ── Actual spinning wheel ── */
@@ -11419,16 +11420,16 @@ window.addEventListener('hashchange', _routeFromHash);
   padding:8px 16px;border-top:1px solid #1e2028;flex-shrink:0;
 }
 .wm-wtab{
-  font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;
   background:rgba(255,255,255,0.03);border:1px solid #252930;color:#60ddff;
-  padding:5px 12px;border-radius:2px;cursor:pointer;transition:all 0.12s;
+  padding:8px 18px;border-radius:2px;cursor:pointer;transition:all 0.12s;
 }
 .wm-wtab:hover{border-color:#e4b84d;color:#e4b84d;}
 .wm-wtab.active{background:rgba(228,184,77,0.1);border-color:#e4b84d;color:#e4b84d;}
 .wm-newbtn{
-  font-family:'Share Tech Mono',monospace;font-size:10px;
+  font-family:'Share Tech Mono',monospace;font-size:12px;
   background:none;border:1px dashed #3a4050;color:#6a7a8a;
-  padding:5px 10px;border-radius:2px;cursor:pointer;transition:all 0.12s;
+  padding:8px 14px;border-radius:2px;cursor:pointer;transition:all 0.12s;
 }
 .wm-newbtn:hover{color:#e4b84d;border-color:#e4b84d;}
 
@@ -12016,6 +12017,7 @@ let _wmEmotes = [];
 let _wmEmotePickTarget = null;
 let _wmEpTab = '7tv';
 let _wmEpPending = null; // {value, name}
+let _wmDocClose = null;  // document-level outside-click closer for emote picker
 
 const WM_EMOJI_LIST = [
   '⚔️','🛡️','💣','🔫','🎯','🏆','💀','🔥','⚡','🌊','🎲','🗡️','💎','🎰','🌀',
@@ -12089,18 +12091,21 @@ async function wmOpenEmotePick(itemIdx, btnEl) {
   picker.style.left = Math.max(4, left) + 'px';
   picker.style.top  = Math.max(4, top) + 'px';
   wmEpSwitchTab(_wmEpTab);
-  // Show the backdrop; clicking it closes the picker
-  let bd = document.getElementById('wmEpBackdrop');
-  if (!bd) {
-    bd = document.createElement('div');
-    bd.id = 'wmEpBackdrop';
-    bd.style.cssText = 'position:fixed;inset:0;z-index:9998;';
-    bd.addEventListener('click', () => {
-      document.getElementById('wmEmotePick').classList.remove('open');
-      bd.remove();
-    });
-    document.body.appendChild(bd);
-  }
+  // ── Outside-click to close: use a capture-phase document listener added
+  //    with a short delay so the click that OPENED the picker is already done.
+  if (_wmDocClose) document.removeEventListener('click', _wmDocClose, true);
+  _wmDocClose = function(e) {
+    const picker = document.getElementById('wmEmotePick');
+    if (!picker) return;
+    if (!picker.contains(e.target)) {
+      picker.classList.remove('open');
+      document.removeEventListener('click', _wmDocClose, true);
+      _wmDocClose = null;
+    }
+  };
+  setTimeout(() => {
+    if (_wmDocClose) document.addEventListener('click', _wmDocClose, true);
+  }, 120);
 }
 
 function _wmEpOutsideClick(e) {
@@ -12500,7 +12505,7 @@ function wmConfirmIcon() {
   _wmRenderEdit();
   _wmRenderContents();
   document.getElementById('wmEmotePick').classList.remove('open');
-  const bd = document.getElementById('wmEpBackdrop'); if (bd) bd.remove();
+  if (_wmDocClose) { document.removeEventListener('click', _wmDocClose, true); _wmDocClose = null; }
   _wmEpPending = null;
 }
 
@@ -12951,7 +12956,9 @@ function _wmRenderContents() {
   el.innerHTML = w.items.map(item => {
     const iconHtml = _wmContentsIcon(item.icon);
     const descHtml = item.desc ? `<div class="wm-desc-tip">${item.desc}</div>` : '';
-    return `<div class="wm-citem" style="border-left-color:${item.color}">
+    // Use CSS custom properties so :hover can pick up the item's own color
+    const hoverBg = item.color + '22'; // item color at ~13% opacity
+    return `<div class="wm-citem" style="border-left-color:${item.color};--item-color:${item.color};--hover-bg:${hoverBg}">
       <div class="wm-citem-icon">${iconHtml}</div>
       <div class="wm-citem-label" style="color:${item.color}">${item.label}</div>
       ${descHtml}
@@ -13318,7 +13325,7 @@ function openWheelSpin(){
 function closeWheelSpin(){
   document.getElementById('wmModal').style.display='none';
   document.getElementById('wmEmotePick').classList.remove('open');
-  const bd = document.getElementById('wmEpBackdrop'); if (bd) bd.remove();
+  if (_wmDocClose) { document.removeEventListener('click', _wmDocClose, true); _wmDocClose = null; }
   if(_wm.animId)cancelAnimationFrame(_wm.animId);
   _wmStopTickSfx();
   _wmStopWheelSfx();
