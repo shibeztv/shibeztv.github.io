@@ -12982,16 +12982,37 @@ function wmItemColor(i,v){
 }
 function wmItemDesc(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].desc=v;_wmSave();_wmRenderContents();}
 function wmDelItem(i){if(!_wmCheckLock(_wmCurrent()))return;const w=_wmCurrent();w.items.splice(i,1);_wmSave();_wmRenderEdit();}
+// Pick a color that hasn't been used recently in the current wheel
+function _wmPickUniqueColor(existingItems) {
+  const used = new Set((existingItems || []).map(it => it.color));
+  // Try to find a color not currently used
+  const unused = WM_RARITIES.filter(c => !used.has(c));
+  const pool = unused.length ? unused : WM_RARITIES;
+  // Shuffle pool and pick first — avoid last-used color if pool allows
+  const lastColor = existingItems && existingItems.length ? existingItems[existingItems.length - 1].color : null;
+  const filtered = pool.filter(c => c !== lastColor);
+  const source = filtered.length ? filtered : pool;
+  return source[Math.floor(Math.random() * source.length)];
+}
+// Pick an icon that isn't already used in the current wheel
+function _wmPickUniqueIcon(existingItems) {
+  const used = new Set((existingItems || []).map(it => it.icon));
+  const unused = WM_ICONS.filter(ic => !used.has(ic));
+  const pool = unused.length ? unused : WM_ICONS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 function wmAddItem(){if(!_wmCheckLock(_wmCurrent()))return;
   const w=_wmCurrent();
-  const col=WM_RARITIES[Math.floor(Math.random()*WM_RARITIES.length)];
-  const icon=WM_ICONS[Math.floor(Math.random()*WM_ICONS.length)];
+  const col=_wmPickUniqueColor(w.items);
+  const icon=_wmPickUniqueIcon(w.items);
   w.items.push({label:'New Item',color:col,icon,desc:'Add a description / punishment here.'});
   _wmSave();_wmRenderEdit();_wmRenderContents();
 }
 function wmRandCols(){if(!_wmCheckLock(_wmCurrent()))return;
   const w=_wmCurrent();
-  w.items.forEach(it=>{it.color=WM_RARITIES[Math.floor(Math.random()*WM_RARITIES.length)];});
+  // Assign colors so no two adjacent items share a color, cycling through palette
+  const shuffled=[...WM_RARITIES].sort(()=>Math.random()-0.5);
+  w.items.forEach((it,i)=>{it.color=shuffled[i%shuffled.length];});
   _wmSave();_wmRenderEdit();_wmRenderContents();
 }
 function wmRenameWheel(v){
@@ -13256,7 +13277,7 @@ function _wmDrawWheel(angle) {
     const isUrl   = icon && (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/'));
     const isEmoji = icon && !isUrl;
 
-    if (n <= 20) {
+    if (n <= 100) {
       if (isUrl) {
         // Draw cached image centered on the segment label position
         const cachedImg = _wmGetImg(icon);
@@ -13291,7 +13312,7 @@ function _wmDrawWheel(angle) {
     while (ctx.measureText(label).width > maxW && label.length > 2) label = label.slice(0, -1);
     if (label !== item.label.toUpperCase()) label += '…';
 
-    ctx.fillText(label, 0, (isUrl || isEmoji) && n <= 20 ? (fontSize + 3) : 0);
+    ctx.fillText(label, 0, (isUrl || isEmoji) && n <= 100 ? (fontSize + 3) : 0);
     ctx.restore();
   }
 
