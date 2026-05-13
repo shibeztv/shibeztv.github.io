@@ -11291,12 +11291,13 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* ── Left: reel section ── */
 .wm-left{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;}
+.wm-left .wm-result-area{flex:1;}
 
 /* case subtitle */
 .wm-subtitle{
   text-align:center;
   font-family:'Share Tech Mono',monospace;font-size:16px;font-weight:900;letter-spacing:4px;
-  color:#ffffff;text-transform:uppercase;padding:48px 0 22px;flex-shrink:0;
+  color:#ffffff;text-transform:uppercase;padding:42px 0 22px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   text-shadow:0 0 18px rgba(228,184,77,0.35);
 }
@@ -11335,7 +11336,7 @@ window.addEventListener('hashchange', _routeFromHash);
   padding:0;margin:8px 0 0 0;
   background:linear-gradient(180deg,#0d0f14 0%,#111418 50%,#0d0f14 100%);
   border-top:1px solid #252930;border-bottom:1px solid #252930;
-  overflow:hidden;height:240px;
+  overflow:hidden;height:260px;
 }
 /* fade edges */
 .wm-reel-outer::before,.wm-reel-outer::after{
@@ -11354,7 +11355,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* single item card */
 .wm-item{
-  flex-shrink:0;width:160px;height:170px;
+  flex-shrink:0;width:210px;height:240px;
   display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
   border-radius:3px;cursor:default;
   position:relative;overflow:hidden;
@@ -11367,7 +11368,7 @@ window.addEventListener('hashchange', _routeFromHash);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
 }
 .wm-item-icon{
-  font-size:43px;line-height:1;
+  font-size:60px;line-height:1;
   filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6));
 }
 .wm-item-label{
@@ -11413,6 +11414,7 @@ window.addEventListener('hashchange', _routeFromHash);
   transition:all 0.4s;text-align:center;
 }
 .wm-result-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:#aaa;letter-spacing:2px;}
+.wm-result-desc{font-family:'Share Tech Mono',monospace;font-size:11px;color:#c8d0dc;letter-spacing:0.5px;text-align:center;max-width:480px;line-height:1.6;padding:0 16px;opacity:0.85;}
 
 /* ── Wheel selector row ── */
 .wm-wheel-row{
@@ -11587,9 +11589,10 @@ window.addEventListener('hashchange', _routeFromHash);
 /* ── Icon picker (7TV + upload) ── */
 .wm-emote-pick{
   position:fixed;z-index:9999;background:#0d0f14;border:1px solid #2a2e38;
-  border-radius:4px;padding:10px;width:320px;
+  border-radius:4px;padding:10px;width:430px;
   display:none;flex-direction:column;gap:8px;
   box-shadow:0 12px 48px rgba(0,0,0,0.95);
+  max-height:calc(100vh - 20px);overflow-y:auto;
 }
 .wm-emote-pick.open{display:flex;}
 .wm-ep-header{
@@ -11721,8 +11724,8 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-desc-tip{
   display:none;
   position:fixed;
-  background:#5a5a20;border:2px solid #9a9a30;
-  color:#ffffc8;font-family:'Share Tech Mono',monospace;font-size:12px;
+  background:#1a1e28;border:1px solid #3a4050;
+  color:#e8e8f0;font-family:'Share Tech Mono',monospace;font-size:12px;
   line-height:1.65;letter-spacing:0.3px;
   padding:10px 14px;border-radius:3px;width:280px;
   box-shadow:0 4px 24px rgba(0,0,0,0.95);
@@ -11732,7 +11735,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-desc-tip::before{
   content:'';position:absolute;
   right:100%;top:14px;
-  border:6px solid transparent;border-right-color:#9a9a30;
+  border:6px solid transparent;border-right-color:#3a4050;
 }
 
 /* ── Win popup overlay ── */
@@ -11788,18 +11791,18 @@ window.addEventListener('hashchange', _routeFromHash);
 /* Text block */
 .wm-win-text{padding:24px 36px 28px;text-align:center;}
 .wm-win-you-got{
-  font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;
+  font-family:'Share Tech Mono',monospace;font-size:15px;letter-spacing:3px;
   text-transform:uppercase;color:#60ddff;margin-bottom:10px;
 }
 .wm-win-name{
-  font-family:'Rajdhani',sans-serif;font-size:34px;font-weight:800;
+  font-family:'Rajdhani',sans-serif;font-size:42px;font-weight:800;
   letter-spacing:2px;text-transform:uppercase;
   line-height:1.1;margin-bottom:14px;
 }
 .wm-win-divider{width:50px;height:1px;background:#2a2e38;margin:0 auto 14px;}
 .wm-win-desc{
-  font-family:'Share Tech Mono',monospace;font-size:12px;
-  color:#c8d0dc;line-height:1.8;letter-spacing:0.3px;
+  font-family:'Share Tech Mono',monospace;font-size:14px;
+  color:#dde1eb;line-height:1.8;letter-spacing:0.3px;
 }
 .wm-win-close-row{
   display:flex;justify-content:center;
@@ -11908,8 +11911,9 @@ window.addEventListener('hashchange', _routeFromHash);
 
       <!-- Result -->
       <div class="wm-result-area">
-        <div class="wm-result-label" id="wmResultLabel"> </div>
         <div class="wm-result-sub" id="wmResultSub"></div>
+        <div class="wm-result-label" id="wmResultLabel"> </div>
+        <div class="wm-result-desc" id="wmResultDesc"></div>
       </div>
 
       <!-- Wheel tabs -->
@@ -11984,7 +11988,7 @@ window.addEventListener('hashchange', _routeFromHash);
       </div>
       <div class="wm-win-stripe" id="wmWinStripe"></div>
       <div class="wm-win-text">
-        <div class="wm-win-you-got">— You opened —</div>
+        <div class="wm-win-you-got">— You received —</div>
         <div class="wm-win-name" id="wmWinName">Item</div>
         <div class="wm-win-divider"></div>
         <div class="wm-win-desc" id="wmWinDesc"></div>
@@ -12056,6 +12060,19 @@ function _wmContentsIcon(icon) {
   return '<span>' + icon + '</span>';
 }
 
+// Pre-load image cache for canvas drawing
+const _wmImgCache = {};
+function _wmGetImg(url) {
+  if (_wmImgCache[url]) return _wmImgCache[url];
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => { _wmImgCache[url].loaded = true; _wmDrawWheel(_wmWheelAngle); };
+  img.onerror = () => { _wmImgCache[url].error = true; };
+  img.src = url;
+  _wmImgCache[url] = img;
+  return img;
+}
+
 // ── Open picker ──
 async function wmOpenEmotePick(itemIdx, btnEl) {
   _wmEmotePickTarget = itemIdx;
@@ -12067,11 +12084,8 @@ async function wmOpenEmotePick(itemIdx, btnEl) {
       const item = e.target.closest('[data-val]');
       if (!item) return;
       _wmEpSelect(item.dataset.val, item.dataset.name || item.dataset.val);
-      // Auto-apply immediately for emoji / 7TV tabs — user clicks once and it sticks.
+      // Selection is staged — user must click Apply or click outside to confirm.
       // The upload tab keeps its own "USE THIS CROP" confirmation flow.
-      if (_wmEpTab !== 'upload') {
-        wmConfirmIcon();
-      }
     });
   }
   _wmEpPending = null;
@@ -12083,7 +12097,7 @@ async function wmOpenEmotePick(itemIdx, btnEl) {
   _wmEpUpdatePreview(null);
   // Position near button — clamp to viewport
   const rect = btnEl.getBoundingClientRect();
-  const pw = 288, ph = 420;
+  const pw = 430, ph = 580;
   let left = rect.right + 8;
   let top = rect.top;
   if (left + pw > window.innerWidth - 4) left = rect.left - pw - 8;
@@ -12098,7 +12112,12 @@ async function wmOpenEmotePick(itemIdx, btnEl) {
     const picker = document.getElementById('wmEmotePick');
     if (!picker) return;
     if (!picker.contains(e.target)) {
-      picker.classList.remove('open');
+      // Apply pending selection (if any) when clicking outside
+      if (_wmEpPending && _wmEpTab !== 'upload') {
+        wmConfirmIcon();
+      } else {
+        picker.classList.remove('open');
+      }
       document.removeEventListener('click', _wmDocClose, true);
       _wmDocClose = null;
     }
@@ -12136,25 +12155,31 @@ async function wmEpSwitchTab(tab) {
     grid.innerHTML = `
       <div id="wmCropWrap" style="display:flex;flex-direction:column;gap:8px">
         <div id="wmCropDropzone" onclick="document.getElementById('wmEpFileInput').click()"
-          style="border:2px dashed #2a2e38;border-radius:4px;padding:18px;text-align:center;cursor:pointer;transition:border-color 0.15s;color:#c8d0dc;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px"
+          ondragover="event.preventDefault();this.style.borderColor='#e4b84d'"
+          ondragleave="this.style.borderColor='#2a2e38'"
+          ondrop="event.preventDefault();this.style.borderColor='#2a2e38';var f=event.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){var inp=document.getElementById('wmEpFileInput');var dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;wmHandleImageUpload(inp);}"
+          style="border:2px dashed #2a2e38;border-radius:4px;padding:18px;text-align:center;cursor:pointer;transition:border-color 0.15s;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;width:100%"
           onmouseover="this.style.borderColor='#e4b84d'" onmouseout="this.style.borderColor='#2a2e38'">
-          📷 Click to upload image<br><span style="font-size:8px;color:#6a7a8a">PNG · JPG · GIF · WEBP</span>
+          <div style="font-size:28px;margin-bottom:8px">📷</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#c8d0dc;letter-spacing:1px">Click to upload image</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#c8d0dc;margin-top:5px;letter-spacing:1px">or drag & drop here</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;margin-top:6px;letter-spacing:0.5px">PNG · JPG · GIF · WEBP</div>
           <input type="file" id="wmEpFileInput" accept="image/*" style="display:none" onchange="wmHandleImageUpload(this)">
         </div>
         <div id="wmCropEditor" style="display:none;flex-direction:column;gap:8px">
           <div style="display:flex;gap:8px;align-items:flex-start">
             <!-- Crop canvas -->
             <div style="flex:1;display:flex;flex-direction:column;gap:4px">
-              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#6a7a8a;letter-spacing:1px">DRAG TO PAN · SCROLL TO ZOOM</span>
-              <canvas id="wmCropCanvas" width="200" height="200"
-                style="border:1px solid #2a2e38;border-radius:3px;cursor:grab;display:block;touch-action:none;width:200px;height:200px"></canvas>
+              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;letter-spacing:1px">DRAG TO PAN · SCROLL TO ZOOM</span>
+              <canvas id="wmCropCanvas" width="300" height="300"
+                style="border:1px solid #2a2e38;border-radius:3px;cursor:grab;display:block;touch-action:none;width:300px;height:300px"></canvas>
             </div>
             <!-- Preview column -->
             <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
-              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#6a7a8a;letter-spacing:1px">WHEEL PREVIEW</span>
+              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;letter-spacing:1px">WHEEL PREVIEW</span>
               <canvas id="wmCropPreview" width="72" height="72"
                 style="border-radius:50%;border:2px solid #e4b84d;display:block;width:72px;height:72px"></canvas>
-              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#6a7a8a;letter-spacing:1px">IN REEL</span>
+              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;letter-spacing:1px">IN REEL</span>
               <div id="wmCropReelPreview" style="width:72px;height:72px;background:#141720;border:1px solid #2a2e38;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden">
                 <img id="wmCropReelImg" style="width:43px;height:43px;object-fit:contain">
               </div>
@@ -12162,7 +12187,7 @@ async function wmEpSwitchTab(tab) {
           </div>
           <!-- Zoom slider -->
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#6a7a8a;min-width:28px">ZOOM</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;min-width:28px">ZOOM</span>
             <input type="range" id="wmCropZoom" min="0.2" max="4" step="0.01" value="1"
               style="flex:1;accent-color:#e4b84d" oninput="_wmCropDraw()">
             <span id="wmCropZoomLbl" style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;min-width:32px;text-align:right">1.0×</span>
@@ -12170,9 +12195,9 @@ async function wmEpSwitchTab(tab) {
           <!-- Shape toggle -->
           <div style="display:flex;gap:4px">
             <button onclick="_wmCropSetShape('circle')" id="wmCropBtnCircle"
-              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #e4b84d;background:rgba(228,184,77,0.12);color:#e4b84d">● Circle</button>
+              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #2a2e38;background:#0a0c10;color:#c8d0dc">● Circle</button>
             <button onclick="_wmCropSetShape('square')" id="wmCropBtnSquare"
-              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #2a2e38;background:#0a0c10;color:#c8d0dc">■ Square</button>
+              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #e4b84d;background:rgba(228,184,77,0.12);color:#e4b84d">■ Square</button>
             <button onclick="_wmCropReset()"
               style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #2a2e38;background:#0a0c10;color:#c8d0dc">↺ Reset</button>
           </div>
@@ -12247,7 +12272,7 @@ function _wmEpUpdateOk() {
 
 // ── Crop editor state ──
 let _wmCropImg = null, _wmCropOX = 0, _wmCropOY = 0, _wmCropScale = 1;
-let _wmCropShape = 'circle', _wmCropDragging = false, _wmCropDragStart = null;
+let _wmCropShape = 'square', _wmCropDragging = false, _wmCropDragStart = null;
 
 function wmHandleImageUpload(input) {
   const file = input.files[0]; if (!file) return;
@@ -12300,27 +12325,36 @@ function _wmCropInit() {
     e.preventDefault();
   }, { passive: false });
   cv.addEventListener('touchend', () => { _wmCropDragging = false; });
-  // Scroll zoom
+  // Scroll zoom — centered on canvas middle
   cv.addEventListener('wheel', e => {
     e.preventDefault();
     const sl = document.getElementById('wmCropZoom');
     if (!sl) return;
-    let v = parseFloat(sl.value) + (e.deltaY < 0 ? 0.08 : -0.08);
+    const oldScale = parseFloat(sl.value);
+    let v = oldScale + (e.deltaY < 0 ? 0.08 : -0.08);
     v = Math.max(0.2, Math.min(4, v));
     sl.value = v;
+    // Adjust offset so zoom is anchored to canvas center
+    const SIZE = 300;
+    const cx = SIZE / 2, cy = SIZE / 2;
+    _wmCropOX = cx - (cx - _wmCropOX) * (v / oldScale);
+    _wmCropOY = cy - (cy - _wmCropOY) * (v / oldScale);
     _wmCropDraw();
   }, { passive: false });
 }
 
 function _wmCropReset() {
   if (!_wmCropImg) return;
-  const SIZE = 200;
+  const SIZE = 300;
   const scale = Math.max(SIZE / _wmCropImg.width, SIZE / _wmCropImg.height);
   const sl = document.getElementById('wmCropZoom');
   if (sl) { sl.value = scale; }
   _wmCropScale = scale;
   _wmCropOX = (SIZE - _wmCropImg.width * scale) / 2;
   _wmCropOY = (SIZE - _wmCropImg.height * scale) / 2;
+  // Default to square shape
+  _wmCropShape = 'square';
+  _wmCropSetShape('square');
   _wmCropDraw();
 }
 
@@ -12339,7 +12373,7 @@ function _wmCropDraw() {
   const sl = document.getElementById('wmCropZoom');
   const lbl = document.getElementById('wmCropZoomLbl');
   if (!cv || !_wmCropImg) return;
-  const SIZE = 200, PREV = 72;
+  const SIZE = 300, PREV = 72;
   _wmCropScale = parseFloat(sl?.value || 1);
   if (lbl) lbl.textContent = _wmCropScale.toFixed(1) + '×';
 
@@ -12402,7 +12436,7 @@ function _wmCropApply() {
   const cv2 = document.createElement('canvas');
   cv2.width = OUT; cv2.height = OUT;
   const c = cv2.getContext('2d');
-  const SIZE = 200;
+  const SIZE = 300;
   const ratio = OUT / SIZE;
   if (_wmCropShape === 'circle') {
     c.beginPath(); c.arc(OUT/2, OUT/2, OUT/2, 0, Math.PI*2); c.clip();
@@ -12685,6 +12719,7 @@ function wmSpin() {
   document.getElementById('wmSpinBtn').disabled = true;
   document.getElementById('wmResultLabel').textContent = '';
   document.getElementById('wmResultSub').textContent = '';
+  const _rdClear1 = document.getElementById('wmResultDesc'); if (_rdClear1) _rdClear1.textContent = '';
   document.getElementById('wmWinFlash').classList.remove('show');
   document.querySelectorAll('.wm-item.winner').forEach(e => e.classList.remove('winner'));
 
@@ -12746,6 +12781,8 @@ function wmSpin() {
       rl.style.color = winner.color;
       rl.style.textShadow = `0 0 30px ${winner.color}88`;
       document.getElementById('wmResultSub').textContent = '— YOU RECEIVED —';
+      const rdCase = document.getElementById('wmResultDesc');
+      if (rdCase) rdCase.textContent = winner.desc || '';
       _wmStopTickSfx();
       _wmPlayEndSfx();
       // History
@@ -12920,6 +12957,7 @@ function wmSelectCase(id){
   document.getElementById('wmCaseNameInp').value=_wmCurrent().name;
   document.getElementById('wmResultLabel').textContent='';
   document.getElementById('wmResultSub').textContent='';
+  const _rdClear2 = document.getElementById('wmResultDesc'); if (_rdClear2) _rdClear2.textContent = '';
   document.getElementById('wmReelTrack').innerHTML='';
   _wmRenderTabs();
   _wmRenderContents();
@@ -13145,13 +13183,28 @@ function _wmDrawWheel(angle) {
 
     // Icon (emoji — skip URL icons on canvas, show label only)
     const icon = item.icon;
-    const isEmoji = icon && !icon.startsWith('http') && !icon.startsWith('data:');
+    const isUrl   = icon && (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/'));
+    const isEmoji = icon && !isUrl;
 
-    if (isEmoji && n <= 20) {
-      ctx.font = `${Math.max(14, fontSize + 4)}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(icon, 0, -(fontSize + 3));
+    if (n <= 20) {
+      if (isUrl) {
+        // Draw cached image centered on the segment label position
+        const cachedImg = _wmGetImg(icon);
+        if (cachedImg.loaded && cachedImg.naturalWidth > 0) {
+          const imgSize = Math.max(18, fontSize + 6);
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(-imgSize/2, -(fontSize + 3) - imgSize, imgSize, imgSize);
+          ctx.clip();
+          ctx.drawImage(cachedImg, -imgSize/2, -(fontSize + 3) - imgSize, imgSize, imgSize);
+          ctx.restore();
+        }
+      } else if (isEmoji) {
+        ctx.font = `${Math.max(14, fontSize + 4)}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(icon, 0, -(fontSize + 3));
+      }
     }
 
     // Label
@@ -13168,7 +13221,7 @@ function _wmDrawWheel(angle) {
     while (ctx.measureText(label).width > maxW && label.length > 2) label = label.slice(0, -1);
     if (label !== item.label.toUpperCase()) label += '…';
 
-    ctx.fillText(label, 0, isEmoji && n <= 20 ? (fontSize + 3) : 0);
+    ctx.fillText(label, 0, (isUrl || isEmoji) && n <= 20 ? (fontSize + 3) : 0);
     ctx.restore();
   }
 
@@ -13208,6 +13261,7 @@ function wmSpinWheel() {
   document.getElementById('wmSpinBtn').disabled = true;
   document.getElementById('wmResultLabel').textContent = '';
   document.getElementById('wmResultSub').textContent   = '';
+  const _rdClear3 = document.getElementById('wmResultDesc'); if (_rdClear3) _rdClear3.textContent = '';
 
   // Pick winner and compute target angle
   const winIdx = Math.floor(Math.random() * wheel.items.length);
@@ -13256,6 +13310,8 @@ function wmSpinWheel() {
       rl.style.color = winner.color;
       rl.style.textShadow = `0 0 30px ${winner.color}88`;
       document.getElementById('wmResultSub').textContent = '— YOU RECEIVED —';
+      const rdWheel = document.getElementById('wmResultDesc');
+      if (rdWheel) rdWheel.textContent = winner.desc || '';
 
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
