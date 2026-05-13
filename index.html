@@ -11586,7 +11586,7 @@ window.addEventListener('hashchange', _routeFromHash);
 /* ── Icon picker (7TV + upload) ── */
 .wm-emote-pick{
   position:fixed;z-index:9999;background:#0d0f14;border:1px solid #2a2e38;
-  border-radius:4px;padding:10px;width:288px;
+  border-radius:4px;padding:10px;width:320px;
   display:none;flex-direction:column;gap:8px;
   box-shadow:0 12px 48px rgba(0,0,0,0.95);
 }
@@ -12124,26 +12124,57 @@ async function wmEpSwitchTab(tab) {
   } else {
     if (search) search.style.display = 'none';
     grid.innerHTML = `
-      <div class="wm-ep-upload-area" id="wmUploadClickArea" onclick="document.getElementById('wmEpFileInput').click()" style="min-height:64px">
-        <img id="wmUploadPreviewImg" class="wm-ep-upload-preview">
-        <label id="wmUploadLabel">📷 Click to upload image<br><span style="font-size:9px;color:#3a4050">PNG · JPG · GIF · WEBP</span></label>
-        <input type="file" id="wmEpFileInput" accept="image/*" style="display:none" onchange="wmHandleImageUpload(this)">
-      </div>
-      <div class="wm-cloud-section" id="wmCloudSection" style="display:none">
-        <button class="wm-cloud-btn" id="wmCloudBtn" onclick="wmUploadToCloud()">
-          ☁ Save to Cloud (ImgBB) — permanent URL
-        </button>
-        <div class="wm-cloud-status" id="wmCloudStatus"></div>
-      </div>
-      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
-        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#aaa;letter-spacing:1px">IMGBB API KEY</span>
-        <div style="display:flex;gap:4px">
-          <input id="wmImgbbKeyInp" placeholder="${_wmImgbbKey() ? '✓ Key saved' : 'Paste ImgBB API key…'}" type="password"
-            style="flex:1;background:#0a0c10;border:1px solid #2a2e38;color:#c8d0dc;font-family:'Share Tech Mono',monospace;font-size:10px;padding:5px 8px;border-radius:2px;outline:none">
-          <button onclick="wmSaveImgurCid()" style="background:#0e1117;border:1px solid #3a4050;color:#aaa;font-family:'Share Tech Mono',monospace;font-size:9px;padding:5px 10px;border-radius:2px;cursor:pointer;white-space:nowrap" onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d'" onmouseout="this.style.borderColor='#3a4050';this.style.color='#aaa'">Save</button>
+      <div id="wmCropWrap" style="display:flex;flex-direction:column;gap:8px">
+        <div id="wmCropDropzone" onclick="document.getElementById('wmEpFileInput').click()"
+          style="border:2px dashed #2a2e38;border-radius:4px;padding:18px;text-align:center;cursor:pointer;transition:border-color 0.15s;color:#c8d0dc;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px"
+          onmouseover="this.style.borderColor='#e4b84d'" onmouseout="this.style.borderColor='#2a2e38'">
+          📷 Click to upload image<br><span style="font-size:8px;color:#6a7a8a">PNG · JPG · GIF · WEBP</span>
+          <input type="file" id="wmEpFileInput" accept="image/*" style="display:none" onchange="wmHandleImageUpload(this)">
         </div>
-        <a href="https://api.imgbb.com" target="_blank" style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;text-decoration:none" onmouseover="this.style.color='#e4b84d'" onmouseout="this.style.color='#c8d0dc'">Get free key at api.imgbb.com ↗</a>
+        <div id="wmCropEditor" style="display:none;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <!-- Crop canvas -->
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#6a7a8a;letter-spacing:1px">DRAG TO PAN · SCROLL TO ZOOM</span>
+              <canvas id="wmCropCanvas" width="200" height="200"
+                style="border:1px solid #2a2e38;border-radius:3px;cursor:grab;display:block;touch-action:none;width:200px;height:200px"></canvas>
+            </div>
+            <!-- Preview column -->
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#6a7a8a;letter-spacing:1px">WHEEL PREVIEW</span>
+              <canvas id="wmCropPreview" width="72" height="72"
+                style="border-radius:50%;border:2px solid #e4b84d;display:block;width:72px;height:72px"></canvas>
+              <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#6a7a8a;letter-spacing:1px">IN REEL</span>
+              <div id="wmCropReelPreview" style="width:72px;height:72px;background:#141720;border:1px solid #2a2e38;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+                <img id="wmCropReelImg" style="width:43px;height:43px;object-fit:contain">
+              </div>
+            </div>
+          </div>
+          <!-- Zoom slider -->
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#6a7a8a;min-width:28px">ZOOM</span>
+            <input type="range" id="wmCropZoom" min="0.2" max="4" step="0.01" value="1"
+              style="flex:1;accent-color:#e4b84d" oninput="_wmCropDraw()">
+            <span id="wmCropZoomLbl" style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;min-width:32px;text-align:right">1.0×</span>
+          </div>
+          <!-- Shape toggle -->
+          <div style="display:flex;gap:4px">
+            <button onclick="_wmCropSetShape('circle')" id="wmCropBtnCircle"
+              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #e4b84d;background:rgba(228,184,77,0.12);color:#e4b84d">● Circle</button>
+            <button onclick="_wmCropSetShape('square')" id="wmCropBtnSquare"
+              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #2a2e38;background:#0a0c10;color:#c8d0dc">■ Square</button>
+            <button onclick="_wmCropReset()"
+              style="flex:1;font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px;border-radius:2px;cursor:pointer;border:1px solid #2a2e38;background:#0a0c10;color:#c8d0dc">↺ Reset</button>
+          </div>
+          <!-- Apply -->
+          <button onclick="_wmCropApply()"
+            style="width:100%;font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:7px;border-radius:2px;cursor:pointer;border:none;background:#e4b84d;color:#0a0c10">
+            ✓ USE THIS CROP
+          </button>
+        </div>
+        <div class="wm-cloud-status" id="wmCloudStatus"></div>
       </div>`;
+    _wmCropInit();
   }
 }
 
@@ -12204,66 +12235,195 @@ function _wmEpUpdateOk() {
   if (btn) btn.disabled = !_wmEpPending;
 }
 
+// ── Crop editor state ──
+let _wmCropImg = null, _wmCropOX = 0, _wmCropOY = 0, _wmCropScale = 1;
+let _wmCropShape = 'circle', _wmCropDragging = false, _wmCropDragStart = null;
+
 function wmHandleImageUpload(input) {
   const file = input.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
     const img = new Image();
     img.onload = () => {
-      // Size constraints: min 48px, max 160px (fills wheel card nicely)
-      const MIN = 48;
-      const MAX = 160;
-      let w = img.width, h = img.height;
-
-      // Scale down if too big
-      if (w > MAX || h > MAX) {
-        const scale = Math.min(MAX / w, MAX / h);
-        w = Math.round(w * scale);
-        h = Math.round(h * scale);
-      }
-      // Scale up if too small (blurry but better than tiny)
-      if (w < MIN && h < MIN) {
-        const scale = MIN / Math.max(w, h);
-        w = Math.round(w * scale);
-        h = Math.round(h * scale);
-      }
-
-      w = Math.max(1, w);
-      h = Math.max(1, h);
-
-      const cv = document.createElement('canvas');
-      cv.width = w; cv.height = h;
-      const ctx2d = cv.getContext('2d');
-      ctx2d.imageSmoothingQuality = 'high';
-      ctx2d.drawImage(img, 0, 0, w, h);
-      // Use PNG for small icons (better quality), JPEG for large
-      const fmt  = w * h < 8000 ? 'image/png' : 'image/jpeg';
-      const qual = fmt === 'image/jpeg' ? 0.90 : undefined;
-      const dataUrl = cv.toDataURL(fmt, qual);
-      const cleanName = '📷 ' + (file.name.replace(/\.[^.]+$/, '') || 'Image');
-      _wmEpSelect(dataUrl, cleanName);
-      const prev = document.getElementById('wmUploadPreviewImg');
-      if (prev) { prev.src = dataUrl; prev.style.display = 'block'; }
-      const lbl = document.getElementById('wmUploadLabel');
-      if (lbl) lbl.innerHTML = '<span style="font-size:10px;color:#c8d0dc">' + cleanName + '</span><br><span style="font-size:8px;color:#3a4050">' + w + '×' + h + 'px · click to change</span>';
-      const cs = document.getElementById('wmCloudSection');
-      if (cs) cs.style.display = 'flex';
-      _wmCloudReset();
-      _wmPendingUploadFile = file;
+      _wmCropImg = img;
+      _wmCropReset();
+      document.getElementById('wmCropEditor').style.display = 'flex';
+      document.getElementById('wmCropDropzone').style.display = 'none';
     };
-    img.onerror = () => {
-      // Fallback for GIFs/unusual formats — use as-is
-      const cleanName = '📷 ' + (file.name.replace(/\.[^.]+$/, '') || 'Image');
-      _wmEpSelect(ev.target.result, cleanName);
-      _wmPendingUploadFile = file;
-      const cs = document.getElementById('wmCloudSection');
-      if (cs) cs.style.display = 'flex';
-      _wmCloudReset();
-    };
+    img.onerror = () => { alert('Could not load image.'); };
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
   input.value = '';
+}
+
+function _wmCropInit() {
+  const cv = document.getElementById('wmCropCanvas');
+  if (!cv || cv._wmInited) return;
+  cv._wmInited = true;
+  // Mouse drag
+  cv.addEventListener('mousedown', e => {
+    _wmCropDragging = true;
+    _wmCropDragStart = { x: e.clientX - _wmCropOX, y: e.clientY - _wmCropOY };
+    cv.style.cursor = 'grabbing';
+  });
+  window.addEventListener('mousemove', e => {
+    if (!_wmCropDragging) return;
+    _wmCropOX = e.clientX - _wmCropDragStart.x;
+    _wmCropOY = e.clientY - _wmCropDragStart.y;
+    _wmCropDraw();
+  });
+  window.addEventListener('mouseup', () => { _wmCropDragging = false; cv.style.cursor = 'grab'; });
+  // Touch drag
+  cv.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    _wmCropDragging = true;
+    _wmCropDragStart = { x: t.clientX - _wmCropOX, y: t.clientY - _wmCropOY };
+    e.preventDefault();
+  }, { passive: false });
+  cv.addEventListener('touchmove', e => {
+    if (!_wmCropDragging) return;
+    const t = e.touches[0];
+    _wmCropOX = t.clientX - _wmCropDragStart.x;
+    _wmCropOY = t.clientY - _wmCropDragStart.y;
+    _wmCropDraw();
+    e.preventDefault();
+  }, { passive: false });
+  cv.addEventListener('touchend', () => { _wmCropDragging = false; });
+  // Scroll zoom
+  cv.addEventListener('wheel', e => {
+    e.preventDefault();
+    const sl = document.getElementById('wmCropZoom');
+    if (!sl) return;
+    let v = parseFloat(sl.value) + (e.deltaY < 0 ? 0.08 : -0.08);
+    v = Math.max(0.2, Math.min(4, v));
+    sl.value = v;
+    _wmCropDraw();
+  }, { passive: false });
+}
+
+function _wmCropReset() {
+  if (!_wmCropImg) return;
+  const SIZE = 200;
+  const scale = Math.max(SIZE / _wmCropImg.width, SIZE / _wmCropImg.height);
+  const sl = document.getElementById('wmCropZoom');
+  if (sl) { sl.value = scale; }
+  _wmCropScale = scale;
+  _wmCropOX = (SIZE - _wmCropImg.width * scale) / 2;
+  _wmCropOY = (SIZE - _wmCropImg.height * scale) / 2;
+  _wmCropDraw();
+}
+
+function _wmCropSetShape(s) {
+  _wmCropShape = s;
+  const bc = document.getElementById('wmCropBtnCircle');
+  const bs = document.getElementById('wmCropBtnSquare');
+  if (bc) { bc.style.borderColor = s==='circle'?'#e4b84d':'#2a2e38'; bc.style.background = s==='circle'?'rgba(228,184,77,0.12)':'#0a0c10'; bc.style.color = s==='circle'?'#e4b84d':'#c8d0dc'; }
+  if (bs) { bs.style.borderColor = s==='square'?'#e4b84d':'#2a2e38'; bs.style.background = s==='square'?'rgba(228,184,77,0.12)':'#0a0c10'; bs.style.color = s==='square'?'#e4b84d':'#c8d0dc'; }
+  _wmCropDraw();
+}
+
+function _wmCropDraw() {
+  const cv = document.getElementById('wmCropCanvas');
+  const pv = document.getElementById('wmCropPreview');
+  const sl = document.getElementById('wmCropZoom');
+  const lbl = document.getElementById('wmCropZoomLbl');
+  if (!cv || !_wmCropImg) return;
+  const SIZE = 200, PREV = 72;
+  _wmCropScale = parseFloat(sl?.value || 1);
+  if (lbl) lbl.textContent = _wmCropScale.toFixed(1) + '×';
+
+  // Main canvas
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, SIZE, SIZE);
+  // Dark bg
+  ctx.fillStyle = '#0a0c10';
+  ctx.fillRect(0, 0, SIZE, SIZE);
+  // Draw image
+  ctx.drawImage(_wmCropImg, _wmCropOX, _wmCropOY, _wmCropImg.width * _wmCropScale, _wmCropImg.height * _wmCropScale);
+  // Crop overlay — darken outside circle/square
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.globalCompositeOperation = 'destination-out';
+  if (_wmCropShape === 'circle') {
+    ctx.beginPath(); ctx.arc(SIZE/2, SIZE/2, SIZE/2 - 2, 0, Math.PI*2); ctx.fill();
+  } else {
+    const pad = 10;
+    ctx.fillRect(pad, pad, SIZE - pad*2, SIZE - pad*2);
+  }
+  ctx.restore();
+  // Border ring
+  ctx.strokeStyle = '#e4b84d';
+  ctx.lineWidth = 2;
+  if (_wmCropShape === 'circle') {
+    ctx.beginPath(); ctx.arc(SIZE/2, SIZE/2, SIZE/2 - 2, 0, Math.PI*2); ctx.stroke();
+  } else {
+    ctx.strokeRect(10, 10, SIZE-20, SIZE-20);
+  }
+
+  // Preview canvas
+  const pctx = pv.getContext('2d');
+  pctx.clearRect(0, 0, PREV, PREV);
+  pctx.save();
+  if (_wmCropShape === 'circle') {
+    pctx.beginPath(); pctx.arc(PREV/2, PREV/2, PREV/2, 0, Math.PI*2); pctx.clip();
+  }
+  // Scale from main canvas crop area to preview
+  const ratio = PREV / SIZE;
+  pctx.drawImage(_wmCropImg,
+    -_wmCropOX / _wmCropScale, -_wmCropOY / _wmCropScale,
+    _wmCropImg.width, _wmCropImg.height,
+    0, 0, _wmCropImg.width * _wmCropScale * ratio, _wmCropImg.height * _wmCropScale * ratio
+  );
+  pctx.restore();
+
+  // Reel preview img (43px in 72px box, same as actual reel)
+  const reelImg = document.getElementById('wmCropReelImg');
+  if (reelImg) reelImg.src = pv.toDataURL('image/png');
+}
+
+function _wmCropApply() {
+  if (!_wmCropImg) return;
+  const pv = document.getElementById('wmCropPreview');
+  if (!pv) return;
+  // Export at 128px for quality
+  const OUT = 128;
+  const cv2 = document.createElement('canvas');
+  cv2.width = OUT; cv2.height = OUT;
+  const c = cv2.getContext('2d');
+  const SIZE = 200;
+  const ratio = OUT / SIZE;
+  if (_wmCropShape === 'circle') {
+    c.beginPath(); c.arc(OUT/2, OUT/2, OUT/2, 0, Math.PI*2); c.clip();
+  }
+  c.drawImage(_wmCropImg,
+    -_wmCropOX / _wmCropScale, -_wmCropOY / _wmCropScale,
+    _wmCropImg.width, _wmCropImg.height,
+    0, 0, _wmCropImg.width * _wmCropScale * ratio, _wmCropImg.height * _wmCropScale * ratio
+  );
+  const dataUrl = cv2.toDataURL('image/png');
+  const cleanName = '📷 Image';
+  _wmEpSelect(dataUrl, cleanName);
+  // Trigger upload
+  const st = document.getElementById('wmCloudStatus');
+  if (st) { st.className = 'wm-cloud-status loading'; st.textContent = '⏳ Uploading image…'; st.style.display='block'; }
+  // Convert dataUrl to fake file for upload
+  _wmPendingUploadFile = null;
+  // Upload via base64 directly
+  (async () => {
+    try {
+      const form = new FormData();
+      form.append('key', _wmImgbbKey());
+      form.append('image', dataUrl.split(',')[1]);
+      const res = await fetch('https://api.imgbb.com/1/upload', { method:'POST', body:form });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error?.message || 'failed');
+      _wmCloudSuccess(data.data.display_url || data.data.url);
+    } catch(err) {
+      if (st) { st.className = 'wm-cloud-status error'; st.textContent = '✗ Upload failed — using local preview'; }
+    }
+  })();
 }
 
 let _wmPendingUploadFile = null; // original File object for cloud upload
@@ -12276,45 +12436,20 @@ function _wmCloudReset() {
 }
 
 // ── Cloud image upload via ImgBB ──────────────────────────────────────────
-// Get your free API key at https://api.imgbb.com (free account, instant key)
-// Paste it once in the wheel's Upload tab — saved to localStorage, never hardcoded.
-function _wmImgbbKey() { return localStorage.getItem('wm_imgbb_key') || ''; }
+function _wmImgbbKey() { return '0e8698f72885472ff6e52baceeab0148'; }
 
-function wmSaveImgurCid() {
-  // Now handles ImgBB key saving (keeping fn name for compat)
-  const inp = document.getElementById('wmImgbbKeyInp');
-  if (!inp) return;
-  const val = inp.value.trim();
-  if (!val) return;
-  localStorage.setItem('wm_imgbb_key', val);
-  inp.style.borderColor = '#4ade80';
-  inp.value = '';
-  inp.placeholder = '✓ Key saved';
-  setTimeout(() => { inp.style.borderColor = ''; inp.placeholder = 'Paste ImgBB API key…'; }, 2000);
-}
+function wmSaveImgurCid() { /* key now built-in */ }
 
 async function wmUploadToCloud() {
   const pending = _wmEpPending?.value;
-  if (!pending?.startsWith('data:') && !_wmPendingUploadFile) {
-    alert('No image selected to upload.'); return;
-  }
+  if (!pending?.startsWith('data:') && !_wmPendingUploadFile) return;
 
   const apiKey = _wmImgbbKey();
-  const btn = document.getElementById('wmCloudBtn');
-  const st  = document.getElementById('wmCloudStatus');
+  const st = document.getElementById('wmCloudStatus');
 
-  if (!apiKey) {
-    if (st) { st.className = 'wm-cloud-status error'; st.textContent = '⚠ Paste your ImgBB API key below first (free at api.imgbb.com)'; }
-    // Scroll to key input
-    document.getElementById('wmImgbbKeyInp')?.focus();
-    return;
-  }
-
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Uploading…'; }
-  if (st)  { st.className = 'wm-cloud-status loading'; st.textContent = 'Uploading to ImgBB…'; }
+  if (st) { st.className = 'wm-cloud-status loading'; st.textContent = '⏳ Uploading image…'; st.style.display='block'; }
 
   try {
-    // Get base64 — prefer original file, fall back to compressed canvas preview
     let base64;
     if (_wmPendingUploadFile) {
       base64 = await new Promise((res, rej) => {
@@ -12338,20 +12473,15 @@ async function wmUploadToCloud() {
     const url = data.data.display_url || data.data.url;
     _wmCloudSuccess(url);
   } catch(err) {
-    if (st)  { st.className = 'wm-cloud-status error'; st.textContent = '✗ ' + (err.message || 'Upload failed — try again'); }
-    if (btn) { btn.disabled = false; btn.textContent = '☁ Retry Upload'; }
+    if (st) { st.className = 'wm-cloud-status error'; st.textContent = '✗ Upload failed — ' + (err.message || 'try again'); }
   }
 }
 
 function _wmCloudSuccess(url) {
-  const st  = document.getElementById('wmCloudStatus');
-  const btn = document.getElementById('wmCloudBtn');
-  if (st)  { st.className = 'wm-cloud-status success'; st.innerHTML = '✓ Uploaded! URL stored as icon:<br><span style="color:#86efac">' + url + '</span>'; }
-  if (btn) { btn.textContent = '✓ Saved to Cloud'; btn.style.background = 'linear-gradient(135deg,#064e1a,#166534)'; btn.style.borderColor = '#166534'; btn.style.color = '#4ade80'; }
-  // Replace the local base64 with the permanent Imgur URL
+  const st = document.getElementById('wmCloudStatus');
+  if (st) { st.className = 'wm-cloud-status success'; st.innerHTML = '✓ Uploaded — icon URL saved'; st.style.display='block'; }
   const cleanName = _wmEpPending?.name || '📷 Image';
   _wmEpSelect(url, cleanName);
-  // Update preview img to use the remote URL too
   const prev = document.getElementById('wmUploadPreviewImg');
   if (prev) prev.src = url;
 }
