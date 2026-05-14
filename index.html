@@ -13380,19 +13380,25 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     const icon   = item.icon;
     const isUrl   = icon && (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/'));
     const isEmoji = icon && !isUrl;
-    const iconOff = -(fontSize * 0.8 + 3); // y-offset above label centre
+    // In the rotated local frame: -Y = toward rim (outside), +Y = toward centre
+    // Icon sits outward from the label; label at y=0, icon at negative y (further out)
+    const iconGap = fontSize * 0.5 + 4;
+    const iconOff = -(iconGap + fontSize * 0.5); // outward (negative = toward rim)
 
     if (showIcon) {
-      if (isUrl) {
-        // URL icons handled by DOM overlay (_wmUpdateIconOverlay) — canvas drawImage
-        // only ever snapshots a static frame, so animated WebP/GIF must use real <img>.
-      } else if (isEmoji) {
+      if (isEmoji) {
         const eSz = Math.max(10, Math.min(17, (arcLen * 0.26) | 0));
+        ctx.save();
+        // Translate to icon position, then rotate 180° so bottom faces center
+        ctx.translate(0, iconOff);
+        ctx.rotate(Math.PI); // flip: bottom now faces center (inward)
         ctx.font = `${eSz}px serif`;
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(icon, 0, iconOff);
+        ctx.fillText(icon, 0, 0);
+        ctx.restore();
       }
+      // URL icons are handled by the DOM overlay (_wmUpdateIconOverlay)
     }
 
     // Label — truncated to fit radial space
@@ -13490,16 +13496,11 @@ function _wmUpdateIconOverlay(angle) {
     const img = imgs[idx];
     const midA    = angle + i * seg - Math.PI / 2 + seg / 2;
 
-    // World position of icon centre — mirrors the canvas geometry.
-    // iconOff is negative (outward in the rotated local frame).
-    // Non-flipped half: icon sits further out than text (tR - iconOff = tR + |iconOff|)
-    // Flipped half:     icon sits closer in (tR + iconOff = tR - |iconOff|)
-    // We normalise midA only for the position-side flip determination, not for rotation.
-    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    const flipped  = midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5;
-    const iR = flipped ? (tR + iconOff) : (tR - iconOff);
-    const worldX = cx + iR * Math.cos(midA);
-    const worldY = cy + iR * Math.sin(midA);
+    // The label sits at tR from centre. The icon should be FURTHER OUT (toward rim).
+    // iconOff is the gap between label centre and icon centre along the radial.
+    const iconOutR = tR + iSz * 0.6 + fontSize * 0.5 + 2; // push icon outward past label
+    const worldX = cx + iconOutR * Math.cos(midA);
+    const worldY = cy + iconOutR * Math.sin(midA);
 
     if (img.src !== it.icon) img.src = it.icon;
     img.width  = iSz;
@@ -13508,11 +13509,12 @@ function _wmUpdateIconOverlay(angle) {
     img.style.height = iSz + 'px';
     img.style.left   = (worldX - iSz / 2) + 'px';
     img.style.top    = (worldY - iSz / 2) + 'px';
-    // Keep icons upright (no rotation). Emote images are small squares and look
-    // correct at any wheel position without rotation. Rotating them causes jarring
-    // 180° flips each time a slice crosses the top/bottom boundary while spinning.
-    img.style.transform = 'none';
-    img.style.display   = showIcon ? '' : 'none';
+    // Rotate icon so its bottom faces the wheel centre (pointing outward)
+    // midA is the angle from positive-x axis; add 90° so "down" (bottom) faces center
+    const deg = midA * 180 / Math.PI + 90;
+    img.style.transform       = `rotate(${deg}deg)`;
+    img.style.transformOrigin = '50% 50%';
+    img.style.display         = showIcon ? '' : 'none';
   });
 }
 
