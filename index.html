@@ -13192,12 +13192,30 @@ function wmSetMode(mode) {
     _wmDrawWheel(0);
     _wmFitWheel();
     setTimeout(_wmSetupHoverTooltip, 60);
+    _wmStartAnimLoop();
   }
 }
 
 // ── Wheel canvas drawing ─────────────────────────────────────────────────
 let _wmWheelAngle  = 0;   // current rotation in radians
 let _wmWheelAnimId = null;
+
+// Continuous RAF loop so animated WebP/GIF emotes keep playing on the wheel canvas
+let _wmAnimLoopId = null;
+function _wmStartAnimLoop() {
+  if (_wmAnimLoopId) return; // already running
+  function loop() {
+    // Only redraw when wheel mode is active and not mid-spin (spin has its own loop)
+    if (_wmMode === 'wheel' && !_wm.spinning) {
+      _wmRenderWheelFrame(_wmWheelAngle, _wmHoverIdx);
+    }
+    _wmAnimLoopId = requestAnimationFrame(loop);
+  }
+  _wmAnimLoopId = requestAnimationFrame(loop);
+}
+function _wmStopAnimLoop() {
+  if (_wmAnimLoopId) { cancelAnimationFrame(_wmAnimLoopId); _wmAnimLoopId = null; }
+}
 
 function _wmFitWheel() {
   const wrap = document.getElementById('wmWheelCanvasWrap');
@@ -13664,6 +13682,7 @@ function wmShareWheel() {
 }
 
 
+function openWheelSpin() {
   try { _wmLoad(); } catch(e) { console.error('_wmLoad failed:', e); }
   const modal = document.getElementById('wmModal');
   if (!modal) { console.error('wmModal not found'); return; }
@@ -13682,6 +13701,8 @@ function wmShareWheel() {
   try { _wmCheckImport(); } catch(e) {}
   // Redraw wheel when items change
   window.addEventListener('resize', _wmFitWheel);
+  // Start continuous animation loop so animated emotes (GIF/WebP) play on the wheel
+  _wmStartAnimLoop();
 }
 function closeWheelSpin(){
   document.getElementById('wmModal').style.display='none';
@@ -13690,6 +13711,7 @@ function closeWheelSpin(){
   if(_wm.animId)cancelAnimationFrame(_wm.animId);
   _wmStopTickSfx();
   _wmStopWheelSfx();
+  _wmStopAnimLoop();
   _wm.spinning=false;document.getElementById('wmSpinBtn').disabled=false;
   window.removeEventListener('resize', _wmFitWheel);
   _clearHash();
