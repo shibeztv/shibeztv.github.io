@@ -12777,6 +12777,34 @@ function _wmBuildReel(winIdx) {
   return PRE; // winner index in reel
 }
 
+// ── Static preview reel (shown before first spin) ─────────────────────────
+function _wmPreviewReel() {
+  const items = _wmCurrent().items;
+  if (!items || !items.length) return;
+  const track = document.getElementById('wmReelTrack');
+  if (!track) return;
+  track.innerHTML = '';
+  track.style.transform = 'translateX(0)';
+  track.style.transition = 'none';
+  // Fill enough items to cover the visible reel area (cycle through if fewer items than slots)
+  const count = Math.max(items.length, REEL_VISIBLE + 2);
+  for (let i = 0; i < count; i++) {
+    const item = items[i % items.length];
+    const el = document.createElement('div');
+    el.className = 'wm-item';
+    el.style.cssText = `border-color:${item.color}33;`;
+    el.innerHTML = `
+      <div class="wm-item-inner">
+        <div class="wm-item-icon">${_wmRenderIcon(item.icon)}</div>
+        <div class="wm-item-label">${item.label}</div>
+      </div>
+      <div class="wm-item-rarity" style="background:${item.color}"></div>
+      <div style="position:absolute;left:0;top:0;bottom:0;width:2px;background:${item.color}55"></div>
+    `;
+    track.appendChild(el);
+  }
+}
+
 // ── Spin ──────────────────────────────────────────────────────────────────
 function wmSpin() {
   if (_wmMode === 'wheel') { wmSpinWheel(); return; }
@@ -13185,6 +13213,9 @@ function wmSetMode(mode) {
     if (subtitleEl) subtitleEl.textContent = 'CONTAINS ONE OF THE FOLLOWING';
     _wmStopAnimLoop();
     const ov = document.getElementById('_wmIconOverlay'); if (ov) ov.innerHTML = '';
+    // Populate the reel with a static item preview if it's currently empty
+    const track = document.getElementById('wmReelTrack');
+    if (track && !track.children.length) try { _wmPreviewReel(); } catch(e) {}
   } else {
     btn.textContent = 'SPIN WHEEL';
     if (logo) logo.textContent = '🎰 Wheel Spin';
@@ -13783,8 +13814,8 @@ function openWheelSpin() {
   try { _wmRenderTabs(); } catch(e) {}
   try { _wmRenderHist(); } catch(e) {}
   try { _wmRenderContents(); } catch(e) {}
-  const track = document.getElementById('wmReelTrack');
-  if (track) track.innerHTML = '';
+  // Show a static item preview in the reel so items are visible before the first spin
+  try { _wmPreviewReel(); } catch(e) {}
   // Apply current mode visuals
   setTimeout(() => { try { wmSetMode(_wmMode); } catch(e) {} _wmFitWheel(); setTimeout(_wmSetupHoverTooltip, 80); }, 30);
   _setHash('wheelspin');
