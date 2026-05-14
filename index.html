@@ -11955,6 +11955,7 @@ window.addEventListener('hashchange', _routeFromHash);
         </button>
         <div class="wm-edit-acts">
           <button class="wm-act" onclick="wmRandCols()">🎨 Randomize Colors</button>
+          <button class="wm-act" onclick="wmShareWheel()" style="background:rgba(74,110,220,0.15);border-color:rgba(74,110,220,0.4);color:#7090e8">🔗 Share Wheel</button>
           <button class="wm-act red" onclick="wmDelWheel()">🗑 Delete Wheel</button>
         </div>
       </div>
@@ -12981,7 +12982,7 @@ function wmItemColor(i,v){
   _wmDrawWheel(_wmWheelAngle);
 }
 function wmItemDesc(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].desc=v;_wmSave();_wmRenderContents();}
-function wmDelItem(i){if(!_wmCheckLock(_wmCurrent()))return;const w=_wmCurrent();w.items.splice(i,1);_wmSave();_wmRenderEdit();}
+function wmDelItem(i){if(!_wmCheckLock(_wmCurrent()))return;const w=_wmCurrent();w.items.splice(i,1);_wmSave();_wmRenderEdit();_wmRenderContents();if(_wmMode==='wheel')_wmDrawWheel(_wmWheelAngle);}
 // Pick a color that hasn't been used recently in the current wheel
 function _wmPickUniqueColor(existingItems) {
   const used = new Set((existingItems || []).map(it => it.color));
@@ -13190,6 +13191,7 @@ function wmSetMode(mode) {
     if (subtitleEl) subtitleEl.textContent = 'SPIN THE WHEEL';
     _wmDrawWheel(0);
     _wmFitWheel();
+    setTimeout(_wmSetupHoverTooltip, 60);
   }
 }
 
@@ -13198,16 +13200,20 @@ let _wmWheelAngle  = 0;   // current rotation in radians
 let _wmWheelAnimId = null;
 
 function _wmFitWheel() {
-  // Resize canvas to fit available space
   const wrap = document.getElementById('wmWheelCanvasWrap');
   const canvas = document.getElementById('wmWheelCanvas');
   if (!wrap || !canvas) return;
   const section = document.getElementById('wmWheelSection');
   if (!section) return;
-  // Use min of section width/height minus padding
-  const availW = section.clientWidth  - 24;
-  const availH = section.clientHeight - 8;
-  const size   = Math.max(260, Math.min(availW, availH, 620));
+  const availW = section.offsetWidth - 24;
+  // Use offsetHeight; if still 0 fall back to a sensible default
+  let availH = section.offsetHeight - 12;
+  if (availH < 100) {
+    // Section may not have laid out yet — grab from parent
+    const wmLeft = document.querySelector('.wm-left');
+    availH = wmLeft ? Math.max(200, wmLeft.offsetHeight - 220) : 380;
+  }
+  const size = Math.max(200, Math.min(availW, availH, 620));
   canvas.width  = size;
   canvas.height = size;
   canvas.style.width  = size + 'px';
@@ -13215,20 +13221,55 @@ function _wmFitWheel() {
   _wmDrawWheel(_wmWheelAngle);
 }
 
+// ── Wheel hover & GIF state ───────────────────────────────────────────────
+let _wmHoverIdx   = -1;   // which slice the mouse is over
+let _wmDrawQueued = false; // rAF throttle flag
+
+// DOM-overlay cache for animated images (keeps GIFs/WebP-anim alive)
+const _wmAnimCache = {};
+function _wmGetAnimImg(url) {
+  if (_wmAnimCache[url]) return _wmAnimCache[url];
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  // Invisible DOM node — browser animates it, we drawImage from it
+  img.style.cssText = 'position:absolute;width:1px;height:1px;top:-9999px;left:-9999px;opacity:0.01;pointer-events:none';
+  document.body.appendChild(img);
+  img.onload = () => { img._ready = true; _wmDrawWheel(_wmWheelAngle); };
+  img.src = url;
+  _wmAnimCache[url] = img;
+  return img;
+}
+
 function _wmDrawWheel(angle) {
+  // Always store latest angle so the queued frame uses it
+  _wmWheelAngle = angle;
+  if (_wmDrawQueued) return;
+  _wmDrawQueued = true;
+  requestAnimationFrame(() => {
+    _wmDrawQueued = false;
+    _wmRenderWheelFrame(_wmWheelAngle, _wmHoverIdx);
+  });
+}
+
+function _wmRenderWheelFrame(angle, hovIdx) {
   const canvas = document.getElementById('wmWheelCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const cx = w / 2, cy = h / 2;
-  const R  = Math.min(cx, cy) - 4;
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R  = Math.min(cx, cy) - 6;
 
-  ctx.clearRect(0, 0, w, h);
+  ctx.clearRect(0, 0, W, H);
 
   const items = _wmCurrent().items;
   if (!items.length) return;
   const n   = items.length;
   const seg = (2 * Math.PI) / n;
+
+  // Arc length of one slice at the midpoint radius — used for adaptive font/icon
+  const arcLen   = R * 0.65 * seg;
+  const fontSize = Math.max(7, Math.min(13, (arcLen * 0.22) | 0));
+  const showIcon = arcLen > 26; // skip icons when slices are tiny
 
   // Outer rim glow
   ctx.save();
@@ -13239,94 +13280,188 @@ function _wmDrawWheel(angle) {
   ctx.stroke();
   ctx.restore();
 
-  // Draw each segment
   for (let i = 0; i < n; i++) {
-    const item     = items[i];
-    const startA   = angle + i * seg - Math.PI / 2;
-    const endA     = startA + seg;
-    const midA     = startA + seg / 2;
+    const item    = items[i];
+    const startA  = angle + i * seg - Math.PI / 2;
+    const endA    = startA + seg;
+    const midA    = startA + seg / 2;
+    const col     = item.color || '#4b69ff';
+    const isHov   = i === hovIdx && !_wm.spinning;
+    const push    = isHov ? Math.min(12, R * 0.05) : 0;
 
-    // Segment fill
+    // ── Slice fill ──
+    ctx.save();
     ctx.beginPath();
+    // For hovered slice, shift the fill origin outward
+    if (isHov) {
+      ctx.translate(push * Math.cos(midA), push * Math.sin(midA));
+    }
     ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, R, startA, endA);
+    ctx.arc(cx, cy, R + push, startA, endA);
     ctx.closePath();
-
-    // Alternating lighter/darker variant of item color for readability
-    const col = item.color || '#4b69ff';
-    ctx.fillStyle = i % 2 === 0 ? col + 'dd' : col + 'aa';
+    ctx.fillStyle = isHov ? col : (i % 2 === 0 ? col + 'dd' : col + 'bb');
+    if (isHov) { ctx.shadowColor = col; ctx.shadowBlur = 18; }
     ctx.fill();
-
-    // Segment border
-    ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = isHov ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
+    ctx.lineWidth   = isHov ? 2 : 1.2;
     ctx.stroke();
+    ctx.restore();
 
-    // Label text
-    const textR   = R * 0.62;
-    const textX   = cx + textR * Math.cos(midA);
-    const textY   = cy + textR * Math.sin(midA);
-    const fontSize = Math.max(9, Math.min(13, (R * 2 * Math.PI / n) * 0.22 | 0));
+    // ── Text + icon, rotated along the radial ──
+    // Place text at 58% of radius from centre
+    const tR = R * 0.58;
+    const tX = cx + tR * Math.cos(midA);
+    const tY = cy + tR * Math.sin(midA);
 
     ctx.save();
-    ctx.translate(textX, textY);
-    ctx.rotate(midA + Math.PI / 2);
+    ctx.translate(tX, tY);
+    // Rotate so text reads outward; flip bottom half so it's never upside-down
+    let rot = midA + Math.PI / 2;
+    if (midA > Math.PI / 2 && midA < Math.PI * 1.5) rot += Math.PI;
+    ctx.rotate(rot);
 
-    // Icon (emoji — skip URL icons on canvas, show label only)
-    const icon = item.icon;
+    // Icon
+    const icon   = item.icon;
     const isUrl   = icon && (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/'));
     const isEmoji = icon && !isUrl;
+    const iconOff = -(fontSize * 0.8 + 3); // y-offset above label centre
 
-    if (n <= 100) {
+    if (showIcon) {
       if (isUrl) {
-        // Draw cached image centered on the segment label position
-        const cachedImg = _wmGetImg(icon);
-        if (cachedImg.loaded && cachedImg.naturalWidth > 0) {
-          const imgSize = Math.max(18, fontSize + 6);
+        const img = _wmGetAnimImg(icon);
+        if (img._ready && img.naturalWidth > 0) {
+          const iSz = Math.max(11, Math.min(20, (arcLen * 0.28) | 0));
           ctx.save();
           ctx.beginPath();
-          ctx.rect(-imgSize/2, -(fontSize + 3) - imgSize, imgSize, imgSize);
+          ctx.rect(-iSz / 2, iconOff - iSz / 2, iSz, iSz);
           ctx.clip();
-          ctx.drawImage(cachedImg, -imgSize/2, -(fontSize + 3) - imgSize, imgSize, imgSize);
+          ctx.drawImage(img, -iSz / 2, iconOff - iSz / 2, iSz, iSz);
           ctx.restore();
         }
       } else if (isEmoji) {
-        ctx.font = `${Math.max(14, fontSize + 4)}px serif`;
-        ctx.textAlign = 'center';
+        const eSz = Math.max(10, Math.min(17, (arcLen * 0.26) | 0));
+        ctx.font = `${eSz}px serif`;
+        ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(icon, 0, -(fontSize + 3));
+        ctx.fillText(icon, 0, iconOff);
       }
     }
 
-    // Label
-    ctx.font = `700 ${fontSize}px 'Rajdhani',sans-serif`;
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-    ctx.shadowBlur = 4;
-
-    // Truncate label to fit
+    // Label — truncated to fit radial space
     const maxW = R * 0.55;
+    ctx.font         = `700 ${fontSize}px 'Rajdhani',sans-serif`;
+    ctx.fillStyle    = '#fff';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor  = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur   = 3;
     let label = item.label.toUpperCase();
     while (ctx.measureText(label).width > maxW && label.length > 2) label = label.slice(0, -1);
     if (label !== item.label.toUpperCase()) label += '…';
-
-    ctx.fillText(label, 0, (isUrl || isEmoji) && n <= 100 ? (fontSize + 3) : 0);
+    ctx.fillText(label, 0, 0);
     ctx.restore();
   }
 
-  // Center circle
+  // Center cap
   ctx.beginPath();
   ctx.arc(cx, cy, 14, 0, 2 * Math.PI);
-  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 14);
-  grad.addColorStop(0, '#2a2e38');
-  grad.addColorStop(1, '#141720');
-  ctx.fillStyle = grad;
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 14);
+  g.addColorStop(0, '#2a2e38');
+  g.addColorStop(1, '#141720');
+  ctx.fillStyle = g;
   ctx.fill();
   ctx.strokeStyle = '#e4b84d';
   ctx.lineWidth = 2;
   ctx.stroke();
+}
+
+// ── Hover tooltip setup (called once after modal opens) ───────────────────
+function _wmSetupHoverTooltip() {
+  const canvas = document.getElementById('wmWheelCanvas');
+  if (!canvas || canvas._hoverBound) return;
+  canvas._hoverBound = true;
+
+  // Tooltip element
+  let tip = document.getElementById('_wmTip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = '_wmTip';
+    tip.style.cssText = [
+      'position:fixed','z-index:999999','pointer-events:none',
+      'background:rgba(8,10,20,0.96)',
+      'border:1.5px solid rgba(228,184,77,0.45)',
+      'border-radius:7px','padding:9px 14px',
+      'font-family:\'Share Tech Mono\',monospace',
+      'font-size:12px','color:#d8dce8','letter-spacing:0.3px',
+      'box-shadow:0 6px 28px rgba(0,0,0,0.75)',
+      'display:none','max-width:250px','line-height:1.6',
+    ].join(';');
+    document.body.appendChild(tip);
+  }
+
+  function getHoveredSlice(e) {
+    const r   = canvas.getBoundingClientRect();
+    const mx  = e.clientX - r.left  - canvas.width  / 2;
+    const my  = e.clientY - r.top   - canvas.height / 2;
+    const dist = Math.sqrt(mx * mx + my * my);
+    const R    = Math.min(canvas.width, canvas.height) / 2 - 6;
+    if (dist > R + 14 || dist < 8) return -1;
+    const items = _wmCurrent().items;
+    if (!items.length) return -1;
+    const n = items.length, seg = (2 * Math.PI) / n;
+    let a = Math.atan2(my, mx) + Math.PI / 2 - _wmWheelAngle;
+    a = ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    return Math.floor(a / seg) % n;
+  }
+
+  // Wrap description text at ~38 chars per line
+  function wrapText(str, w) {
+    if (!str) return '';
+    const words = str.split(' ');
+    const lines = []; let line = '';
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (test.length > w && line) { lines.push(line); line = word; }
+      else line = test;
+    }
+    if (line) lines.push(line);
+    return lines.join('\n');
+  }
+
+  canvas.addEventListener('mousemove', function(e) {
+    if (_wm.spinning) { tip.style.display = 'none'; return; }
+    const idx = getHoveredSlice(e);
+    if (idx !== _wmHoverIdx) {
+      _wmHoverIdx = idx;
+      _wmRenderWheelFrame(_wmWheelAngle, _wmHoverIdx);
+    }
+    const items = _wmCurrent().items;
+    if (idx >= 0 && idx < items.length) {
+      const it  = items[idx];
+      const desc = it.desc ? wrapText(it.desc, 38) : '';
+      tip.innerHTML =
+        `<div style="color:${it.color};font-weight:700;font-size:13px;margin-bottom:${desc?'5px':'0'}">${it.label}</div>`
+        + (desc ? `<div style="color:#9098b0;font-size:11px;white-space:pre-line">${desc}</div>` : '');
+      tip.style.borderColor = (it.color || '#e4b84d') + '80';
+      tip.style.display = 'block';
+      // Position near cursor, keep inside viewport
+      const tw = 258, th = tip.offsetHeight || 70;
+      let tx = e.clientX + 18, ty = e.clientY - 12;
+      if (tx + tw > window.innerWidth  - 6) tx = e.clientX - tw - 12;
+      if (ty + th > window.innerHeight - 6) ty = e.clientY - th - 4;
+      tip.style.left = Math.max(6, tx) + 'px';
+      tip.style.top  = Math.max(6, ty) + 'px';
+    } else {
+      tip.style.display = 'none';
+    }
+  });
+
+  canvas.addEventListener('mouseleave', function() {
+    _wmHoverIdx = -1;
+    tip.style.display = 'none';
+    if (!_wm.spinning) _wmRenderWheelFrame(_wmWheelAngle, -1);
+  });
 }
 
 // Determine winner from final angle
@@ -13382,7 +13517,7 @@ function wmSpinWheel() {
     const elapsed = ts - startTime;
     const t = Math.min(elapsed / totalMs, 1);
     _wmWheelAngle = startAngle + (targetA - startAngle) * easeOut(t);
-    _wmDrawWheel(_wmWheelAngle);
+    _wmRenderWheelFrame(_wmWheelAngle, -1);
     _wmTickOnBoundary(_wmWheelAngle, n);
 
     if (t < 1) {
@@ -13449,7 +13584,86 @@ function _wmWheelTick() {
     o.connect(g); o.start(t); o.stop(t + 0.04);
   } catch(e) {}
 }
-function openWheelSpin(){
+// ── Share Wheel (export/import via URL) ───────────────────────────────────
+function _wmCheckImport() {
+  // Look for ?wheel=<base64> or #wheel=<base64> in the URL
+  const search = window.location.search + window.location.hash;
+  const m = search.match(/[?&#]wheel=([A-Za-z0-9+/=%-]+)/);
+  if (!m) return;
+  try {
+    const raw  = decodeURIComponent(m[1]);
+    const json = atob(raw);
+    const data = JSON.parse(json);
+    if (!data.name || !Array.isArray(data.items)) return;
+    // Confirm import
+    const existing = _wm.wheels.find(w => w.name === data.name);
+    const msg = existing
+      ? `Import wheel "${data.name}"? It already exists — this will add it as a copy.`
+      : `Import shared wheel "${data.name}" with ${data.items.length} items?`;
+    if (!confirm(msg)) return;
+    const newWheel = {
+      id: 'w' + Date.now(),
+      name: existing ? data.name + ' (imported)' : data.name,
+      items: data.items.map(it => ({
+        label: String(it.label || 'Item').slice(0, 60),
+        color: it.color || '#4b69ff',
+        icon:  it.icon  || '',
+        desc:  it.desc  || '',
+      })),
+    };
+    _wm.wheels.push(newWheel);
+    _wm.activeId = newWheel.id;
+    _wmSave();
+    _wmRenderTabs();
+    _wmRenderEdit();
+    _wmRenderContents();
+    _wmDrawWheel(_wmWheelAngle);
+    // Remove the ?wheel= param from URL so it doesn't re-import on reload
+    const clean = window.location.pathname + window.location.search.replace(/[?&]wheel=[^&]*/,'').replace(/^&/,'?');
+    history.replaceState(null,'', clean || window.location.pathname);
+    alert(`✓ Wheel "${newWheel.name}" imported!`);
+  } catch(e) {
+    console.warn('wmImport failed:', e);
+  }
+}
+
+function wmShareWheel() {
+  const w = _wmCurrent();
+  if (!w || !w.items.length) { alert('No items to share!'); return; }
+  try {
+    const payload = { name: w.name, items: w.items.map(it => ({
+      label: it.label, color: it.color, icon: it.icon || '', desc: it.desc || '',
+    }))};
+    const b64 = btoa(JSON.stringify(payload));
+    // Build share URL
+    const base = window.location.origin + window.location.pathname;
+    const url  = `${base}?wheel=${encodeURIComponent(b64)}#wheelspin`;
+    // Show a modal-within-modal style prompt
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;inset:0;z-index:1000000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center';
+    box.innerHTML = `
+      <div style="background:#12141c;border:1.5px solid #2a2e40;border-radius:10px;padding:28px 28px 22px;max-width:520px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,0.8)">
+        <div style="font-family:'Share Tech Mono',monospace;font-weight:700;font-size:15px;color:#e4b84d;margin-bottom:12px">🔗 Share Wheel: ${w.name}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#7a8090;margin-bottom:8px">${w.items.length} items · Send this link to share your wheel</div>
+        <input id="_wmShareInp" readonly value="${url}"
+          style="width:100%;background:#0d0f18;border:1px solid #2a2e40;border-radius:5px;padding:9px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;color:#c8d0dc;margin-bottom:14px;cursor:text"
+          onclick="this.select()">
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button onclick="navigator.clipboard?.writeText(document.getElementById('_wmShareInp').value).then(()=>this.textContent='✓ Copied!');this.style.background='#2d6a4f'"
+            style="background:#1a3a2a;border:1px solid #2a6a4f;color:#4ade80;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;padding:8px 18px;border-radius:5px;cursor:pointer">📋 Copy Link</button>
+          <button onclick="this.closest('div[style*=inset]').remove()"
+            style="background:#1a1c28;border:1px solid #2a2e40;color:#8090a0;font-family:'Share Tech Mono',monospace;font-size:12px;padding:8px 18px;border-radius:5px;cursor:pointer">Close</button>
+        </div>
+      </div>`;
+    document.body.appendChild(box);
+    box.addEventListener('click', e => { if (e.target === box) box.remove(); });
+    setTimeout(() => { const inp = document.getElementById('_wmShareInp'); if(inp) inp.select(); }, 50);
+  } catch(e) {
+    alert('Could not generate share link: ' + e.message);
+  }
+}
+
+
   try { _wmLoad(); } catch(e) { console.error('_wmLoad failed:', e); }
   const modal = document.getElementById('wmModal');
   if (!modal) { console.error('wmModal not found'); return; }
@@ -13462,7 +13676,7 @@ function openWheelSpin(){
   const track = document.getElementById('wmReelTrack');
   if (track) track.innerHTML = '';
   // Apply current mode visuals
-  setTimeout(() => { try { wmSetMode(_wmMode); } catch(e) {} _wmFitWheel(); }, 30);
+  setTimeout(() => { try { wmSetMode(_wmMode); } catch(e) {} _wmFitWheel(); setTimeout(_wmSetupHoverTooltip, 80); }, 30);
   _setHash('wheelspin');
   if (_wm.audioCtx?.state === 'suspended') _wm.audioCtx.resume();
   try { _wmCheckImport(); } catch(e) {}
