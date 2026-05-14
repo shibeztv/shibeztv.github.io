@@ -13458,15 +13458,14 @@ function _wmUpdateIconOverlay(angle) {
   urlItems.forEach(({ it, i }, idx) => {
     const img = imgs[idx];
     const midA    = angle + i * seg - Math.PI / 2 + seg / 2;
-    // Normalize to [0, 2π) before flip check — raw angle accumulates across spins
+
+    // World position of icon centre — mirrors the canvas geometry.
+    // iconOff is negative (outward in the rotated local frame).
+    // Non-flipped half: icon sits further out than text (tR - iconOff = tR + |iconOff|)
+    // Flipped half:     icon sits closer in (tR + iconOff = tR - |iconOff|)
+    // We normalise midA only for the position-side flip determination, not for rotation.
     const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     const flipped  = midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5;
-    let rot = midA + Math.PI / 2;
-    if (flipped) rot += Math.PI;
-
-    // World position of icon centre (mirrors the canvas translate+rotate+iconOff math)
-    // Non-flipped: icon is at local (0, iconOff) → world offset is -iconOff outward
-    // Flipped:     icon is at local (0, iconOff) but rotated PI extra → +iconOff outward
     const iR = flipped ? (tR + iconOff) : (tR - iconOff);
     const worldX = cx + iR * Math.cos(midA);
     const worldY = cy + iR * Math.sin(midA);
@@ -13478,7 +13477,10 @@ function _wmUpdateIconOverlay(angle) {
     img.style.height = iSz + 'px';
     img.style.left   = (worldX - iSz / 2) + 'px';
     img.style.top    = (worldY - iSz / 2) + 'px';
-    img.style.transform = `rotate(${rot * 180 / Math.PI}deg)`;
+    // Keep icons upright (no rotation). Emote images are small squares and look
+    // correct at any wheel position without rotation. Rotating them causes jarring
+    // 180° flips each time a slice crosses the top/bottom boundary while spinning.
+    img.style.transform = 'none';
     img.style.display   = showIcon ? '' : 'none';
   });
 }
