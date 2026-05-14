@@ -13337,9 +13337,12 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
     ctx.save();
     ctx.translate(tX, tY);
-    // Rotate so text reads outward; flip bottom half so it's never upside-down
+    // Rotate so text reads outward; flip bottom half so it's never upside-down.
+    // Normalize midA to [0, 2π) before the flip check — raw angle accumulates
+    // after spins and breaks the > π/2 && < 3π/2 condition.
+    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     let rot = midA + Math.PI / 2;
-    if (midA > Math.PI / 2 && midA < Math.PI * 1.5) rot += Math.PI;
+    if (midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5) rot += Math.PI;
     ctx.rotate(rot);
 
     // Icon
@@ -13454,8 +13457,10 @@ function _wmUpdateIconOverlay(angle) {
   const imgs = overlay.querySelectorAll('img');
   urlItems.forEach(({ it, i }, idx) => {
     const img = imgs[idx];
-    const midA   = angle + i * seg - Math.PI / 2 + seg / 2;
-    const flipped = midA > Math.PI / 2 && midA < Math.PI * 1.5;
+    const midA    = angle + i * seg - Math.PI / 2 + seg / 2;
+    // Normalize to [0, 2π) before flip check — raw angle accumulates across spins
+    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const flipped  = midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5;
     let rot = midA + Math.PI / 2;
     if (flipped) rot += Math.PI;
 
