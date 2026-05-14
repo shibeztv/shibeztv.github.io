@@ -13592,7 +13592,7 @@ function _wmCheckImport() {
   if (!m) return;
   try {
     const raw  = decodeURIComponent(m[1]);
-    const json = atob(raw);
+    const json = decodeURIComponent(escape(atob(raw)));
     const data = JSON.parse(json);
     if (!data.name || !Array.isArray(data.items)) return;
     // Confirm import
@@ -13634,7 +13634,7 @@ function wmShareWheel() {
     const payload = { name: w.name, items: w.items.map(it => ({
       label: it.label, color: it.color, icon: it.icon || '', desc: it.desc || '',
     }))};
-    const b64 = btoa(JSON.stringify(payload));
+    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
     // Build share URL
     const base = window.location.origin + window.location.pathname;
     const url  = `${base}?wheel=${encodeURIComponent(b64)}#wheelspin`;
@@ -13663,7 +13663,7 @@ function wmShareWheel() {
   }
 }
 
-function openWheelSpin(){
+
   try { _wmLoad(); } catch(e) { console.error('_wmLoad failed:', e); }
   const modal = document.getElementById('wmModal');
   if (!modal) { console.error('wmModal not found'); return; }
