@@ -13183,6 +13183,8 @@ function wmSetMode(mode) {
     if (reelOuter)  reelOuter.style.display  = '';
     if (wheelSec)   wheelSec.classList.remove('active');
     if (subtitleEl) subtitleEl.textContent = 'CONTAINS ONE OF THE FOLLOWING';
+    _wmStopAnimLoop();
+    const ov = document.getElementById('_wmIconOverlay'); if (ov) ov.innerHTML = '';
   } else {
     btn.textContent = 'SPIN WHEEL';
     if (logo) logo.textContent = '🎰 Wheel Spin';
@@ -13249,8 +13251,9 @@ function _wmGetAnimImg(url) {
   if (_wmAnimCache[url]) return _wmAnimCache[url];
   const img = new Image();
   img.crossOrigin = 'anonymous';
-  // Invisible DOM node — browser animates it, we drawImage from it
-  img.style.cssText = 'position:absolute;width:1px;height:1px;top:-9999px;left:-9999px;opacity:0.01;pointer-events:none';
+  // Must be full-opacity and a real size — browsers throttle/freeze animation
+  // on elements that are tiny or nearly transparent. Off-screen but fully alive.
+  img.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:64px;height:64px;pointer-events:none;';
   document.body.appendChild(img);
   img.onload = () => { img._ready = true; _wmDrawWheel(_wmWheelAngle); };
   img.src = url;
@@ -13347,16 +13350,8 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
     if (showIcon) {
       if (isUrl) {
-        const img = _wmGetAnimImg(icon);
-        if (img._ready && img.naturalWidth > 0) {
-          const iSz = Math.max(11, Math.min(20, (arcLen * 0.28) | 0));
-          ctx.save();
-          ctx.beginPath();
-          ctx.rect(-iSz / 2, iconOff - iSz / 2, iSz, iSz);
-          ctx.clip();
-          ctx.drawImage(img, -iSz / 2, iconOff - iSz / 2, iSz, iSz);
-          ctx.restore();
-        }
+        // URL icons handled by DOM overlay (_wmUpdateIconOverlay) — canvas drawImage
+        // only ever snapshots a static frame, so animated WebP/GIF must use real <img>.
       } else if (isEmoji) {
         const eSz = Math.max(10, Math.min(17, (arcLen * 0.26) | 0));
         ctx.font = `${eSz}px serif`;
@@ -13392,6 +13387,95 @@ function _wmRenderWheelFrame(angle, hovIdx) {
   ctx.strokeStyle = '#e4b84d';
   ctx.lineWidth = 2;
   ctx.stroke();
+
+  // Update animated icon overlay (DOM imgs, not canvas — so WebP/GIF actually animates)
+  _wmUpdateIconOverlay(angle);
+}
+
+// ── Animated icon DOM overlay ─────────────────────────────────────────────
+// ctx.drawImage can only snapshot a single frame; real <img> elements play
+// animated WebP/GIF natively. We position them as an absolutely-placed overlay
+// on top of the canvas, rotating each one to match its slice.
+function _wmUpdateIconOverlay(angle) {
+  const canvas = document.getElementById('wmWheelCanvas');
+  const wrap   = document.getElementById('wmWheelCanvasWrap');
+  if (!canvas || !wrap) return;
+
+  const W = canvas.width, H = canvas.height;
+  if (!W || !H) return;
+
+  // Get-or-create overlay sized and centered exactly over the canvas
+  let overlay = document.getElementById('_wmIconOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = '_wmIconOverlay';
+    wrap.appendChild(overlay);
+  }
+  overlay.style.cssText =
+    `position:absolute;width:${W}px;height:${H}px;` +
+    `left:50%;top:50%;transform:translate(-50%,-50%);` +
+    `pointer-events:none;overflow:hidden;border-radius:50%;`;
+
+  const cx = W / 2, cy = H / 2;
+  const R   = Math.min(cx, cy) - 6;
+  const tR  = R * 0.58;
+
+  const items = _wmCurrent()?.items || [];
+  const n   = items.length;
+  if (!n) { overlay.innerHTML = ''; return; }
+  const seg    = (2 * Math.PI) / n;
+  const arcLen = R * 0.65 * seg;
+  const fontSize = Math.max(7, Math.min(13, (arcLen * 0.22) | 0));
+  const iconOff  = -(fontSize * 0.8 + 3); // negative = outward in local rotated frame
+  const iSz      = Math.max(11, Math.min(20, (arcLen * 0.28) | 0));
+  const showIcon = arcLen > 26;
+
+  // Collect items that need URL icon overlays
+  const urlItems = [];
+  items.forEach((it, i) => {
+    const icon = it.icon || '';
+    if (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/')) {
+      urlItems.push({ it, i });
+    }
+  });
+
+  // Rebuild img pool if item count changed
+  const existing = overlay.querySelectorAll('img');
+  if (existing.length !== urlItems.length) {
+    overlay.innerHTML = '';
+    urlItems.forEach(() => {
+      const img = document.createElement('img');
+      img.style.position = 'absolute';
+      img.style.objectFit = 'contain';
+      overlay.appendChild(img);
+    });
+  }
+
+  const imgs = overlay.querySelectorAll('img');
+  urlItems.forEach(({ it, i }, idx) => {
+    const img = imgs[idx];
+    const midA   = angle + i * seg - Math.PI / 2 + seg / 2;
+    const flipped = midA > Math.PI / 2 && midA < Math.PI * 1.5;
+    let rot = midA + Math.PI / 2;
+    if (flipped) rot += Math.PI;
+
+    // World position of icon centre (mirrors the canvas translate+rotate+iconOff math)
+    // Non-flipped: icon is at local (0, iconOff) → world offset is -iconOff outward
+    // Flipped:     icon is at local (0, iconOff) but rotated PI extra → +iconOff outward
+    const iR = flipped ? (tR + iconOff) : (tR - iconOff);
+    const worldX = cx + iR * Math.cos(midA);
+    const worldY = cy + iR * Math.sin(midA);
+
+    if (img.src !== it.icon) img.src = it.icon;
+    img.width  = iSz;
+    img.height = iSz;
+    img.style.width  = iSz + 'px';
+    img.style.height = iSz + 'px';
+    img.style.left   = (worldX - iSz / 2) + 'px';
+    img.style.top    = (worldY - iSz / 2) + 'px';
+    img.style.transform = `rotate(${rot * 180 / Math.PI}deg)`;
+    img.style.display   = showIcon ? '' : 'none';
+  });
 }
 
 // ── Hover tooltip setup (called once after modal opens) ───────────────────
@@ -13712,6 +13796,7 @@ function closeWheelSpin(){
   _wmStopTickSfx();
   _wmStopWheelSfx();
   _wmStopAnimLoop();
+  const ov = document.getElementById('_wmIconOverlay'); if (ov) ov.innerHTML = '';
   _wm.spinning=false;document.getElementById('wmSpinBtn').disabled=false;
   window.removeEventListener('resize', _wmFitWheel);
   _clearHash();
