@@ -13410,28 +13410,6 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     const isWin   = i === _wmWheelWinIdx && !_wm.spinning;
     const push    = isHov ? Math.min(12, R * 0.05) : (isWin ? Math.min(8, R * 0.03) : 0);
 
-    // Pulsing win values — mirrors the CSS wmWinnerPulse keyframes (0.8s alternating)
-    const _wp     = isWin ? Math.abs(Math.sin(performance.now() / 800 * Math.PI)) : 0;
-    const _wBlur  = isWin ? (18 + 27 * _wp) : (isHov ? 18 : 0);   // 18 → 45
-    const _wLineW = isWin ? (2 + 1.5 * _wp)  : (isHov ? 2.5 : 1.2); // 2 → 3.5
-    const _wAlpha = isWin ? (0.55 + 0.45 * _wp) : (isHov ? 0.8 : 0.4);
-
-    // ── Outer glow pass for winner (extra spread ring, drawn first so fill goes on top) ──
-    if (isWin) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, R + push + 3, startA, endA);
-      ctx.closePath();
-      ctx.strokeStyle = `rgba(228,184,77,${0.15 + 0.2 * _wp})`;
-      ctx.lineWidth   = 6 + 8 * _wp;
-      ctx.shadowColor = '#e4b84d';
-      ctx.shadowBlur  = 20 + 28 * _wp;
-      ctx.stroke();
-      ctx.shadowBlur  = 0;
-      ctx.restore();
-    }
-
     // ── Slice fill ──
     ctx.save();
     ctx.beginPath();
@@ -13443,11 +13421,11 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     ctx.arc(cx, cy, R + push, startA, endA);
     ctx.closePath();
     ctx.fillStyle = isHov ? col : (isWin ? col + 'ff' : (i % 2 === 0 ? col + 'dd' : col + 'bb'));
-    if (isHov || isWin) { ctx.shadowColor = isWin ? '#e4b84d' : col; ctx.shadowBlur = _wBlur; }
+    if (isHov || isWin) { ctx.shadowColor = col; ctx.shadowBlur = isWin ? 28 : 18; }
     ctx.fill();
-    ctx.shadowBlur  = 0;
-    ctx.strokeStyle = (isHov || isWin) ? `rgba(228,184,77,${_wAlpha})` : 'rgba(0,0,0,0.4)';
-    ctx.lineWidth   = _wLineW;
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = (isHov || isWin) ? 'rgba(228,184,77,0.8)' : 'rgba(0,0,0,0.4)';
+    ctx.lineWidth   = (isHov || isWin) ? 2.5 : 1.2;
     ctx.stroke();
     ctx.restore();
 
@@ -13459,13 +13437,10 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
     ctx.save();
     ctx.translate(tX, tY);
-    // Rotate so text reads outward; flip bottom half so it's never upside-down.
-    // Normalize midA to [0, 2π) before the flip check — raw angle accumulates
-    // after spins and breaks the > π/2 && < 3π/2 condition.
-    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    let rot = midA + Math.PI / 2;
-    if (midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5) rot += Math.PI;
-    ctx.rotate(rot);
+    // Fixed orientation: bottom of text/icon always faces wheel centre.
+    // No half-rotation flip — eliminates the jarring 180° jump as slices
+    // cross the top/bottom boundary during a spin.
+    ctx.rotate(midA + Math.PI / 2);
 
     // Icon
     const icon   = item.icon;
@@ -13581,14 +13556,9 @@ function _wmUpdateIconOverlay(angle) {
     const img = imgs[idx];
     const midA    = angle + i * seg - Math.PI / 2 + seg / 2;
 
-    // World position of icon centre — mirrors the canvas geometry.
-    // iconOff is negative (outward in the rotated local frame).
-    // Non-flipped half: icon sits further out than text (tR - iconOff = tR + |iconOff|)
-    // Flipped half:     icon sits closer in (tR + iconOff = tR - |iconOff|)
-    // We normalise midA only for the position-side flip determination, not for rotation.
-    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    const flipped  = midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5;
-    const iR = flipped ? (tR + iconOff) : (tR - iconOff);
+    // Icon always sits between the label and the rim — no flip offset needed
+    // since text no longer flips either (bottom-toward-centre orientation fixed).
+    const iR     = tR - iconOff; // iconOff is negative, so this = tR + |iconOff|
     const worldX = cx + iR * Math.cos(midA);
     const worldY = cy + iR * Math.sin(midA);
 
