@@ -11718,7 +11718,13 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* ── Item winner highlight ── */
 .wm-item.winner{
-  box-shadow:0 0 0 2px #e4b84d, 0 0 30px rgba(228,184,77,0.5) !important;
+  box-shadow:0 0 0 2.5px #e4b84d, 0 0 24px 4px rgba(228,184,77,0.7), 0 0 50px 8px rgba(228,184,77,0.3) !important;
+  border-color:#e4b84d !important;
+  animation:wmWinnerPulse 0.8s ease-in-out infinite alternate;
+}
+@keyframes wmWinnerPulse{
+  from{box-shadow:0 0 0 2px #e4b84d,0 0 18px 3px rgba(228,184,77,0.6);}
+  to  {box-shadow:0 0 0 3px #e4b84d,0 0 36px 8px rgba(228,184,77,0.85),0 0 60px 12px rgba(228,184,77,0.25);}
 }
 
 /* ── Description tooltip on case contents hover ── */
@@ -12686,29 +12692,60 @@ function _wmTick(speed) {
   } catch(e) {}
 }
 
-// CS2 reveal sound — ascending sweep + impact + shimmer
+// CS2 reveal sound — ascending sweep + impact + shimmer + crowd-like cheer
 function _wmReveal() {
   if (_wm.muted) return;
   try {
     const c = _wmAC(), t = c.currentTime;
-    // Low impact thud
-    const tg = c.createGain(); tg.gain.setValueAtTime(_wm.vol * 0.8, t); tg.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+
+    // ── Low impact thud ──
+    const tg = c.createGain(); tg.gain.setValueAtTime(_wm.vol * 0.9, t); tg.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
     tg.connect(c.destination);
-    const to = c.createOscillator(); to.type = 'sine'; to.frequency.setValueAtTime(60, t); to.frequency.exponentialRampToValueAtTime(25, t + 0.3);
-    to.connect(tg); to.start(t); to.stop(t + 0.4);
-    // Sharp crack
-    const cg = c.createGain(); cg.gain.setValueAtTime(_wm.vol * 0.6, t); cg.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+    const to = c.createOscillator(); to.type = 'sine'; to.frequency.setValueAtTime(65, t); to.frequency.exponentialRampToValueAtTime(22, t + 0.35);
+    to.connect(tg); to.start(t); to.stop(t + 0.45);
+
+    // ── Sharp crack ──
+    const cg = c.createGain(); cg.gain.setValueAtTime(_wm.vol * 0.7, t); cg.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
     cg.connect(c.destination);
-    const nb = c.createBuffer(1, Math.floor(c.sampleRate*0.06), c.sampleRate);
-    const nd = nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
-    const ns2 = c.createBufferSource(); ns2.buffer = nb; ns2.connect(cg); cg.connect(c.destination); ns2.start(t);
-    // Gold shimmer — ascending notes
-    [523, 659, 784, 1047, 1319].forEach((f, i) => {
-      const gg = c.createGain(); gg.gain.setValueAtTime(0, t + 0.1 + i*0.07); gg.gain.linearRampToValueAtTime(_wm.vol * 0.38, t + 0.12 + i*0.07); gg.gain.exponentialRampToValueAtTime(0.001, t + 0.12 + i*0.07 + 0.35);
+    const nb = c.createBuffer(1, Math.floor(c.sampleRate * 0.07), c.sampleRate);
+    const nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    const ns2 = c.createBufferSource(); ns2.buffer = nb; ns2.connect(cg); ns2.start(t);
+
+    // ── Rising fanfare — gold shimmer notes ──
+    [392, 523, 659, 784, 1047, 1319, 1568].forEach((f, i) => {
+      const gg = c.createGain();
+      gg.gain.setValueAtTime(0, t + 0.05 + i * 0.065);
+      gg.gain.linearRampToValueAtTime(_wm.vol * 0.42, t + 0.07 + i * 0.065);
+      gg.gain.exponentialRampToValueAtTime(0.001, t + 0.07 + i * 0.065 + 0.45);
       gg.connect(c.destination);
-      const oo = c.createOscillator(); oo.type = 'triangle'; oo.frequency.value = f;
-      oo.connect(gg); oo.start(t + 0.1 + i*0.07); oo.stop(t + 0.1 + i*0.07 + 0.35);
+      const oo = c.createOscillator(); oo.type = i % 2 === 0 ? 'triangle' : 'sine'; oo.frequency.value = f;
+      oo.connect(gg); oo.start(t + 0.05 + i * 0.065); oo.stop(t + 0.05 + i * 0.065 + 0.45);
     });
+
+    // ── Crowd cheer simulation — filtered noise swell ──
+    const crowdBuf = c.createBuffer(1, Math.floor(c.sampleRate * 1.8), c.sampleRate);
+    const cd = crowdBuf.getChannelData(0);
+    for (let i = 0; i < cd.length; i++) cd[i] = Math.random() * 2 - 1;
+    const crowd = c.createBufferSource(); crowd.buffer = crowdBuf;
+
+    // Bandpass to make noise sound crowd-like (~400-1200 Hz)
+    const bpf = c.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 800; bpf.Q.value = 0.8;
+    const bpf2 = c.createBiquadFilter(); bpf2.type = 'bandpass'; bpf2.frequency.value = 1600; bpf2.Q.value = 1.5;
+
+    const crowdGain = c.createGain();
+    crowdGain.gain.setValueAtTime(0, t + 0.3);
+    crowdGain.gain.linearRampToValueAtTime(_wm.vol * 0.28, t + 0.7);
+    crowdGain.gain.setValueAtTime(_wm.vol * 0.28, t + 1.2);
+    crowdGain.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+
+    const crowdGain2 = c.createGain();
+    crowdGain2.gain.setValueAtTime(0, t + 0.3);
+    crowdGain2.gain.linearRampToValueAtTime(_wm.vol * 0.15, t + 0.8);
+    crowdGain2.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
+
+    crowd.connect(bpf); bpf.connect(crowdGain); crowdGain.connect(c.destination);
+    crowd.connect(bpf2); bpf2.connect(crowdGain2); crowdGain2.connect(c.destination);
+    crowd.start(t + 0.3);
   } catch(e) {}
 }
 
@@ -12744,6 +12781,19 @@ const ITEM_W = 164; // px per item including gap (160 + 4 gap)
 const ITEM_GAP = 4;
 const REEL_VISIBLE = 7; // items visible at once
 
+// Returns an array of wheel item objects in the same order as reel cards
+// populated from a data attribute set by _wmBuildReel
+function _wmGetReelItems() {
+  const cards = document.querySelectorAll('#wmReelTrack .wm-item');
+  const items = _wmCurrent().items;
+  const result = [];
+  cards.forEach(card => {
+    const idx = parseInt(card.dataset.itemIdx ?? '-1', 10);
+    result.push(idx >= 0 ? items[idx] : items[0]);
+  });
+  return result;
+}
+
 function _wmBuildReel(winIdx) {
   const items = _wmCurrent().items;
   const track = document.getElementById('wmReelTrack');
@@ -12759,8 +12809,10 @@ function _wmBuildReel(winIdx) {
   for (let i = 0; i < POST; i++) allItems.push(items[Math.floor(Math.random() * items.length)]);
 
   allItems.forEach((item, i) => {
+    const itemIdx = items.indexOf(item);
     const el = document.createElement('div');
     el.className = 'wm-item';
+    el.dataset.itemIdx = itemIdx;
     el.style.cssText = `border-color:${item.color}33;`;
     el.innerHTML = `
       <div class="wm-item-inner">
@@ -12823,18 +12875,25 @@ function wmSpin() {
 
   const winIdx = Math.floor(Math.random() * wheel.items.length);
   const reelWinnerIdx = _wmBuildReel(winIdx); // = PRE = 45
+  // Keep a ref to the allItems array so frame() can reverse-map the visual position
+  const allItemsRef = Array.from(document.querySelectorAll('#wmReelTrack .wm-item')).map((el, i) => {
+    // We need the item data — re-derive from winIdx position
+    return null; // placeholder — we'll read from DOM label instead
+  });
 
   // The reel outer center X
   const outer = document.getElementById('wmReelOuter');
   const outerW = outer.clientWidth;
   const centerX = outerW / 2;
 
-  // Position of winner card center: reelWinnerIdx * (ITEM_W + ITEM_GAP) + ITEM_W/2
-  const winnerCenter = reelWinnerIdx * ITEM_W + (ITEM_W - ITEM_GAP) / 2; // stride=ITEM_W(164), half-card=(164-4)/2=80
-  // We want the winner card center at the pointer (centerX)
-  // targetX so that: winnerCenter + targetX = centerX
-  const jitter = (Math.random() - 0.5) * ((ITEM_W - ITEM_GAP) * 0.5); // stay within card edges
+  // Position of winner card center exactly at pointer — no jitter so visual matches winner
+  const winnerCenter = reelWinnerIdx * ITEM_W + (ITEM_W - ITEM_GAP) / 2;
+  // Small jitter kept within ±30px so it still looks natural but stays clearly on the card
+  const jitter = (Math.random() - 0.5) * 60;
   const targetX = centerX - winnerCenter + jitter;
+
+  // Build a lookup of actual items per reel position from the track DOM
+  const reelItems = _wmGetReelItems();
 
   // Spin lasts exactly as long as tick.m4a
   const tickDur = _wmTickAudio.duration;
@@ -12863,17 +12922,25 @@ function wmSpin() {
     if (t < 1) {
       _wm.animId = requestAnimationFrame(frame);
     } else {
-      // Done
+      // Done — derive winner from actual final visual position
       _wm.spinning = false;
       document.getElementById('wmSpinBtn').disabled = false;
-      // Highlight winner
-      const winCard = document.getElementById('wmWinnerCard');
-      if (winCard) winCard.classList.add('winner');
+
+      // The card at visual center: centerX = finalTX + cardCenter
+      // cardIndex = floor((centerX - finalTX) / ITEM_W)
+      const finalTX   = tx;
+      const pointerX  = centerX - finalTX;          // position in reel space
+      const landedIdx = Math.max(0, Math.min(reelItems.length - 1, Math.floor(pointerX / ITEM_W)));
+      const winner    = reelItems[landedIdx] || wheel.items[winIdx];
+
+      // Highlight the card that visually stopped at center
+      document.querySelectorAll('.wm-item').forEach((el, i) => {
+        el.classList.toggle('winner', i === landedIdx);
+      });
       // Flash
       document.getElementById('wmWinFlash').classList.add('show');
       setTimeout(() => document.getElementById('wmWinFlash')?.classList.remove('show'), 1200);
       // Show result text
-      const winner = wheel.items[winIdx];
       const rl = document.getElementById('wmResultLabel');
       rl.textContent = winner.label;
       rl.style.color = winner.color;
@@ -12882,7 +12949,7 @@ function wmSpin() {
       const rdCase = document.getElementById('wmResultDesc');
       if (rdCase) rdCase.textContent = winner.desc || '';
       _wmStopTickSfx();
-      _wmPlayEndSfx();
+      _wmReveal();
       // History
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
@@ -13274,6 +13341,7 @@ function _wmFitWheel() {
 
 // ── Wheel hover & GIF state ───────────────────────────────────────────────
 let _wmHoverIdx   = -1;   // which slice the mouse is over
+let _wmWheelWinIdx = -1;  // which slice won (stays lit after spin)
 let _wmDrawQueued = false; // rAF throttle flag
 
 // DOM-overlay cache for animated images (keeps GIFs/WebP-anim alive)
@@ -13339,7 +13407,30 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     const midA    = startA + seg / 2;
     const col     = item.color || '#4b69ff';
     const isHov   = i === hovIdx && !_wm.spinning;
-    const push    = isHov ? Math.min(12, R * 0.05) : 0;
+    const isWin   = i === _wmWheelWinIdx && !_wm.spinning;
+    const push    = isHov ? Math.min(12, R * 0.05) : (isWin ? Math.min(8, R * 0.03) : 0);
+
+    // Pulsing win values — mirrors the CSS wmWinnerPulse keyframes (0.8s alternating)
+    const _wp     = isWin ? Math.abs(Math.sin(performance.now() / 800 * Math.PI)) : 0;
+    const _wBlur  = isWin ? (18 + 27 * _wp) : (isHov ? 18 : 0);   // 18 → 45
+    const _wLineW = isWin ? (2 + 1.5 * _wp)  : (isHov ? 2.5 : 1.2); // 2 → 3.5
+    const _wAlpha = isWin ? (0.55 + 0.45 * _wp) : (isHov ? 0.8 : 0.4);
+
+    // ── Outer glow pass for winner (extra spread ring, drawn first so fill goes on top) ──
+    if (isWin) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, R + push + 3, startA, endA);
+      ctx.closePath();
+      ctx.strokeStyle = `rgba(228,184,77,${0.15 + 0.2 * _wp})`;
+      ctx.lineWidth   = 6 + 8 * _wp;
+      ctx.shadowColor = '#e4b84d';
+      ctx.shadowBlur  = 20 + 28 * _wp;
+      ctx.stroke();
+      ctx.shadowBlur  = 0;
+      ctx.restore();
+    }
 
     // ── Slice fill ──
     ctx.save();
@@ -13351,12 +13442,12 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, R + push, startA, endA);
     ctx.closePath();
-    ctx.fillStyle = isHov ? col : (i % 2 === 0 ? col + 'dd' : col + 'bb');
-    if (isHov) { ctx.shadowColor = col; ctx.shadowBlur = 18; }
+    ctx.fillStyle = isHov ? col : (isWin ? col + 'ff' : (i % 2 === 0 ? col + 'dd' : col + 'bb'));
+    if (isHov || isWin) { ctx.shadowColor = isWin ? '#e4b84d' : col; ctx.shadowBlur = _wBlur; }
     ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = isHov ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
-    ctx.lineWidth   = isHov ? 2 : 1.2;
+    ctx.shadowBlur  = 0;
+    ctx.strokeStyle = (isHov || isWin) ? `rgba(228,184,77,${_wAlpha})` : 'rgba(0,0,0,0.4)';
+    ctx.lineWidth   = _wLineW;
     ctx.stroke();
     ctx.restore();
 
@@ -13380,25 +13471,19 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     const icon   = item.icon;
     const isUrl   = icon && (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/'));
     const isEmoji = icon && !isUrl;
-    // In the rotated local frame: -Y = toward rim (outside), +Y = toward centre
-    // Icon sits outward from the label; label at y=0, icon at negative y (further out)
-    const iconGap = fontSize * 0.5 + 4;
-    const iconOff = -(iconGap + fontSize * 0.5); // outward (negative = toward rim)
+    const iconOff = -(fontSize * 0.8 + 3); // y-offset above label centre
 
     if (showIcon) {
-      if (isEmoji) {
+      if (isUrl) {
+        // URL icons handled by DOM overlay (_wmUpdateIconOverlay) — canvas drawImage
+        // only ever snapshots a static frame, so animated WebP/GIF must use real <img>.
+      } else if (isEmoji) {
         const eSz = Math.max(10, Math.min(17, (arcLen * 0.26) | 0));
-        ctx.save();
-        // Translate to icon position, then rotate 180° so bottom faces center
-        ctx.translate(0, iconOff);
-        ctx.rotate(Math.PI); // flip: bottom now faces center (inward)
         ctx.font = `${eSz}px serif`;
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(icon, 0, 0);
-        ctx.restore();
+        ctx.fillText(icon, 0, iconOff);
       }
-      // URL icons are handled by the DOM overlay (_wmUpdateIconOverlay)
     }
 
     // Label — truncated to fit radial space
@@ -13496,11 +13581,16 @@ function _wmUpdateIconOverlay(angle) {
     const img = imgs[idx];
     const midA    = angle + i * seg - Math.PI / 2 + seg / 2;
 
-    // The label sits at tR from centre. The icon should be FURTHER OUT (toward rim).
-    // iconOff is the gap between label centre and icon centre along the radial.
-    const iconOutR = tR + iSz * 0.6 + fontSize * 0.5 + 2; // push icon outward past label
-    const worldX = cx + iconOutR * Math.cos(midA);
-    const worldY = cy + iconOutR * Math.sin(midA);
+    // World position of icon centre — mirrors the canvas geometry.
+    // iconOff is negative (outward in the rotated local frame).
+    // Non-flipped half: icon sits further out than text (tR - iconOff = tR + |iconOff|)
+    // Flipped half:     icon sits closer in (tR + iconOff = tR - |iconOff|)
+    // We normalise midA only for the position-side flip determination, not for rotation.
+    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const flipped  = midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5;
+    const iR = flipped ? (tR + iconOff) : (tR - iconOff);
+    const worldX = cx + iR * Math.cos(midA);
+    const worldY = cy + iR * Math.sin(midA);
 
     if (img.src !== it.icon) img.src = it.icon;
     img.width  = iSz;
@@ -13509,12 +13599,11 @@ function _wmUpdateIconOverlay(angle) {
     img.style.height = iSz + 'px';
     img.style.left   = (worldX - iSz / 2) + 'px';
     img.style.top    = (worldY - iSz / 2) + 'px';
-    // Rotate icon so its bottom faces the wheel centre (pointing outward)
-    // midA is the angle from positive-x axis; add 90° so "down" (bottom) faces center
-    const deg = midA * 180 / Math.PI + 90;
-    img.style.transform       = `rotate(${deg}deg)`;
-    img.style.transformOrigin = '50% 50%';
-    img.style.display         = showIcon ? '' : 'none';
+    // Keep icons upright (no rotation). Emote images are small squares and look
+    // correct at any wheel position without rotation. Rotating them causes jarring
+    // 180° flips each time a slice crosses the top/bottom boundary while spinning.
+    img.style.transform = 'none';
+    img.style.display   = showIcon ? '' : 'none';
   });
 }
 
@@ -13626,6 +13715,7 @@ function wmSpinWheel() {
   if (_wm.audioCtx?.state === 'suspended') _wm.audioCtx.resume();
 
   _wm.spinning = true;
+  _wmWheelWinIdx = -1; // clear previous winner glow
   document.getElementById('wmSpinBtn').disabled = true;
   document.getElementById('wmResultLabel').textContent = '';
   document.getElementById('wmResultSub').textContent   = '';
@@ -13669,7 +13759,7 @@ function wmSpinWheel() {
       _wm.spinning  = false;
       document.getElementById('wmSpinBtn').disabled = false;
       _wmStopWheelSfx();
-      _wmPlayEndSfx();
+      _wmReveal();
 
       // Show winner — use winIdx directly (already the correct segment)
       const winner = wheel.items[winIdx];
@@ -13680,6 +13770,10 @@ function wmSpinWheel() {
       document.getElementById('wmResultSub').textContent = '— YOU RECEIVED —';
       const rdWheel = document.getElementById('wmResultDesc');
       if (rdWheel) rdWheel.textContent = winner.desc || '';
+
+      // Highlight the winning slice (draw with winner glow)
+      _wmWheelWinIdx = winIdx;
+      _wmRenderWheelFrame(_wmWheelAngle, -1); // redraw with winner glow
 
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
@@ -13715,15 +13809,28 @@ function _wmWheelTick() {
   if (_wm.muted) return;
   try {
     const c = _wmAC(), t = c.currentTime;
-    const g = c.createGain();
-    g.gain.setValueAtTime(_wm.vol * 0.35, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
-    g.connect(c.destination);
+    // Crisp mechanical click: short noise + pitched blip
+    const ng = c.createGain();
+    ng.gain.setValueAtTime(_wm.vol * 0.55, t);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    ng.connect(c.destination);
+
+    // Short noise burst for the click body
+    const buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.025), c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const ns = c.createBufferSource(); ns.buffer = buf; ns.connect(ng); ns.start(t);
+
+    // Pitched transient for brightness
+    const og = c.createGain();
+    og.gain.setValueAtTime(_wm.vol * 0.4, t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+    og.connect(c.destination);
     const o = c.createOscillator();
-    o.type = 'triangle';
-    o.frequency.setValueAtTime(1200, t);
-    o.frequency.exponentialRampToValueAtTime(600, t + 0.03);
-    o.connect(g); o.start(t); o.stop(t + 0.04);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(1400 + Math.random() * 200, t);
+    o.frequency.exponentialRampToValueAtTime(700, t + 0.025);
+    o.connect(og); o.start(t); o.stop(t + 0.03);
   } catch(e) {}
 }
 // ── Share Wheel (export/import via URL) ───────────────────────────────────
