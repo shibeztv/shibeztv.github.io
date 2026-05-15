@@ -12811,7 +12811,7 @@ function _wmLoad() {
 function _wmCurrent() { return _wm.wheels.find(w=>w.id===_wm.activeId) || _wm.wheels[0]; }
 
 // ── Reel building ─────────────────────────────────────────────────────────
-const ITEM_W = 164; // px per item including gap (160 + 4 gap)
+const ITEM_W = 214; // px per item — matches CSS (.wm-item width:210px + gap:4px)
 const ITEM_GAP = 4;
 const REEL_VISIBLE = 7; // items visible at once
 
@@ -13444,6 +13444,33 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     const isWin   = i === _wmWheelWinIdx && !_wm.spinning;
     const push    = isHov ? Math.min(12, R * 0.05) : (isWin ? Math.min(8, R * 0.03) : 0);
 
+    // Pulsing values for the winning slice (mirrors wmWinnerPulse CSS keyframes)
+    const _wp     = isWin ? Math.abs(Math.sin(performance.now() / 800 * Math.PI)) : 0;
+    const _wBlur  = isWin ? (18 + 22 * _wp) : (isHov ? 16 : 0);
+    const _wLineW = isWin ? (2 + 1.5 * _wp)  : (isHov ? 2.5 : 1.2);
+    const _wAlpha = isWin ? (0.55 + 0.4 * _wp) : (isHov ? 0.8 : 0.4);
+
+    // ── Outer glow ring for winner ─ arc-only so no radial-line shadow bleed ──
+    if (isWin) {
+      ctx.save();
+      // Clip strictly to this slice so the wide stroke glow can't leak onto neighbours
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, R + push + 18, startA, endA);
+      ctx.closePath();
+      ctx.clip();
+      // Arc stroke only (no moveTo-center → no radial edge lines)
+      ctx.beginPath();
+      ctx.arc(cx, cy, R + push + 1, startA, endA);
+      ctx.strokeStyle = `rgba(228,184,77,${0.18 + 0.22 * _wp})`;
+      ctx.lineWidth   = 9 + 10 * _wp;
+      ctx.shadowColor = '#e4b84d';
+      ctx.shadowBlur  = 20 + 26 * _wp;
+      ctx.stroke();
+      ctx.shadowBlur  = 0;
+      ctx.restore();
+    }
+
     // ── Slice fill ──
     ctx.save();
     ctx.beginPath();
@@ -13455,11 +13482,14 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     ctx.arc(cx, cy, R + push, startA, endA);
     ctx.closePath();
     ctx.fillStyle = isHov ? col : (isWin ? col + 'ff' : (i % 2 === 0 ? col + 'dd' : col + 'bb'));
-    if (isHov || isWin) { ctx.shadowColor = col; ctx.shadowBlur = isWin ? 28 : 18; }
+    if (isHov || isWin) {
+      ctx.shadowColor = isWin ? '#e4b84d' : col;
+      ctx.shadowBlur  = _wBlur;
+    }
     ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = (isHov || isWin) ? 'rgba(228,184,77,0.8)' : 'rgba(0,0,0,0.4)';
-    ctx.lineWidth   = (isHov || isWin) ? 2.5 : 1.2;
+    ctx.shadowBlur  = 0;
+    ctx.strokeStyle = (isHov || isWin) ? `rgba(228,184,77,${_wAlpha})` : 'rgba(0,0,0,0.4)';
+    ctx.lineWidth   = _wLineW;
     ctx.stroke();
     ctx.restore();
 
@@ -13813,28 +13843,36 @@ function _wmWheelTick() {
   if (_wm.muted) return;
   try {
     const c = _wmAC(), t = c.currentTime;
-    // Crisp mechanical click: short noise + pitched blip
-    const ng = c.createGain();
-    ng.gain.setValueAtTime(_wm.vol * 0.55, t);
-    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
-    ng.connect(c.destination);
-
-    // Short noise burst for the click body
-    const buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.025), c.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-    const ns = c.createBufferSource(); ns.buffer = buf; ns.connect(ng); ns.start(t);
-
-    // Pitched transient for brightness
+    // Gentle soft click — low pitched, quick decay, no harsh noise
     const og = c.createGain();
-    og.gain.setValueAtTime(_wm.vol * 0.4, t);
-    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
-    og.connect(c.destination);
+    og.gain.setValueAtTime(_wm.vol * 0.18, t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+
+    // Low-pass filter to take harshness off
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(900, t);
+    lp.Q.value = 0.7;
+
+    og.connect(lp);
+    lp.connect(c.destination);
+
+    // Soft sine blip at lower frequency — sounds like a gentle roulette tick
     const o = c.createOscillator();
     o.type = 'sine';
-    o.frequency.setValueAtTime(1400 + Math.random() * 200, t);
-    o.frequency.exponentialRampToValueAtTime(700, t + 0.025);
-    o.connect(og); o.start(t); o.stop(t + 0.03);
+    o.frequency.setValueAtTime(480 + Math.random() * 80, t);
+    o.frequency.exponentialRampToValueAtTime(260, t + 0.028);
+    o.connect(og); o.start(t); o.stop(t + 0.035);
+
+    // Very faint noise just for texture
+    const buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.012), c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) * 0.25;
+    const ng = c.createGain();
+    ng.gain.setValueAtTime(_wm.vol * 0.08, t);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.018);
+    ng.connect(c.destination);
+    const ns = c.createBufferSource(); ns.buffer = buf; ns.connect(ng); ns.start(t);
   } catch(e) {}
 }
 // ── Share Wheel (export/import via URL) ───────────────────────────────────
