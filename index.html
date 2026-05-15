@@ -1145,7 +1145,7 @@
     #dateFilterWrap { width: 100%; margin-left: 0 !important; }
     /* SpaceBez: fill screen, compress HUD on mobile */
     #spaceModal { padding: 0 !important; }
-    #spaceModal > div { border-radius: 0 !important; max-height: 100vh !important; width: 100% !important; }
+    #spaceModal > div { border-radius: 0 !important; width: 100% !important; height: 100% !important; max-height: 100% !important; }
     #spaceMusicVol, #spaceSfxVol { width: 60px !important; }
     #spaceScore, #spaceTimer, #spaceCoins { font-size: 12px !important; }
     #spaceHeartsDisplay { font-size: 13px !important; }
@@ -1256,7 +1256,7 @@
     flex-shrink: 0;
   }
   .live-banner-title {
-    font-size: 18px;
+    font-size: 24px;
     font-weight: 800;
     color: var(--text);
     letter-spacing: 0.3px;
@@ -1409,7 +1409,8 @@
         <span class="live-banner-dot"></span>
         <span class="live-banner-title"><a href="https://twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:1px;cursor:pointer;">Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" style="height:22px;vertical-align:middle;margin-left:2px" alt=""></a></span>
       </div>
-      <div class="live-banner-meta" id="liveBannerMeta" style="font-family:var(--mono);font-size:12px;color:#ccc;display:none"></div>
+      <div id="liveBannerStreamTitle" style="font-family:var(--mono);font-size:22px;font-weight:700;color:#f0f0f0;display:none;text-align:center;max-width:700px;line-height:1.3"></div>
+      <div class="live-banner-meta" id="liveBannerMeta" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#eee;display:none"></div>
       <div class="live-banner-embed" id="liveBannerEmbed"></div>
     </div>
     <!-- RANDOM CLIP + SHIB.LE BUTTONS -->
@@ -1513,8 +1514,8 @@
     </div>
 
     <!-- SPACEBEZ MODAL -->
-    <div id="spaceModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:10px;overflow:hidden">
-      <div style="background:#050510;border:1px solid #1a1a3a;border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;max-width:100%;max-height:calc(100vh - var(--topbar-h) - 20px)">
+    <div id="spaceModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:stretch;justify-content:stretch;padding:0;overflow:hidden">
+      <div style="background:#050510;border:none;border-radius:0;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:stretch;width:100%;height:100%;max-width:100%;max-height:100%">
         <div id="spaceMusicEl" style="display:none"></div>
         <div id="spaceShopMusicEl" style="display:none"></div>
         <div id="spaceShopMusicEl2" style="display:none"></div>
@@ -3243,7 +3244,12 @@ async function fetchTwitchChapters(vodId) {
   return [];
 }
 
+// Cancellation token — incremented each time a new VOD is opened so stale
+// async chapter fetches discard their results instead of writing to the DOM.
+let _vmToken = 0;
+
 function renderVideoMeta(stream) {
+  const myToken = ++_vmToken; // capture token for this specific call
   const meta = document.getElementById('videoMeta');
   meta.style.display = 'block';
   document.getElementById('videoTitle').textContent = stream.title;
@@ -3261,8 +3267,11 @@ function renderVideoMeta(stream) {
   // Game segments — fetch from Twitch GQL async
   const segs = document.getElementById('segmentBtns');
   const timelineWrap = document.getElementById('timelineWrap');
+  const segLabelEl = document.querySelector('.segments-label');
+  // Reset bar state so stale data from a previous VOD never bleeds through
   segs.innerHTML = '<span style="font-family:var(--mono);font-size:11px;color:#999">Loading chapters…</span>';
   timelineWrap.style.display = 'none';
+  if (segLabelEl) segLabelEl.style.display = 'none'; // hidden until chapters confirmed
 
   const vodId = twitchVodMap[stream.day];
   console.log('Stream day:', stream.day, '| Twitch vodId:', vodId, '| twitchVodMap keys:', Object.keys(twitchVodMap).slice(0,5));
@@ -3280,6 +3289,7 @@ function renderVideoMeta(stream) {
     Promise.all(partVodIds.map((vid, pi) =>
       vid ? fetchTwitchChapters(vid).then(chs => ({ pi, chs, vid })) : Promise.resolve({ pi, chs: [], vid: null })
     )).then(results => {
+      if (myToken !== _vmToken) return; // stale — a newer VOD was opened, discard
       // Merge chapters from all parts into stream.games with correct cumulative offsets
       let offset = 0;
       const merged = [];
@@ -3304,6 +3314,7 @@ function renderVideoMeta(stream) {
         document.querySelector('.segments-label').style.display = 'none';
       }
     }).catch(err => {
+      if (myToken !== _vmToken) return; // stale
       console.warn('Chapter fetch failed:', err);
       if (stream.games && stream.games.length) renderSegments(stream);
       else { segs.innerHTML = ''; document.querySelector('.segments-label').style.display = 'none'; }
@@ -4267,10 +4278,12 @@ async function checkLiveStatus() {
       if (statusEl) statusEl.className = 'stream-status live-status';
       if (statusText) statusText.innerHTML = `<a href="https://www.twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><span class="live-dot"></span>Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" class="status-emote" alt=""></a>`;
       const meta1 = document.getElementById('liveBannerMeta');
+      const titleEl1 = document.getElementById('liveBannerStreamTitle');
+      if (titleEl1) { titleEl1.textContent = stream.title || ''; titleEl1.style.display = stream.title ? 'block' : 'none'; }
       if (meta1) {
         const g1 = stream.game_name || 'streaming';
         const slug1 = g1.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-        meta1.innerHTML = `<a href="https://www.twitch.tv/directory/category/${slug1}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${g1}</a> · ⏱ ${formatUptime(stream.started_at)}`;
+        meta1.innerHTML = `<a href="https://www.twitch.tv/directory/category/${slug1}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${g1}</a> · ⏱ ${formatUptime(stream.started_at)} · 👥 ${(stream.viewer_count||0).toLocaleString()} viewers`;
         meta1.style.display = 'block';
       }
       if (dot) dot.classList.add('live');
@@ -4287,6 +4300,8 @@ async function checkLiveStatus() {
       if (statusText) statusText.innerHTML = 'Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt="">';
       if (dot) dot.classList.remove('live');
       if (banner) { banner.classList.remove('visible'); if (bannerEmbed) bannerEmbed.innerHTML = ''; }
+      const titleElOff1 = document.getElementById('liveBannerStreamTitle');
+      if (titleElOff1) titleElOff1.style.display = 'none';
     }
   } catch(e) {
     console.warn('Live check failed:', e.message);
@@ -4340,9 +4355,11 @@ function secretLiveToggle() {
     if (statusText) statusText.innerHTML =
       `<a href="https://www.twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><span class="live-dot"></span>Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" class="status-emote" alt=""></a>`;
     if (meta) {
-      meta.innerHTML = `<span style="color:#ff6060">Category: Test Stream</span> · ⏱ 0h 01m`;
+      meta.innerHTML = `<span style="color:#ff6060">Category: Test Stream</span> · ⏱ 0h 01m · 👥 420 viewers`;
       meta.style.display = 'block';
     }
+    const titleElS = document.getElementById('liveBannerStreamTitle');
+    if (titleElS) { titleElS.textContent = 'Test Stream Title'; titleElS.style.display = 'block'; }
     if (banner) {
       banner.classList.add('visible');
       banner.style.display = 'flex';
@@ -4358,6 +4375,8 @@ function secretLiveToggle() {
     if (banner) { banner.classList.remove('visible'); banner.style.display = ''; }
     if (bannerEmbed) bannerEmbed.innerHTML = '';
     if (meta) { meta.innerHTML = ''; meta.style.display = 'none'; }
+    const titleElOff2 = document.getElementById('liveBannerStreamTitle');
+    if (titleElOff2) titleElOff2.style.display = 'none';
   }
 }
 
@@ -4386,9 +4405,11 @@ async function demoLiveAsBadgeInsider() {
       if (statusText) statusText.innerHTML =
         `<a href="https://www.twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><span class="live-dot"></span>Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" class="status-emote" alt=""></a>`;
       const meta2 = document.getElementById('liveBannerMeta');
+      const titleEl2 = document.getElementById('liveBannerStreamTitle');
+      if (titleEl2) { titleEl2.textContent = stream.title || ''; titleEl2.style.display = stream.title ? 'block' : 'none'; }
       if (meta2) {
         const catSlug = game.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-        meta2.innerHTML = `<a href="https://www.twitch.tv/directory/category/${catSlug}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${game}</a> · ⏱ ${formatUptime(stream.started_at)}`;
+        meta2.innerHTML = `<a href="https://www.twitch.tv/directory/category/${catSlug}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${game}</a> · ⏱ ${formatUptime(stream.started_at)} · 👥 ${(stream.viewer_count||0).toLocaleString()} viewers`;
         meta2.style.display = 'block';
       }
 
@@ -4409,6 +4430,8 @@ async function demoLiveAsBadgeInsider() {
       if (banner) banner.style.display = 'none';
       const metaOff = document.getElementById('liveBannerMeta');
       if (metaOff) metaOff.style.display = 'none';
+      const titleElOff3 = document.getElementById('liveBannerStreamTitle');
+      if (titleElOff3) titleElOff3.style.display = 'none';
       if (statusEl) statusEl.className = 'stream-status offline-status';
       if (statusText) statusText.innerHTML =
         'Shibez is currently offline ' +
@@ -6421,8 +6444,9 @@ async function openSpacebez() {
   if(!window._spaceSavedRun) updateHeartsDisplay(5,0,5);
   // Full-screen canvas
   const canvas = document.getElementById('spaceCanvas');
-  const W = Math.floor(window.innerWidth  * 0.92);
-  const H = Math.floor(window.innerHeight * 0.80);
+  const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-h')) || 48;
+  const W = Math.floor(window.innerWidth);
+  const H = Math.floor(window.innerHeight - topbarH);
   canvas.width = W; canvas.height = H;
 
   if (!_spaceEmotes.length) {
@@ -6444,6 +6468,15 @@ async function openSpacebez() {
   // Cancel any existing loop before starting fresh to prevent double RAF
   if (_spaceRAF) { cancelAnimationFrame(_spaceRAF); _spaceRAF = null; }
   _spaceRunning = false;
+  // Resize canvas when window changes size
+  window._spaceResizeHandler = function() {
+    const c = document.getElementById('spaceCanvas');
+    if (!c) return;
+    const tbH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-h')) || 48;
+    c.width  = window.innerWidth;
+    c.height = window.innerHeight - tbH;
+  };
+  window.addEventListener('resize', window._spaceResizeHandler);
   startSpace();
 }
 
@@ -6576,6 +6609,7 @@ function closeSpace() {
   }
   _spaceRunning = false;
   if (_spaceRAF) { cancelAnimationFrame(_spaceRAF); _spaceRAF = null; }
+  if (window._spaceResizeHandler) { window.removeEventListener('resize', window._spaceResizeHandler); window._spaceResizeHandler = null; }
   document.getElementById('spaceLbPanel')?.remove();
   document.getElementById('spaceLbDeathOverlay')?.remove();
   const shop = document.getElementById('spaceShop');
@@ -13437,10 +13471,13 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
     ctx.save();
     ctx.translate(tX, tY);
-    // Fixed orientation: bottom of text/icon always faces wheel centre.
-    // No half-rotation flip — eliminates the jarring 180° jump as slices
-    // cross the top/bottom boundary during a spin.
-    ctx.rotate(midA + Math.PI / 2);
+    // Rotate so text reads outward; flip bottom half so it's never upside-down.
+    // Normalize midA to [0, 2π) before the flip check — raw angle accumulates
+    // after spins and breaks the > π/2 && < 3π/2 condition.
+    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    let rot = midA + Math.PI / 2;
+    if (midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5) rot += Math.PI;
+    ctx.rotate(rot);
 
     // Icon
     const icon   = item.icon;
@@ -13556,9 +13593,14 @@ function _wmUpdateIconOverlay(angle) {
     const img = imgs[idx];
     const midA    = angle + i * seg - Math.PI / 2 + seg / 2;
 
-    // Icon always sits between the label and the rim — no flip offset needed
-    // since text no longer flips either (bottom-toward-centre orientation fixed).
-    const iR     = tR - iconOff; // iconOff is negative, so this = tR + |iconOff|
+    // World position of icon centre — mirrors the canvas geometry.
+    // iconOff is negative (outward in the rotated local frame).
+    // Non-flipped half: icon sits further out than text (tR - iconOff = tR + |iconOff|)
+    // Flipped half:     icon sits closer in (tR + iconOff = tR - |iconOff|)
+    // We normalise midA only for the position-side flip determination, not for rotation.
+    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const flipped  = midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5;
+    const iR = flipped ? (tR + iconOff) : (tR - iconOff);
     const worldX = cx + iR * Math.cos(midA);
     const worldY = cy + iR * Math.sin(midA);
 
