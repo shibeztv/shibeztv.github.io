@@ -13471,12 +13471,9 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
     ctx.save();
     ctx.translate(tX, tY);
-    // Rotate so text reads outward; flip bottom half so it's never upside-down.
-    // Normalize midA to [0, 2π) before the flip check — raw angle accumulates
-    // after spins and breaks the > π/2 && < 3π/2 condition.
-    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    let rot = midA + Math.PI / 2;
-    if (midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5) rot += Math.PI;
+    // All slices use the same rotation: text runs radially, pointing outward from centre.
+    // No half-wheel flip — that caused left side and right side to face opposite directions.
+    const rot = midA + Math.PI / 2;
     ctx.rotate(rot);
 
     // Icon
@@ -13591,16 +13588,11 @@ function _wmUpdateIconOverlay(angle) {
   const imgs = overlay.querySelectorAll('img');
   urlItems.forEach(({ it, i }, idx) => {
     const img = imgs[idx];
-    const midA    = angle + i * seg - Math.PI / 2 + seg / 2;
+    const midA = angle + i * seg - Math.PI / 2 + seg / 2;
 
-    // World position of icon centre — mirrors the canvas geometry.
-    // iconOff is negative (outward in the rotated local frame).
-    // Non-flipped half: icon sits further out than text (tR - iconOff = tR + |iconOff|)
-    // Flipped half:     icon sits closer in (tR + iconOff = tR - |iconOff|)
-    // We normalise midA only for the position-side flip determination, not for rotation.
-    const midANorm = ((midA % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    const flipped  = midANorm > Math.PI / 2 && midANorm < Math.PI * 1.5;
-    const iR = flipped ? (tR + iconOff) : (tR - iconOff);
+    // Icon sits further out than the text label (tR - iconOff = tR + |iconOff|).
+    // No flip logic — matches the canvas which now uses a single consistent rotation.
+    const iR     = tR - iconOff;
     const worldX = cx + iR * Math.cos(midA);
     const worldY = cy + iR * Math.sin(midA);
 
