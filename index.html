@@ -12988,7 +12988,7 @@ function wmSpin() {
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
       // Show win popup after brief delay for drama
-      setTimeout(() => wmShowWinPopup(winner), 900);
+      setTimeout(() => wmShowWinPopup(winner), 300);
     }
   }
   _wm.animId = requestAnimationFrame(frame);
@@ -13789,7 +13789,7 @@ function wmSpinWheel() {
 
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
-      setTimeout(() => wmShowWinPopup(winner), 900);
+      setTimeout(() => wmShowWinPopup(winner), 300);
     }
   }
   _wm.animId = requestAnimationFrame(frame);
