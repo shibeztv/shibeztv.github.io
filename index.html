@@ -12702,7 +12702,7 @@ function _wmPlayEndSfx() {
 function _wmPlayCatSfx() {
   if (_wm.muted) return;
   _wmCatAudio.currentTime = 0;
-  _wmCatAudio.volume = _wm.vol;
+  _wmCatAudio.volume = Math.min(_wm.vol * 0.45, 0.45); // kept quiet
   _wmCatAudio.play().catch(()=>{});
 }
 
@@ -12991,7 +12991,7 @@ function wmSpin() {
       const rdCase = document.getElementById('wmResultDesc');
       if (rdCase) rdCase.textContent = winner.desc || '';
       _wmStopTickSfx();
-      _wmReveal();
+      _wmPlayEndSfx(); // case-open sound for case opening
       // History
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
@@ -13771,8 +13771,7 @@ function wmSpinWheel() {
       _wm.spinning  = false;
       document.getElementById('wmSpinBtn').disabled = false;
       _wmStopWheelSfx();
-      _wmReveal();
-      _wmPlayCatSfx(); // 🐱 cat laugh on wheel win
+      _wmPlayCatSfx(); // wheel win = cat laugh only, no crowd/fanfare
 
       // Show winner — use winIdx directly (already the correct segment)
       const winner = wheel.items[winIdx];
@@ -13822,28 +13821,29 @@ function _wmWheelTick() {
   if (_wm.muted) return;
   try {
     const c = _wmAC(), t = c.currentTime;
-    // Crisp mechanical click: short noise + pitched blip
-    const ng = c.createGain();
-    ng.gain.setValueAtTime(_wm.vol * 0.55, t);
-    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
-    ng.connect(c.destination);
+    // Ultra-soft ASMR tick — like a fingernail lightly tapping wood
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 600; lp.Q.value = 0.5;
 
-    // Short noise burst for the click body
-    const buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.025), c.sampleRate);
+    // Tiny noise tap — very short, very quiet
+    const ng = c.createGain();
+    ng.gain.setValueAtTime(_wm.vol * 0.06, t);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.018);
+    ng.connect(lp); lp.connect(c.destination);
+    const buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.010), c.sampleRate);
     const d = buf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
     const ns = c.createBufferSource(); ns.buffer = buf; ns.connect(ng); ns.start(t);
 
-    // Pitched transient for brightness
+    // Soft low sine blip — barely audible, warm tone
     const og = c.createGain();
-    og.gain.setValueAtTime(_wm.vol * 0.4, t);
-    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+    og.gain.setValueAtTime(_wm.vol * 0.07, t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.022);
     og.connect(c.destination);
-    const o = c.createOscillator();
-    o.type = 'sine';
-    o.frequency.setValueAtTime(1400 + Math.random() * 200, t);
-    o.frequency.exponentialRampToValueAtTime(700, t + 0.025);
-    o.connect(og); o.start(t); o.stop(t + 0.03);
+    const o = c.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(320 + Math.random() * 60, t);
+    o.frequency.exponentialRampToValueAtTime(180, t + 0.018);
+    o.connect(og); o.start(t); o.stop(t + 0.022);
   } catch(e) {}
 }
 // ── Share Wheel (export/import via URL) ───────────────────────────────────
