@@ -12702,7 +12702,7 @@ function _wmPlayEndSfx() {
 function _wmPlayCatSfx() {
   if (_wm.muted) return;
   _wmCatAudio.currentTime = 0;
-  _wmCatAudio.volume = Math.min(_wm.vol * 0.45, 0.45); // kept quiet
+  _wmCatAudio.volume = Math.min(_wm.vol * 0.20, 0.20); // kept quiet
   _wmCatAudio.play().catch(()=>{});
 }
 
