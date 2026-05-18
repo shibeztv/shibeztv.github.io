@@ -1502,6 +1502,40 @@
     color: var(--muted);
     margin-top: 4px;
   }
+
+  /* Featured (newest) card */
+  .hl-card.featured {
+    width: 340px;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 4px 24px rgba(124,92,252,0.18);
+  }
+  .hl-card.featured:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent), 0 8px 32px rgba(124,92,252,0.28);
+    transform: translateY(-3px);
+  }
+  .hl-card.featured .hl-card-title {
+    font-size: 14px;
+    -webkit-line-clamp: 3;
+  }
+  .hl-card.featured .hl-play-btn svg {
+    width: 52px; height: 52px;
+  }
+  .hl-new-badge {
+    position: absolute;
+    top: 8px; left: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 3px;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(124,92,252,0.5);
+  }
+
   .hl-skeleton {
     flex-shrink: 0;
     width: 220px;
@@ -14298,7 +14332,7 @@ const _hlVideos = [
 }));
 // ─────────────────────────────────────────────────────────────────────────────
 
-const HL_CARD_WIDTH = 244; // px — card width (220) + gap (12) + a little
+const HL_CARD_WIDTH = 244; // px — regular card width (220) + gap (12) + buffer; featured card is wider
 
 function _escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -14312,8 +14346,9 @@ function hlRenderCards() {
     return;
   }
   track.innerHTML = _hlVideos.map((v, i) => `
-    <div class="hl-card" onclick="hlOpenVideo(${i})">
+    <div class="hl-card${i === 0 ? ' featured' : ''}" onclick="hlOpenVideo(${i})">
       <div class="hl-card-thumb">
+        ${i === 0 ? '<div class="hl-new-badge">&#9733; NEW VIDEO</div>' : ''}
         <img src="${v.thumb}" alt=""
           onerror="this.src='https://i.ytimg.com/vi/${v.id}/mqdefault.jpg'">
         <div class="hl-play-btn">
@@ -14325,7 +14360,9 @@ function hlRenderCards() {
       </div>
       <div class="hl-card-info">
         <div class="hl-card-title">${_escHtml(v.title)}</div>
-        ${i === 0 ? '<div class="hl-card-sub" style="color:var(--accent2)">● LATEST</div>' : ''}
+        <div class="hl-card-sub" style="${i === 0 ? 'color:var(--accent)' : ''}">
+          ${i === 0 ? '&#9679; LATEST UPLOAD' : ''}
+        </div>
       </div>
     </div>
   `).join('');
