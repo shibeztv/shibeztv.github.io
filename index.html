@@ -12696,13 +12696,13 @@ function _wmStopTickSfx() {
 function _wmPlayEndSfx() {
   if (_wm.muted) return;
   _wmEndAudio.currentTime = 0;
-  _wmEndAudio.volume = _wm.vol;
+  _wmEndAudio.volume = _wm.vol * 1.3; // 30% louder for case opening
   _wmEndAudio.play().catch(()=>{});
 }
 function _wmPlayCatSfx() {
   if (_wm.muted) return;
   _wmCatAudio.currentTime = 0;
-  _wmCatAudio.volume = Math.min(_wm.vol * 0.20, 0.20); // kept quiet
+  _wmCatAudio.volume = Math.min(_wm.vol * 0.17, 0.17); // 17% volume
   _wmCatAudio.play().catch(()=>{});
 }
 
@@ -12819,7 +12819,7 @@ function _wmLoad() {
 function _wmCurrent() { return _wm.wheels.find(w=>w.id===_wm.activeId) || _wm.wheels[0]; }
 
 // ── Reel building ─────────────────────────────────────────────────────────
-const ITEM_W = 164; // px per item including gap (160 + 4 gap)
+const ITEM_W = 214; // px per item — CSS .wm-item is width:210px + gap:4px = 214px pitch
 const ITEM_GAP = 4;
 const REEL_VISIBLE = 7; // items visible at once
 
@@ -12991,7 +12991,7 @@ function wmSpin() {
       const rdCase = document.getElementById('wmResultDesc');
       if (rdCase) rdCase.textContent = winner.desc || '';
       _wmStopTickSfx();
-      _wmPlayEndSfx(); // case-open sound for case opening
+      _wmPlayEndSfx(); // case open sound
       // History
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
@@ -13771,7 +13771,7 @@ function wmSpinWheel() {
       _wm.spinning  = false;
       document.getElementById('wmSpinBtn').disabled = false;
       _wmStopWheelSfx();
-      _wmPlayCatSfx(); // wheel win = cat laugh only, no crowd/fanfare
+      _wmPlayCatSfx(); // wheel win: only cat laugh
 
       // Show winner — use winIdx directly (already the correct segment)
       const winner = wheel.items[winIdx];
@@ -13821,29 +13821,28 @@ function _wmWheelTick() {
   if (_wm.muted) return;
   try {
     const c = _wmAC(), t = c.currentTime;
-    // Ultra-soft ASMR tick — like a fingernail lightly tapping wood
-    const lp = c.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 600; lp.Q.value = 0.5;
-
-    // Tiny noise tap — very short, very quiet
+    // Crisp mechanical click: short noise + pitched blip
     const ng = c.createGain();
-    ng.gain.setValueAtTime(_wm.vol * 0.06, t);
-    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.018);
-    ng.connect(lp); lp.connect(c.destination);
-    const buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.010), c.sampleRate);
+    ng.gain.setValueAtTime(_wm.vol * 0.83, t);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    ng.connect(c.destination);
+
+    // Short noise burst for the click body
+    const buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.025), c.sampleRate);
     const d = buf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
     const ns = c.createBufferSource(); ns.buffer = buf; ns.connect(ng); ns.start(t);
 
-    // Soft low sine blip — barely audible, warm tone
+    // Pitched transient for brightness
     const og = c.createGain();
-    og.gain.setValueAtTime(_wm.vol * 0.07, t);
-    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.022);
+    og.gain.setValueAtTime(_wm.vol * 0.6, t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
     og.connect(c.destination);
-    const o = c.createOscillator(); o.type = 'sine';
-    o.frequency.setValueAtTime(320 + Math.random() * 60, t);
-    o.frequency.exponentialRampToValueAtTime(180, t + 0.018);
-    o.connect(og); o.start(t); o.stop(t + 0.022);
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(1400 + Math.random() * 200, t);
+    o.frequency.exponentialRampToValueAtTime(700, t + 0.025);
+    o.connect(og); o.start(t); o.stop(t + 0.03);
   } catch(e) {}
 }
 // ── Share Wheel (export/import via URL) ───────────────────────────────────
