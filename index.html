@@ -1423,7 +1423,7 @@
     transform: none;
     z-index: auto;
     width: 32px;
-    height: 110px;
+    height: 80px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -1444,7 +1444,7 @@
 
   .hl-card {
     flex-shrink: 0;
-    width: 130px;
+    width: 175px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -1463,7 +1463,7 @@
   .hl-card-thumb {
     position: relative;
     width: 100%;
-    aspect-ratio: 9/16;
+    aspect-ratio: 3/4;
     background: #080810;
     overflow: hidden;
     flex-shrink: 0;
@@ -1488,7 +1488,7 @@
   .hl-card:hover .hl-play-btn { opacity: 1; }
   .hl-play-btn svg { width: 32px; height: 32px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7)); }
   .hl-card-info {
-    padding: 6px 7px 7px;
+    padding: 5px 8px 6px;
     flex-shrink: 0;
   }
   .hl-card-title {
@@ -1509,10 +1509,12 @@
     margin-top: 2px;
     font-weight: 700;
   }
+  /* Don't let empty sub-line add height */
+  .hl-card-sub:empty { display: none; }
 
   /* Featured (newest) card */
   .hl-card.featured {
-    width: 158px;
+    width: 210px;
     border-color: #ff3333;
     box-shadow: 0 0 0 1px #ff3333, 0 4px 24px rgba(255,51,51,0.18);
   }
@@ -1526,7 +1528,7 @@
     -webkit-line-clamp: 2;
   }
   .hl-card.featured .hl-play-btn svg {
-    width: 40px; height: 40px;
+    width: 44px; height: 44px;
   }
   .hl-new-badge {
     position: absolute;
@@ -1545,7 +1547,7 @@
 
   .hl-skeleton {
     flex-shrink: 0;
-    width: 130px;
+    width: 175px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -1553,7 +1555,7 @@
   }
   .hl-skeleton-thumb {
     width: 100%;
-    aspect-ratio: 9/16;
+    aspect-ratio: 3/4;
     background: linear-gradient(90deg, #1a1a1e 25%, #222228 50%, #1a1a1e 75%);
     background-size: 200% 100%;
     animation: hlShimmer 1.2s infinite linear;
@@ -14332,7 +14334,7 @@ document.addEventListener('click',e=>{
 const HL_PLAYLIST_ID     = 'PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h';
 const HL_API_KEY         = 'AIzaSyBa23LwHRUQ_1IndX-k-bjEqR6ZYi9e-eI';
 const HL_CHANNEL_HANDLE  = 'ShibezYT';
-const HL_CARD_WIDTH      = 142; // px — card (130) + gap (12)
+const HL_CARD_WIDTH      = 187; // px — card (175) + gap (12)
 
 let _hlVideos = []; // populated async
 
