@@ -1390,14 +1390,14 @@
     margin-left: auto;
     font-family: var(--mono);
     font-size: 10px;
-    color: var(--muted);
+    color: var(--text);
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 5px;
     transition: color 0.15s;
   }
-  .highlights-yt-link:hover { color: #ff6060; }
+  .highlights-yt-link:hover { color: #ff4444; }
   .highlights-yt-link svg { width: 14px; height: 14px; flex-shrink: 0; }
 
   .highlights-track-wrap {
@@ -1433,9 +1433,9 @@
     flex-shrink: 0;
   }
   .highlights-arrow:hover {
-    background: rgba(124,92,252,0.18);
-    border-color: var(--accent);
-    color: var(--accent);
+    background: rgba(255,40,40,0.18);
+    border-color: #ff3333;
+    color: #ff3333;
   }
   .highlights-arrow:disabled { opacity: 0.2; cursor: default; }
   .highlights-arrow.left { left: 0; background: linear-gradient(to right, rgba(13,13,15,0.98), rgba(13,13,15,0.5)); }
@@ -1453,7 +1453,7 @@
     position: relative;
   }
   .hl-card:hover {
-    border-color: var(--accent);
+    border-color: #ff3333;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
   }
@@ -1501,17 +1501,18 @@
     font-size: 9px;
     color: var(--muted);
     margin-top: 4px;
+    font-weight: 700;
   }
 
   /* Featured (newest) card */
   .hl-card.featured {
     width: 340px;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent), 0 4px 24px rgba(124,92,252,0.18);
+    border-color: #ff3333;
+    box-shadow: 0 0 0 1px #ff3333, 0 4px 24px rgba(255,51,51,0.18);
   }
   .hl-card.featured:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent), 0 8px 32px rgba(124,92,252,0.28);
+    border-color: #ff3333;
+    box-shadow: 0 0 0 2px #ff3333, 0 8px 32px rgba(255,51,51,0.28);
     transform: translateY(-3px);
   }
   .hl-card.featured .hl-card-title {
@@ -1528,12 +1529,12 @@
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.8px;
-    background: var(--accent);
+    background: #ff3333;
     color: #fff;
     padding: 3px 8px;
     border-radius: 3px;
     z-index: 2;
-    box-shadow: 0 2px 8px rgba(124,92,252,0.5);
+    box-shadow: 0 2px 8px rgba(255,51,51,0.5);
   }
 
   .hl-skeleton {
@@ -14313,31 +14314,101 @@ document.addEventListener('click',e=>{
 
 <script>
 // ── HIGHLIGHTS CAROUSEL ──────────────────────────────────────────────────────
-// Playlist: https://www.youtube.com/playlist?list=PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h
-// Videos listed most-recent first (left → right).
-// Update this list when you upload new highlights — paste newest at the top.
+// Dynamically fetches:
+//   • Featured (first) card  = latest channel upload NOT in the highlights
+//     playlist and NOT a short (≥62 s)
+//   • Remaining cards        = videos from the highlights/shorts playlist
 
-const HL_PLAYLIST_ID = 'PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h';
+const HL_PLAYLIST_ID     = 'PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h';
+const HL_API_KEY         = 'AIzaSyBa23LwHRUQ_1IndX-k-bjEqR6ZYi9e-eI';
+const HL_CHANNEL_HANDLE  = 'ShibezYT';
+const HL_CARD_WIDTH      = 244; // px — card (220) + gap (12) + buffer
 
-// ── ADD / REMOVE VIDEOS HERE ─────────────────────────────────────────────────
-// Most recent first. Get the video ID from the YouTube URL: ?v=XXXXXXXX
-// Title is shown under the thumbnail. Leave thumb blank — it auto-generates.
-const _hlVideos = [
-  { id: 'Rq38DOnvfBw', title: 'Shibez Highlights #1' },
-  // Add more below — copy this line and paste above this comment:
-  // { id: 'VIDEO_ID_HERE', title: 'Your Title Here' },
-].map(v => ({
-  ...v,
-  thumb: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`,
-}));
-// ─────────────────────────────────────────────────────────────────────────────
+let _hlVideos = []; // populated async
 
-const HL_CARD_WIDTH = 244; // px — regular card width (220) + gap (12) + buffer; featured card is wider
-
+// ── helpers ──────────────────────────────────────────────────────────────────
 function _escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function _parseIsoDuration(iso) {
+  const m = (iso || '').match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return 0;
+  return (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
+}
+
+// ── API fetchers ──────────────────────────────────────────────────────────────
+async function _hlFetchLatestVideo() {
+  try {
+    // 1. Channel uploads playlist ID
+    const chRes  = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle=${HL_CHANNEL_HANDLE}&key=${HL_API_KEY}`);
+    const chData = await chRes.json();
+    const uploadsId = chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+    if (!uploadsId) return null;
+
+    // 2. Latest 20 uploads
+    const upRes  = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=20&key=${HL_API_KEY}`);
+    const upData = await upRes.json();
+    const uploadIds = (upData.items || [])
+      .map(i => i.snippet?.resourceId?.videoId)
+      .filter(Boolean);
+    if (!uploadIds.length) return null;
+
+    // 3. Highlights playlist IDs (to exclude)
+    const hlRes  = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${HL_PLAYLIST_ID}&maxResults=50&key=${HL_API_KEY}`);
+    const hlData = await hlRes.json();
+    const hlIdSet = new Set((hlData.items || []).map(i => i.snippet?.resourceId?.videoId).filter(Boolean));
+
+    // 4. Candidates not in highlights playlist
+    const candidates = uploadIds.filter(id => !hlIdSet.has(id));
+    if (!candidates.length) return null;
+
+    // 5. Check durations — skip shorts (< 62 s)
+    const detRes  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${candidates.slice(0, 10).join(',')}&key=${HL_API_KEY}`);
+    const detData = await detRes.json();
+    const video   = (detData.items || []).find(v => _parseIsoDuration(v.contentDetails?.duration) >= 62);
+    if (!video) return null;
+
+    return {
+      id: video.id,
+      title: video.snippet.title,
+      thumb: `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`,
+      isLatest: true,
+    };
+  } catch(e) {
+    console.warn('hlFetchLatestVideo failed:', e);
+    return null;
+  }
+}
+
+async function _hlFetchPlaylistVideos() {
+  try {
+    let items = [], pageToken = '';
+    do {
+      const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${HL_PLAYLIST_ID}&maxResults=50&key=${HL_API_KEY}${pageToken ? '&pageToken='+pageToken : ''}`;
+      const r = await fetch(url);
+      const d = await r.json();
+      const batch = (d.items || []).filter(i =>
+        i.snippet?.resourceId?.videoId &&
+        i.snippet.title !== 'Private video' &&
+        i.snippet.title !== 'Deleted video'
+      );
+      items = items.concat(batch);
+      pageToken = d.nextPageToken || '';
+    } while (pageToken && items.length < 300);
+
+    return items.map(i => ({
+      id:    i.snippet.resourceId.videoId,
+      title: i.snippet.title,
+      thumb: `https://i.ytimg.com/vi/${i.snippet.resourceId.videoId}/hqdefault.jpg`,
+    }));
+  } catch(e) {
+    console.warn('hlFetchPlaylist failed:', e);
+    return [];
+  }
+}
+
+// ── render ────────────────────────────────────────────────────────────────────
 function hlRenderCards() {
   const track = document.getElementById('hlTrack');
   if (!track) return;
@@ -14360,7 +14431,7 @@ function hlRenderCards() {
       </div>
       <div class="hl-card-info">
         <div class="hl-card-title">${_escHtml(v.title)}</div>
-        <div class="hl-card-sub" style="${i === 0 ? 'color:var(--accent)' : ''}">
+        <div class="hl-card-sub" style="${i === 0 ? 'color:#ff4444;font-weight:800;font-size:10px;' : ''}">
           ${i === 0 ? '&#9679; LATEST UPLOAD' : ''}
         </div>
       </div>
@@ -14372,7 +14443,6 @@ function hlRenderCards() {
 function hlScroll(dir) {
   const track = document.getElementById('hlTrack');
   if (!track) return;
-  // scroll by ~3 cards
   track.scrollBy({ left: dir * HL_CARD_WIDTH * 3, behavior: 'smooth' });
   setTimeout(hlUpdateArrows, 350);
 }
@@ -14399,8 +14469,10 @@ function hlOpenVideo(idx) {
   if (!modal) return;
 
   title.textContent = v.title;
-  sub.textContent   = `Shibez Highlights · ${idx === 0 ? 'Latest upload' : `#${idx + 1} in playlist`}`;
-  ytBtn.href        = `https://www.youtube.com/watch?v=${v.id}&list=${HL_PLAYLIST_ID}`;
+  sub.textContent   = idx === 0 ? 'Shibez · Latest upload' : `Shibez Highlights · #${idx} in playlist`;
+  ytBtn.href        = idx === 0
+    ? `https://www.youtube.com/watch?v=${v.id}`
+    : `https://www.youtube.com/watch?v=${v.id}&list=${HL_PLAYLIST_ID}`;
 
   embed.innerHTML = `<iframe
     src="https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&modestbranding=1"
@@ -14419,13 +14491,28 @@ function hlCloseModal() {
   document.body.style.overflow = '';
 }
 
-// Init
+// ── init ──────────────────────────────────────────────────────────────────────
 (function () {
-  function init() {
+  async function init() {
     const track = document.getElementById('hlTrack');
     if (!track) { setTimeout(init, 200); return; }
-    hlRenderCards();
     track.addEventListener('scroll', hlUpdateArrows, { passive: true });
+
+    // Fetch latest non-highlight video + full playlist in parallel
+    const [latestVideo, playlistVideos] = await Promise.all([
+      _hlFetchLatestVideo(),
+      _hlFetchPlaylistVideos(),
+    ]);
+
+    if (latestVideo) {
+      // Drop the latest video from playlist list if it somehow appears there
+      const rest = playlistVideos.filter(v => v.id !== latestVideo.id);
+      _hlVideos = [latestVideo, ...rest];
+    } else {
+      _hlVideos = playlistVideos;
+    }
+
+    hlRenderCards();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
