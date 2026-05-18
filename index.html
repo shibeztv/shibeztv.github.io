@@ -1356,6 +1356,274 @@
   }
   #aionCard.loading img { opacity:0; }
   #aionCard.ready img { opacity:1; transition: opacity 0.2s ease; }
+
+  /* ── HIGHLIGHTS CAROUSEL ─────────────────────────────────────────── */
+  .highlights-section {
+    padding: 28px 0 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+  .highlights-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 0 2px;
+  }
+  .highlights-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+  .highlights-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    background: rgba(255, 0, 0, 0.15);
+    border: 1px solid rgba(255, 0, 0, 0.35);
+    color: #ff6060;
+    padding: 2px 7px;
+    border-radius: 2px;
+    letter-spacing: 0.5px;
+  }
+  .highlights-yt-link {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.15s;
+  }
+  .highlights-yt-link:hover { color: #ff6060; }
+  .highlights-yt-link svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  .highlights-track-wrap {
+    position: relative;
+  }
+  .highlights-track {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+  }
+  .highlights-track::-webkit-scrollbar { display: none; }
+
+  .highlights-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(calc(-50% - 5px));
+    z-index: 10;
+    width: 36px;
+    height: 64px;
+    background: linear-gradient(to right, rgba(13,13,15,0.98), rgba(13,13,15,0.6));
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .highlights-arrow:hover {
+    background: rgba(124,92,252,0.18);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .highlights-arrow:disabled { opacity: 0.2; cursor: default; }
+  .highlights-arrow.left { left: 0; background: linear-gradient(to right, rgba(13,13,15,0.98), rgba(13,13,15,0.5)); }
+  .highlights-arrow.right { right: 0; background: linear-gradient(to left, rgba(13,13,15,0.98), rgba(13,13,15,0.5)); }
+
+  .hl-card {
+    flex-shrink: 0;
+    width: 220px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+    position: relative;
+  }
+  .hl-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+  .hl-card-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #080810;
+    overflow: hidden;
+  }
+  .hl-card-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s;
+  }
+  .hl-card:hover .hl-card-thumb img { transform: scale(1.04); }
+  .hl-play-btn {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    background: rgba(0,0,0,0.35);
+  }
+  .hl-card:hover .hl-play-btn { opacity: 1; }
+  .hl-play-btn svg { width: 38px; height: 38px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7)); }
+  .hl-card-info {
+    padding: 8px 10px 10px;
+  }
+  .hl-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .hl-card-sub {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .hl-skeleton {
+    flex-shrink: 0;
+    width: 220px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .hl-skeleton-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: linear-gradient(90deg, #1a1a1e 25%, #222228 50%, #1a1a1e 75%);
+    background-size: 200% 100%;
+    animation: hlShimmer 1.2s infinite linear;
+  }
+  .hl-skeleton-line {
+    height: 10px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #1a1a1e 25%, #222228 50%, #1a1a1e 75%);
+    background-size: 200% 100%;
+    animation: hlShimmer 1.2s infinite linear;
+    margin: 8px 10px 4px;
+  }
+  .hl-skeleton-line.short { width: 55%; margin-top: 5px; }
+  @keyframes hlShimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Highlights video modal */
+  #hlModal {
+    display: none;
+    position: fixed;
+    top: var(--topbar-h); left: 0; right: 0; bottom: 0;
+    z-index: 9200;
+    background: rgba(5,7,14,0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #hlModal.open { display: flex; }
+  .hl-modal-inner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 100%;
+    max-width: min(1000px, calc((100vh - var(--topbar-h) - 60px) * 16/9));
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .hl-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .hl-modal-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 12px;
+  }
+  .hl-modal-close {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 18px; line-height: 1; padding: 2px 6px;
+    transition: color 0.1s;
+  }
+  .hl-modal-close:hover { color: var(--text); }
+  .hl-modal-embed {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    position: relative;
+  }
+  .hl-modal-embed iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+  }
+  .hl-modal-footer {
+    padding: 8px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .hl-modal-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .hl-modal-yt-btn {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(255,0,0,0.12);
+    border: 1px solid rgba(255,0,0,0.4);
+    color: #ff6060;
+    padding: 5px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s;
+  }
+  .hl-modal-yt-btn:hover { background: rgba(255,0,0,0.25); }
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
   <link rel="icon" type="image/png" href="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-70x70.png">
@@ -1409,7 +1677,7 @@
         <span class="live-banner-dot"></span>
         <span class="live-banner-title"><a href="https://twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:1px;cursor:pointer;">Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" style="height:22px;vertical-align:middle;margin-left:2px" alt=""></a></span>
       </div>
-      <div id="liveBannerStreamTitle" style="font-family:var(--mono);font-size:22px;font-weight:700;color:#f0f0f0;display:none;text-align:center;max-width:700px;line-height:1.3"></div>
+      <div id="liveBannerStreamTitle" style="font-family:var(--mono);font-size:14px;font-weight:600;color:#ccc;display:none;text-align:center;max-width:700px;line-height:1.3"></div>
       <div class="live-banner-meta" id="liveBannerMeta" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#eee;display:none"></div>
       <div class="live-banner-embed" id="liveBannerEmbed"></div>
     </div>
@@ -1962,10 +2230,51 @@
       <button class="page-btn page-arrow" id="pageNext" onclick="goToPage(currentPage+1)">›</button>
       <button class="page-btn page-arrow" id="pageLast" onclick="goToPage(totalPages-1)" title="Last page">»</button>
     </div>
+    <!-- HIGHLIGHTS CAROUSEL -->
+    <div class="highlights-section" id="highlightsSection">
+      <div class="highlights-header">
+        <span class="highlights-title">HIGHLIGHTS &amp; EDITED CLIPS</span>
+        <span class="highlights-badge">▶ YouTube</span>
+        <a class="highlights-yt-link" href="https://www.youtube.com/playlist?list=PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h" target="_blank" title="View full playlist on YouTube">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+          VIEW FULL PLAYLIST
+        </a>
+      </div>
+      <div class="highlights-track-wrap">
+        <button class="highlights-arrow left" id="hlArrowLeft" onclick="hlScroll(-1)">&#8249;</button>
+        <div class="highlights-track" id="hlTrack">
+          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
+          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
+          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
+          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
+          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
+        </div>
+        <button class="highlights-arrow right" id="hlArrowRight" onclick="hlScroll(1)">&#8250;</button>
+      </div>
+    </div>
+
     <div class="site-footer">
       <span>Made by Shibez</span>
       <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveClick()" style="cursor:pointer" title="">
     </div>  </div>
+
+  <!-- HIGHLIGHTS VIDEO MODAL -->
+  <div id="hlModal" onclick="if(event.target===this)hlCloseModal()">
+    <div class="hl-modal-inner">
+      <div class="hl-modal-header">
+        <div class="hl-modal-title" id="hlModalTitle">Loading...</div>
+        <button class="hl-modal-close" onclick="hlCloseModal()">X</button>
+      </div>
+      <div class="hl-modal-embed" id="hlModalEmbed"></div>
+      <div class="hl-modal-footer">
+        <span class="hl-modal-sub" id="hlModalSub"></span>
+        <a class="hl-modal-yt-btn" id="hlModalYtBtn" href="#" target="_blank">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+          WATCH ON YOUTUBE
+        </a>
+      </div>
+    </div>
+  </div>
 
   <!-- PLAYER VIEW -->
   <div class="player-view" id="playerView">
@@ -13966,6 +14275,125 @@ document.addEventListener('click',e=>{
   const btn=e.target.closest('button[id]');
   if(btn&&btn.id==='wheelSpinBtn')setTimeout(()=>_setHash('wheelspin'),100);
 });
+</script>
+
+<script>
+// ── HIGHLIGHTS CAROUSEL ──────────────────────────────────────────────────────
+// Playlist: https://www.youtube.com/playlist?list=PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h
+// Videos listed most-recent first (left → right).
+// Update this list when you upload new highlights — paste newest at the top.
+
+const HL_PLAYLIST_ID = 'PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h';
+
+// ── ADD / REMOVE VIDEOS HERE ─────────────────────────────────────────────────
+// Most recent first. Get the video ID from the YouTube URL: ?v=XXXXXXXX
+// Title is shown under the thumbnail. Leave thumb blank — it auto-generates.
+const _hlVideos = [
+  { id: 'Rq38DOnvfBw', title: 'Shibez Highlights #1' },
+  // Add more below — copy this line and paste above this comment:
+  // { id: 'VIDEO_ID_HERE', title: 'Your Title Here' },
+].map(v => ({
+  ...v,
+  thumb: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`,
+}));
+// ─────────────────────────────────────────────────────────────────────────────
+
+const HL_CARD_WIDTH = 244; // px — card width (220) + gap (12) + a little
+
+function _escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function hlRenderCards() {
+  const track = document.getElementById('hlTrack');
+  if (!track) return;
+  if (!_hlVideos.length) {
+    track.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:20px">No highlights yet.</div>`;
+    return;
+  }
+  track.innerHTML = _hlVideos.map((v, i) => `
+    <div class="hl-card" onclick="hlOpenVideo(${i})">
+      <div class="hl-card-thumb">
+        <img src="${v.thumb}" alt=""
+          onerror="this.src='https://i.ytimg.com/vi/${v.id}/mqdefault.jpg'">
+        <div class="hl-play-btn">
+          <svg viewBox="0 0 80 80" fill="none">
+            <circle cx="40" cy="40" r="38" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.55)" stroke-width="2.5"/>
+            <polygon points="33,24 62,40 33,56" fill="white"/>
+          </svg>
+        </div>
+      </div>
+      <div class="hl-card-info">
+        <div class="hl-card-title">${_escHtml(v.title)}</div>
+        ${i === 0 ? '<div class="hl-card-sub" style="color:var(--accent2)">● LATEST</div>' : ''}
+      </div>
+    </div>
+  `).join('');
+  hlUpdateArrows();
+}
+
+function hlScroll(dir) {
+  const track = document.getElementById('hlTrack');
+  if (!track) return;
+  // scroll by ~3 cards
+  track.scrollBy({ left: dir * HL_CARD_WIDTH * 3, behavior: 'smooth' });
+  setTimeout(hlUpdateArrows, 350);
+}
+
+function hlUpdateArrows() {
+  const track = document.getElementById('hlTrack');
+  const left  = document.getElementById('hlArrowLeft');
+  const right = document.getElementById('hlArrowRight');
+  if (!track) return;
+  const atStart = track.scrollLeft <= 2;
+  const atEnd   = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+  if (left)  { left.style.opacity  = atStart ? '0.18' : '1'; left.disabled  = atStart; }
+  if (right) { right.style.opacity = atEnd   ? '0.18' : '1'; right.disabled = atEnd; }
+}
+
+function hlOpenVideo(idx) {
+  const v = _hlVideos[idx];
+  if (!v) return;
+  const modal = document.getElementById('hlModal');
+  const embed = document.getElementById('hlModalEmbed');
+  const title = document.getElementById('hlModalTitle');
+  const sub   = document.getElementById('hlModalSub');
+  const ytBtn = document.getElementById('hlModalYtBtn');
+  if (!modal) return;
+
+  title.textContent = v.title;
+  sub.textContent   = `Shibez Highlights · ${idx === 0 ? 'Latest upload' : `#${idx + 1} in playlist`}`;
+  ytBtn.href        = `https://www.youtube.com/watch?v=${v.id}&list=${HL_PLAYLIST_ID}`;
+
+  embed.innerHTML = `<iframe
+    src="https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&modestbranding=1"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen></iframe>`;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function hlCloseModal() {
+  const modal = document.getElementById('hlModal');
+  const embed = document.getElementById('hlModalEmbed');
+  if (modal) modal.classList.remove('open');
+  if (embed) embed.innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+// Init
+(function () {
+  function init() {
+    const track = document.getElementById('hlTrack');
+    if (!track) { setTimeout(init, 200); return; }
+    hlRenderCards();
+    track.addEventListener('scroll', hlUpdateArrows, { passive: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
 </script>
 
 </body>
