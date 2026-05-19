@@ -1404,10 +1404,27 @@
     display: block;
   }
 
-  /* ── Newest video row (16:9 featured card) ── */
-  .hl-newest-row {
-    margin-bottom: 14px;
+  /* ── Single combined row: featured left, shorts right ── */
+  .hl-combined-row {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 10px;
+    align-items: start;
   }
+
+  /* Featured slot — left column */
+  #hlFeaturedSlot {
+    width: 100%;
+  }
+
+  /* Shorts grid — right column, 8 equal columns */
+  .highlights-track {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+    min-width: 0;
+  }
+
   .hl-newest-label {
     font-family: var(--mono);
     font-size: 9px;
@@ -1416,16 +1433,14 @@
     color: #ff4444;
     margin-bottom: 6px;
   }
-
-  /* ── Shorts grid — single row of 8 ── */
-  .highlights-track {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 10px;
-    overflow-x: auto;
-    scrollbar-width: none;
+  .hl-col-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: #ff4444;
+    margin-bottom: 6px;
   }
-  .highlights-track::-webkit-scrollbar { display: none; }
 
   /* Shared card base */
   .hl-card {
@@ -1444,12 +1459,11 @@
     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
   }
 
-  /* Thumbnail — shorts are 9:16, sized slightly shorter than featured card */
+  /* Thumbnail — shorts match featured card height */
   .hl-card-thumb {
     position: relative;
     width: 100%;
-    aspect-ratio: 9/16;
-    max-height: 240px;
+    height: 157px;
     background: #080810;
     overflow: hidden;
   }
@@ -1498,18 +1512,18 @@
   }
   .hl-card-sub { display: none; }
 
-  /* ── Featured card (newest video) — 16:9 ── */
+  /* ── Featured card (newest video) — same height as shorts, 16:9 thumb ── */
   .hl-card.featured {
     border-color: #ff3333;
     box-shadow: 0 0 0 1px #ff3333, 0 4px 20px rgba(255,51,51,0.2);
-    max-width: 480px;
   }
   .hl-card.featured:hover {
     box-shadow: 0 0 0 2px #ff3333, 0 8px 28px rgba(255,51,51,0.3);
     transform: translateY(-2px);
   }
   .hl-card.featured .hl-card-thumb {
-    aspect-ratio: 16/9;
+    height: 157px;
+    aspect-ratio: unset;
   }
   .hl-card.featured .hl-card-title {
     font-size: 11.5px;
@@ -2276,20 +2290,26 @@
         </a>
       </div>
       <div class="highlights-track-wrap">
-        <!-- Newest video row (16:9) -->
-        <div class="hl-newest-row">
-          <div class="hl-newest-label">&#9733; NEWEST VIDEO</div>
-          <div id="hlFeaturedSlot"></div>
-        </div>
-        <!-- Shorts grid fills width -->
-        <div class="hl-newest-label" style="margin-bottom:8px">&#9654; SHORTS &amp; CLIPS</div>
-        <div class="highlights-track" id="hlTrack">
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+        <div class="hl-combined-row">
+          <!-- Left: newest video (16:9) -->
+          <div>
+            <div class="hl-col-label">&#9733; NEWEST VIDEO</div>
+            <div id="hlFeaturedSlot"></div>
+          </div>
+          <!-- Right: shorts grid -->
+          <div>
+            <div class="hl-col-label">&#9654; SHORTS &amp; CLIPS</div>
+            <div class="highlights-track" id="hlTrack">
+              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
