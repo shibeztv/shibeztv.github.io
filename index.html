@@ -1417,12 +1417,15 @@
     margin-bottom: 6px;
   }
 
-  /* ── Shorts grid (fills full width) ── */
+  /* ── Shorts grid — single row of 8 ── */
   .highlights-track {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(8, 1fr);
     gap: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
+  .highlights-track::-webkit-scrollbar { display: none; }
 
   /* Shared card base */
   .hl-card {
@@ -1433,6 +1436,7 @@
     cursor: pointer;
     transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
     position: relative;
+    min-width: 0;
   }
   .hl-card:hover {
     border-color: #ff3333;
@@ -1440,11 +1444,12 @@
     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
   }
 
-  /* Thumbnail fills the whole card */
+  /* Thumbnail — shorts are 9:16, sized slightly shorter than featured card */
   .hl-card-thumb {
     position: relative;
     width: 100%;
     aspect-ratio: 9/16;
+    max-height: 240px;
     background: #080810;
     overflow: hidden;
   }
@@ -11579,6 +11584,7 @@ document.addEventListener('click', e=>{
   if(btn.id==='shibleBtn') setTimeout(()=>_setHash('shible'),100);
   if(btn.id==='higherLowerBtn') setTimeout(()=>_setHash('higherorlower'),100);
   if(btn.id==='shortsBtn') setTimeout(()=>_setHash('shorts'),100);
+  if(btn.id==='wheelSpinBtn') setTimeout(()=>_setHash('wheelspin'),100);
 });
 
 window.addEventListener('DOMContentLoaded', _routeFromHash);
@@ -14311,10 +14317,6 @@ function closeWheelSpin(){
 }
 
 // ── Hash routing ──────────────────────────────────────────────────────────
-document.addEventListener('click',e=>{
-  const btn=e.target.closest('button[id]');
-  if(btn&&btn.id==='wheelSpinBtn')setTimeout(()=>_setHash('wheelspin'),100);
-});
 </script>
 
 <script>
@@ -14448,8 +14450,8 @@ function hlRenderCards() {
   // Featured = newest video (index 0), 16:9
   if (featured) featured.innerHTML = cardHtml(_hlVideos[0], 0, true);
 
-  // Shorts grid = rest (index 1+), show all
-  const shorts = _hlVideos.slice(1);
+  // Shorts grid = rest (index 1+), show max 8
+  const shorts = _hlVideos.slice(1, 9);
   if (!shorts.length) {
     track.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 0">No clips yet.</div>`;
   } else {
