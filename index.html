@@ -1407,7 +1407,7 @@
   /* ── Single combined row: featured left, shorts right ── */
   .hl-combined-row {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 364px 1fr;
     gap: 10px;
     align-items: start;
   }
@@ -1423,6 +1423,12 @@
     grid-template-columns: repeat(8, 1fr);
     gap: 10px;
     min-width: 0;
+  }
+
+  /* Override thumb height for non-featured (shorts) cards: portrait ratio */
+  .highlights-track .hl-card-thumb {
+    height: auto;
+    aspect-ratio: 2/3;
   }
 
   .hl-newest-label {
@@ -1463,7 +1469,7 @@
   .hl-card-thumb {
     position: relative;
     width: 100%;
-    height: 157px;
+    height: 204px;
     background: #080810;
     overflow: hidden;
   }
@@ -1522,7 +1528,7 @@
     transform: translateY(-2px);
   }
   .hl-card.featured .hl-card-thumb {
-    height: 157px;
+    height: 204px;
     aspect-ratio: unset;
   }
   .hl-card.featured .hl-card-title {
@@ -11588,7 +11594,8 @@ function _routeFromHash() {
     'wheelspin':openWheelSpin, 'wheel':openWheelSpin,
   };
   const fn = map[hash];
-  if(fn) setTimeout(fn, 700);
+  // Use a longer delay for wheelspin so the wheel canvas/mode initialises fully
+  if(fn) setTimeout(fn, hash === 'wheelspin' || hash === 'wheel' ? 1000 : 700);
 }
 
 // Set hash when opening games via buttons
@@ -14301,9 +14308,11 @@ function wmShareWheel() {
 
 
 function openWheelSpin() {
-  try { _wmLoad(); } catch(e) { console.error('_wmLoad failed:', e); }
   const modal = document.getElementById('wmModal');
   if (!modal) { console.error('wmModal not found'); return; }
+  // Prevent double-open (e.g. hashchange fires after button click)
+  if (modal.style.display === 'flex') return;
+  try { _wmLoad(); } catch(e) { console.error('_wmLoad failed:', e); }
   modal.style.display = 'flex';
   const nameInp = document.getElementById('wmCaseNameInp');
   if (nameInp) nameInp.value = _wmCurrent().name;
