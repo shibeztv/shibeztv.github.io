@@ -1407,8 +1407,8 @@
   /* ── Single combined row: featured left, shorts right ── */
   .hl-combined-row {
     display: grid;
-    grid-template-columns: 364px 1fr;
-    gap: 10px;
+    grid-template-columns: 440px 1fr;
+    gap: 14px;
     align-items: start;
   }
 
@@ -1417,18 +1417,51 @@
     width: 100%;
   }
 
-  /* Shorts grid — right column, 8 equal columns */
+  /* Shorts grid — right column, scrollable carousel */
+  .hl-carousel-wrap {
+    position: relative;
+    overflow: hidden;
+  }
   .highlights-track {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    display: flex;
     gap: 10px;
     min-width: 0;
+    transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
   }
+  .highlights-track .hl-card {
+    flex: 0 0 calc(12.5% - 8.75px);
+    min-width: 60px;
+  }
+
+  /* Carousel arrow buttons */
+  .hl-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(10,10,20,0.75);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    width: 30px;
+    height: 56px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    line-height: 1;
+  }
+  .hl-arrow:hover:not(:disabled) { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.5); }
+  .hl-arrow:disabled { opacity: 0.18; cursor: default; pointer-events: none; }
+  .hl-arrow-l { left: 0; }
+  .hl-arrow-r { right: 0; }
 
   /* Override thumb height for non-featured (shorts) cards: portrait ratio */
   .highlights-track .hl-card-thumb {
     height: auto;
-    aspect-ratio: 2/3;
+    aspect-ratio: 3/4;
   }
 
   .hl-newest-label {
@@ -1528,7 +1561,7 @@
     transform: translateY(-2px);
   }
   .hl-card.featured .hl-card-thumb {
-    height: 204px;
+    height: 248px;
     aspect-ratio: unset;
   }
   .hl-card.featured .hl-card-title {
@@ -2305,15 +2338,19 @@
           <!-- Right: shorts grid -->
           <div>
             <div class="hl-col-label">&#9654; SHORTS &amp; CLIPS</div>
-            <div class="highlights-track" id="hlTrack">
-              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
-              <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+            <div class="hl-carousel-wrap">
+              <button class="hl-arrow hl-arrow-l" id="hlArrowL" onclick="hlScroll(-1)" disabled>&#8249;</button>
+              <div class="highlights-track" id="hlTrack">
+                <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+                <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+                <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+                <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+                <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+                <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+                <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+                <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div></div>
+              </div>
+              <button class="hl-arrow hl-arrow-r" id="hlArrowR" onclick="hlScroll(1)" disabled>&#8250;</button>
             </div>
           </div>
         </div>
@@ -14311,7 +14348,8 @@ function openWheelSpin() {
   const modal = document.getElementById('wmModal');
   if (!modal) { console.error('wmModal not found'); return; }
   // Prevent double-open (e.g. hashchange fires after button click)
-  if (modal.style.display === 'flex') return;
+  const isOpen = modal.style.display === 'flex' || getComputedStyle(modal).display === 'flex';
+  if (isOpen) return;
   try { _wmLoad(); } catch(e) { console.error('_wmLoad failed:', e); }
   modal.style.display = 'flex';
   const nameInp = document.getElementById('wmCaseNameInp');
@@ -14479,17 +14517,43 @@ function hlRenderCards() {
   // Featured = newest video (index 0), 16:9
   if (featured) featured.innerHTML = cardHtml(_hlVideos[0], 0, true);
 
-  // Shorts grid = rest (index 1+), show max 8
-  const shorts = _hlVideos.slice(1, 9);
+  // Shorts grid = rest (index 1+), show max 24
+  const shorts = _hlVideos.slice(1, 25);
   if (!shorts.length) {
     track.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 0">No clips yet.</div>`;
   } else {
+    _hlOffset = 0;
+    track.style.transform = '';
     track.innerHTML = shorts.map((v, i) => cardHtml(v, i + 1, false)).join('');
   }
+  hlUpdateArrows();
 }
 
-function hlScroll(dir) { /* grid layout — no scroll needed */ }
-function hlUpdateArrows() { /* grid layout — no arrows */ }
+let _hlOffset = 0;
+const _HL_VISIBLE = 8;
+
+function hlScroll(dir) {
+  const track = document.getElementById('hlTrack');
+  if (!track) return;
+  const shorts = _hlVideos.slice(1);
+  const maxOffset = Math.max(0, shorts.length - _HL_VISIBLE);
+  _hlOffset = Math.max(0, Math.min(maxOffset, _hlOffset + dir));
+  const card = track.querySelector('.hl-card');
+  if (card) {
+    const cardW = card.offsetWidth + 10; // card width + gap
+    track.style.transform = `translateX(-${_hlOffset * cardW}px)`;
+  }
+  hlUpdateArrows();
+}
+
+function hlUpdateArrows() {
+  const shorts = _hlVideos.slice(1);
+  const maxOffset = Math.max(0, shorts.length - _HL_VISIBLE);
+  const lBtn = document.getElementById('hlArrowL');
+  const rBtn = document.getElementById('hlArrowR');
+  if (lBtn) lBtn.disabled = _hlOffset <= 0;
+  if (rBtn) rBtn.disabled = _hlOffset >= maxOffset;
+}
 
 function hlOpenVideo(idx) {
   const v = _hlVideos[idx];
