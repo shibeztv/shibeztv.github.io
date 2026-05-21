@@ -1499,6 +1499,7 @@
     opacity: 0;
     transition: opacity 0.15s;
     background: rgba(0,0,0,0.35);
+    pointer-events: none;
   }
   .hl-card:hover .hl-play-btn { opacity: 1; }
   .hl-play-btn svg { width: 38px; height: 38px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7)); }
@@ -1554,6 +1555,7 @@
     border-radius: 3px;
     z-index: 2;
     box-shadow: 0 2px 8px rgba(255,51,51,0.5);
+    pointer-events: none;
   }
 
   .hl-skeleton {
@@ -1877,6 +1879,7 @@
     opacity: 0;
     transition: opacity 0.15s;
     background: rgba(0,0,0,0.3);
+    pointer-events: none;
   }
   .yt-short-card:hover .yt-short-play-btn { opacity: 1; }
   .yt-short-play-btn svg { width: 28px; height: 28px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7)); }
@@ -5358,9 +5361,12 @@ function _shortsRenderAt(idx) {
   // Update URL so users can share a link to this specific short
   try { history.replaceState(null, '', '#shorts/' + vid); } catch(e) {}
 
-  // Sizing: available area = viewport minus topbar, hint row below, gap padding
-  const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bars-h')) || 98;
-  const visH = Math.round(window.innerHeight - topbarH - 60); // topbar + hint row + gaps
+  // Sizing: fill full height under both fixed bars, leaving room for counter row
+  const cs = getComputedStyle(document.documentElement);
+  const topbarH = parseInt(cs.getPropertyValue('--topbar-h')) || 54;
+  const navbarH = parseInt(cs.getPropertyValue('--navbar-h')) || 56;
+  const barsH   = topbarH + navbarH;
+  const visH = Math.round(window.innerHeight - barsH - 48); // 48px for counter/hint row
   const visW = Math.round(window.innerWidth  - 148); // minus arrows
   let w, h;
   if (visW * 16 / 9 <= visH) { w = visW; h = Math.round(visW * 16 / 9); }
