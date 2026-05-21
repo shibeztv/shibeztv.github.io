@@ -22,7 +22,7 @@
     --sans: 'Syne', sans-serif;
     --sidebar-w: 340px;
     --topbar-h: 54px;
-    --navbar-h: 44px;
+    --navbar-h: 56px;
     --bars-h: calc(var(--topbar-h) + var(--navbar-h));
   }
 
@@ -2080,50 +2080,50 @@
 <!-- NAVBAR -->
 <nav class="navbar" id="mainBtnRow">
   <button onclick="openRandomClip()" id="randomClipBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
     🎲 RANDOM CLIP
   </button>
   <button onclick="openShible()" id="shibleBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
     📅 SHIB.LE
   </button>
   <button onclick="openHigherLower()" id="higherLowerBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
     📊 HIGHER OR LOWER
   </button>
   <button onclick="openEmoteGuesser()" id="emoteGuesserBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#e879f9';this.style.color='#e879f9'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
     🎭 EMOTE GUESSER
   </button>
   <button onclick="openAiOrNot()" id="aionBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#f472b6';this.style.color='#f472b6'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
     🤖 AI OR NOT
   </button>
   <button onclick="openFlappyShibez()" id="flappyBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#4ade80';this.style.color='#4ade80'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
     🐦 FLAPPY SHIBEZ
   </button>
   <button onclick="openSpacebez()" id="spaceBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
     🚀 SPACEBEZ
   </button>
   <div class="navbar-spacer"></div>
   <button onclick="openWheelSpin()" id="wheelSpinBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
     🛟 WHEEL SPIN
@@ -11263,8 +11263,8 @@ function _vqRenderMod(app) {
         </div>
         <div style="display:flex;gap:8px">
           <span id="vqNowPlaying" style="font-size:10px;color:#7c5cfc;align-self:center"></span>
-          <button onclick="vqSkipCurrent()" style="background:#333;border:1px solid #444;color:#eee;font-family:var(--mono,monospace);font-size:11px;padding:6px 14px;border-radius:4px;cursor:pointer">⏭ Skip Current</button>
-          <button onclick="vqClearAll()" style="background:#300;border:1px solid #500;color:#fc5c7d;font-family:var(--mono,monospace);font-size:11px;padding:6px 14px;border-radius:4px;cursor:pointer">🗑 Clear All</button>
+          <button onclick="vqSkipCurrent()" style="background:#333;border:1px solid #444;color:#eee;font-family:var(--mono,monospace);font-size:11px;padding:10px 18px;border-radius:4px;cursor:pointer">⏭ Skip Current</button>
+          <button onclick="vqClearAll()" style="background:#300;border:1px solid #500;color:#fc5c7d;font-family:var(--mono,monospace);font-size:11px;padding:10px 18px;border-radius:4px;cursor:pointer">🗑 Clear All</button>
         </div>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
