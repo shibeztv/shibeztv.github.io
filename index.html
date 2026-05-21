@@ -1659,6 +1659,226 @@
     transition: background 0.15s;
   }
   .hl-modal-yt-btn:hover { background: rgba(255,0,0,0.25); }
+
+  /* ── LATEST YOUTUBE VIDEO + SHORTS SECTION ────────────────────────────────── */
+  .yt-latest-section {
+    padding: 24px 0 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 0;
+  }
+  .yt-latest-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 0 2px;
+  }
+  .yt-latest-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+  /* Row: [main video] [← arrow] [6 shorts] [→ arrow] */
+  .yt-latest-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  /* ── Main latest video card (16:9) ── */
+  .yt-main-card {
+    flex-shrink: 0;
+    width: 300px;
+    background: var(--surface);
+    border: 1px solid #ff3333;
+    box-shadow: 0 0 0 1px #ff3333, 0 4px 24px rgba(255,51,51,0.14);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+    position: relative;
+  }
+  .yt-main-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 2px #ff3333, 0 8px 32px rgba(255,51,51,0.24);
+  }
+  .yt-main-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #080810;
+    overflow: hidden;
+  }
+  .yt-main-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s;
+  }
+  .yt-main-card:hover .yt-main-thumb img { transform: scale(1.04); }
+  .yt-main-info {
+    padding: 7px 10px 9px;
+    background: #000;
+  }
+  .yt-main-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 800;
+    color: #ff4444;
+    margin-bottom: 4px;
+    letter-spacing: 0.4px;
+  }
+  .yt-main-title {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.38;
+    color: var(--text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* ── Arrow buttons (outside the shorts list) ── */
+  .yt-short-arrow {
+    flex-shrink: 0;
+    width: 30px;
+    height: 70px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    align-self: center;
+  }
+  .yt-short-arrow:hover {
+    background: rgba(255,40,40,0.18);
+    border-color: #ff3333;
+    color: #ff3333;
+  }
+  .yt-short-arrow:disabled { opacity: 0.2; cursor: default; }
+  /* ── Shorts list (6 cards) ── */
+  .yt-shorts-list {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  /* ── Individual short card (9:16 portrait) ── */
+  .yt-short-card {
+    flex-shrink: 0;
+    width: 118px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+    display: flex;
+    flex-direction: column;
+  }
+  .yt-short-card:hover {
+    border-color: #ff3333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.32);
+  }
+  .yt-short-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9/16;
+    background: #080810;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .yt-short-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    transition: transform 0.2s;
+  }
+  .yt-short-card:hover .yt-short-thumb img { transform: scale(1.04); }
+  .yt-short-play-btn {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    background: rgba(0,0,0,0.3);
+  }
+  .yt-short-card:hover .yt-short-play-btn { opacity: 1; }
+  .yt-short-play-btn svg { width: 28px; height: 28px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7)); }
+  /* Black title bar at very bottom */
+  .yt-short-title-bar {
+    background: #000;
+    padding: 6px 7px 7px;
+    flex: 1;
+    min-height: 0;
+  }
+  .yt-short-title {
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* Skeleton loaders */
+  .yt-main-skeleton {
+    flex-shrink: 0;
+    width: 300px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .yt-main-skel-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: linear-gradient(90deg, #1a1a1e 25%, #222228 50%, #1a1a1e 75%);
+    background-size: 200% 100%;
+    animation: hlShimmer 1.2s infinite linear;
+  }
+  .yt-main-skel-line {
+    height: 10px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #1a1a1e 25%, #222228 50%, #1a1a1e 75%);
+    background-size: 200% 100%;
+    animation: hlShimmer 1.2s infinite linear;
+    margin: 8px 10px 4px;
+  }
+  .yt-main-skel-line.s2 { width: 60%; margin-top: 5px; }
+  .yt-short-skeleton {
+    flex-shrink: 0;
+    width: 118px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .yt-short-skel-thumb {
+    width: 100%;
+    aspect-ratio: 9/16;
+    background: linear-gradient(90deg, #1a1a1e 25%, #222228 50%, #1a1a1e 75%);
+    background-size: 200% 100%;
+    animation: hlShimmer 1.2s infinite linear;
+  }
+  .yt-short-skel-line {
+    height: 9px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #1a1a1e 25%, #222228 50%, #1a1a1e 75%);
+    background-size: 200% 100%;
+    animation: hlShimmer 1.2s infinite linear;
+    margin: 7px 8px 4px;
+  }
+  .yt-short-skel-line.s2 { width: 70%; margin-top: 4px; }
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
   <link rel="icon" type="image/png" href="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-70x70.png">
@@ -2285,6 +2505,35 @@
           <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
         </div>
         <button class="highlights-arrow right" id="hlArrowRight" onclick="hlScroll(1)">&#8250;</button>
+      </div>
+    </div>
+
+    <!-- LATEST YOUTUBE VIDEO + SHORTS SECTION -->
+    <div class="yt-latest-section" id="ytLatestSection">
+      <div class="yt-latest-header">
+        <span class="yt-latest-title">LATEST YOUTUBE</span>
+        <span class="highlights-badge">▶ YouTube</span>
+        <span class="highlights-badge" style="margin-left:2px;background:rgba(255,80,80,0.1);border-color:rgba(255,80,80,0.3);color:#ff9090">📱 SHORTS</span>
+        <a class="highlights-yt-link" href="https://www.youtube.com/@ShibezYT" target="_blank" title="View channel on YouTube">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+          VIEW CHANNEL
+        </a>
+      </div>
+      <!-- Row: [main video] [← left arrow] [6 short cards] [→ right arrow] -->
+      <div class="yt-latest-row">
+        <div id="ytMainCardWrap">
+          <div class="yt-main-skeleton"><div class="yt-main-skel-thumb"></div><div class="yt-main-skel-line"></div><div class="yt-main-skel-line s2"></div></div>
+        </div>
+        <button class="yt-short-arrow" id="ytShortLeft" onclick="ytShortsNav(-1)" disabled>&#8249;</button>
+        <div class="yt-shorts-list" id="ytShortsList">
+          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
+          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
+          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
+          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
+          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
+          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
+        </div>
+        <button class="yt-short-arrow" id="ytShortRight" onclick="ytShortsNav(1)" disabled>&#8250;</button>
       </div>
     </div>
 
@@ -14518,6 +14767,134 @@ function hlCloseModal() {
   else init();
 })();
 
+</script>
+
+<script>
+// ── LATEST YOUTUBE VIDEO + SHORTS SECTION ────────────────────────────────────
+// Shows: [latest regular video] [← arrow] [6 short cards] [→ arrow]
+// Left arrow  = more recent shorts  |  Right arrow = older shorts
+
+const YT_SEC_PER_PAGE = 6;
+let _ytSecLatest = null;  // { id, title, thumb }
+let _ytSecShorts = [];    // [{ id, title, thumb }, ...]
+let _ytSecPage   = 0;     // 0 = newest page of shorts
+
+// Strip trailing hashtags from title (e.g. "Cool clip #shorts #gaming" → "Cool clip")
+function _ytStripHashtags(t) {
+  return (t || '').replace(/(\s+#\S+)+\s*$/, '').trim();
+}
+
+// Shared play-button SVG
+const _ytPlaySvg = `<svg viewBox="0 0 80 80" fill="none">
+  <circle cx="40" cy="40" r="38" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.55)" stroke-width="2.5"/>
+  <polygon points="33,24 62,40 33,56" fill="white"/>
+</svg>`;
+
+async function _ytSecInit() {
+  const wrap = document.getElementById('ytMainCardWrap');
+  if (!wrap) { setTimeout(_ytSecInit, 200); return; }
+
+  try {
+    // 1. Resolve uploads playlist ID for @ShibezYT
+    const chRes  = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle=${HL_CHANNEL_HANDLE}&key=${HL_API_KEY}`);
+    const chData = await chRes.json();
+    const uploadsId = chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+    if (!uploadsId) { _ytSecRender(); return; }
+
+    // 2. Fetch latest 50 uploads
+    const upRes  = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&key=${HL_API_KEY}`);
+    const upData = await upRes.json();
+    const videoIds = (upData.items || [])
+      .map(i => i.snippet?.resourceId?.videoId)
+      .filter(Boolean);
+    if (!videoIds.length) { _ytSecRender(); return; }
+
+    // 3. Fetch durations + snippets (batch up to 50)
+    const detRes  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds.slice(0,50).join(',')}&key=${HL_API_KEY}`);
+    const detData = await detRes.json();
+
+    for (const v of (detData.items || [])) {
+      const dur   = _parseIsoDuration(v.contentDetails?.duration);
+      const title = v.snippet?.title || '';
+      const thumb = `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
+      if (dur >= 62) {
+        if (!_ytSecLatest) _ytSecLatest = { id: v.id, title, thumb };
+      } else if (dur > 0) {
+        _ytSecShorts.push({ id: v.id, title, thumb });
+      }
+    }
+  } catch(e) {
+    console.warn('[ytSec] fetch failed:', e);
+  }
+
+  _ytSecRender();
+}
+
+function _ytSecRender() {
+  // ── Main latest video card ──
+  const wrap = document.getElementById('ytMainCardWrap');
+  if (wrap) {
+    const v = _ytSecLatest;
+    wrap.innerHTML = v
+      ? `<div class="yt-main-card" onclick="window.open('https://www.youtube.com/watch?v=${v.id}','_blank')" title="${_escHtml(_ytStripHashtags(v.title))}">
+           <div class="yt-main-thumb">
+             <div class="hl-new-badge">&#9733; NEW VIDEO</div>
+             <img src="${v.thumb}" alt="" onerror="this.src='https://i.ytimg.com/vi/${v.id}/mqdefault.jpg'">
+             <div class="hl-play-btn">${_ytPlaySvg}</div>
+           </div>
+           <div class="yt-main-info">
+             <div class="yt-main-label">&#9679; LATEST UPLOAD</div>
+             <div class="yt-main-title">${_escHtml(_ytStripHashtags(v.title))}</div>
+           </div>
+         </div>`
+      : `<div class="yt-main-skeleton"><div class="yt-main-skel-thumb"></div><div class="yt-main-skel-line"></div><div class="yt-main-skel-line s2"></div></div>`;
+  }
+
+  // ── Shorts page ──
+  const list = document.getElementById('ytShortsList');
+  if (list) {
+    const start = _ytSecPage * YT_SEC_PER_PAGE;
+    const page  = _ytSecShorts.slice(start, start + YT_SEC_PER_PAGE);
+
+    if (!page.length) {
+      list.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:20px 0">No shorts found.</div>`;
+    } else {
+      list.innerHTML = page.map(v => `
+        <div class="yt-short-card" onclick="window.open('https://www.youtube.com/shorts/${v.id}','_blank')" title="${_escHtml(_ytStripHashtags(v.title))}">
+          <div class="yt-short-thumb">
+            <img src="${v.thumb}" alt="" onerror="this.src='https://i.ytimg.com/vi/${v.id}/mqdefault.jpg'">
+            <div class="yt-short-play-btn">${_ytPlaySvg}</div>
+          </div>
+          <div class="yt-short-title-bar">
+            <div class="yt-short-title">${_escHtml(_ytStripHashtags(v.title))}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  _ytSecUpdateArrows();
+}
+
+// dir: -1 = newer (left arrow), +1 = older (right arrow)
+function ytShortsNav(dir) {
+  const maxPage = Math.max(0, Math.ceil(_ytSecShorts.length / YT_SEC_PER_PAGE) - 1);
+  const next    = _ytSecPage + dir;
+  if (next < 0 || next > maxPage) return;
+  _ytSecPage = next;
+  _ytSecRender();
+}
+
+function _ytSecUpdateArrows() {
+  const left    = document.getElementById('ytShortLeft');
+  const right   = document.getElementById('ytShortRight');
+  const maxPage = Math.max(0, Math.ceil(_ytSecShorts.length / YT_SEC_PER_PAGE) - 1);
+  if (left)  { const d = _ytSecPage <= 0;        left.disabled  = d; left.style.opacity  = d ? '0.2' : '1'; }
+  if (right) { const d = _ytSecPage >= maxPage;  right.disabled = d; right.style.opacity = d ? '0.2' : '1'; }
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _ytSecInit);
+else _ytSecInit();
 </script>
 
 </body>
