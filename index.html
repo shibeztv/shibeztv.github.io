@@ -1686,7 +1686,7 @@
   /* ── Main latest video card (16:9) ── */
   .yt-main-card {
     flex-shrink: 0;
-    width: 300px;
+    width: 460px;
     background: var(--surface);
     border: 1px solid #ff3333;
     box-shadow: 0 0 0 1px #ff3333, 0 4px 24px rgba(255,51,51,0.14);
@@ -1695,6 +1695,8 @@
     cursor: pointer;
     transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
     position: relative;
+    display: flex;
+    flex-direction: column;
   }
   .yt-main-card:hover {
     transform: translateY(-2px);
@@ -1834,7 +1836,7 @@
   /* Skeleton loaders */
   .yt-main-skeleton {
     flex-shrink: 0;
-    width: 300px;
+    width: 460px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -14838,7 +14840,7 @@ function hlCloseModal() {
 // Shows: [latest regular video] [← arrow] [6 short cards] [→ arrow]
 // Left arrow  = more recent shorts  |  Right arrow = older shorts
 
-const YT_SEC_PER_PAGE = 6;
+const YT_SEC_PER_PAGE = 8;
 let _ytSecLatest = null;  // { id, title, thumb }
 let _ytSecShorts = [];    // [{ id, title, thumb }, ...]
 let _ytSecPage   = 0;     // 0 = newest page of shorts
