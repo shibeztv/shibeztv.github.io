@@ -22,6 +22,8 @@
     --sans: 'Syne', sans-serif;
     --sidebar-w: 340px;
     --topbar-h: 54px;
+    --navbar-h: 44px;
+    --bars-h: calc(var(--topbar-h) + var(--navbar-h));
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -66,6 +68,25 @@
   .logo span {
     color: var(--accent);
   }
+
+  /* NAVBAR (second fixed bar) */
+  .navbar {
+    height: var(--navbar-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 8px;
+    position: fixed;
+    top: var(--bars-h);
+    left: 0; right: 0;
+    z-index: 9050;
+    overflow: hidden;
+  }
+  .navbar-spacer { flex: 1; }
+  body.theater .navbar { display: none; }
+
   .logo-dot.live { background: #ff4040 !important; box-shadow: 0 0 5px #ff4040 !important; animation: pulse 2s infinite; }
   .logo-dot {
     width: 8px; height: 8px;
@@ -92,8 +113,8 @@
   .layout {
     display: flex;
     flex-direction: column;
-    margin-top: var(--topbar-h);
-    height: calc(100vh - var(--topbar-h));
+    margin-top: var(--bars-h);
+    height: calc(100vh - var(--bars-h));
     overflow: hidden;
   }
 
@@ -1568,7 +1589,7 @@
   #hlModal {
     display: none;
     position: fixed;
-    top: var(--topbar-h); left: 0; right: 0; bottom: 0;
+    top: var(--bars-h); left: 0; right: 0; bottom: 0;
     z-index: 9200;
     background: rgba(5,7,14,0.82);
     backdrop-filter: blur(6px);
@@ -1582,8 +1603,8 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
-    width: min(calc(100vw - 32px), calc((100vh - var(--topbar-h) - 88px) * 16 / 9));
-    max-width: min(calc(100vw - 32px), calc((100vh - var(--topbar-h) - 88px) * 16 / 9));
+    width: min(calc(100vw - 32px), calc((100vh - var(--bars-h) - 88px) * 16 / 9));
+    max-width: min(calc(100vw - 32px), calc((100vh - var(--bars-h) - 88px) * 16 / 9));
     overflow: hidden;
     position: relative;
     display: flex;
@@ -1677,16 +1698,51 @@
     letter-spacing: 0.5px;
     color: var(--text);
   }
+  .yt-header-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    background: rgba(255,0,0,0.1);
+    border: 1px solid rgba(255,51,51,0.4);
+    color: #ff7070;
+    padding: 4px 10px;
+    border-radius: 3px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+  }
+  .yt-header-btn:hover {
+    background: rgba(255,40,40,0.22);
+    border-color: #ff3333;
+    color: #ff4444;
+    box-shadow: 0 0 8px rgba(255,51,51,0.3);
+  }
+  .yt-header-btn-shorts {
+    background: rgba(255,80,80,0.08);
+    border-color: rgba(255,80,80,0.35);
+    color: #ff9090;
+  }
+  .yt-header-btn-shorts:hover {
+    background: rgba(255,40,40,0.2);
+    border-color: #ff5555;
+    color: #ff6060;
+    box-shadow: 0 0 8px rgba(255,80,80,0.28);
+  }
   /* Row: [main video] [← arrow] [6 shorts] [→ arrow] */
   .yt-latest-row {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 10px;
   }
   /* ── Main latest video card (16:9) ── */
   .yt-main-card {
     flex-shrink: 0;
-    width: 460px;
+    width: auto;
     background: var(--surface);
     border: 1px solid #ff3333;
     box-shadow: 0 0 0 1px #ff3333, 0 4px 24px rgba(255,51,51,0.14);
@@ -1697,6 +1753,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    align-self: stretch;
   }
   .yt-main-card:hover {
     transform: translateY(-2px);
@@ -1704,10 +1761,11 @@
   }
   .yt-main-thumb {
     position: relative;
-    width: 100%;
+    width: auto;
     aspect-ratio: 16/9;
     background: #080810;
     overflow: hidden;
+    flex: 1;
   }
   .yt-main-thumb img {
     width: 100%; height: 100%;
@@ -1741,26 +1799,32 @@
   /* ── Arrow buttons (outside the shorts list) ── */
   .yt-short-arrow {
     flex-shrink: 0;
-    width: 30px;
-    height: 70px;
+    width: 38px;
+    height: auto;
+    min-height: 70px;
+    align-self: stretch;
     background: var(--surface2);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255,51,51,0.5);
     border-radius: 4px;
-    color: var(--text);
-    font-size: 20px;
+    color: #ff7070;
+    font-size: 26px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-    align-self: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 8px rgba(255,51,51,0.2), inset 0 0 6px rgba(255,51,51,0.06);
   }
-  .yt-short-arrow:hover {
+  .yt-short-arrow:not(:disabled) {
+    box-shadow: 0 0 10px rgba(255,51,51,0.28), inset 0 0 8px rgba(255,51,51,0.08);
+  }
+  .yt-short-arrow:hover:not(:disabled) {
     background: rgba(255,40,40,0.18);
     border-color: #ff3333;
     color: #ff3333;
+    box-shadow: 0 0 18px rgba(255,51,51,0.5), inset 0 0 10px rgba(255,51,51,0.12);
   }
-  .yt-short-arrow:disabled { opacity: 0.2; cursor: default; }
+  .yt-short-arrow:disabled { opacity: 0.25; cursor: default; box-shadow: none; }
   /* ── Shorts list (6 cards) ── */
   .yt-shorts-list {
     display: flex;
@@ -1836,14 +1900,18 @@
   /* Skeleton loaders */
   .yt-main-skeleton {
     flex-shrink: 0;
-    width: 460px;
+    width: auto;
+    min-width: 240px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;
     overflow: hidden;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
   }
   .yt-main-skel-thumb {
-    width: 100%;
+    flex: 1;
     aspect-ratio: 16/9;
     background: linear-gradient(90deg, #1a1a1e 25%, #222228 50%, #1a1a1e 75%);
     background-size: 200% 100%;
@@ -1887,7 +1955,7 @@
   #ytEmbedModal {
     display: none;
     position: fixed;
-    top: var(--topbar-h);
+    top: var(--bars-h);
     left: 0; right: 0; bottom: 0;
     z-index: 9200;
     background: rgba(5,7,14,0.93);
@@ -2007,8 +2075,59 @@
       </button>
     </div>
   </div>
-</nav>
 
+<!-- NAVBAR -->
+<nav class="navbar" id="mainBtnRow">
+  <button onclick="openRandomClip()" id="randomClipBtn"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+    🎲 RANDOM CLIP
+  </button>
+  <button onclick="openShible()" id="shibleBtn"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+    📅 SHIB.LE
+  </button>
+  <button onclick="openHigherLower()" id="higherLowerBtn"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+    📊 HIGHER OR LOWER
+  </button>
+  <button onclick="openEmoteGuesser()" id="emoteGuesserBtn"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    onmouseover="this.style.borderColor='#e879f9';this.style.color='#e879f9'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+    🎭 EMOTE GUESSER
+  </button>
+  <button onclick="openAiOrNot()" id="aionBtn"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    onmouseover="this.style.borderColor='#f472b6';this.style.color='#f472b6'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+    🤖 AI OR NOT
+  </button>
+  <button onclick="openFlappyShibez()" id="flappyBtn"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    onmouseover="this.style.borderColor='#4ade80';this.style.color='#4ade80'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+    🐦 FLAPPY SHIBEZ
+  </button>
+  <button onclick="openSpacebez()" id="spaceBtn"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+    🚀 SPACEBEZ
+  </button>
+  <div class="navbar-spacer"></div>
+  <button onclick="openWheelSpin()" id="wheelSpinBtn"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+    🛟 WHEEL SPIN
+  </button>
+</nav>
 
 <!-- LAYOUT -->
 <div class="layout" id="mainLayout">
@@ -2025,7 +2144,7 @@
       <div class="live-banner-embed" id="liveBannerEmbed"></div>
     </div>
     <!-- SHORTS MODAL — lightbox style -->
-    <div id="shortsModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9000;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;touch-action:none" onclick="if(event.target===this)closeShorts()">
+    <div id="shortsModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9000;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;touch-action:none" onclick="if(event.target===this)closeShorts()">
 
       <!-- Hidden title/meta — still updated in JS for the ↗ link, just not displayed -->
       <div id="shortTitle" style="display:none"></div>
@@ -2064,7 +2183,7 @@
     </div>
 
         <!-- PROFILE MODAL -->
-    <div id="profileModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9050;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)shibezProfileClose()">
+    <div id="profileModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9050;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)shibezProfileClose()">
       <div style="background:#0d0d1a;border:1px solid #7c3aed;border-radius:12px;width:100%;max-width:480px;max-height:calc(90vh - var(--topbar-h));overflow-y:auto;position:relative">
         <button onclick="shibezProfileClose()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;line-height:1">✕</button>
         <div id="profileModalContent" style="padding:24px"></div>
@@ -2072,7 +2191,7 @@
     </div>
 
     <!-- SPACEBEZ MODAL -->
-    <div id="spaceModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:stretch;justify-content:stretch;padding:0;overflow:hidden">
+    <div id="spaceModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:stretch;justify-content:stretch;padding:0;overflow:hidden">
       <div style="background:#050510;border:none;border-radius:0;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:stretch;width:100%;height:100%;max-width:100%;max-height:100%">
         <div id="spaceMusicEl" style="display:none"></div>
         <div id="spaceShopMusicEl" style="display:none"></div>
@@ -2158,7 +2277,7 @@
     </div>
 
     <!-- EMOTE GUESSER MODAL -->
-    <div id="egModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9005;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:20px">
+    <div id="egModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9005;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:20px">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:800px;height:calc(100vh - var(--topbar-h) - 40px);max-height:900px">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
@@ -2208,7 +2327,7 @@
     </div>
 
     <!-- HIGHER OR LOWER MODAL -->
-    <div id="holModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9004;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px">
+    <div id="holModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9004;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:1200px;max-height:calc(100vh - var(--topbar-h) - 24px)">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
@@ -2277,7 +2396,7 @@
 
 
     <!-- AI OR NOT MODAL -->
-    <div id="aionModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px" onclick="if(event.target===this)closeAiOrNot()">
+    <div id="aionModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px" onclick="if(event.target===this)closeAiOrNot()">
       <div style="background:#0a0a14;border:1px solid #2a2a4a;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:680px;height:calc(100vh-24px);max-height:calc(100vh-24px)">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box">
@@ -2338,7 +2457,7 @@
     </div>
 
     <!-- FLAPPY SHIBEZ MODAL -->
-    <div id="flappyModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9002;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:20px">
+    <div id="flappyModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9002;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:20px">
       <div id="flappyMusicEl" style="display:none"></div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
@@ -2366,7 +2485,7 @@
     </div>
 
     <!-- SHIB.LE MODAL -->
-    <div id="shibleModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9001;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px">
+    <div id="shibleModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9001;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:1100px;overflow:hidden;position:relative;display:flex;flex-direction:column">
 
         <!-- Header -->
@@ -2463,8 +2582,8 @@
     </div>
 
     <!-- CLIP MODAL -->
-    <div id="clipModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9000;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:min(1800px,calc((100vh - var(--topbar-h) - 80px) * 16/9));overflow:hidden;position:relative;display:flex;flex-direction:column">
+    <div id="clipModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9000;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:min(1800px,calc((100vh - var(--bars-h) - 80px) * 16/9));overflow:hidden;position:relative;display:flex;flex-direction:column">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text)" id="clipTitle">Loading clip…</div>
           <div style="display:flex;gap:8px;align-items:center">
@@ -2523,12 +2642,14 @@
     <!-- LATEST YOUTUBE VIDEO + SHORTS SECTION -->
     <div class="yt-latest-section" id="ytLatestSection">
       <div class="yt-latest-header">
-        <span class="yt-latest-title">LATEST YOUTUBE</span>
-        <span class="highlights-badge">▶ YouTube</span>
-        <span class="highlights-badge" style="margin-left:2px;background:rgba(255,80,80,0.1);border-color:rgba(255,80,80,0.3);color:#ff9090">📱 SHORTS</span>
-        <a class="highlights-yt-link" href="https://www.youtube.com/@ShibezYT" target="_blank" title="View channel on YouTube">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
-          VIEW CHANNEL
+        <span class="yt-latest-title">LATEST YOUTUBE VIDEO AND SHORTS</span>
+        <a class="yt-header-btn" href="https://www.youtube.com/@ShibezYT" target="_blank" title="Go to YouTube channel">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+          ▶ YouTube
+        </a>
+        <a class="yt-header-btn yt-header-btn-shorts" href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" title="Go to Shorts page">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+          📱 Shorts
         </a>
       </div>
       <!-- Row: [main video] [← left arrow] [6 short cards] [→ right arrow] -->
@@ -2544,63 +2665,14 @@
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
+          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
+          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
         </div>
         <button class="yt-short-arrow" id="ytShortRight" onclick="ytShortsNav(1)" disabled>&#8250;</button>
       </div>
     </div>
 
-    <!-- NAVIGATION BUTTONS -->
-    <div id="mainBtnRow" style="display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px;padding:20px 0 4px;border-top:1px solid var(--border);margin-top:8px">
-      <button onclick="openRandomClip()" id="randomClipBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🎲 RANDOM CLIP
-      </button>
-      <button onclick="openShible()" id="shibleBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        📅 SHIB.LE
-      </button>
-      <button onclick="openHigherLower()" id="higherLowerBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        📊 HIGHER OR LOWER
-      </button>
-      <button onclick="openEmoteGuesser()" id="emoteGuesserBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#e879f9';this.style.color='#e879f9'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🎭 EMOTE GUESSER
-      </button>
-      <button onclick="openAiOrNot()" id="aionBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#f472b6';this.style.color='#f472b6'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🤖 AI OR NOT
-      </button>
-      <button onclick="openFlappyShibez()" id="flappyBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#4ade80';this.style.color='#4ade80'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🐦 FLAPPY SHIBEZ
-      </button>
-      <button onclick="openSpacebez()" id="spaceBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🚀 SPACEBEZ
-      </button>
-      <div style="flex:1"></div>
-      <button onclick="openWheelSpin()" id="wheelSpinBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🛟 WHEEL SPIN
-      </button>
-    </div>
+
 
     <div class="site-footer">
       <span>Made by Shibez</span>
@@ -5286,7 +5358,7 @@ function _shortsRenderAt(idx) {
   try { history.replaceState(null, '', '#shorts/' + vid); } catch(e) {}
 
   // Sizing: available area = viewport minus topbar, hint row below, gap padding
-  const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-h')) || 54;
+  const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bars-h')) || 98;
   const visH = Math.round(window.innerHeight - topbarH - 60); // topbar + hint row + gaps
   const visW = Math.round(window.innerWidth  - 148); // minus arrows
   let w, h;
@@ -7103,7 +7175,7 @@ async function openSpacebez() {
   if(!window._spaceSavedRun) updateHeartsDisplay(5,0,5);
   // Full-screen canvas
   const canvas = document.getElementById('spaceCanvas');
-  const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-h')) || 48;
+  const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bars-h')) || 98;
   const W = Math.floor(window.innerWidth);
   const H = Math.floor(window.innerHeight - topbarH);
   canvas.width = W; canvas.height = H;
@@ -7131,7 +7203,7 @@ async function openSpacebez() {
   window._spaceResizeHandler = function() {
     const c = document.getElementById('spaceCanvas');
     if (!c) return;
-    const tbH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-h')) || 48;
+    const tbH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bars-h')) || 98;
     c.width  = window.innerWidth;
     c.height = window.innerHeight - tbH;
   };
@@ -11903,8 +11975,8 @@ window.addEventListener('hashchange', _routeFromHash);
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 /* ── Modal shell ── */
-#wmModal{display:none;position:fixed;left:0;right:0;top:var(--topbar-h);bottom:0;z-index:9010;background:rgba(5,7,14,0.78);align-items:center;justify-content:center;padding:0;font-family:'Rajdhani',sans-serif;}
-#wmModal::before{content:'';position:fixed;inset:0;top:var(--topbar-h);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:-1;pointer-events:none;}
+#wmModal{display:none;position:fixed;left:0;right:0;top:var(--bars-h);bottom:0;z-index:9010;background:rgba(5,7,14,0.78);align-items:center;justify-content:center;padding:0;font-family:'Rajdhani',sans-serif;}
+#wmModal::before{content:'';position:fixed;inset:0;top:var(--bars-h);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:-1;pointer-events:none;}
 #wmModal *{box-sizing:border-box;}
 
 /* ── Main container ── */
