@@ -737,21 +737,19 @@
 
   /* LOADING */
   .loader {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    grid-column: 1 / -1;
+    width: 100%;
     font-family: var(--mono);
     font-size: 18px;
     font-weight: 700;
     color: #fff;
     letter-spacing: 1px;
     gap: 20px;
-    z-index: 100;
-    pointer-events: none;
   }
   .loader-dots {
     display: flex;
@@ -1584,8 +1582,8 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
-    width: 100%;
-    max-width: min(1000px, calc((100vh - var(--topbar-h) - 60px) * 16/9));
+    width: min(calc(100vw - 32px), calc((100vh - var(--topbar-h) - 88px) * 16 / 9));
+    max-width: min(calc(100vw - 32px), calc((100vh - var(--topbar-h) - 88px) * 16 / 9));
     overflow: hidden;
     position: relative;
     display: flex;
@@ -1766,11 +1764,14 @@
     display: flex;
     gap: 8px;
     flex-shrink: 0;
+    cursor: grab;
+    user-select: none;
   }
+  .yt-shorts-list.dragging { cursor: grabbing; }
   /* ── Individual short card (9:16 portrait) ── */
   .yt-short-card {
     flex-shrink: 0;
-    width: 118px;
+    width: 152px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -1816,17 +1817,17 @@
   /* Black title bar at very bottom */
   .yt-short-title-bar {
     background: #000;
-    padding: 6px 7px 7px;
+    padding: 8px 9px 10px;
     flex: 1;
     min-height: 0;
   }
   .yt-short-title {
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 1.35;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
     color: var(--text);
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -1857,7 +1858,7 @@
   .yt-main-skel-line.s2 { width: 60%; margin-top: 5px; }
   .yt-short-skeleton {
     flex-shrink: 0;
-    width: 118px;
+    width: 152px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -1879,6 +1880,91 @@
     margin: 7px 8px 4px;
   }
   .yt-short-skel-line.s2 { width: 70%; margin-top: 4px; }
+
+  /* ── YT Embed Modal ─────────────────────────────────────────────────────── */
+  #ytEmbedModal {
+    display: none;
+    position: fixed;
+    top: var(--topbar-h);
+    left: 0; right: 0; bottom: 0;
+    z-index: 9200;
+    background: rgba(5,7,14,0.93);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+  #ytEmbedModal.open { display: flex; }
+
+  /* The sized video box — dimensions set by JS to maintain ratio */
+  #ytEmbedWrap {
+    position: relative;
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  #ytEmbedWrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    border: none;
+    display: block;
+  }
+  /* Bottom info bar */
+  .yte-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 4px 0;
+    width: 100%; /* matches wrap width via JS */
+    box-sizing: border-box;
+  }
+  .yte-bar-title {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .yte-bar-link {
+    font-family: var(--mono);
+    font-size: 10px;
+    background: rgba(255,0,0,0.15);
+    border: 1px solid rgba(255,0,0,0.4);
+    color: #ff6060;
+    padding: 5px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .yte-bar-link:hover { background: rgba(255,0,0,0.25); }
+  /* Close button */
+  .yte-close {
+    position: absolute;
+    top: 10px; right: 14px;
+    z-index: 10;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 16px;
+    line-height: 1;
+    padding: 6px 11px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .yte-close:hover { background: rgba(255,40,40,0.5); }
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
   <link rel="icon" type="image/png" href="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-70x70.png">
@@ -1936,59 +2022,6 @@
       <div class="live-banner-meta" id="liveBannerMeta" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#eee;display:none"></div>
       <div class="live-banner-embed" id="liveBannerEmbed"></div>
     </div>
-    <!-- RANDOM CLIP + SHIB.LE BUTTONS -->
-    <div id="mainBtnRow" style="display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px;padding:10px 0 4px">
-      <button onclick="openRandomClip()" id="randomClipBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🎲 RANDOM CLIP
-      </button>
-      <button onclick="openShible()" id="shibleBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        📅 SHIB.LE
-      </button>
-      <button onclick="openHigherLower()" id="higherLowerBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        📊 HIGHER OR LOWER
-      </button>
-      <button onclick="openEmoteGuesser()" id="emoteGuesserBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#e879f9';this.style.color='#e879f9'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🎭 EMOTE GUESSER
-      </button>
-      <button onclick="openAiOrNot()" id="aionBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#f472b6';this.style.color='#f472b6'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🤖 AI OR NOT
-      </button>
-      <button onclick="openFlappyShibez()" id="flappyBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#4ade80';this.style.color='#4ade80'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🐦 FLAPPY SHIBEZ
-      </button>
-      <button onclick="openSpacebez()" id="spaceBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🚀 SPACEBEZ
-      </button>
-      <div style="flex:1"></div>
-      <button onclick="openWheelSpin()" id="wheelSpinBtn"
-        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
-        onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
-        🛟 WHEEL SPIN
-      </button>
-    </div>
-
     <!-- SHORTS MODAL — lightbox style -->
     <div id="shortsModal" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;z-index:9000;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;touch-action:none" onclick="if(event.target===this)closeShorts()">
 
@@ -2485,29 +2518,6 @@
       <button class="page-btn page-arrow" id="pageNext" onclick="goToPage(currentPage+1)">›</button>
       <button class="page-btn page-arrow" id="pageLast" onclick="goToPage(totalPages-1)" title="Last page">»</button>
     </div>
-    <!-- HIGHLIGHTS CAROUSEL -->
-    <div class="highlights-section" id="highlightsSection">
-      <div class="highlights-header">
-        <span class="highlights-title">HIGHLIGHTS &amp; EDITED CLIPS</span>
-        <span class="highlights-badge">▶ YouTube</span>
-        <a class="highlights-yt-link" href="https://www.youtube.com/playlist?list=PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h" target="_blank" title="View full playlist on YouTube">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
-          VIEW FULL PLAYLIST
-        </a>
-      </div>
-      <div class="highlights-track-wrap">
-        <button class="highlights-arrow left" id="hlArrowLeft" onclick="hlScroll(-1)">&#8249;</button>
-        <div class="highlights-track" id="hlTrack">
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
-          <div class="hl-skeleton"><div class="hl-skeleton-thumb"></div><div class="hl-skeleton-line"></div><div class="hl-skeleton-line short"></div></div>
-        </div>
-        <button class="highlights-arrow right" id="hlArrowRight" onclick="hlScroll(1)">&#8250;</button>
-      </div>
-    </div>
-
     <!-- LATEST YOUTUBE VIDEO + SHORTS SECTION -->
     <div class="yt-latest-section" id="ytLatestSection">
       <div class="yt-latest-header">
@@ -2535,6 +2545,59 @@
         </div>
         <button class="yt-short-arrow" id="ytShortRight" onclick="ytShortsNav(1)" disabled>&#8250;</button>
       </div>
+    </div>
+
+    <!-- NAVIGATION BUTTONS -->
+    <div id="mainBtnRow" style="display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px;padding:20px 0 4px;border-top:1px solid var(--border);margin-top:8px">
+      <button onclick="openRandomClip()" id="randomClipBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        🎲 RANDOM CLIP
+      </button>
+      <button onclick="openShible()" id="shibleBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        📅 SHIB.LE
+      </button>
+      <button onclick="openHigherLower()" id="higherLowerBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        📊 HIGHER OR LOWER
+      </button>
+      <button onclick="openEmoteGuesser()" id="emoteGuesserBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='#e879f9';this.style.color='#e879f9'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        🎭 EMOTE GUESSER
+      </button>
+      <button onclick="openAiOrNot()" id="aionBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='#f472b6';this.style.color='#f472b6'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        🤖 AI OR NOT
+      </button>
+      <button onclick="openFlappyShibez()" id="flappyBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='#4ade80';this.style.color='#4ade80'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        🐦 FLAPPY SHIBEZ
+      </button>
+      <button onclick="openSpacebez()" id="spaceBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        🚀 SPACEBEZ
+      </button>
+      <div style="flex:1"></div>
+      <button onclick="openWheelSpin()" id="wheelSpinBtn"
+        style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:8px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+        🛟 WHEEL SPIN
+      </button>
     </div>
 
     <div class="site-footer">
@@ -5220,8 +5283,9 @@ function _shortsRenderAt(idx) {
   // Update URL so users can share a link to this specific short
   try { history.replaceState(null, '', '#shorts/' + vid); } catch(e) {}
 
-  // Sizing: fill screen, only hint row below (~40px) + a little padding
-  const visH = Math.round(window.innerHeight - 60);
+  // Sizing: available area = viewport minus topbar, hint row below, gap padding
+  const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-h')) || 54;
+  const visH = Math.round(window.innerHeight - topbarH - 60); // topbar + hint row + gaps
   const visW = Math.round(window.innerWidth  - 148); // minus arrows
   let w, h;
   if (visW * 16 / 9 <= visH) { w = visW; h = Math.round(visW * 16 / 9); }
@@ -14836,7 +14900,7 @@ function _ytSecRender() {
   if (wrap) {
     const v = _ytSecLatest;
     wrap.innerHTML = v
-      ? `<div class="yt-main-card" onclick="window.open('https://www.youtube.com/watch?v=${v.id}','_blank')" title="${_escHtml(_ytStripHashtags(v.title))}">
+      ? `<div class="yt-main-card" onclick="ytSecOpenVideo('${v.id}',${JSON.stringify(_ytStripHashtags(v.title))})" title="${_escHtml(_ytStripHashtags(v.title))}">
            <div class="yt-main-thumb">
              <div class="hl-new-badge">&#9733; NEW VIDEO</div>
              <img src="${v.thumb}" alt="" onerror="this.src='https://i.ytimg.com/vi/${v.id}/mqdefault.jpg'">
@@ -14860,7 +14924,7 @@ function _ytSecRender() {
       list.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:20px 0">No shorts found.</div>`;
     } else {
       list.innerHTML = page.map(v => `
-        <div class="yt-short-card" onclick="window.open('https://www.youtube.com/shorts/${v.id}','_blank')" title="${_escHtml(_ytStripHashtags(v.title))}">
+        <div class="yt-short-card" onclick="ytSecOpenShort('${v.id}')" title="${_escHtml(_ytStripHashtags(v.title))}">
           <div class="yt-short-thumb">
             <img src="${v.thumb}" alt="" onerror="this.src='https://i.ytimg.com/vi/${v.id}/mqdefault.jpg'">
             <div class="yt-short-play-btn">${_ytPlaySvg}</div>
@@ -14895,6 +14959,100 @@ function _ytSecUpdateArrows() {
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _ytSecInit);
 else _ytSecInit();
+
+// ── Drag-to-scroll on the shorts list ────────────────────────────────────────
+// Hold & drag left → older shorts (same as → arrow)
+// Hold & drag right → newer shorts (same as ← arrow)
+(function _ytSecDragInit() {
+  const THRESHOLD = 52;    // px of drag needed to trigger a page turn
+  const LOCK_MS   = 400;   // ignore clicks for this long after a drag fires
+
+  let isDragging  = false;
+  let startX      = 0;
+  let fired       = false; // did we already trigger a nav for this drag?
+  let lockUntil   = 0;
+
+  function getList() { return document.getElementById('ytShortsList'); }
+
+  function onDown(e) {
+    const list = getList();
+    if (!list || !list.contains(e.target)) return;
+    isDragging = true;
+    fired      = false;
+    startX     = (e.touches ? e.touches[0].clientX : e.clientX);
+    list.classList.add('dragging');
+    if (!e.touches) e.preventDefault(); // prevent text highlight on mouse
+  }
+
+  function onMove(e) {
+    if (!isDragging || fired) return;
+    const x  = (e.touches ? e.touches[0].clientX : e.clientX);
+    const dx = x - startX;
+    if (Math.abs(dx) >= THRESHOLD) {
+      fired     = true;
+      lockUntil = Date.now() + LOCK_MS;
+      getList()?.classList.remove('dragging');
+      isDragging = false;
+      // drag right → newer (←), drag left → older (→)
+      ytShortsNav(dx > 0 ? -1 : 1);
+    }
+  }
+
+  function onUp() {
+    if (!isDragging) return;
+    isDragging = false;
+    getList()?.classList.remove('dragging');
+  }
+
+  // Block card clicks that are actually the end of a drag
+  function onCardClick(e) {
+    if (Date.now() < lockUntil) e.stopImmediatePropagation();
+  }
+
+  document.addEventListener('mousedown',  onDown,      { passive: false });
+  document.addEventListener('mousemove',  onMove,      { passive: true  });
+  document.addEventListener('mouseup',    onUp,        { passive: true  });
+  document.addEventListener('touchstart', onDown,      { passive: true  });
+  document.addEventListener('touchmove',  onMove,      { passive: true  });
+  document.addEventListener('touchend',   onUp,        { passive: true  });
+
+  // Intercept clicks on short cards during the lock window
+  document.addEventListener('click', onCardClick, true);
+})();
+
+// ── Open latest video in-site (reuses hlModal) ──────────────────────────────
+function ytSecOpenVideo(videoId, title) {
+  const modal  = document.getElementById('hlModal');
+  const embed  = document.getElementById('hlModalEmbed');
+  const titleEl = document.getElementById('hlModalTitle');
+  const sub    = document.getElementById('hlModalSub');
+  const ytBtn  = document.getElementById('hlModalYtBtn');
+  if (!modal) return;
+
+  titleEl.textContent = title || 'Latest Upload';
+  sub.textContent     = 'Shibez · Latest YouTube upload';
+  ytBtn.href          = 'https://www.youtube.com/watch?v=' + videoId;
+
+  embed.innerHTML = `<iframe
+    src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen></iframe>`;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// ── Open a short from the yt-section cards in-site (reuses shortsModal) ─────
+function ytSecOpenShort(videoId) {
+  // Seed _cachedShorts with the yt-section's already-fetched shorts list
+  // so openRandomShort() can find this video without re-fetching from the playlist
+  if (_ytSecShorts.length && !_cachedShorts.length) {
+    _cachedShorts = _ytSecShorts.map(s => ({
+      snippet: { resourceId: { videoId: s.id }, title: s.title, publishedAt: '' }
+    }));
+  }
+  openRandomShort(videoId);
+}
 </script>
 
 </body>
