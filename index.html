@@ -1686,18 +1686,31 @@
     border-top: 1px solid var(--border);
     margin-top: 0;
   }
+  /* Two-column header aligned above the card columns */
   .yt-latest-header {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 0 2px;
+  }
+  .yt-col-header {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 16px;
-    padding: 0 2px;
+    flex-shrink: 0;
+    width: 420px; /* must match #ytMainCardWrap width */
+  }
+  .yt-col-header-shorts {
+    flex: 1;
+    padding-left: 76px; /* skip the two arrows (28px + 10px gap) × 2 */
   }
   .yt-latest-title {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.5px;
     color: var(--text);
+    white-space: nowrap;
   }
   .yt-header-btn {
     display: inline-flex;
@@ -1741,9 +1754,13 @@
     gap: 10px;
   }
   /* ── Main latest video card (16:9) ── */
+  #ytMainCardWrap {
+    flex-shrink: 0;
+    width: 420px;
+  }
   .yt-main-card {
     flex-shrink: 0;
-    width: auto;
+    width: 100%;
     background: var(--surface);
     border: 1px solid rgba(255,51,51,0.35);
     box-shadow: 0 2px 12px rgba(255,51,51,0.07);
@@ -1754,7 +1771,6 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    align-self: stretch;
   }
   .yt-main-card:hover {
     transform: translateY(-2px);
@@ -1763,11 +1779,10 @@
   }
   .yt-main-thumb {
     position: relative;
-    width: auto;
+    width: 100%;
     aspect-ratio: 16/9;
     background: #080810;
     overflow: hidden;
-    flex: 1;
   }
   .yt-main-thumb img {
     width: 100%; height: 100%;
@@ -1903,8 +1918,7 @@
   /* Skeleton loaders */
   .yt-main-skeleton {
     flex-shrink: 0;
-    width: auto;
-    min-width: 240px;
+    width: 100%;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -2645,16 +2659,22 @@
     </div>
     <!-- LATEST YOUTUBE VIDEO + SHORTS SECTION -->
     <div class="yt-latest-section" id="ytLatestSection">
+      <!-- Two-column header: left above video, right above shorts -->
       <div class="yt-latest-header">
-        <span class="yt-latest-title">LATEST YOUTUBE VIDEO AND SHORTS</span>
-        <a class="yt-header-btn" href="https://www.youtube.com/@ShibezYT" target="_blank" title="Go to YouTube channel">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
-          ▶ YouTube
-        </a>
-        <a class="yt-header-btn yt-header-btn-shorts" href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" title="Go to Shorts page">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
-          📱 Shorts
-        </a>
+        <div class="yt-col-header">
+          <span class="yt-latest-title">LATEST YOUTUBE VIDEO</span>
+          <a class="yt-header-btn" href="https://www.youtube.com/@ShibezYT" target="_blank" title="Go to YouTube channel">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+            ▶ YouTube
+          </a>
+        </div>
+        <div class="yt-col-header yt-col-header-shorts">
+          <span class="yt-latest-title">LATEST STREAM HIGHLIGHTS</span>
+          <a class="yt-header-btn yt-header-btn-shorts" href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" title="Go to Shorts page">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+            📱 Shorts
+          </a>
+        </div>
       </div>
       <!-- Row: [main video] [← left arrow] [6 short cards] [→ right arrow] -->
       <div class="yt-latest-row">
@@ -14794,7 +14814,7 @@ async function _hlFetchPlaylistVideos() {
     return items.map(i => ({
       id:    i.snippet.resourceId.videoId,
       title: i.snippet.title,
-      thumb: `https://i.ytimg.com/vi/${i.snippet.resourceId.videoId}/hqdefault.jpg`,
+      thumb: `https://i.ytimg.com/vi/${i.snippet.resourceId.videoId}/maxresdefault.jpg`, thumbFallback: `https://i.ytimg.com/vi/${i.snippet.resourceId.videoId}/hqdefault.jpg`,
     }));
   } catch(e) {
     console.warn('hlFetchPlaylist failed:', e);
@@ -15007,7 +15027,7 @@ function _ytSecRender() {
       list.innerHTML = page.map(v => `
         <div class="yt-short-card" onclick="ytSecOpenShort('${v.id}')" title="${_escHtml(_ytStripHashtags(v.title))}">
           <div class="yt-short-thumb">
-            <img src="${v.thumb}" alt="" onerror="this.src='https://i.ytimg.com/vi/${v.id}/mqdefault.jpg'">
+            <img src="${v.thumb}" alt="" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'">
             <div class="yt-short-play-btn">${_ytPlaySvg}</div>
           </div>
           <div class="yt-short-title-bar">
