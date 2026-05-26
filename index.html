@@ -1846,7 +1846,8 @@
     display: flex;
     gap: 8px;
     flex-shrink: 0;
-    overflow: hidden;       /* clips extra cards; JS scrollLeft reveals them */
+    width: calc(7 * 175px + 6 * 8px); /* exactly 7 cards visible */
+    overflow: hidden;       /* clips extra cards; scrollLeft reveals them */
     cursor: grab;
     user-select: none;
   }
@@ -15050,8 +15051,9 @@ function _ytSecRender() {
 function ytShortsNav(dir) {
   const list = document.getElementById('ytShortsList');
   if (!list) return;
-  list.scrollBy({ left: dir * list.clientWidth, behavior: 'smooth' });
-  setTimeout(_ytSecUpdateArrows, 350); // update after smooth scroll settles
+  const cardStep = 175 + 8; // one card + gap
+  list.scrollBy({ left: dir * cardStep * 2, behavior: 'smooth' }); // 2 cards per arrow click
+  setTimeout(_ytSecUpdateArrows, 350);
 }
 
 function _ytSecUpdateArrows() {
