@@ -1762,20 +1762,21 @@
     flex-shrink: 0;
     width: 100%;
     background: var(--surface);
-    border: 1px solid rgba(255,51,51,0.35);
-    box-shadow: 0 2px 12px rgba(255,51,51,0.07);
+    border: 2px solid rgba(255,51,51,0.6);
+    box-shadow: 0 2px 14px rgba(255,51,51,0.12);
     border-radius: 6px;
     overflow: hidden;
     cursor: pointer;
-    transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+    transition: border-color 0.15s, border-width 0.15s, transform 0.12s, box-shadow 0.15s;
     position: relative;
     display: flex;
     flex-direction: column;
   }
   .yt-main-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(255,51,51,0.7);
-    box-shadow: 0 4px 18px rgba(255,51,51,0.14);
+    border-color: rgba(255,51,51,0.95);
+    border-width: 3px;
+    box-shadow: 0 6px 24px rgba(255,51,51,0.22);
   }
   .yt-main-thumb {
     position: relative;
@@ -1847,11 +1848,11 @@
     gap: 8px;
     flex-shrink: 0;
     width: calc(7 * 175px + 6 * 8px); /* exactly 7 cards visible */
-    overflow: hidden;       /* clips extra cards; scrollLeft reveals them */
+    overflow: hidden;
     cursor: grab;
     user-select: none;
-    padding-top: 6px;      /* stops hover lift + top border from being clipped */
-    margin-top: -6px;      /* cancel the layout shift so nothing moves */
+    padding-top: 6px;   /* stops hover lift + top border being clipped */
+    margin-top: -6px;   /* cancel layout shift */
   }
   .yt-shorts-list.dragging { cursor: grabbing; }
   /* ── Individual short card (9:16 portrait) ── */
@@ -1863,14 +1864,19 @@
     border-radius: 6px;
     overflow: hidden;
     cursor: pointer;
-    transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+    transition: border-color 0.15s, border-width 0.15s, transform 0.12s, box-shadow 0.15s;
     display: flex;
     flex-direction: column;
   }
+  /* Most-recent short always has a red outline */
+  .yt-short-card:first-child {
+    border: 2px solid rgba(255,51,51,0.6);
+    box-shadow: 0 2px 14px rgba(255,51,51,0.1);
+  }
   .yt-short-card:hover {
-    border-color: rgba(255,51,51,0.55);
+    border: 3px solid rgba(255,51,51,0.9);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 6px 20px rgba(255,51,51,0.22);
   }
   .yt-short-thumb {
     position: relative;
