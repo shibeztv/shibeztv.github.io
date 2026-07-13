@@ -13652,6 +13652,7 @@ function _wmLoad() {
       if (pinned) { _wm.wheels = pinned.wheels; _wm.activeId = pinned.activeId; }
     } catch(e) {}
   }
+  if (!_wm.wheels?.length) {
     _wm.wheels = [{
       id: 'w1', name: 'Main Wheel',
       items: [
