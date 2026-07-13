@@ -2162,7 +2162,7 @@
     style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:rgba(228,184,77,0.12);border:1.5px solid rgba(228,184,77,0.5);color:#e4b84d;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap;box-shadow:0 0 10px rgba(228,184,77,0.1)"
     onmouseover="this.style.borderColor='#e4b84d';this.style.color='#f7d374';this.style.background='rgba(228,184,77,0.22)';this.style.boxShadow='0 0 16px rgba(228,184,77,0.28)'"
     onmouseout="this.style.borderColor='rgba(228,184,77,0.5)';this.style.color='#e4b84d';this.style.background='rgba(228,184,77,0.12)';this.style.boxShadow='0 0 10px rgba(228,184,77,0.1)'">
-    🛟 WHEEL SPIN
+    🛞 WHEEL SPIN
   </button>
 </nav>
 
@@ -12145,6 +12145,11 @@ window.addEventListener('hashchange', _routeFromHash);
   cursor:default;
 }
 .wm-citem:hover{background:var(--hover-bg,#1e2535);border-left-color:var(--item-color,#e4b84d);}
+.wm-citem.pointer-active{
+  background:var(--hover-bg,#1e2535) !important;
+  border-left-color:var(--item-color,#e4b84d) !important;
+  box-shadow:inset 2px 0 8px -2px var(--item-color,#e4b84d), 0 0 6px rgba(228,184,77,0.12);
+}
 .wm-citem-icon{
   width:26px;height:26px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
@@ -12165,7 +12170,7 @@ window.addEventListener('hashchange', _routeFromHash);
 /* case subtitle */
 .wm-subtitle{
   text-align:center;
-  font-family:'Share Tech Mono',monospace;font-size:16px;font-weight:900;letter-spacing:4px;
+  font-family:'Share Tech Mono',monospace;font-size:19px;font-weight:900;letter-spacing:4px;
   color:#ffffff;text-transform:uppercase;padding:14px 0 10px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   text-shadow:0 0 18px rgba(228,184,77,0.35);
@@ -12174,12 +12179,13 @@ window.addEventListener('hashchange', _routeFromHash);
 /* ── Actual spinning wheel ── */
 .wm-wheel-section{
   display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;
-  position:relative;overflow:hidden;min-height:0;padding:6px 0 4px;min-height:280px;
+  position:relative;min-height:0;padding:16px 0 10px;min-height:280px;overflow:visible;
 }
 .wm-wheel-section.active{display:flex;}
 .wm-wheel-canvas-wrap{
   position:relative;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
+  overflow:visible;
 }
 #wmWheelCanvas{display:block;border-radius:50%;}
 /* pointer arrow at top */
@@ -12288,7 +12294,8 @@ window.addEventListener('hashchange', _routeFromHash);
 /* ── Wheel selector row ── */
 .wm-wheel-row{
   display:flex;align-items:center;gap:6px;flex-wrap:wrap;
-  padding:8px 16px;border-top:1px solid #1e2028;flex-shrink:0;
+  padding:12px 16px 10px;border-top:1px solid #1e2028;flex-shrink:0;
+  margin-top:auto;
 }
 .wm-wtab{
   font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;
@@ -12310,7 +12317,7 @@ window.addEventListener('hashchange', _routeFromHash);
   padding:8px 16px 10px;flex-shrink:0;
 }
 .wm-spinbtn{
-  font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:800;letter-spacing:4px;
+  font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:800;letter-spacing:4px;
   text-transform:uppercase;
   background:linear-gradient(135deg,#c8972a 0%,#e4b84d 40%,#f0cc6a 60%,#c8972a 100%);
   border:none;color:#0d0f14;padding:13px 60px;border-radius:3px;cursor:pointer;
@@ -12331,13 +12338,13 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-ptabs{display:flex;border-bottom:1px solid #1e2028;flex-shrink:0;}
 .wm-ptab{
   flex:1;text-align:center;
-  font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;
-  padding:10px 4px;color:#c8d0dc;cursor:pointer;
+  font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;
+  padding:10px 4px;color:#e0e4ef;cursor:pointer;
   border-bottom:2px solid transparent;
   background:none;border-top:none;border-left:none;border-right:none;
-  transition:all 0.12s;
+  transition:all 0.12s;font-weight:700;
 }
-.wm-ptab:hover{color:#888;}
+.wm-ptab:hover{color:#fff;}
 .wm-ptab.active{color:#e4b84d;border-bottom-color:#e4b84d;}
 
 /* history */
@@ -12600,7 +12607,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-desc-tip{
   display:none;
   position:fixed;
-  background:var(--tip-bg,#1a1e28);border:1px solid rgba(255,255,255,0.38);
+  background:#12151e;border:1px solid rgba(255,255,255,0.38);
   color:#e8e8f0;font-family:'Share Tech Mono',monospace;font-size:12px;
   line-height:1.65;letter-spacing:0.3px;
   padding:10px 14px;border-radius:3px;width:280px;
@@ -12733,7 +12740,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
   <!-- Top bar -->
   <div class="wm-topbar">
-    <span class="wm-logo">🎰 Wheel Spin</span>
+    <span class="wm-logo">🛞 Wheel Spin</span>
     <input class="wm-case-name-inp" id="wmCaseNameInp" value="Main Wheel" oninput="wmRenameWheel(this.value)" placeholder="Wheel name…">
     <!-- Mode toggle -->
     <div style="display:flex;align-items:center;gap:10px;margin-left:12px;flex-shrink:0">
@@ -12830,6 +12837,7 @@ window.addEventListener('hashchange', _routeFromHash);
         <div class="wm-edit-acts">
           <button class="wm-act" onclick="wmRandCols()">🎨 Randomize Colors</button>
           <button class="wm-act" onclick="wmShareWheel()" style="background:rgba(74,110,220,0.15);border-color:rgba(74,110,220,0.4);color:#7090e8">🔗 Share Wheel</button>
+          <button class="wm-act" id="wmPinBtn" onclick="wmPinWheel()" style="display:none;background:rgba(228,184,77,0.12);border-color:rgba(228,184,77,0.45);color:#e4b84d">📌 Pin Wheel to Site</button>
           <button class="wm-act red" onclick="wmDelWheel()">🗑 Delete Wheel</button>
         </div>
       </div>
@@ -13626,10 +13634,24 @@ function _wmReveal() {
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────
+const WM_PIN_KEY = 'wm_pinned_wheel_v1'; // shared key everyone reads
+
+// Returns true if the currently logged-in user is Shibez
+function _wmIsShibez() {
+  const login = (_profUser?.login || '').toLowerCase();
+  return login === 'shlbez' || login === 'shibez';
+}
+
 function _wmSave() { try { localStorage.setItem('wm_cs2_v1', JSON.stringify({wheels:_wm.wheels,activeId:_wm.activeId})); } catch(e) {} }
 function _wmLoad() {
   try { const d = JSON.parse(localStorage.getItem('wm_cs2_v1')||'null'); if(d){_wm.wheels=d.wheels;_wm.activeId=d.activeId;} } catch(e) {}
+  // If no personal wheel saved, load pinned wheel Shibez published
   if (!_wm.wheels?.length) {
+    try {
+      const pinned = JSON.parse(localStorage.getItem(WM_PIN_KEY)||'null');
+      if (pinned) { _wm.wheels = pinned.wheels; _wm.activeId = pinned.activeId; }
+    } catch(e) {}
+  }
     _wm.wheels = [{
       id: 'w1', name: 'Main Wheel',
       items: [
@@ -14161,7 +14183,7 @@ function wmSetMode(mode) {
     if (track && !track.children.length) try { _wmPreviewReel(); } catch(e) {}
   } else {
     btn.textContent = 'SPIN WHEEL';
-    if (logo) logo.textContent = '🎰 Wheel Spin';
+    if (logo) logo.textContent = '🛞 Wheel Spin';
     if (reelOuter)  reelOuter.style.display  = 'none';
     if (wheelSec)   wheelSec.classList.add('active');
     if (subtitleEl) subtitleEl.textContent = 'SPIN THE WHEEL';
@@ -14543,15 +14565,22 @@ function _wmSetupHoverTooltip() {
 
 // Determine winner from final angle
 function _wmWheelWinner(finalAngle) {
-  // Segment i midpoint is at canvas angle: finalAngle + i*seg - PI/2 + seg/2
-  // Pointer is at -PI/2. Segment at pointer: finalAngle + i*seg + seg/2 = 0 (mod 2PI)
-  // => i*seg = -finalAngle - seg/2 (mod 2PI)
-  // => i = floor((-finalAngle - seg/2) / seg) mod n
   const items = _wmCurrent().items;
   const n   = items.length;
   const seg = (2 * Math.PI) / n;
   let a = ((-finalAngle - seg / 2) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
   return Math.floor(a / seg) % n;
+}
+
+// Highlight the contents-list item currently under the pointer while spinning
+let _wmLastPointerIdx = -1;
+function _wmHighlightPointerItem(angle) {
+  const idx = _wmWheelWinner(angle);
+  if (idx === _wmLastPointerIdx) return;
+  _wmLastPointerIdx = idx;
+  const items = document.querySelectorAll('#wmContentsList .wm-citem');
+  items.forEach((el, i) => el.classList.toggle('pointer-active', i === idx));
+  if (items[idx]) items[idx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function wmSpinWheel() {
@@ -14562,6 +14591,7 @@ function wmSpinWheel() {
 
   _wm.spinning = true;
   _wmWheelWinIdx = -1; // clear previous winner glow
+  _wmLastPointerIdx = -1; // reset live-highlight tracker
   document.getElementById('wmSpinBtn').disabled = true;
   document.getElementById('wmResultLabel').textContent = '';
   document.getElementById('wmResultSub').textContent   = '';
@@ -14597,6 +14627,7 @@ function wmSpinWheel() {
     _wmWheelAngle = startAngle + (targetA - startAngle) * easeOut(t);
     _wmRenderWheelFrame(_wmWheelAngle, -1);
     _wmTickOnBoundary(_wmWheelAngle, n);
+    _wmHighlightPointerItem(_wmWheelAngle); // live contents highlight
 
     if (t < 1) {
       _wm.animId = requestAnimationFrame(frame);
@@ -14619,6 +14650,7 @@ function wmSpinWheel() {
 
       // Highlight the winning slice (draw with winner glow)
       _wmWheelWinIdx = winIdx;
+      _wmLastPointerIdx = winIdx; // keep contents highlight on winner
       _wmRenderWheelFrame(_wmWheelAngle, -1); // redraw with winner glow
 
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
@@ -14722,6 +14754,21 @@ function _wmCheckImport() {
   }
 }
 
+function wmPinWheel() {
+  if (!_wmIsShibez()) return;
+  try {
+    localStorage.setItem(WM_PIN_KEY, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
+    const btn = document.getElementById('wmPinBtn');
+    if (btn) { btn.textContent = '✅ Pinned!'; setTimeout(() => { btn.textContent = '📌 Pin Wheel to Site'; }, 2000); }
+  } catch(e) { alert('Could not save pinned wheel.'); }
+}
+
+function _wmUpdatePinBtn() {
+  const btn = document.getElementById('wmPinBtn');
+  if (!btn) return;
+  btn.style.display = _wmIsShibez() ? '' : 'none';
+}
+
 function wmShareWheel() {
   const w = _wmCurrent();
   if (!w || !w.items.length) { alert('No items to share!'); return; }
@@ -14765,6 +14812,7 @@ function openWheelSpin() {
   const modal = document.getElementById('wmModal');
   if (!modal) { console.error('wmModal not found'); return; }
   modal.style.display = 'flex';
+  _wmUpdatePinBtn();
   const nameInp = document.getElementById('wmCaseNameInp');
   if (nameInp) nameInp.value = _wmCurrent().name;
   try { _wmRenderTabs(); } catch(e) {}
