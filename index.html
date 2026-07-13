@@ -950,6 +950,9 @@
   }
 
   .grid-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -1030,21 +1033,21 @@
   }
   .page-numbers { display: flex; align-items: center; gap: 4px; }
   .page-btn {
-    font-family: var(--mono); font-size: 11px;
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
     background: none; border: 1px solid var(--border);
-    color: var(--muted); min-width: 32px; height: 32px;
+    color: var(--text); min-width: 32px; height: 32px;
     padding: 0 8px; border-radius: 4px;
     cursor: pointer; transition: all 0.12s;
   }
-  .page-btn.page-arrow { font-size: 16px; border: none; background: none; color: var(--muted); }
-  .page-btn.page-arrow:hover:not(:disabled) { color: var(--text); background: none; border: none; }
-  .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
-  .page-btn:disabled { opacity: 0.2; cursor: default; }
+  .page-btn.page-arrow { font-size: 17px; border: none; background: none; color: var(--text); }
+  .page-btn.page-arrow:hover:not(:disabled) { color: var(--accent); background: none; border: none; }
+  .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .page-btn:disabled { opacity: 0.28; cursor: default; }
   .page-btn.active {
     background: var(--accent); border-color: var(--accent);
     color: #fff; font-weight: 700;
   }
-  .page-ellipsis { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 0 4px; }
+  .page-ellipsis { font-family: var(--mono); font-size: 12px; color: var(--text); padding: 0 4px; }
 
   .player-footer {
     border-top: 1px solid var(--border);
@@ -1461,6 +1464,9 @@
   .highlights-arrow.right { right: 0; background: linear-gradient(to left, rgba(13,13,15,0.98), rgba(13,13,15,0.5)); }
 
   .hl-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
     flex-shrink: 0;
     width: 220px;
     background: var(--surface);
@@ -1706,7 +1712,7 @@
     padding-left: 76px; /* skip the two arrows (28px + 10px gap) × 2 */
   }
   .yt-latest-title {
-    font-size: 11px;
+    font-size: 15px;
     font-weight: 800;
     letter-spacing: 0.5px;
     color: var(--text);
@@ -1759,6 +1765,8 @@
     width: 420px;
   }
   .yt-main-card {
+    text-decoration: none;
+    color: inherit;
     flex-shrink: 0;
     width: 100%;
     background: var(--surface);
@@ -1857,6 +1865,8 @@
   .yt-shorts-list.dragging { cursor: grabbing; }
   /* ── Individual short card (9:16 portrait) ── */
   .yt-short-card {
+    text-decoration: none;
+    color: inherit;
     flex-shrink: 0;
     width: 175px;
     background: var(--surface);
@@ -2149,9 +2159,9 @@
   </button>
   <div class="navbar-spacer"></div>
   <button onclick="openWheelSpin()" id="wheelSpinBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#bbb;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
-    onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#bbb'">
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.5px;background:rgba(228,184,77,0.12);border:1.5px solid rgba(228,184,77,0.5);color:#e4b84d;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap;box-shadow:0 0 10px rgba(228,184,77,0.1)"
+    onmouseover="this.style.borderColor='#e4b84d';this.style.color='#f7d374';this.style.background='rgba(228,184,77,0.22)';this.style.boxShadow='0 0 16px rgba(228,184,77,0.28)'"
+    onmouseout="this.style.borderColor='rgba(228,184,77,0.5)';this.style.color='#e4b84d';this.style.background='rgba(228,184,77,0.12)';this.style.boxShadow='0 0 10px rgba(228,184,77,0.1)'">
     🛟 WHEEL SPIN
   </button>
 </nav>
@@ -2558,7 +2568,7 @@
               <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#bbb;letter-spacing:1px">DAY</span>
               <div style="display:flex;align-items:center;gap:4px">
                 <button <button onmousedown="shibleHoldStart('d',-1)" onmouseup="shibleHoldEnd()" onmouseleave="shibleHoldEnd()" ontouchstart="shibleHoldStart('d',-1)" ontouchend="shibleHoldEnd()" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">‹</button>
-                <input id="shibleDayDisp" type="number" min="1" max="31" value="1" oninput="shibleSetD(this.value)" style="font-family:var(--mono);font-size:20px;font-weight:900;color:var(--text);width:46px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 0;outline:none;-moz-appearance:textfield;appearance:textfield">
+                <input id="shibleDayDisp" type="number" min="1" max="31" value="1" oninput="shibleSetD(this.value)" style="font-family:var(--mono);font-size:28px;font-weight:900;color:var(--text);width:58px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:6px 0;outline:none;-moz-appearance:textfield;appearance:textfield">
                 <button <button onmousedown="shibleHoldStart('d',1)" onmouseup="shibleHoldEnd()" onmouseleave="shibleHoldEnd()" ontouchstart="shibleHoldStart('d',1)" ontouchend="shibleHoldEnd()" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">›</button>
               </div>
               <div id="shibleDayColor" style="width:36px;height:8px;border-radius:2px;background:var(--surface2)"></div>
@@ -2568,7 +2578,7 @@
               <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#bbb;letter-spacing:1px">MONTH</span>
               <div style="display:flex;align-items:center;gap:4px">
                 <button <button onmousedown="shibleHoldStart('m',-1)" onmouseup="shibleHoldEnd()" onmouseleave="shibleHoldEnd()" ontouchstart="shibleHoldStart('m',-1)" ontouchend="shibleHoldEnd()" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">‹</button>
-                <div id="shibleMonthDisp" style="font-family:var(--mono);font-size:20px;font-weight:900;color:var(--text);min-width:52px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 0">JAN</div>
+                <div id="shibleMonthDisp" style="font-family:var(--mono);font-size:28px;font-weight:900;color:var(--text);min-width:66px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:6px 0">JAN</div>
                 <button <button onmousedown="shibleHoldStart('m',1)" onmouseup="shibleHoldEnd()" onmouseleave="shibleHoldEnd()" ontouchstart="shibleHoldStart('m',1)" ontouchend="shibleHoldEnd()" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">›</button>
               </div>
               <div id="shibleMonthColor" style="width:52px;height:8px;border-radius:2px;background:var(--surface2)"></div>
@@ -2578,7 +2588,7 @@
               <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#bbb;letter-spacing:1px">YEAR</span>
               <div style="display:flex;align-items:center;gap:4px">
                 <button <button onmousedown="shibleHoldStart('y',-1)" onmouseup="shibleHoldEnd()" onmouseleave="shibleHoldEnd()" ontouchstart="shibleHoldStart('y',-1)" ontouchend="shibleHoldEnd()" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">‹</button>
-                <input id="shibleYearDisp" type="number" min="1" max="9999" value="2025" oninput="shibleSetY(this.value)" style="font-family:var(--mono);font-size:20px;font-weight:900;color:var(--text);width:72px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 0;outline:none;-moz-appearance:textfield;appearance:textfield">
+                <input id="shibleYearDisp" type="number" min="1" max="9999" value="2025" oninput="shibleSetY(this.value)" style="font-family:var(--mono);font-size:28px;font-weight:900;color:var(--text);width:92px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:6px 0;outline:none;-moz-appearance:textfield;appearance:textfield">
                 <button <button onmousedown="shibleHoldStart('y',1)" onmouseup="shibleHoldEnd()" onmouseleave="shibleHoldEnd()" ontouchstart="shibleHoldStart('y',1)" ontouchend="shibleHoldEnd()" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#bbb'" style="background:none;border:1px solid var(--border);color:#bbb;width:28px;height:34px;border-radius:3px;cursor:pointer;font-size:16px;transition:background 0.1s">›</button>
               </div>
               <div id="shibleYearColor" style="width:60px;height:8px;border-radius:2px;background:var(--surface2)"></div>
@@ -2631,12 +2641,12 @@
     <div class="grid-header">
       <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
         <span class="grid-header-title">ARCHIVED STREAMS <span class="grid-header-count" id="gridCount"></span></span>
-        <button onclick="openRandomShort()" id="shortsBtn"
-          style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(255,68,68,0.1);border:1.5px solid rgba(255,68,68,0.45);color:#ff7070;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;box-shadow:0 0 10px rgba(255,68,68,0.08)"
+        <a href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" rel="noopener" onclick="if(typeof closeAllGameModals==='function')closeAllGameModals();openRandomShort();return false;" id="shortsBtn"
+          style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(255,68,68,0.1);border:1.5px solid rgba(255,68,68,0.45);color:#ff7070;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;box-shadow:0 0 10px rgba(255,68,68,0.08);text-decoration:none"
           onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444';this.style.background='rgba(255,68,68,0.18)';this.style.boxShadow='0 0 14px rgba(255,68,68,0.2)'"
           onmouseout="this.style.borderColor='rgba(255,68,68,0.45)';this.style.color='#ff7070';this.style.background='rgba(255,68,68,0.1)';this.style.boxShadow='0 0 10px rgba(255,68,68,0.08)'">
           😭 SHORTS
-        </button>
+        </a>
       </div>
       <div id="dateFilterWrap" style="display:flex;align-items:center;gap:6px;margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted)">
         <div style="display:flex;flex-direction:column;gap:1px">
@@ -3050,6 +3060,7 @@ function _monthsAgo(iso) {
 }
 
 function shibezProfileOpen() {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   const modal = document.getElementById('profileModal');
   const content = document.getElementById('profileModalContent');
   if(!modal||!content) return;
@@ -3738,7 +3749,7 @@ function renderPage() {
     const games = [...new Set(s.games.map(g=>g.label))].slice(0,3).map(g=>`<span class="grid-game-tag">${escHtml(g)}</span>`).join('');
     const parts = s.vids.length > 1 ? `<span class="grid-card-parts">${s.vids.length} PARTS</span>` : '';
     const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
-    return `<div class="grid-card" onclick="selectStream(${globalIdx})">
+    return `<a class="grid-card" href="#stream-${s.day}" onclick="selectStream(${globalIdx});return false;">
       <div class="grid-card-thumb">
         <img src="${s.thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="thumb-fallback" style="display:none">ðº</div>
@@ -3750,7 +3761,7 @@ function renderPage() {
         <div class="grid-card-title">${escHtml(s.title)}</div>
         <div class="grid-card-games">${games}</div>
       </div>
-    </div>`;
+    </a>`;
   }).join('');
 
   const pg = document.getElementById('pagination');
@@ -3845,6 +3856,54 @@ function goBack(pushHistory=true) {
   currentStream = null;
   if (pushHistory) try { history.pushState({}, '', location.pathname); } catch(e) {}
 }
+
+// ── Close any currently-open game/feature modal before opening another ──────
+// (mirrors goHome()'s cleanup list, but calls each modal's real close
+// function so iframes/audio/game-loops are stopped properly, not just hidden)
+function closeAllGameModals() {
+  const registry = [
+    ['clipModal',    'closeClipModal'],
+    ['shortsModal',  'closeShorts'],
+    ['shibleModal',  'closeShible'],
+    ['flappyModal',  'closeFlappy'],
+    ['egModal',      'closeEmoteGuesser'],
+    ['holModal',     'closeHigherLower'],
+    ['spaceModal',   'closeSpace'],
+    ['aionModal',    'closeAiOrNot'],
+    ['profileModal', 'shibezProfileClose'],
+    ['wmModal',      'closeWheelSpin'],
+  ];
+  registry.forEach(([modalId, closeFnName]) => {
+    const m = document.getElementById(modalId);
+    if (m && m.style.display && m.style.display !== 'none') {
+      const fn = window[closeFnName];
+      if (typeof fn === 'function') { try { fn(); } catch(e) { m.style.display = 'none'; } }
+      else m.style.display = 'none';
+    }
+  });
+}
+
+// ── Escape key closes whichever modal is currently open ──────────────────────
+// (clipModal, shibleModal, aionModal, shortsModal and spaceModal already
+// have their own dedicated Escape handling elsewhere; this covers the rest)
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const fallbackRegistry = [
+    ['holModal',     'closeHigherLower'],
+    ['egModal',      'closeEmoteGuesser'],
+    ['flappyModal',  'closeFlappy'],
+    ['wmModal',      'closeWheelSpin'],
+    ['profileModal', 'shibezProfileClose'],
+  ];
+  for (const [modalId, closeFnName] of fallbackRegistry) {
+    const m = document.getElementById(modalId);
+    if (m && m.style.display && m.style.display !== 'none') {
+      const fn = window[closeFnName];
+      if (typeof fn === 'function') fn(); else m.style.display = 'none';
+      break; // only close the topmost open one
+    }
+  }
+});
 
 function goHome() {
   // Close any open game/feature modals first
@@ -5215,6 +5274,7 @@ let _cachedClips = [];
 let _clipMuted = false; // start unmuted
 
 async function openRandomClip() {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   try { _profSet('usedRandomClip', true); } catch(e){}
   const modal = document.getElementById('clipModal');
   const embedEl = document.getElementById('clipEmbed');
@@ -5450,6 +5510,7 @@ function shortsNav(dir) {
 }
 
 async function openRandomShort(targetVideoId) {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   const modal = document.getElementById('shortsModal');
   modal.style.display = 'flex';
   try { history.pushState(null, '', '#shorts'); } catch(e) {}
@@ -5534,6 +5595,7 @@ document.addEventListener('click', function(e) {
 });
 
 function openShible(randomMode) {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   if (!allStreams || !allStreams.length) { alert('Streams not loaded yet!'); return; }
 
   let stream;
@@ -5791,6 +5853,7 @@ function initFlappyMusic() {
 }
 
 function openFlappyShibez() {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   document.getElementById('flappyModal').style.display = 'flex';
   initFlappyMusic();
   preloadFlappyEmotes(); // fire-and-forget — sets _flappyEmotesReady when done
@@ -6608,6 +6671,7 @@ function egNextEmote() {
 }
 
 async function openEmoteGuesser() {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   const modal = document.getElementById('egModal');
   if (!modal) return;
   modal.style.display = 'flex';
@@ -6922,6 +6986,7 @@ function holRestart() {
 }
 
 async function openHigherLower() {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   const modal = document.getElementById('holModal');
   if (!modal) return;
   modal.style.display = 'flex';
@@ -7196,6 +7261,7 @@ function playDeathSfx() {
 function resumeSpaceMusic() { _spaceInShop=false; try { if(!_spaceMusicMuted) _spaceMusicPlayer?.playVideo(); } catch(e){} }
 
 async function openSpacebez() {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   // Reset mute state so music always starts unmuted
   _spaceAllMuted = false;
   _spaceMusicMuted = false;
@@ -7999,8 +8065,8 @@ function startSpace() {
       if(e.key==='p'||e.key==='P'){toggleSpacePause();return;}
       if(e.key==='Escape'){
         const _shopEl=document.getElementById('spaceShop');
-        if(_shopEl&&_shopEl.style.display==='flex'){ spaceShopToggle(); return; } // close shop
-        if(state==='paused'){ toggleSpacePause(); return; }                        // unpause
+        if(_shopEl&&_shopEl.style.display==='flex'){ spaceShopToggle(); return; } // close shop first
+        if(typeof closeSpace==='function') closeSpace();                          // otherwise close the game
         return;
       }
       if((e.key==='m'||e.key==='M')&&state==='playing'){
@@ -11767,6 +11833,7 @@ const _aionLexicaCache = []; // no live fetch — using verified static pool onl
 async function _aionFetchLexica(){ /* removed — Lexica NSFW not 100% reliable */ }
 
 function openAiOrNot(){
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   document.getElementById('aionModal').style.display='flex';
   document.getElementById('aionBest').textContent=_aionBest;
   aionRestart();
@@ -14693,6 +14760,7 @@ function wmShareWheel() {
 
 
 function openWheelSpin() {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
   try { _wmLoad(); } catch(e) { console.error('_wmLoad failed:', e); }
   const modal = document.getElementById('wmModal');
   if (!modal) { console.error('wmModal not found'); return; }
@@ -14840,7 +14908,7 @@ function hlRenderCards() {
     return;
   }
   track.innerHTML = _hlVideos.map((v, i) => `
-    <div class="hl-card${i === 0 ? ' featured' : ''}" onclick="hlOpenVideo(${i})">
+    <a class="hl-card${i === 0 ? ' featured' : ''}" href="https://www.youtube.com/watch?v=${v.id}" onclick="hlOpenVideo(${i});return false;">
       <div class="hl-card-thumb">
         ${i === 0 ? '<div class="hl-new-badge">&#9733; NEW VIDEO</div>' : ''}
         <img src="${v.thumb}" alt=""
@@ -14858,7 +14926,7 @@ function hlRenderCards() {
           ${i === 0 ? '&#9679; LATEST UPLOAD' : ''}
         </div>
       </div>
-    </div>
+    </a>
   `).join('');
   hlUpdateArrows();
 }
@@ -15005,12 +15073,23 @@ async function _ytSecInit() {
 }
 
 function _ytSecRender() {
+  // Point the SHORTS nav button at a specific random short now that we have
+  // real video IDs, so middle/right-click "open in new tab" opens an actual short
+  // instead of just the channel's shorts shelf.
+  if (_ytSecShorts.length) {
+    const btn = document.getElementById('shortsBtn');
+    if (btn) {
+      const pick = _ytSecShorts[Math.floor(Math.random() * _ytSecShorts.length)];
+      btn.href = 'https://www.youtube.com/shorts/' + pick.id;
+    }
+  }
+
   // ── Main latest video card ──
   const wrap = document.getElementById('ytMainCardWrap');
   if (wrap) {
     const v = _ytSecLatest;
     wrap.innerHTML = v
-      ? `<div class="yt-main-card" onclick="ytSecOpenLatest()" title="${_escHtml(_ytStripHashtags(v.title))}">
+      ? `<a class="yt-main-card" href="https://www.youtube.com/watch?v=${v.id}" onclick="ytSecOpenLatest();return false;" title="${_escHtml(_ytStripHashtags(v.title))}">
            <div class="yt-main-thumb">
              <div class="hl-new-badge">&#9733; NEW VIDEO</div>
              <img src="${v.thumb}" alt="" onerror="this.src='https://i.ytimg.com/vi/${v.id}/mqdefault.jpg'">
@@ -15020,7 +15099,7 @@ function _ytSecRender() {
              <div class="yt-main-label">&#9679; LATEST UPLOAD</div>
              <div class="yt-main-title">${_escHtml(_ytStripHashtags(v.title))}</div>
            </div>
-         </div>`
+         </a>`
       : `<div class="yt-main-skeleton"><div class="yt-main-skel-thumb"></div><div class="yt-main-skel-line"></div><div class="yt-main-skel-line s2"></div></div>`;
   }
 
@@ -15034,7 +15113,7 @@ function _ytSecRender() {
       list.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:20px 0">No shorts found.</div>`;
     } else {
       list.innerHTML = page.map(v => `
-        <div class="yt-short-card" onclick="ytSecOpenShort('${v.id}')" title="${_escHtml(_ytStripHashtags(v.title))}">
+        <a class="yt-short-card" href="https://www.youtube.com/shorts/${v.id}" onclick="ytSecOpenShort('${v.id}');return false;" title="${_escHtml(_ytStripHashtags(v.title))}">
           <div class="yt-short-thumb">
             <img src="${v.thumb}" alt="" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'">
             <div class="yt-short-play-btn">${_ytPlaySvg}</div>
@@ -15042,7 +15121,7 @@ function _ytSecRender() {
           <div class="yt-short-title-bar">
             <div class="yt-short-title">${_escHtml(_ytStripHashtags(v.title))}</div>
           </div>
-        </div>
+        </a>
       `).join('');
     }
   }
@@ -15141,6 +15220,7 @@ else _ytSecInit();
   document.addEventListener('click', e => {
     const list = getList();
     if (didDrag && list && list.contains(e.target)) {
+      e.preventDefault();
       e.stopImmediatePropagation();
       didDrag = false;
     }
