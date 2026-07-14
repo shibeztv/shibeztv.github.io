@@ -13748,8 +13748,29 @@ function _wmIsShibez() {
   return login === 'shlbez' || login === 'shibez';
 }
 
-function _wmSave() { try { localStorage.setItem('wm_cs2_v1', JSON.stringify({wheels:_wm.wheels,activeId:_wm.activeId})); } catch(e) {} }
+function _wmSave() { try { localStorage.setItem('wm_cs2_v1', JSON.stringify({wheels:_wm.wheels,activeId:_wm.activeId})); } catch(e) {} _wmAutoPinIfShibez(); }
 let _wmHadPersonal = false; // true if this visitor has their own saved wheel (don't clobber it with the cloud-pinned one)
+
+// ── Auto-pin: every edit Shibez makes is pushed to the shared cloud wheel automatically ──
+// No need to hit "Pin Wheel to Site" — any add/edit/delete of an item or wheel
+// (which all route through _wmSave) silently syncs to Firestore for everyone.
+let _wmAutoPinTimer = null;
+function _wmAutoPinIfShibez() {
+  if (!_wmIsShibez()) return;
+  clearTimeout(_wmAutoPinTimer);
+  // Debounced so rapid-fire edits (e.g. typing a label) don't spam Firestore with a write per keystroke
+  _wmAutoPinTimer = setTimeout(_wmAutoPinNow, 800);
+}
+async function _wmAutoPinNow() {
+  try {
+    localStorage.setItem(WM_PIN_KEY, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
+    if (!_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+    await _wmDb.collection('wheels').doc('pinned').set({
+      wheels: _wm.wheels, activeId: _wm.activeId,
+      pinnedBy: _profUser?.login || 'shlbez', updatedAt: Date.now()
+    });
+  } catch(e) { console.warn('[wm] auto-pin failed:', e); }
+}
 function _wmLoad() {
   _wmHadPersonal = false;
   try { const d = JSON.parse(localStorage.getItem('wm_cs2_v1')||'null'); if(d && d.wheels?.length){_wm.wheels=d.wheels;_wm.activeId=d.activeId;_wmHadPersonal=true;} } catch(e) {}
