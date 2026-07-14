@@ -1033,7 +1033,7 @@
   }
   .page-numbers { display: flex; align-items: center; gap: 4px; }
   .page-btn {
-    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
     background: none; border: 1px solid var(--border);
     color: var(--text); min-width: 32px; height: 32px;
     padding: 0 8px; border-radius: 4px;
@@ -1045,7 +1045,7 @@
   .page-btn:disabled { opacity: 0.28; cursor: default; }
   .page-btn.active {
     background: var(--accent); border-color: var(--accent);
-    color: #fff; font-weight: 700;
+    color: #fff; font-weight: 600;
   }
   .page-ellipsis { font-family: var(--mono); font-size: 12px; color: var(--text); padding: 0 4px; }
 
@@ -12741,7 +12741,7 @@ window.addEventListener('hashchange', _routeFromHash);
   <!-- Top bar -->
   <div class="wm-topbar">
     <span class="wm-logo">🛞 Wheel Spin</span>
-    <input class="wm-case-name-inp" id="wmCaseNameInp" value="Main Wheel" oninput="wmRenameWheel(this.value)" placeholder="Wheel name…">
+    <input class="wm-case-name-inp" id="wmCaseNameInp" value="Main Wheel" oninput="wmRenameWheel(this.value,'wmCaseNameInp')" placeholder="Wheel name…">
     <!-- Mode toggle -->
     <div style="display:flex;align-items:center;gap:10px;margin-left:12px;flex-shrink:0">
       <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#c8d0dc;letter-spacing:0.5px">
@@ -12826,7 +12826,7 @@ window.addEventListener('hashchange', _routeFromHash);
         </div>
         <!-- Wheel rename -->
         <div style="margin-bottom:8px">
-          <input class="wm-seg-inp" style="width:100%" id="wmNameInp2" placeholder="Wheel name…" oninput="wmRenameWheel(this.value)">
+          <input class="wm-seg-inp" style="width:100%" id="wmNameInp2" placeholder="Wheel name…" oninput="wmRenameWheel(this.value,'wmNameInp2')">
         </div>
         <!-- Item list -->
         <div id="wmSegList"></div>
@@ -12884,6 +12884,30 @@ window.addEventListener('hashchange', _routeFromHash);
     </div>
   </div>
 </div>
+
+<!-- ── Firebase (public read / password-gated write, for the pinned wheel) ── -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+  const _fbConfig = {
+    apiKey: "AIzaSyBmd08FRwGlO0S4L-kwGKq3rLVcbtEUjpI",
+    authDomain: "shibezvods-4676a.firebaseapp.com",
+    projectId: "shibezvods-4676a",
+    storageBucket: "shibezvods-4676a.firebasestorage.app",
+    messagingSenderId: "439862936787",
+    appId: "1:439862936787:web:2fa966fec0987a95f6c026",
+    measurementId: "G-0GBW3XJC77"
+  };
+  firebase.initializeApp(_fbConfig);
+  const _wmDb = firebase.firestore();
+
+  // Small standalone hasher — mirrors the mod-panel's _sha256 so the wheel
+  // save can reuse the same mod password without touching that closure.
+  async function _wmSha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+</script>
 
 <script>
 // ══════════════════════════════════════════════════════ CS2 CASE OPENER ENGINE
@@ -13643,8 +13667,10 @@ function _wmIsShibez() {
 }
 
 function _wmSave() { try { localStorage.setItem('wm_cs2_v1', JSON.stringify({wheels:_wm.wheels,activeId:_wm.activeId})); } catch(e) {} }
+let _wmHadPersonal = false; // true if this visitor has their own saved wheel (don't clobber it with the cloud-pinned one)
 function _wmLoad() {
-  try { const d = JSON.parse(localStorage.getItem('wm_cs2_v1')||'null'); if(d){_wm.wheels=d.wheels;_wm.activeId=d.activeId;} } catch(e) {}
+  _wmHadPersonal = false;
+  try { const d = JSON.parse(localStorage.getItem('wm_cs2_v1')||'null'); if(d && d.wheels?.length){_wm.wheels=d.wheels;_wm.activeId=d.activeId;_wmHadPersonal=true;} } catch(e) {}
   // If no personal wheel saved, load pinned wheel Shibez published
   if (!_wm.wheels?.length) {
     try {
@@ -13672,6 +13698,26 @@ function _wmLoad() {
     }];
   }
   if (!_wm.activeId || !_wm.wheels.find(w=>w.id===_wm.activeId)) _wm.activeId = _wm.wheels[0].id;
+}
+
+// ── Cloud sync: everyone reads the pinned wheel from Firestore ────────────
+// Local WM_PIN_KEY still acts as an instant-load cache; this refreshes it
+// from the shared cloud doc so the pin is visible to every visitor, not
+// just the browser that clicked "Pin".
+async function _wmFetchCloudPinned() {
+  try {
+    const snap = await _wmDb.collection('wheels').doc('pinned').get();
+    if (!snap.exists) return;
+    const data = snap.data();
+    if (!data?.wheels?.length) return;
+    localStorage.setItem(WM_PIN_KEY, JSON.stringify({wheels:data.wheels, activeId:data.activeId}));
+    // Only overwrite what's currently shown if this visitor isn't using their own custom wheel
+    if (!_wmHadPersonal) {
+      _wm.wheels = data.wheels;
+      _wm.activeId = data.activeId && data.wheels.find(w=>w.id===data.activeId) ? data.activeId : data.wheels[0].id;
+      try { _wmRenderTabs(); _wmRenderContents(); if (_wmMode === 'wheel') _wmDrawWheel(_wmWheelAngle); } catch(e) {}
+    }
+  } catch(e) { console.warn('[wm] cloud fetch failed:', e); }
 }
 function _wmCurrent() { return _wm.wheels.find(w=>w.id===_wm.activeId) || _wm.wheels[0]; }
 
@@ -13848,12 +13894,14 @@ function wmSpin() {
       const rdCase = document.getElementById('wmResultDesc');
       if (rdCase) rdCase.textContent = winner.desc || '';
       _wmStopTickSfx();
-      _wmPlayEndSfx(); // case open sound
       // History
       _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
       _wmRenderHist();
-      // Show win popup after brief delay for drama
-      setTimeout(() => wmShowWinPopup(winner), 300);
+      // Show win popup after brief delay for drama — the case-open sfx now
+      // fires right alongside it instead of at the exact end of the eased
+      // slide (the ease-out tail makes the reel visually stop a beat or two
+      // before that point, which made the sfx feel early).
+      setTimeout(() => { _wmPlayEndSfx(); wmShowWinPopup(winner); }, 300);
     }
   }
   _wm.animId = requestAnimationFrame(frame);
@@ -14010,10 +14058,13 @@ function wmRandCols(){if(!_wmCheckLock(_wmCurrent()))return;
   w.items.forEach((it,i)=>{it.color=shuffled[i%shuffled.length];});
   _wmSave();_wmRenderEdit();_wmRenderContents();
 }
-function wmRenameWheel(v){
+function wmRenameWheel(v,sourceId){
   _wmCurrent().name=v;
-  document.getElementById('wmCaseNameInp').value=v;
-  document.getElementById('wmNameInp2').value=v;
+  // Only update the OTHER mirrored input — never re-assign .value on the
+  // input the user is actively typing in, since that resets the cursor
+  // and can eat keystrokes (this was the cause of dropped characters).
+  if (sourceId !== 'wmCaseNameInp') { const el=document.getElementById('wmCaseNameInp'); if (el && el.value!==v) el.value=v; }
+  if (sourceId !== 'wmNameInp2')    { const el=document.getElementById('wmNameInp2');    if (el && el.value!==v) el.value=v; }
   _wmSave();_wmRenderTabs();
 }
 function wmDelWheel(){if(!_wmCheckLock(_wmCurrent()))return;
@@ -14307,24 +14358,25 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     const col     = item.color || '#4b69ff';
     const isHov   = i === hovIdx && !_wm.spinning;
     const isWin   = i === _wmWheelWinIdx && !_wm.spinning;
-    const push    = isHov ? Math.min(12, R * 0.05) : (isWin ? Math.min(8, R * 0.03) : 0);
+    const isLive  = _wm.spinning && i === _wmLastPointerIdx; // wedge currently under the pointer while spinning
+    const push    = isHov ? Math.min(12, R * 0.05) : ((isWin || isLive) ? Math.min(8, R * 0.03) : 0);
 
     // ── Slice fill ──
     ctx.save();
     ctx.beginPath();
-    // For hovered slice, shift the fill origin outward
-    if (isHov) {
+    // For hovered/live slice, shift the fill origin outward
+    if (isHov || isLive) {
       ctx.translate(push * Math.cos(midA), push * Math.sin(midA));
     }
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, R + push, startA, endA);
     ctx.closePath();
-    ctx.fillStyle = isHov ? col : (isWin ? col + 'ff' : (i % 2 === 0 ? col + 'dd' : col + 'bb'));
-    if (isHov || isWin) { ctx.shadowColor = col; ctx.shadowBlur = isWin ? 28 : 18; }
+    ctx.fillStyle = (isHov || isLive) ? col : (isWin ? col + 'ff' : (i % 2 === 0 ? col + 'dd' : col + 'bb'));
+    if (isHov || isWin || isLive) { ctx.shadowColor = col; ctx.shadowBlur = isWin ? 28 : (isLive ? 20 : 18); }
     ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = (isHov || isWin) ? 'rgba(228,184,77,0.8)' : 'rgba(0,0,0,0.4)';
-    ctx.lineWidth   = (isHov || isWin) ? 2.5 : 1.2;
+    ctx.strokeStyle = (isHov || isWin || isLive) ? 'rgba(228,184,77,0.8)' : 'rgba(0,0,0,0.4)';
+    ctx.lineWidth   = (isHov || isWin || isLive) ? 2.5 : 1.2;
     ctx.stroke();
     ctx.restore();
 
@@ -14578,10 +14630,14 @@ let _wmLastPointerIdx = -1;
 function _wmHighlightPointerItem(angle) {
   const idx = _wmWheelWinner(angle);
   if (idx === _wmLastPointerIdx) return;
-  _wmLastPointerIdx = idx;
+  _wmLastPointerIdx = idx; // wheel wedge index — drives the on-wheel enlarge effect, unchanged
   const items = document.querySelectorAll('#wmContentsList .wm-citem');
-  items.forEach((el, i) => el.classList.toggle('pointer-active', i === idx));
-  if (items[idx]) items[idx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  // Flip the ROW that lights up (not the wedge index) so the side-list scan
+  // reads top-to-bottom instead of bottom-to-top, while the wheel itself
+  // keeps spinning the same direction.
+  const rowIdx = items.length - 1 - idx;
+  items.forEach((el, i) => el.classList.toggle('pointer-active', i === rowIdx));
+  if (items[rowIdx]) items[rowIdx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function wmSpinWheel() {
@@ -14626,9 +14682,9 @@ function wmSpinWheel() {
     const elapsed = ts - startTime;
     const t = Math.min(elapsed / totalMs, 1);
     _wmWheelAngle = startAngle + (targetA - startAngle) * easeOut(t);
-    _wmRenderWheelFrame(_wmWheelAngle, -1);
+    _wmHighlightPointerItem(_wmWheelAngle); // live contents highlight + updates _wmLastPointerIdx
+    _wmRenderWheelFrame(_wmWheelAngle, -1);  // reads _wmLastPointerIdx to enlarge the wedge under the pointer
     _wmTickOnBoundary(_wmWheelAngle, n);
-    _wmHighlightPointerItem(_wmWheelAngle); // live contents highlight
 
     if (t < 1) {
       _wm.animId = requestAnimationFrame(frame);
@@ -14755,13 +14811,39 @@ function _wmCheckImport() {
   }
 }
 
-function wmPinWheel() {
+// Same values as the mod panel's _MOD_HASH/_MOD_SESSION_KEY/_MOD_PERSIST_KEY —
+// duplicated here (read-only, just an equality check) so this script doesn't
+// need to reach into that panel's closure.
+const _WM_MOD_HASH = '2dec7be85048c86f60acdf5281ca89abec6520bf1e0413290a619a3c20401034';
+const _WM_MOD_SESSION_KEY = 'shibez_mod_auth';
+const _WM_MOD_PERSIST_KEY = 'shibez_mod_auth_persist';
+
+async function wmPinWheel() {
   if (!_wmIsShibez()) return;
+  const btn = document.getElementById('wmPinBtn');
   try {
+    // Always keep the instant local cache up to date
     localStorage.setItem(WM_PIN_KEY, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
-    const btn = document.getElementById('wmPinBtn');
-    if (btn) { btn.textContent = '✅ Pinned!'; setTimeout(() => { btn.textContent = '📌 Pin Wheel to Site'; }, 2000); }
-  } catch(e) { alert('Could not save pinned wheel.'); }
+
+    // Reuse an already-unlocked mod session if there is one; otherwise ask once
+    let hash = sessionStorage.getItem(_WM_MOD_SESSION_KEY) || localStorage.getItem(_WM_MOD_PERSIST_KEY);
+    if (hash !== _WM_MOD_HASH) {
+      const pw = prompt('Mod password to publish this wheel for everyone:');
+      if (pw == null) return; // cancelled
+      hash = await _wmSha256(pw);
+      if (hash !== _WM_MOD_HASH) { alert('Wrong password — not published.'); return; }
+      sessionStorage.setItem(_WM_MOD_SESSION_KEY, hash);
+    }
+
+    await _wmDb.collection('wheels').doc('pinned').set({
+      wheels: _wm.wheels, activeId: _wm.activeId, pwHash: hash, updatedAt: Date.now()
+    });
+
+    if (btn) { btn.textContent = '✅ Pinned for everyone!'; setTimeout(() => { btn.textContent = '📌 Pin Wheel to Site'; }, 2000); }
+  } catch(e) {
+    console.warn('wmPinWheel failed:', e);
+    alert('Could not publish pinned wheel: ' + (e.message || e));
+  }
 }
 
 function _wmUpdatePinBtn() {
@@ -14810,6 +14892,7 @@ function wmShareWheel() {
 function openWheelSpin() {
   if (typeof closeAllGameModals === 'function') closeAllGameModals();
   try { _wmLoad(); } catch(e) { console.error('_wmLoad failed:', e); }
+  _wmFetchCloudPinned(); // background refresh — updates the view if it lands before you spin
   const modal = document.getElementById('wmModal');
   if (!modal) { console.error('wmModal not found'); return; }
   modal.style.display = 'flex';
