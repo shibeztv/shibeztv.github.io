@@ -1705,7 +1705,7 @@
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
-    width: 546px; /* must match #ytMainCardWrap width */
+    width: 600px; /* must match #ytMainCardWrap width */
   }
   .yt-col-header-shorts {
     flex: 1;
@@ -1762,7 +1762,7 @@
   /* ── Main latest video card (16:9) ── */
   #ytMainCardWrap {
     flex-shrink: 0;
-    width: 546px; /* sized so thumb (16:9) + info block matches short-card height */
+    width: 600px; /* sized so thumb (16:9) + info block matches short-card height */
   }
   .yt-main-card {
     text-decoration: none;
@@ -2080,6 +2080,7 @@
 <!-- ── Firebase (shared cloud storage: pinned wheel + synced user profiles) ── -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script>
   const _fbConfig = {
     apiKey: "AIzaSyBmd08FRwGlO0S4L-kwGKq3rLVcbtEUjpI",
@@ -2091,7 +2092,8 @@
     measurementId: "G-0GBW3XJC77"
   };
   firebase.initializeApp(_fbConfig);
-  const _wmDb = firebase.firestore();
+  const _wmDb   = firebase.firestore();
+  const _wmAuth = firebase.auth();
 
   // Small standalone hasher — kept for anything that still wants a password hash
   async function _wmSha256(str) {
@@ -2111,7 +2113,7 @@
   </a>
   <div class="topbar-divider"></div>
   <div id="streamStatus" class="stream-status offline-status">
-    <span id="streamStatusText">Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt=""></span>
+    <span id="streamStatusText" style="font-weight:700">Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt=""></span>
   </div>
   <div class="topbar-spacer"></div>
   <div class="topbar-socials">
@@ -12941,6 +12943,7 @@ window.addEventListener('hashchange', _routeFromHash);
           <button class="wm-act" onclick="wmRandCols()">🎨 Randomize Colors</button>
           <button class="wm-act" onclick="wmShareWheel()" style="background:rgba(74,110,220,0.15);border-color:rgba(74,110,220,0.4);color:#7090e8">🔗 Share Wheel</button>
           <button class="wm-act" id="wmPinBtn" onclick="wmPinWheel()" style="display:none;background:rgba(228,184,77,0.12);border-color:rgba(228,184,77,0.45);color:#e4b84d">📌 Pin Wheel to Site</button>
+          <button class="wm-act" id="wmLocalPinBtn" onclick="wmPinWheel()" style="display:none;background:rgba(124,92,252,0.12);border-color:rgba(124,92,252,0.45);color:#a78bfa">📌 Save as My Wheel</button>
           <button class="wm-act red" onclick="wmDelWheel()">🗑 Delete Wheel</button>
         </div>
       </div>
@@ -14897,29 +14900,64 @@ function _wmCheckImport() {
 }
 
 async function wmPinWheel() {
-  // Gate is the Twitch login check alone (_wmIsShibez) — no separate password needed.
-  if (!_wmIsShibez()) return;
-  const btn = document.getElementById('wmPinBtn');
-  try {
-    // Always keep the instant local cache up to date
-    localStorage.setItem(WM_PIN_KEY, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
+  const loggedIn = !!_profUser?.login;
+  if (!loggedIn) return; // must be signed in to pin anything
 
-    await _wmDb.collection('wheels').doc('pinned').set({
-      wheels: _wm.wheels, activeId: _wm.activeId,
-      pinnedBy: _profUser?.login || 'shlbez', updatedAt: Date.now()
-    });
+  if (_wmIsShibez()) {
+    // ── GLOBAL PIN (Shibez only) — writes to Firestore so every visitor sees it ──
+    const btn = document.getElementById('wmPinBtn');
+    if (btn) { btn.textContent = '⏳ Saving…'; btn.disabled = true; }
+    try {
+      // Keep the instant local cache up to date
+      localStorage.setItem(WM_PIN_KEY, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
 
-    if (btn) { btn.textContent = '✅ Pinned for everyone!'; setTimeout(() => { btn.textContent = '📌 Pin Wheel to Site'; }, 2000); }
-  } catch(e) {
-    console.warn('wmPinWheel failed:', e);
-    alert('Could not publish pinned wheel: ' + (e.message || e));
+      // Sign in anonymously so Firestore security rules allow the write
+      if (!_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+
+      await _wmDb.collection('wheels').doc('pinned').set({
+        wheels: _wm.wheels, activeId: _wm.activeId,
+        pinnedBy: _profUser?.login || 'shlbez', updatedAt: Date.now()
+      });
+
+      if (btn) {
+        btn.textContent = '✅ Pinned for everyone!';
+        btn.disabled = false;
+        setTimeout(() => { btn.textContent = '📌 Pin Wheel to Site'; }, 2500);
+      }
+    } catch(e) {
+      console.warn('wmPinWheel (global) failed:', e);
+      if (btn) { btn.textContent = '📌 Pin Wheel to Site'; btn.disabled = false; }
+      alert('Could not publish pinned wheel: ' + (e.message || e));
+    }
+  } else {
+    // ── LOCAL PIN (any other logged-in user) — saves only to their own localStorage ──
+    const btn = document.getElementById('wmLocalPinBtn');
+    try {
+      // Save as their personal wheel (same key _wmLoad picks up first)
+      localStorage.setItem('wm_cs2_v1', JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
+      // Also store under a user-keyed slot so it survives any clear of the generic key
+      const userKey = 'wm_personal_' + (_profUser.login || 'user').toLowerCase();
+      localStorage.setItem(userKey, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
+      if (btn) {
+        btn.textContent = '✅ Saved as your wheel!';
+        setTimeout(() => { btn.textContent = '📌 Save as My Wheel'; }, 2500);
+      }
+    } catch(e) {
+      console.warn('wmPinWheel (local) failed:', e);
+      alert('Could not save wheel locally: ' + (e.message || e));
+    }
   }
 }
 
 function _wmUpdatePinBtn() {
-  const btn = document.getElementById('wmPinBtn');
-  if (!btn) return;
-  btn.style.display = _wmIsShibez() ? '' : 'none';
+  const globalBtn = document.getElementById('wmPinBtn');
+  const localBtn  = document.getElementById('wmLocalPinBtn');
+  const loggedIn  = !!_profUser?.login;
+  const isShibez  = _wmIsShibez();
+  // Global pin button: only for Shibez
+  if (globalBtn) globalBtn.style.display = isShibez  ? '' : 'none';
+  // Local pin button: for any logged-in user who is NOT Shibez
+  if (localBtn)  localBtn.style.display  = (loggedIn && !isShibez) ? '' : 'none';
 }
 
 function wmShareWheel() {
