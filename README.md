@@ -2,7 +2,7 @@
 
 A VOD archive and mini-game hub for the Twitch channel **shlbez**, hosted as a single HTML file on GitHub Pages.
 
-Live at: **https://shibeztv.github.io**
+Website: **https://shibeztv.github.io**
 
 ---
 
