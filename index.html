@@ -1705,7 +1705,7 @@
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
-    width: 560px; /* must match #ytMainCardWrap width */
+    width: 546px; /* must match #ytMainCardWrap width */
   }
   .yt-col-header-shorts {
     flex: 1;
@@ -1762,7 +1762,7 @@
   /* ── Main latest video card (16:9) ── */
   #ytMainCardWrap {
     flex-shrink: 0;
-    width: 560px;
+    width: 546px; /* sized so thumb (16:9) + info block matches short-card height */
   }
   .yt-main-card {
     text-decoration: none;
@@ -1803,6 +1803,8 @@
   .yt-main-info {
     padding: 9px 12px 11px;
     background: #000;
+    min-height: 73px;
+    box-sizing: border-box;
   }
   .yt-main-label {
     font-family: var(--mono);
@@ -1855,7 +1857,7 @@
     display: flex;
     gap: 8px;
     flex-shrink: 0;
-    width: calc(7 * 175px + 6 * 8px); /* exactly 7 cards visible */
+    width: calc(6 * 175px + 5 * 8px); /* exactly 6 cards visible */
     overflow: hidden;
     cursor: grab;
     user-select: none;
@@ -1922,7 +1924,8 @@
     background: #000;
     padding: 8px 9px 10px;
     flex: 1;
-    min-height: 0;
+    min-height: 69px;
+    box-sizing: border-box;
   }
   .yt-short-title {
     font-size: 12px;
@@ -2073,6 +2076,29 @@
   .yte-close:hover { background: rgba(255,40,40,0.5); }
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
+
+<!-- ── Firebase (shared cloud storage: pinned wheel + synced user profiles) ── -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+  const _fbConfig = {
+    apiKey: "AIzaSyBmd08FRwGlO0S4L-kwGKq3rLVcbtEUjpI",
+    authDomain: "shibezvods-4676a.firebaseapp.com",
+    projectId: "shibezvods-4676a",
+    storageBucket: "shibezvods-4676a.firebasestorage.app",
+    messagingSenderId: "439862936787",
+    appId: "1:439862936787:web:2fa966fec0987a95f6c026",
+    measurementId: "G-0GBW3XJC77"
+  };
+  firebase.initializeApp(_fbConfig);
+  const _wmDb = firebase.firestore();
+
+  // Small standalone hasher — kept for anything that still wants a password hash
+  async function _wmSha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+</script>
   <link rel="icon" type="image/png" href="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-70x70.png">
 </head>
 <body>
@@ -2365,40 +2391,40 @@
 
     <!-- HIGHER OR LOWER MODAL -->
     <div id="holModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9004;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:1200px;max-height:calc(100vh - var(--topbar-h) - 24px)">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:1400px;max-height:calc(100vh - var(--topbar-h) - 24px)">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
           <div style="display:flex;flex-direction:column;gap:2px">
             <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--text);letter-spacing:1px">📊 HIGHER OR LOWER</span>
-            <span style="font-family:var(--mono);font-size:9px;color:#aaa">Which emote has been typed more times on Twitch?</span>
+            <span style="font-family:var(--mono);font-size:12px;color:#aaa">Which emote has been typed more times on Twitch?</span>
           </div>
           <div style="display:flex;align-items:center;gap:14px">
-            <span style="font-family:var(--mono);font-size:12px;color:#aaa">Score: <span id="holScore" style="color:#f59e0b;font-weight:900;font-size:15px">0</span></span>
-            <span style="font-family:var(--mono);font-size:12px;color:#aaa">Highscore: <span id="holBest" style="color:#a78bfa;font-weight:900">0</span></span>
+            <span style="font-family:var(--mono);font-size:14px;color:#aaa">Score: <span id="holScore" style="color:#f59e0b;font-weight:900;font-size:17px">0</span></span>
+            <span style="font-family:var(--mono);font-size:14px;color:#aaa">Highscore: <span id="holBest" style="color:#a78bfa;font-weight:900;font-size:17px">0</span></span>
             <button onclick="closeHigherLower()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
         <!-- Game area -->
         <div id="holGame" style="width:100%;padding:24px 28px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:20px">
           <!-- Emote comparison row — grid keeps VS pinned to center regardless of card content -->
-          <div style="display:grid;grid-template-columns:1fr 64px 1fr;align-items:center;gap:16px;width:100%;position:relative">
+          <div style="display:grid;grid-template-columns:1fr 80px 1fr;align-items:center;gap:16px;width:100%;position:relative">
             <!-- Left emote (reference) — clicking it means "left is higher" -->
-            <div id="holLeftCard" onclick="holGuessCard('left')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;min-height:280px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
+            <div id="holLeftCard" onclick="holGuessCard('left')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;min-height:330px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
               onmouseover="if(!window._holAnimating)this.style.borderColor='#4ade80'" onmouseout="if(!window._holAnimating)this.style.borderColor='var(--border)'">
-              <img id="holLeftImg" src="" style="width:160px;height:160px;object-fit:contain;image-rendering:auto;pointer-events:none">
-              <div id="holLeftName" style="font-family:var(--mono);font-size:17px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
-              <div id="holLeftCount" style="font-family:var(--mono);font-size:14px;color:#f59e0b;font-weight:700;pointer-events:none"></div>
+              <img id="holLeftImg" src="" style="width:190px;height:190px;object-fit:contain;image-rendering:auto;pointer-events:none">
+              <div id="holLeftName" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
+              <div id="holLeftCount" style="font-family:var(--mono);font-size:16px;color:#f59e0b;font-weight:700;pointer-events:none"></div>
             </div>
             <!-- VS divider — always exactly centered in its column -->
             <div style="display:flex;align-items:center;justify-content:center">
-              <div style="font-family:var(--mono);font-size:26px;font-weight:900;color:#aaa">VS</div>
+              <div style="font-family:var(--mono);font-size:38px;font-weight:900;color:#fff">VS</div>
             </div>
             <!-- Right emote (guess target) — clicking it means "right is higher" -->
-            <div id="holRightCard" onclick="holGuessCard('right')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;min-height:280px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
+            <div id="holRightCard" onclick="holGuessCard('right')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;min-height:330px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
               onmouseover="if(!window._holAnimating)this.style.borderColor='#4ade80'" onmouseout="if(!window._holAnimating)this.style.borderColor='var(--border)'">
-              <img id="holRightImg" src="" style="width:160px;height:160px;object-fit:contain;image-rendering:auto;pointer-events:none">
-              <div id="holRightName" style="font-family:var(--mono);font-size:17px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
-              <div id="holRightCount" style="font-family:var(--mono);font-size:14px;color:#aaa;font-weight:700;pointer-events:none">??? times typed</div>
+              <img id="holRightImg" src="" style="width:190px;height:190px;object-fit:contain;image-rendering:auto;pointer-events:none">
+              <div id="holRightName" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
+              <div id="holRightCount" style="font-family:var(--mono);font-size:16px;color:#aaa;font-weight:700;pointer-events:none">??? times typed</div>
             </div>
             <!-- Big checkmark overlay — shown in center on correct guess -->
             <div id="holCheckmark" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;pointer-events:none;z-index:5">
@@ -2407,15 +2433,15 @@
           </div>
           <!-- Buttons -->
           <div id="holButtons" style="display:flex;gap:12px">
-            <button onclick="holGuess('higher')" style="font-family:var(--mono);font-size:13px;font-weight:900;background:rgba(74,222,128,0.15);border:2px solid #4ade80;color:#4ade80;padding:12px 32px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
+            <button onclick="holGuess('higher')" style="font-family:var(--mono);font-size:14px;font-weight:900;background:rgba(74,222,128,0.15);border:2px solid #4ade80;color:#4ade80;padding:14px 38px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
               onmouseover="this.style.background='rgba(74,222,128,0.28)'" onmouseout="this.style.background='rgba(74,222,128,0.15)'">▲ HIGHER</button>
-            <button onclick="holGuess('lower')" style="font-family:var(--mono);font-size:13px;font-weight:900;background:rgba(252,92,125,0.15);border:2px solid #fc5c7d;color:#fc5c7d;padding:12px 32px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
+            <button onclick="holGuess('lower')" style="font-family:var(--mono);font-size:14px;font-weight:900;background:rgba(252,92,125,0.15);border:2px solid #fc5c7d;color:#fc5c7d;padding:14px 38px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
               onmouseover="this.style.background='rgba(252,92,125,0.28)'" onmouseout="this.style.background='rgba(252,92,125,0.15)'">▼ LOWER</button>
           </div>
           <!-- Result feedback -->
           <div id="holResult" style="font-family:var(--mono);font-size:20px;font-weight:900;min-height:28px;text-align:center"></div>
           <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:#aaa;text-align:center;margin-top:4px">Click on which emote you think has been typed more on Twitch!</div>
-          <div style="font-family:var(--mono);font-size:9px;color:#555;text-align:right;margin-top:4px;padding-right:4px">Data: StreamElements global stats · 7TV emote set</div>
+          <div style="font-family:var(--mono);font-size:12px;color:#aaa;text-align:right;margin-top:4px;padding-right:4px">Data: StreamElements global stats · 7TV emote set</div>
         </div>
         <!-- Leaderboard panel -->
         <div id="holLbPanel" style="display:none;position:absolute;inset:0;background:rgba(5,5,20,0.97);z-index:10;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
@@ -2434,7 +2460,7 @@
 
     <!-- AI OR NOT MODAL -->
     <div id="aionModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9003;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px" onclick="if(event.target===this)closeAiOrNot()">
-      <div style="background:#0a0a14;border:1px solid #2a2a4a;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:680px;height:calc(100vh-24px);max-height:calc(100vh-24px)">
+      <div style="background:#0a0a14;border:1px solid #2a2a4a;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:780px;height:calc(100vh - var(--bars-h) - 24px);max-height:calc(100vh - var(--bars-h) - 24px)">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box">
           <div style="display:flex;flex-direction:column;gap:1px">
@@ -2451,7 +2477,7 @@
         <div id="aionGame" style="width:100%;flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 16px;box-sizing:border-box;gap:10px;min-height:0">
           <!-- Image card -->
           <div id="aionCardWrap" style="width:100%;flex:1;min-height:0;display:flex;flex-direction:column;border-radius:12px;padding:6px;box-sizing:border-box;background:#0a0a14;transition:background 0.05s">
-          <div id="aionCard" style="position:relative;width:100%;flex:1;min-height:0;max-height:55vh;border-radius:8px;overflow:hidden;background:#111;border:2px solid #2a2a4a;cursor:grab;user-select:none;touch-action:none">
+          <div id="aionCard" style="position:relative;width:100%;flex:1;min-height:0;max-height:64vh;border-radius:8px;overflow:hidden;background:#111;border:2px solid #2a2a4a;cursor:grab;user-select:none;touch-action:none">
             <img id="aionImg" src="" alt="guess" draggable="false"
               style="width:100%;height:100%;object-fit:contain;display:block;transition:filter 0.15s;background:#000">
             <!-- Swipe overlays -->
@@ -2468,7 +2494,7 @@
           <!-- Swipe hint -->
           <div style="font-family:var(--mono);font-size:12px;color:#aaa;text-align:center;font-weight:600">← AI &nbsp;&nbsp;|&nbsp;&nbsp; REAL → &nbsp;·&nbsp; or use buttons below</div>
           <!-- Buttons -->
-          <div style="display:flex;gap:16px;width:100%;max-width:420px">
+          <div style="display:flex;gap:16px;width:100%;max-width:500px">
             <button onclick="aionGuess('ai')" style="flex:1;font-family:var(--mono);font-size:14px;font-weight:900;background:rgba(239,68,68,0.15);border:2px solid #ef4444;color:#ef4444;padding:12px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all 0.1s" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">
               <span style="font-size:18px;font-weight:900">←</span> 🤖 AI
             </button>
@@ -2517,7 +2543,7 @@
             <button onclick="closeFlappy()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
-        <canvas id="flappyCanvas" width="680" height="880" style="display:block;cursor:pointer;max-width:100%;max-height:calc(100vh - var(--topbar-h) - 60px);width:auto;height:auto;touch-action:none;-webkit-tap-highlight-color:transparent"></canvas>
+        <canvas id="flappyCanvas" width="680" height="880" style="display:block;cursor:pointer;max-width:100%;max-height:calc(100vh - var(--bars-h) - 100px);width:auto;height:auto;touch-action:none;-webkit-tap-highlight-color:transparent"></canvas>
       </div>
     </div>
 
@@ -2904,6 +2930,7 @@ function _profLoad() {
 }
 function _profSave(p) {
   localStorage.setItem(_PROF_KEY, JSON.stringify(p));
+  _profQueueCloudSync();
 }
 function _profGet(field, def) {
   const p = _profLoad(); return p ? (p[field] ?? def) : def;
@@ -2912,6 +2939,77 @@ function _profSet(field, val) {
   const p = _profLoad() || {};
   p[field] = val;
   _profSave(p);
+}
+
+// ── Cloud sync: signed-in users' profile (achievements, visits, last-viewed
+// video, scores, etc.) is mirrored to Firestore so it follows them across
+// devices/browsers instead of being stuck in one browser's localStorage. ──
+let _profSyncTimer = null;
+function _profQueueCloudSync() {
+  if (!_profUser?.id || typeof _wmDb === 'undefined') return;
+  clearTimeout(_profSyncTimer);
+  _profSyncTimer = setTimeout(() => {
+    const p = _profLoad();
+    if (!p || !p.id) return;
+    const { token, ...safe } = p; // never store the OAuth token in the shared doc
+    _wmDb.collection('users').doc(p.id).set(safe, { merge: true })
+      .catch(e => console.warn('[profile] cloud sync failed:', e));
+  }, 2000);
+}
+
+// Combine a local profile with the cloud copy: counters take the higher
+// value, timestamps take the latest, lists get merged & de-duped, boolean
+// milestone flags are OR'd together — so no progress is ever lost either way.
+function _profMergeProfiles(local, cloud) {
+  local = local || {}; cloud = cloud || {};
+  const merged = { ...cloud, ...local };
+
+  merged.visitCount    = Math.max(local.visitCount||0, cloud.visitCount||0);
+  merged.streamsOpened = Math.max(local.streamsOpened||0, cloud.streamsOpened||0);
+  merged.timeMs         = Math.max(local.timeMs||0, cloud.timeMs||0);
+  merged.lastVisit      = Math.max(local.lastVisit||0, cloud.lastVisit||0) || local.lastVisit || cloud.lastVisit;
+  const joined = Math.min(local.joinedSite || Infinity, cloud.joinedSite || Infinity);
+  merged.joinedSite = isFinite(joined) ? joined : (local.joinedSite || cloud.joinedSite);
+
+  // Last-viewed videos — merge both lists, newest first, de-duped by title, capped at 5
+  const combined = [...(local.lastStreams||[]), ...(cloud.lastStreams||[])].sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const seen = new Set(); merged.lastStreams = [];
+  for (const s of combined) {
+    if (seen.has(s.title)) continue;
+    seen.add(s.title); merged.lastStreams.push(s);
+    if (merged.lastStreams.length >= 5) break;
+  }
+
+  // Milestone/achievement flags — true anywhere means true everywhere
+  ['nightShift','visitedXmas','visitedBirthday'].forEach(f => { merged[f] = !!(local[f] || cloud[f]); });
+
+  // Per-game scores — keep the best of each
+  merged.scores = {};
+  new Set([...Object.keys(local.scores||{}), ...Object.keys(cloud.scores||{})]).forEach(g => {
+    const l = (local.scores||{})[g] || {best:0,last:0,plays:0};
+    const c = (cloud.scores||{})[g] || {best:0,last:0,plays:0};
+    merged.scores[g] = { best: Math.max(l.best||0,c.best||0), last: l.last ?? c.last ?? 0, plays: Math.max(l.plays||0,c.plays||0) };
+  });
+
+  return merged;
+}
+
+// Pull the cloud copy for this Twitch user and reconcile it with what's local.
+async function _profSyncFromCloud(id) {
+  if (!id || typeof _wmDb === 'undefined') return;
+  try {
+    const snap = await _wmDb.collection('users').doc(id).get();
+    if (!snap.exists) { _profQueueCloudSync(); return; } // nothing in the cloud yet — push what we have
+    const cloud = snap.data();
+    const local = _profLoad() || {};
+    const merged = _profMergeProfiles(local, cloud);
+    localStorage.setItem(_PROF_KEY, JSON.stringify(merged)); // save without re-queuing a redundant push
+    _profUser = merged;
+    _profQueueCloudSync();
+    // If the profile panel happens to be open already, refresh it with merged data
+    const pm = document.getElementById('profileModal');
+    if (pm && pm.style.display === 'flex' && typeof shibezProfileOpen === 'function') shibezProfileOpen();
+  } catch(e) { console.warn('[profile] cloud fetch failed:', e); }
 }
 
 // Time tracking — save every 30s
@@ -3007,6 +3105,9 @@ async function _profHandleOAuthCallback(token) {
     const img = document.getElementById('profileAvatarImg');
     if(img) img.src = user.profile_image_url;
 
+    // Pull in this user's cloud-saved progress from other devices/browsers, if any
+    _profSyncFromCloud(user.id);
+
     shibezProfileOpen();
   } catch(e){ console.error('Profile OAuth error',e); }
 }
@@ -3041,6 +3142,8 @@ async function _profHandleOAuthCallback(token) {
       if(_now2.getMonth()===9 && _now2.getDate()===16) p.visitedBirthday = true;
       _profSave(p);
     }
+    // Reconcile with cloud-saved progress (covers visits from other devices/browsers)
+    _profSyncFromCloud(p.id);
   }
 })();
 
@@ -12338,8 +12441,8 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-ptabs{display:flex;border-bottom:1px solid #1e2028;flex-shrink:0;}
 .wm-ptab{
   flex:1;text-align:center;
-  font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;
-  padding:10px 4px;color:#e0e4ef;cursor:pointer;
+  font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:1px;text-transform:uppercase;
+  padding:12px 4px;color:#fff;cursor:pointer;
   border-bottom:2px solid transparent;
   background:none;border-top:none;border-left:none;border-right:none;
   transition:all 0.12s;font-weight:700;
@@ -12884,30 +12987,6 @@ window.addEventListener('hashchange', _routeFromHash);
     </div>
   </div>
 </div>
-
-<!-- ── Firebase (public read / password-gated write, for the pinned wheel) ── -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script>
-  const _fbConfig = {
-    apiKey: "AIzaSyBmd08FRwGlO0S4L-kwGKq3rLVcbtEUjpI",
-    authDomain: "shibezvods-4676a.firebaseapp.com",
-    projectId: "shibezvods-4676a",
-    storageBucket: "shibezvods-4676a.firebasestorage.app",
-    messagingSenderId: "439862936787",
-    appId: "1:439862936787:web:2fa966fec0987a95f6c026",
-    measurementId: "G-0GBW3XJC77"
-  };
-  firebase.initializeApp(_fbConfig);
-  const _wmDb = firebase.firestore();
-
-  // Small standalone hasher — mirrors the mod-panel's _sha256 so the wheel
-  // save can reuse the same mod password without touching that closure.
-  async function _wmSha256(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  }
-</script>
 
 <script>
 // ══════════════════════════════════════════════════════ CS2 CASE OPENER ENGINE
@@ -14131,8 +14210,8 @@ function _wmRenderContents() {
     const iconHtml = _wmContentsIcon(item.icon);
     const descHtml = item.desc ? `<div class="wm-desc-tip">${item.desc}</div>` : '';
     // Use CSS custom properties so :hover can pick up the item's own color
-    const hoverBg = item.color + '22'; // item color at ~13% opacity
-    const tipBg   = item.color + '22'; // item color at ~13% opacity for tooltip bg
+    const hoverBg = item.color + '33'; // item color at ~20% opacity — subtle row highlight, fine translucent
+    const tipBg   = '#12151e'; // solid, opaque tooltip background (not tinted/translucent)
     return `<div class="wm-citem" style="border-left-color:${item.color};--item-color:${item.color};--hover-bg:${hoverBg};--tip-bg:${tipBg}">
       <div class="wm-citem-icon">${iconHtml}</div>
       <div class="wm-citem-label" style="color:${item.color}">${item.label}</div>
@@ -14817,32 +14896,17 @@ function _wmCheckImport() {
   }
 }
 
-// Same values as the mod panel's _MOD_HASH/_MOD_SESSION_KEY/_MOD_PERSIST_KEY —
-// duplicated here (read-only, just an equality check) so this script doesn't
-// need to reach into that panel's closure.
-const _WM_MOD_HASH = '2dec7be85048c86f60acdf5281ca89abec6520bf1e0413290a619a3c20401034';
-const _WM_MOD_SESSION_KEY = 'shibez_mod_auth';
-const _WM_MOD_PERSIST_KEY = 'shibez_mod_auth_persist';
-
 async function wmPinWheel() {
+  // Gate is the Twitch login check alone (_wmIsShibez) — no separate password needed.
   if (!_wmIsShibez()) return;
   const btn = document.getElementById('wmPinBtn');
   try {
     // Always keep the instant local cache up to date
     localStorage.setItem(WM_PIN_KEY, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
 
-    // Reuse an already-unlocked mod session if there is one; otherwise ask once
-    let hash = sessionStorage.getItem(_WM_MOD_SESSION_KEY) || localStorage.getItem(_WM_MOD_PERSIST_KEY);
-    if (hash !== _WM_MOD_HASH) {
-      const pw = prompt('Mod password to publish this wheel for everyone:');
-      if (pw == null) return; // cancelled
-      hash = await _wmSha256(pw);
-      if (hash !== _WM_MOD_HASH) { alert('Wrong password — not published.'); return; }
-      sessionStorage.setItem(_WM_MOD_SESSION_KEY, hash);
-    }
-
     await _wmDb.collection('wheels').doc('pinned').set({
-      wheels: _wm.wheels, activeId: _wm.activeId, pwHash: hash, updatedAt: Date.now()
+      wheels: _wm.wheels, activeId: _wm.activeId,
+      pinnedBy: _profUser?.login || 'shlbez', updatedAt: Date.now()
     });
 
     if (btn) { btn.textContent = '✅ Pinned for everyone!'; setTimeout(() => { btn.textContent = '📌 Pin Wheel to Site'; }, 2000); }
@@ -15154,7 +15218,7 @@ function hlCloseModal() {
 // Shows: [latest regular video] [← arrow] [6 short cards] [→ arrow]
 // Left arrow  = more recent shorts  |  Right arrow = older shorts
 
-const YT_SEC_PER_PAGE = 7; // cards visible at once (used for arrow scroll step)
+const YT_SEC_PER_PAGE = 6; // cards visible at once (used for arrow scroll step)
 let _ytSecLatest = null;  // { id, title, thumb }
 let _ytSecShorts = [];    // [{ id, title, thumb }, ...]
 let _ytSecPage   = 0;     // 0 = newest page of shorts
@@ -15169,6 +15233,17 @@ const _ytPlaySvg = `<svg viewBox="0 0 80 80" fill="none">
   <circle cx="40" cy="40" r="38" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.55)" stroke-width="2.5"/>
   <polygon points="33,24 62,40 33,56" fill="white"/>
 </svg>`;
+
+// Chained thumbnail fallback: maxresdefault (best quality) -> hqdefault -> mqdefault
+function _ytThumbFallback(img, id, step) {
+  if (step === 1) {
+    img.onerror = () => _ytThumbFallback(img, id, 2);
+    img.src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  } else {
+    img.onerror = null;
+    img.src = `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+  }
+}
 
 async function _ytSecInit() {
   const wrap = document.getElementById('ytMainCardWrap');
@@ -15196,7 +15271,7 @@ async function _ytSecInit() {
     for (const v of (detData.items || [])) {
       const dur   = _parseIsoDuration(v.contentDetails?.duration);
       const title = v.snippet?.title || '';
-      const thumb = `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
+      const thumb = `https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg`;
       if (dur >= 62) {
         if (!_ytSecLatest) _ytSecLatest = { id: v.id, title, thumb };
       } else if (dur > 0) {
@@ -15230,7 +15305,7 @@ function _ytSecRender() {
       ? `<a class="yt-main-card" href="https://www.youtube.com/watch?v=${v.id}" onclick="ytSecOpenLatest();return false;" title="${_escHtml(_ytStripHashtags(v.title))}">
            <div class="yt-main-thumb">
              <div class="hl-new-badge">&#9733; NEW VIDEO</div>
-             <img src="${v.thumb}" alt="" onerror="this.src='https://i.ytimg.com/vi/${v.id}/mqdefault.jpg'">
+             <img src="${v.thumb}" alt="" onerror="_ytThumbFallback(this,'${v.id}',1)">
              <div class="hl-play-btn">${_ytPlaySvg}</div>
            </div>
            <div class="yt-main-info">
@@ -15253,7 +15328,7 @@ function _ytSecRender() {
       list.innerHTML = page.map(v => `
         <a class="yt-short-card" href="https://www.youtube.com/shorts/${v.id}" onclick="ytSecOpenShort('${v.id}');return false;" title="${_escHtml(_ytStripHashtags(v.title))}">
           <div class="yt-short-thumb">
-            <img src="${v.thumb}" alt="" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'">
+            <img src="${v.thumb}" alt="" onerror="_ytThumbFallback(this,'${v.id}',1)">
             <div class="yt-short-play-btn">${_ytPlaySvg}</div>
           </div>
           <div class="yt-short-title-bar">
