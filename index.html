@@ -909,7 +909,7 @@
   body.theater .timeline-wrap { display: none !important; }
   body.theater .parts-section { display: none !important; }
   body.theater .status-bar { display: none !important; }
-  body.theater .chat-panel { display: flex !important; width: 320px; flex-shrink: 0; }
+  body.theater .chat-panel:not(.chat-hidden) { display: flex !important; width: 320px; flex-shrink: 0; }
   body.theater .resize-handle,
   .player-view.active .resize-handle { display: block; }
 
@@ -1203,7 +1203,7 @@
     body.theater .video-wrapper iframe,
     body.theater #ytPlayerEl,
     body.theater #ytPlayerEl iframe { position: relative !important; width: 100% !important; height: 100% !important; }
-    body.theater .chat-panel { display: flex !important; width: 320px; }
+    body.theater .chat-panel:not(.chat-hidden) { display: flex !important; width: 320px; }
   }
 
 
@@ -1241,7 +1241,7 @@
   body.theater .theater-back-btn { display: block; }
   .theater-exit-btn {
     display: none;
-    position: fixed; bottom: 16px; right: 16px; z-index: 999;
+    position: fixed; bottom: 56px; right: 16px; z-index: 999;
     background: rgba(0,0,0,0.7); border: 1px solid #666;
     color: #fff; font-family: var(--mono); font-size: 10px; font-weight: 700;
     padding: 6px 14px; border-radius: 4px; cursor: pointer;
@@ -1705,7 +1705,7 @@
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
-    width: 420px; /* must match #ytMainCardWrap width */
+    width: 560px; /* must match #ytMainCardWrap width */
   }
   .yt-col-header-shorts {
     flex: 1;
@@ -1762,7 +1762,7 @@
   /* ── Main latest video card (16:9) ── */
   #ytMainCardWrap {
     flex-shrink: 0;
-    width: 420px;
+    width: 560px;
   }
   .yt-main-card {
     text-decoration: none;
@@ -1801,21 +1801,21 @@
   }
   .yt-main-card:hover .yt-main-thumb img { transform: scale(1.04); }
   .yt-main-info {
-    padding: 7px 10px 9px;
+    padding: 9px 12px 11px;
     background: #000;
   }
   .yt-main-label {
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 800;
     color: #ff4444;
     margin-bottom: 4px;
     letter-spacing: 0.4px;
   }
   .yt-main-title {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
-    line-height: 1.38;
+    line-height: 1.4;
     color: var(--text);
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -5105,7 +5105,7 @@ async function checkLiveStatus() {
       if (meta1) {
         const g1 = stream.game_name || 'streaming';
         const slug1 = g1.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-        meta1.innerHTML = `<a href="https://www.twitch.tv/directory/category/${slug1}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${g1}</a> · ⏱ ${formatUptime(stream.started_at)} · 👥 ${(stream.viewer_count||0).toLocaleString()} viewers`;
+        meta1.innerHTML = `<a href="https://www.twitch.tv/directory/category/${slug1}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${g1}</a> · ⏱ ${formatUptime(stream.started_at)} · <svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="5" fill="#ff6060"/><path d="M4 22c0-5 3.6-8.5 8-8.5s8 3.5 8 8.5" stroke="#ff6060" stroke-width="3.6" stroke-linecap="round" fill="none"/></svg> ${(stream.viewer_count||0).toLocaleString()} viewers`;
         meta1.style.display = 'block';
       }
       if (dot) dot.classList.add('live');
@@ -5177,7 +5177,7 @@ function secretLiveToggle() {
     if (statusText) statusText.innerHTML =
       `<a href="https://www.twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><span class="live-dot"></span>Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" class="status-emote" alt=""></a>`;
     if (meta) {
-      meta.innerHTML = `<span style="color:#ff6060">Category: Test Stream</span> · ⏱ 0h 01m · 👥 420 viewers`;
+      meta.innerHTML = `<span style="color:#ff6060">Category: Test Stream</span> · ⏱ 0h 01m · <svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="5" fill="#ff6060"/><path d="M4 22c0-5 3.6-8.5 8-8.5s8 3.5 8 8.5" stroke="#ff6060" stroke-width="3.6" stroke-linecap="round" fill="none"/></svg> 420 viewers`;
       meta.style.display = 'block';
     }
     const titleElS = document.getElementById('liveBannerStreamTitle');
@@ -5231,7 +5231,7 @@ async function demoLiveAsBadgeInsider() {
       if (titleEl2) { titleEl2.textContent = stream.title || ''; titleEl2.style.display = stream.title ? 'block' : 'none'; }
       if (meta2) {
         const catSlug = game.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-        meta2.innerHTML = `<a href="https://www.twitch.tv/directory/category/${catSlug}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${game}</a> · ⏱ ${formatUptime(stream.started_at)} · 👥 ${(stream.viewer_count||0).toLocaleString()} viewers`;
+        meta2.innerHTML = `<a href="https://www.twitch.tv/directory/category/${catSlug}" target="_blank" style="color:#ff6060;text-decoration:none;border-bottom:1px solid rgba(255,96,96,0.4)">Category: ${game}</a> · ⏱ ${formatUptime(stream.started_at)} · <svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="5" fill="#ff6060"/><path d="M4 22c0-5 3.6-8.5 8-8.5s8 3.5 8 8.5" stroke="#ff6060" stroke-width="3.6" stroke-linecap="round" fill="none"/></svg> ${(stream.viewer_count||0).toLocaleString()} viewers`;
         meta2.style.display = 'block';
       }
 
@@ -12607,7 +12607,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-desc-tip{
   display:none;
   position:fixed;
-  background:#12151e;border:1px solid rgba(255,255,255,0.38);
+  background:var(--tip-bg,#12151e);border:1px solid var(--item-color,rgba(255,255,255,0.38));
   color:#e8e8f0;font-family:'Share Tech Mono',monospace;font-size:12px;
   line-height:1.65;letter-spacing:0.3px;
   padding:10px 14px;border-radius:3px;width:280px;
@@ -12618,7 +12618,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-desc-tip::before{
   content:'';position:absolute;
   right:100%;top:14px;
-  border:6px solid transparent;border-right-color:rgba(255,255,255,0.38);
+  border:6px solid transparent;border-right-color:var(--item-color,rgba(255,255,255,0.38));
 }
 
 /* ── Win popup overlay ── */
@@ -14338,8 +14338,8 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
   // Arc length of one slice at the midpoint radius — used for adaptive font/icon
   const arcLen   = R * 0.65 * seg;
-  const fontSize = Math.max(7, Math.min(13, (arcLen * 0.22) | 0));
-  const showIcon = arcLen > 26; // skip icons when slices are tiny
+  const fontSize = Math.max(5, Math.min(13, (arcLen * 0.24) | 0));
+  const showIcon = arcLen > 12; // only fully hide icons when there's truly no room left
 
   // Outer rim glow
   ctx.save();
@@ -14404,7 +14404,7 @@ function _wmRenderWheelFrame(angle, hovIdx) {
         // URL icons handled by DOM overlay (_wmUpdateIconOverlay) — canvas drawImage
         // only ever snapshots a static frame, so animated WebP/GIF must use real <img>.
       } else if (isEmoji) {
-        const eSz = Math.max(10, Math.min(17, (arcLen * 0.26) | 0));
+        const eSz = Math.max(7, Math.min(17, (arcLen * 0.30) | 0));
         ctx.font = `${eSz}px serif`;
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
@@ -14476,10 +14476,10 @@ function _wmUpdateIconOverlay(angle) {
   if (!n) { overlay.innerHTML = ''; return; }
   const seg    = (2 * Math.PI) / n;
   const arcLen = R * 0.65 * seg;
-  const fontSize = Math.max(7, Math.min(13, (arcLen * 0.22) | 0));
+  const fontSize = Math.max(5, Math.min(13, (arcLen * 0.24) | 0));
   const iconOff  = -(fontSize * 0.8 + 3); // negative = outward in local rotated frame
-  const iSz      = Math.max(11, Math.min(20, (arcLen * 0.28) | 0));
-  const showIcon = arcLen > 26;
+  const iSz      = Math.max(8, Math.min(20, (arcLen * 0.32) | 0));
+  const showIcon = arcLen > 12;
 
   // Collect items that need URL icon overlays
   const urlItems = [];
@@ -14542,7 +14542,7 @@ function _wmSetupHoverTooltip() {
     tip.style.cssText = [
       'position:fixed','z-index:999999','pointer-events:none',
       'background:rgba(8,10,20,0.96)',
-      'border:1.5px solid rgba(228,184,77,0.45)',
+      'border:3px solid rgba(228,184,77,0.45)',
       'border-radius:7px','padding:9px 14px',
       'font-family:\'Share Tech Mono\',monospace',
       'font-size:12px','color:#d8dce8','letter-spacing:0.3px',
@@ -14595,7 +14595,7 @@ function _wmSetupHoverTooltip() {
       tip.innerHTML =
         `<div style="color:${it.color};font-weight:700;font-size:13px;margin-bottom:${desc?'5px':'0'}">${it.label}</div>`
         + (desc ? `<div style="color:#9098b0;font-size:11px;white-space:pre-line">${desc}</div>` : '');
-      tip.style.borderColor = (it.color || '#e4b84d') + '80';
+      tip.style.borderColor = (it.color || '#e4b84d') + 'aa';
       tip.style.display = 'block';
       // Position near cursor, keep inside viewport
       const tw = 258, th = tip.offsetHeight || 70;
@@ -14653,6 +14653,7 @@ function wmSpinWheel() {
   document.getElementById('wmResultLabel').textContent = '';
   document.getElementById('wmResultSub').textContent   = '';
   const _rdClear3 = document.getElementById('wmResultDesc'); if (_rdClear3) _rdClear3.textContent = '';
+  requestAnimationFrame(() => requestAnimationFrame(_wmFitWheel));
 
   // Pick winner and compute target angle
   const winIdx = Math.floor(Math.random() * wheel.items.length);
@@ -14704,6 +14705,11 @@ function wmSpinWheel() {
       document.getElementById('wmResultSub').textContent = '— YOU RECEIVED —';
       const rdWheel = document.getElementById('wmResultDesc');
       if (rdWheel) rdWheel.textContent = winner.desc || '';
+
+      // The description text can grow the result area (wrapping to more lines),
+      // shrinking the space left for the wheel — re-fit after layout settles so
+      // the canvas doesn't stay oversized and overlap the subtitle above it.
+      requestAnimationFrame(() => requestAnimationFrame(_wmFitWheel));
 
       // Highlight the winning slice (draw with winner glow)
       _wmWheelWinIdx = winIdx;
