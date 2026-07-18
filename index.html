@@ -13648,7 +13648,7 @@ _wmCatAudio.preload = 'auto';
 function _wmPlayTickSfx() {
   if (_wm.muted) return;
   _wmTickAudio.currentTime = 0;
-  _wmTickAudio.volume = _wm.vol;
+  _wmTickAudio.volume = Math.min(1, _wm.vol * 1.4); // louder by default for case opening
   _wmTickAudio.play().catch(()=>{});
 }
 function _wmStopTickSfx() {
@@ -13658,7 +13658,7 @@ function _wmStopTickSfx() {
 function _wmPlayEndSfx() {
   if (_wm.muted) return;
   _wmEndAudio.currentTime = 0;
-  _wmEndAudio.volume = _wm.vol * 1.3; // 30% louder for case opening
+  _wmEndAudio.volume = Math.min(1, _wm.vol * 1.6); // louder by default for case opening
   _wmEndAudio.play().catch(()=>{});
 }
 function _wmPlayCatSfx() {
@@ -13838,6 +13838,20 @@ async function _wmFetchCloudPinned() {
 }
 function _wmCurrent() { return _wm.wheels.find(w=>w.id===_wm.activeId) || _wm.wheels[0]; }
 
+// Every item has an effective weight (defaults to 1 = equal odds with the rest).
+// % chance shown/edited in the UI = weight / sum(all weights) * 100.
+function _wmWeight(item) { return (typeof item.weight === 'number' && item.weight > 0) ? item.weight : 1; }
+function _wmTotalWeight(items) { return items.reduce((s, it) => s + _wmWeight(it), 0); }
+function _wmWeightedPick(items) {
+  const total = _wmTotalWeight(items);
+  let r = Math.random() * total;
+  for (let i = 0; i < items.length; i++) {
+    r -= _wmWeight(items[i]);
+    if (r <= 0) return i;
+  }
+  return items.length - 1; // float rounding fallback
+}
+
 // ── Reel building ─────────────────────────────────────────────────────────
 const ITEM_W = 214; // px per item — CSS .wm-item is width:210px + gap:4px = 214px pitch
 const ITEM_GAP = 4;
@@ -13866,9 +13880,9 @@ function _wmBuildReel(winIdx) {
   // Build a long reel: 40 random items, then winner at a specific position, then 20 more
   const PRE = 45, POST = 8;
   const allItems = [];
-  for (let i = 0; i < PRE; i++) allItems.push(items[Math.floor(Math.random() * items.length)]);
+  for (let i = 0; i < PRE; i++) allItems.push(items[_wmWeightedPick(items)]);
   allItems.push(items[winIdx]); // winner at index PRE
-  for (let i = 0; i < POST; i++) allItems.push(items[Math.floor(Math.random() * items.length)]);
+  for (let i = 0; i < POST; i++) allItems.push(items[_wmWeightedPick(items)]);
 
   allItems.forEach((item, i) => {
     const itemIdx = items.indexOf(item);
@@ -13935,7 +13949,7 @@ function wmSpin() {
   document.getElementById('wmWinFlash').classList.remove('show');
   document.querySelectorAll('.wm-item.winner').forEach(e => e.classList.remove('winner'));
 
-  const winIdx = Math.floor(Math.random() * wheel.items.length);
+  const winIdx = _wmWeightedPick(wheel.items);
   const reelWinnerIdx = _wmBuildReel(winIdx); // = PRE = 45
   // Keep a ref to the allItems array so frame() can reverse-map the visual position
   const allItemsRef = Array.from(document.querySelectorAll('#wmReelTrack .wm-item')).map((el, i) => {
@@ -14102,6 +14116,9 @@ function _wmRenderEdit() {
     const iconPreview = isImgIcon
       ? `<img src="${item.icon}" style="width:26px;height:26px;object-fit:contain">`
       : `${item.icon||'🎲'}`;
+    const pct = (_wmWeight(item) / _wmTotalWeight(w.items) * 100);
+    const pctStr = pct >= 10 ? pct.toFixed(1) : pct.toFixed(2);
+    const isDefaultOdds = !(typeof item.weight === 'number' && item.weight > 0 && item.weight !== 1);
     return `<div class="wm-item-card">
       <div class="wm-item-card-header">
         <span class="wm-item-card-num">${i+1}</span>
@@ -14121,8 +14138,32 @@ function _wmRenderEdit() {
       </div>
       <!-- Description -->
       <textarea class="wm-seg-inp desc" oninput="wmItemDesc(${i},this.value)" placeholder="Description / punishment… e.g. Do 20 push-ups on stream.">${(item.desc||'').replace(/</g,'&lt;')}</textarea>
+      <!-- Odds -->
+      <div class="wm-odds-row" style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <span style="font-family:var(--mono);font-size:10px;color:#8a91a5;letter-spacing:0.5px">CHANCE</span>
+        <input type="number" class="wm-seg-inp wm-odds-inp" style="width:72px;padding:4px 6px" min="0.01" max="99.99" step="0.1"
+          value="${pctStr}" onchange="wmItemOdds(${i},this.value)" title="Chance this item is drawn (%)">
+        <span style="font-family:var(--mono);font-size:11px;color:#8a91a5">%</span>
+        ${isDefaultOdds ? '' : `<button class="wm-odds-reset" onclick="wmResetItemOdds(${i})" title="Reset to even odds"
+          style="margin-left:auto;background:none;border:1px solid #2a2e38;color:#8a91a5;border-radius:4px;padding:3px 9px;font-size:10px;cursor:pointer;font-family:var(--mono)">↺ Reset</button>`}
+      </div>
     </div>`;
   }).join('');
+}
+function wmItemOdds(i, pctStr) {
+  if(!_wmCheckLock(_wmCurrent()))return;
+  const w = _wmCurrent();
+  let pct = parseFloat(pctStr);
+  if (!isFinite(pct)) { _wmRenderEdit(); return; }
+  pct = Math.min(99.99, Math.max(0.01, pct));
+  const totalOthers = _wmTotalWeight(w.items.filter((_,j)=>j!==i));
+  w.items[i].weight = totalOthers > 0 ? (pct * totalOthers) / (100 - pct) : 1;
+  _wmSave(); _wmRenderEdit(); _wmRenderContents();
+}
+function wmResetItemOdds(i) {
+  if(!_wmCheckLock(_wmCurrent()))return;
+  delete _wmCurrent().items[i].weight; // back to the default even-odds share
+  _wmSave(); _wmRenderEdit(); _wmRenderContents();
 }
 function wmItemLabel(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].label=v;_wmSave();}
 function wmItemColor(i,v){
@@ -14773,7 +14814,7 @@ function wmSpinWheel() {
   requestAnimationFrame(() => requestAnimationFrame(_wmFitWheel));
 
   // Pick winner and compute target angle
-  const winIdx = Math.floor(Math.random() * wheel.items.length);
+  const winIdx = _wmWeightedPick(wheel.items);
   const n   = wheel.items.length;
   const seg = (2 * Math.PI) / n;
 
@@ -14869,7 +14910,7 @@ function _wmWheelTick() {
     const c = _wmAC(), t = c.currentTime;
     // Crisp mechanical click: short noise + pitched blip
     const ng = c.createGain();
-    ng.gain.setValueAtTime(_wm.vol * 0.83, t);
+    ng.gain.setValueAtTime(_wm.vol * 0.5, t);
     ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
     ng.connect(c.destination);
 
@@ -14881,7 +14922,7 @@ function _wmWheelTick() {
 
     // Pitched transient for brightness
     const og = c.createGain();
-    og.gain.setValueAtTime(_wm.vol * 0.6, t);
+    og.gain.setValueAtTime(_wm.vol * 0.35, t);
     og.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
     og.connect(c.destination);
     const o = c.createOscillator();
