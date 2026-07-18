@@ -12218,6 +12218,7 @@ window.addEventListener('hashchange', _routeFromHash);
   flex-shrink:0;
 }
 .wm-logo{font-size:13px;font-weight:800;letter-spacing:3px;color:#e4b84d;text-transform:uppercase;}
+.wm-mode-btn:hover:not(.active){background:rgba(228,184,77,0.12)!important;color:#e4b84d!important;}
 .wm-case-name-inp{
   background:rgba(255,255,255,0.04);border:1px solid #2a2e38;
   color:#c8d0dc;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;
@@ -12862,13 +12863,11 @@ window.addEventListener('hashchange', _routeFromHash);
     <span class="wm-logo">🛞 Wheel Spin</span>
     <input class="wm-case-name-inp" id="wmCaseNameInp" value="Main Wheel" oninput="wmRenameWheel(this.value,'wmCaseNameInp')" placeholder="Wheel name…">
     <!-- Mode toggle -->
-    <div style="display:flex;align-items:center;gap:10px;margin-left:12px;flex-shrink:0">
-      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#c8d0dc;letter-spacing:0.5px">
-        <input type="radio" name="wmMode" value="case" checked onchange="wmSetMode('case')" style="accent-color:#e4b84d;cursor:pointer"> Case Opening
-      </label>
-      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#c8d0dc;letter-spacing:0.5px">
-        <input type="radio" name="wmMode" value="wheel" onchange="wmSetMode('wheel')" style="accent-color:#e4b84d;cursor:pointer"> Wheel Spin
-      </label>
+    <div class="wm-mode-toggle" id="wmModeToggle" style="display:flex;align-items:center;margin-left:12px;flex-shrink:0;background:#161920;border:1px solid #2a2e38;border-radius:8px;padding:3px;gap:3px">
+      <button type="button" class="wm-mode-btn active" data-mode="case" onclick="wmSetMode('case')"
+        style="display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.5px;border:none;border-radius:6px;padding:7px 13px;cursor:pointer;transition:all 0.15s;background:#e4b84d;color:#161920">📦 Case Opening</button>
+      <button type="button" class="wm-mode-btn" data-mode="wheel" onclick="wmSetMode('wheel')"
+        style="display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.5px;border:none;border-radius:6px;padding:7px 13px;cursor:pointer;transition:all 0.15s;background:transparent;color:#8a91a5">🛞 Wheel Spin</button>
     </div>
     <div class="wm-topbar-right">
       <span class="wm-vol-label">VOL</span>
@@ -14141,9 +14140,11 @@ function _wmRenderEdit() {
       <!-- Odds -->
       <div class="wm-odds-row" style="display:flex;align-items:center;gap:8px;margin-top:8px">
         <span style="font-family:var(--mono);font-size:10px;color:#8a91a5;letter-spacing:0.5px">CHANCE</span>
-        <input type="number" class="wm-seg-inp wm-odds-inp" style="width:72px;padding:4px 6px" min="0.01" max="99.99" step="0.1"
-          value="${pctStr}" onchange="wmItemOdds(${i},this.value)" title="Chance this item is drawn (%)">
-        <span style="font-family:var(--mono);font-size:11px;color:#8a91a5">%</span>
+        <div class="wm-odds-pill" style="display:flex;align-items:center;width:72px;border:1px solid var(--border,#2a2e38);border-radius:6px;background:#1c2028;overflow:hidden">
+          <input type="number" class="wm-odds-inp" style="flex:1;min-width:0;width:100%;padding:4px 0 4px 8px;border:none;background:transparent;color:#c8d0dc;font-family:var(--mono);font-size:12px;text-align:right;outline:none" min="0.01" max="99.99" step="0.1"
+            value="${pctStr}" onchange="wmItemOdds(${i},this.value)" title="Chance this item is drawn (%)">
+          <span style="font-family:var(--mono);font-size:12px;color:#8a91a5;padding:0 7px 0 1px">%</span>
+        </div>
         ${isDefaultOdds ? '' : `<button class="wm-odds-reset" onclick="wmResetItemOdds(${i})" title="Reset to even odds"
           style="margin-left:auto;background:none;border:1px solid #2a2e38;color:#8a91a5;border-radius:4px;padding:3px 9px;font-size:10px;cursor:pointer;font-family:var(--mono)">↺ Reset</button>`}
       </div>
@@ -14379,6 +14380,14 @@ function wmSetMode(mode) {
   const reelOuter  = document.getElementById('wmReelOuter');
   const wheelSec   = document.getElementById('wmWheelSection');
   const subtitleEl = document.getElementById('wmSubtitle');
+
+  // Update the segmented mode-toggle pill
+  document.querySelectorAll('#wmModeToggle .wm-mode-btn').forEach(b => {
+    const isActive = b.dataset.mode === mode;
+    b.classList.toggle('active', isActive);
+    b.style.background = isActive ? '#e4b84d' : 'transparent';
+    b.style.color      = isActive ? '#161920' : '#8a91a5';
+  });
 
   if (mode === 'case') {
     btn.textContent = 'OPEN CASE';
