@@ -12228,14 +12228,14 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
 .wm-vol-label{font-family:'Share Tech Mono',monospace;font-size:13px;color:#c8d0dc;letter-spacing:1px;font-weight:700;}
 #wmVolSlider{width:80px;accent-color:#e4b84d;cursor:pointer;}
-#wmMuteBtn{background:rgba(255,255,255,0.05);border:1px solid #2a2e38;color:#666;font-size:14px;padding:3px 8px;border-radius:3px;cursor:pointer;}
-#wmMuteBtn:hover{color:#e4b84d;border-color:#e4b84d;}
+#wmMuteBtn{background:rgba(255,255,255,0.06);border:1px solid #2a2e38;color:#8a91a5;font-size:14px;padding:4px 9px;border-radius:6px;cursor:pointer;transition:all 0.15s;}
+#wmMuteBtn:hover{color:#e4b84d;border-color:#e4b84d;background:rgba(228,184,77,0.1);transform:translateY(-1px);}
 .wm-closebtn{
   background:rgba(255,255,255,0.06);border:1px solid #2a2e38;
-  color:#888;font-size:18px;cursor:pointer;padding:6px 12px;line-height:1;
-  border-radius:3px;transition:all 0.15s;font-weight:700;letter-spacing:1px;
+  color:#8a91a5;font-size:18px;cursor:pointer;padding:6px 14px;line-height:1;
+  border-radius:7px;transition:all 0.15s;font-weight:700;letter-spacing:1px;
 }
-.wm-closebtn:hover{color:#fff;background:rgba(239,68,68,0.18);border-color:#ef4444;}
+.wm-closebtn:hover{color:#fff;background:rgba(239,68,68,0.18);border-color:#ef4444;box-shadow:0 2px 12px rgba(239,68,68,0.25);transform:translateY(-1px);}
 
 /* ── Body: reel area + side panel ── */
 .wm-body{display:flex;flex:1;min-height:0;overflow:hidden;}
@@ -12517,11 +12517,11 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* color swatch button */
 .wm-col-btn{
-  width:28px;height:28px;border-radius:3px;border:2px solid #2a2e38;
+  width:28px;height:28px;border-radius:7px;border:2px solid #2a2e38;
   cursor:pointer;padding:0;flex-shrink:0;position:relative;overflow:hidden;
-  transition:border-color 0.1s;
+  transition:all 0.15s;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);
 }
-.wm-col-btn:hover{border-color:#e4b84d;}
+.wm-col-btn:hover{border-color:#e4b84d;transform:translateY(-1px);box-shadow:0 2px 10px rgba(228,184,77,0.35);}
 .wm-col-btn input[type=color]{
   position:absolute;inset:-4px;opacity:0;cursor:pointer;width:calc(100%+8px);height:calc(100%+8px);
 }
@@ -12529,12 +12529,12 @@ window.addEventListener('hashchange', _routeFromHash);
 /* icon picker button */
 .wm-icon-btn{
   width:36px;height:36px;flex-shrink:0;
-  background:#141720;border:1px solid #2a2e38;border-radius:3px;
+  background:linear-gradient(145deg,#181b23,#12141a);border:1px solid #2a2e38;border-radius:8px;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-size:20px;transition:border-color 0.1s;padding:0;overflow:hidden;
+  font-size:20px;transition:all 0.15s;padding:0;overflow:hidden;
   position:relative;
 }
-.wm-icon-btn:hover{border-color:#e4b84d;}
+.wm-icon-btn:hover{border-color:#e4b84d;transform:translateY(-1px);box-shadow:0 2px 10px rgba(228,184,77,0.3);}
 .wm-icon-btn img{width:28px;height:28px;object-fit:contain;}
 .wm-icon-btn-label{
   font-family:'Share Tech Mono',monospace;font-size:8px;color:#c8d0dc;
@@ -12554,33 +12554,33 @@ window.addEventListener('hashchange', _routeFromHash);
   color:#c8d0dc;
 }
 .wm-seg-del{
-  background:none;border:none;color:#c8d0dc;cursor:pointer;
-  font-size:15px;padding:2px 4px;flex-shrink:0;line-height:1;transition:color 0.1s;
+  background:none;border:none;color:#6b7280;cursor:pointer;
+  font-size:15px;padding:4px 7px;flex-shrink:0;line-height:1;transition:all 0.15s;border-radius:6px;
 }
-.wm-seg-del:hover{color:#ef4444;}
+.wm-seg-del:hover{color:#ef4444;background:rgba(239,68,68,0.12);}
 
 /* add item button */
 .wm-add-item-btn{
   display:flex;align-items:center;justify-content:center;gap:6px;
   width:100%;padding:10px;margin-bottom:6px;
-  background:none;border:1px dashed #2a2e38;border-radius:3px;
+  background:none;border:1px dashed #363b47;border-radius:8px;
   font-family:'Share Tech Mono',monospace;font-size:10px;color:#e8edf2;
-  letter-spacing:1px;cursor:pointer;transition:all 0.12s;
+  letter-spacing:1px;cursor:pointer;transition:all 0.15s;
 }
-.wm-add-item-btn:hover{border-color:#e4b84d;color:#e4b84d;}
+.wm-add-item-btn:hover{border-color:#e4b84d;color:#e4b84d;background:rgba(228,184,77,0.06);}
 .wm-add-item-btn span{font-size:18px;line-height:1;}
 
 /* bottom action buttons */
 .wm-seg-row{display:flex;align-items:center;gap:5px;background:#0e1117;border-radius:2px;padding:5px 8px;}
 .wm-seg-col{width:18px;height:18px;border-radius:2px;border:1px solid #252930;cursor:pointer;padding:0;flex-shrink:0;}
-.wm-edit-acts{display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid #1e2028;padding-top:8px;margin-top:4px;flex-shrink:0;}
+.wm-edit-acts{display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #1e2028;padding-top:8px;margin-top:4px;flex-shrink:0;}
 .wm-act{
-  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.5px;
-  background:#0e1117;border:1px solid #2a2e38;color:#c8d0dc;
-  padding:5px 8px;border-radius:2px;cursor:pointer;transition:all 0.12s;flex:1;
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.5px;font-weight:700;
+  background:linear-gradient(145deg,#171a21,#0e1117);border:1px solid #2a2e38;color:#8a91a5;
+  padding:6px 8px;border-radius:7px;cursor:pointer;transition:all 0.15s;flex:1;
 }
-.wm-act:hover{border-color:#e4b84d;color:#e4b84d;}
-.wm-act.red:hover{border-color:#ef4444;color:#ef4444;}
+.wm-act:hover{border-color:#e4b84d;color:#e4b84d;background:rgba(228,184,77,0.08);transform:translateY(-1px);box-shadow:0 2px 10px rgba(228,184,77,0.25);}
+.wm-act.red:hover{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,0.08);box-shadow:0 2px 10px rgba(239,68,68,0.25);}
 
 /* ── Icon picker (7TV + upload) ── */
 .wm-emote-pick{
@@ -12815,10 +12815,10 @@ window.addEventListener('hashchange', _routeFromHash);
   font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;
   letter-spacing:3px;text-transform:uppercase;
   background:rgba(255,255,255,0.05);border:1px solid #2a2e38;
-  color:#6a7080;padding:10px 32px;border-radius:3px;cursor:pointer;
+  color:#6a7080;padding:10px 32px;border-radius:8px;cursor:pointer;
   transition:all 0.15s;
 }
-.wm-win-close-btn:hover{border-color:#e4b84d;color:#e4b84d;background:rgba(228,184,77,0.08);}
+.wm-win-close-btn:hover{border-color:#e4b84d;color:#e4b84d;background:rgba(228,184,77,0.08);transform:translateY(-1px);box-shadow:0 2px 12px rgba(228,184,77,0.25);}
 
 /* ── Win glow — soft radial pulse behind icon ── */
 .wm-sunrays{
@@ -14146,7 +14146,7 @@ function _wmRenderEdit() {
           <span style="font-family:var(--mono);font-size:12px;color:#8a91a5;padding:0 7px 0 1px">%</span>
         </div>
         ${isDefaultOdds ? '' : `<button class="wm-odds-reset" onclick="wmResetItemOdds(${i})" title="Reset to even odds"
-          style="margin-left:auto;background:none;border:1px solid #2a2e38;color:#8a91a5;border-radius:4px;padding:3px 9px;font-size:10px;cursor:pointer;font-family:var(--mono)">↺ Reset</button>`}
+          style="margin-left:auto;background:none;border:1px solid #2a2e38;color:#8a91a5;border-radius:7px;padding:3px 9px;font-size:10px;cursor:pointer;font-family:var(--mono);transition:all 0.15s" onmouseover="this.style.borderColor='#e4b84d';this.style.color='#e4b84d';this.style.background='rgba(228,184,77,0.08)'" onmouseout="this.style.borderColor='#2a2e38';this.style.color='#8a91a5';this.style.background='none'">↺ Reset</button>`}
       </div>
     </div>`;
   }).join('');
