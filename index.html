@@ -716,7 +716,8 @@
     color: #fff;
     font-weight: 800;
   }
-  .live-status { color: #ff6060 !important; }
+  .live-status { color: #ff6060 !important; font-size: 15px !important; }
+  .offline-status { color: var(--muted) !important; font-weight: 600 !important; }
   .live-dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: #ff4040; box-shadow: 0 0 5px #ff4040;
@@ -940,7 +941,7 @@
   .grid-header-count {
     font-family: var(--mono);
     font-size: 15px;
-    font-weight: 800;
+    font-weight: 400;
     color: #fff;
   }
 
@@ -1123,8 +1124,8 @@
     align-items: center;
     justify-content: center;
     width: 30px; height: 30px;
-    color: #fff;
-    opacity: 0.92;
+    color: #b8bcc6;
+    opacity: 0.85;
     text-decoration: none;
     border-radius: 3px;
     transition: opacity 0.12s;
@@ -1134,7 +1135,7 @@
   .social-link svg { width: 21px; height: 21px; display: block; flex-shrink: 0; }
   .social-vod-badge {
     font-size: 10px; font-family: var(--mono); font-weight: 800;
-    color: #fff; line-height: 1; letter-spacing: 0.5px;
+    color: #b8bcc6; line-height: 1; letter-spacing: 0.5px;
     pointer-events: none; margin-left: 2px;
   }
   .social-link-vod {
@@ -1691,7 +1692,7 @@
   .yt-latest-section {
     padding: 24px 0 8px;
     border-top: 1px solid var(--border);
-    margin-top: 0;
+    margin-top: 20px;
   }
   /* Two-column header aligned above the card columns */
   .yt-latest-header {
@@ -2114,7 +2115,7 @@
   </a>
   <div class="topbar-divider"></div>
   <div id="streamStatus" class="stream-status offline-status">
-    <span id="streamStatusText" style="font-weight:700">Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt=""></span>
+    <span id="streamStatusText">Shibez is currently offline <img src="https://cdn.7tv.app/emote/01GB8HJ61R0000X4MX5ZF49QE8/2x.webp" class="status-emote" alt=""></span>
   </div>
   <div class="topbar-spacer"></div>
   <div class="topbar-socials">
@@ -2145,45 +2146,45 @@
 <!-- NAVBAR -->
 <nav class="navbar" id="mainBtnRow">
   <button onclick="openRandomClip()" id="randomClipBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#fff;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#fff'">
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     🎲 RANDOM CLIP
   </button>
   <button onclick="openShible()" id="shibleBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#fff;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#fff'">
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     📅 SHIB.LE
   </button>
   <button onclick="openHigherLower()" id="higherLowerBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#fff;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#fff'">
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     📊 HIGHER OR LOWER
   </button>
   <button onclick="openEmoteGuesser()" id="emoteGuesserBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#fff;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#e879f9';this.style.color='#e879f9'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#fff'">
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     🎭 EMOTE GUESSER
   </button>
   <button onclick="openAiOrNot()" id="aionBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#fff;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#f472b6';this.style.color='#f472b6'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#fff'">
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     🤖 AI OR NOT
   </button>
   <button onclick="openFlappyShibez()" id="flappyBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#fff;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#4ade80';this.style.color='#4ade80'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#fff'">
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     🐦 FLAPPY SHIBEZ
   </button>
   <button onclick="openSpacebez()" id="spaceBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#fff;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#fff'">
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     🚀 SPACEBEZ
   </button>
   <div class="navbar-spacer"></div>
@@ -2205,7 +2206,7 @@
         <span class="live-banner-dot"></span>
         <span class="live-banner-title"><a href="https://twitch.tv/shlbez" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:1px;cursor:pointer;">Shibez is LIVE! <img src="https://cdn.7tv.app/emote/01F6N0NRYR000AR0YATR3Q3CPR/2x.webp" style="height:22px;vertical-align:middle;margin-left:2px" alt=""></a></span>
       </div>
-      <div id="liveBannerStreamTitle" style="font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;display:none;text-align:center;max-width:700px;line-height:1.3"></div>
+      <div id="liveBannerStreamTitle" style="font-family:var(--mono);font-size:14px;font-weight:700;color:#9aa0ac;display:none;text-align:center;max-width:700px;line-height:1.3"></div>
       <div class="live-banner-meta" id="liveBannerMeta" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#eee;display:none"></div>
       <div class="live-banner-embed" id="liveBannerEmbed"></div>
     </div>
@@ -2271,7 +2272,7 @@
             <button id="spaceAutoShootBtn" onclick="spaceToggleAutoShoot()" title="Toggle auto-shoot" style="display:none;background:rgba(255,200,0,0.15);border:1px solid rgba(255,200,0,0.4);color:#ffd700;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--mono);line-height:1;padding:4px 9px;border-radius:4px">AUTO 🔫</button>
             <div style="display:flex;flex-direction:column;gap:1px">
               <span style="font-family:var(--mono);font-size:16px;font-weight:900;color:#fff;letter-spacing:1px">SPACEBEZ</span>
-              <span style="font-family:var(--mono);font-size:13px;color:#eee;font-weight:700">WASD · Space/Click · C auto-fire · E shop · P pause</span>
+              <span style="font-family:var(--mono);font-size:11px;color:#a9adb8;font-weight:400">WASD · Space/Click · C auto-fire · E shop · P pause</span>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;justify-content:flex-end;overflow:hidden">
@@ -2350,7 +2351,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
           <div style="display:flex;flex-direction:column;gap:2px">
             <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--text);letter-spacing:1px">🎭 EMOTE GUESSER</span>
-            <span style="font-family:var(--mono);font-size:13px;color:#f0f0f0;font-weight:700">Guess the emote — more pixels revealed each wrong guess</span>
+            <span style="font-family:var(--mono);font-size:11px;color:#a9adb8;font-weight:400">Guess the emote — more pixels revealed each wrong guess</span>
           </div>
           <div style="display:flex;align-items:center;gap:10px">
             <span id="egAttemptsBadge" style="font-family:var(--mono);font-size:14px;color:#f0f0f0;font-weight:800"></span>
@@ -2400,7 +2401,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
           <div style="display:flex;flex-direction:column;gap:2px">
             <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--text);letter-spacing:1px">📊 HIGHER OR LOWER</span>
-            <span style="font-family:var(--mono);font-size:13px;color:#f0f0f0;font-weight:700">Which emote has been typed more times on Twitch?</span>
+            <span style="font-family:var(--mono);font-size:11px;color:#a9adb8;font-weight:400">Which emote has been typed more times on Twitch?</span>
           </div>
           <div style="display:flex;align-items:center;gap:14px">
             <span style="font-family:var(--mono);font-size:14px;color:#eee;font-weight:700">Score: <span id="holScore" style="color:#f59e0b;font-weight:900;font-size:17px">0</span></span>
@@ -2469,7 +2470,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box">
           <div style="display:flex;flex-direction:column;gap:1px">
             <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:#f472b6;letter-spacing:2px">🤖 AI OR NOT</span>
-            <span style="font-family:var(--mono);font-size:13px;color:#f0f0f0;font-weight:700">Is this image AI-generated or real?</span>
+            <span style="font-family:var(--mono);font-size:11px;color:#a9adb8;font-weight:400">Is this image AI-generated or real?</span>
           </div>
           <div style="display:flex;align-items:center;gap:12px">
             <span style="font-family:var(--mono);font-size:14px;color:#eee;font-weight:700">Score: <span id="aionScore" style="color:#fff;font-weight:900;font-size:17px">0</span></span>
@@ -2530,7 +2531,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
           <div style="display:flex;flex-direction:column;gap:1px">
             <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:var(--text);letter-spacing:1px">FLAPPY SHIBEZ</span>
-            <span style="font-family:var(--mono);font-size:13px;color:#eee;font-weight:800">Click / Space / Tap to flap</span>
+            <span style="font-family:var(--mono);font-size:11px;color:#a9adb8;font-weight:400">Click / Space / Tap to flap</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <span style="font-family:var(--mono);font-size:13px;color:#eee;font-weight:700">Score:</span>
@@ -2559,7 +2560,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
           <div style="display:flex;flex-direction:column;gap:1px">
             <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--text);letter-spacing:1px">SHIB.LE</span>
-            <span style="font-family:var(--mono);font-size:13px;color:#f0f0f0;font-weight:700" id="shibleSubtitle">Guess the stream date from the thumbnail</span>
+            <span style="font-family:var(--mono);font-size:11px;color:#a9adb8;font-weight:400" id="shibleSubtitle">Guess the stream date from the thumbnail</span>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:#bbb" id="shibleGuessCount">5 guesses left</span>
@@ -2680,14 +2681,14 @@
       </div>
       <div id="dateFilterWrap" style="display:flex;align-items:center;gap:6px;margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted)">
         <div style="display:flex;flex-direction:column;gap:1px">
-          <span style="font-size:11px;color:#fff;letter-spacing:0.5px;opacity:0.95;font-weight:700">FROM</span>
+          <span style="font-size:11px;color:var(--muted);letter-spacing:0.5px;opacity:0.95;font-weight:700">FROM</span>
           <input type="date" id="dateFrom" lang="en" title="From date"
             style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;color-scheme:dark"
             oninput="applyDateFilter()">
         </div>
         <span style="font-size:18px;color:#bbb;align-self:flex-end;padding-bottom:3px;font-weight:300">→</span>
         <div style="display:flex;flex-direction:column;gap:1px">
-          <span style="font-size:11px;color:#fff;letter-spacing:0.5px;opacity:0.95;font-weight:700">TO</span>
+          <span style="font-size:11px;color:var(--muted);letter-spacing:0.5px;opacity:0.95;font-weight:700">TO</span>
           <input type="date" id="dateTo" lang="en" title="To date"
             style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;color-scheme:dark"
             oninput="applyDateFilter()">
@@ -12307,6 +12308,38 @@ window.addEventListener('hashchange', _routeFromHash);
   padding:4px 10px;border-radius:3px;outline:none;width:180px;letter-spacing:1px;
 }
 .wm-case-name-inp:focus{border-color:#e4b84d;}
+
+/* ── Mode toggle: prettier pill-style segmented control ── */
+.wm-mode-toggle{
+  position:relative;
+  display:flex;align-items:center;
+  margin-left:12px;flex-shrink:0;
+  background:rgba(255,255,255,0.04);
+  border:1px solid #2a2e38;
+  border-radius:20px;
+  padding:3px;
+  gap:2px;
+}
+.wm-mode-thumb{
+  position:absolute;top:3px;left:3px;bottom:3px;
+  width:calc(50% - 3px);
+  background:linear-gradient(135deg,#c8972a 0%,#e4b84d 50%,#f0cc6a 100%);
+  border-radius:17px;
+  z-index:0;
+  transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:0 2px 10px rgba(228,184,77,0.35);
+}
+.wm-mode-btn{
+  position:relative;z-index:1;
+  display:flex;align-items:center;gap:6px;
+  font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;
+  letter-spacing:0.4px;white-space:nowrap;
+  background:none;border:none;color:#8a90a0;
+  padding:7px 16px;border-radius:17px;
+  cursor:pointer;transition:color 0.2s;
+}
+.wm-mode-btn:hover{color:#c8d0dc;}
+.wm-mode-btn.active{color:#0d0f14;}
 .wm-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
 .wm-vol-label{font-family:'Share Tech Mono',monospace;font-size:13px;color:#c8d0dc;letter-spacing:1px;font-weight:700;}
 #wmVolSlider{width:80px;accent-color:#e4b84d;cursor:pointer;}
@@ -12894,36 +12927,19 @@ window.addEventListener('hashchange', _routeFromHash);
   background:linear-gradient(160deg,#14161c 0%,#0e1015 100%);
   border:1px solid #2a2e38;border-radius:6px;
   overflow:hidden;
-  box-shadow:0 0 80px rgba(0,0,0,0.9);
+  box-shadow:0 0 50px -6px var(--wm-win-color,#e4b84d), 0 0 80px rgba(0,0,0,0.9);
   animation:wmPopIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275);
   position:relative;
 }
 @keyframes wmPopIn{from{transform:scale(0.55) translateY(30px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
 
-/* Glow border animated */
-.wm-win-card::before{
-  content:'';position:absolute;inset:-1px;border-radius:6px;
-  background:linear-gradient(135deg,var(--wm-win-color,#e4b84d),transparent 60%,var(--wm-win-color,#e4b84d));
-  pointer-events:none;z-index:0;opacity:0.7;
-  animation:wmBorderSpin 3s linear infinite;
-}
 .wm-win-card-inner{position:relative;z-index:1;background:linear-gradient(160deg,#14161c 0%,#0e1015 100%);border-radius:5px;display:flex;flex-direction:column;align-items:center;}
-
-@keyframes wmBorderSpin{0%{opacity:0.4}50%{opacity:0.9}100%{opacity:0.4}}
 
 /* Big icon area */
 .wm-win-icon-area{
   display:flex;align-items:center;justify-content:center;
   width:100%;height:220px;
-  background:radial-gradient(ellipse at center, rgba(255,255,255,0.04) 0%, transparent 70%);
   position:relative;overflow:hidden;
-}
-/* radial glow behind icon */
-.wm-win-icon-area::after{
-  content:'';position:absolute;
-  width:200px;height:200px;border-radius:50%;
-  background:radial-gradient(circle, var(--wm-win-color,#e4b84d) 0%, transparent 70%);
-  opacity:0.12;pointer-events:none;
 }
 .wm-win-big-icon{font-size:130px;line-height:1;position:relative;z-index:2;filter:drop-shadow(0 0 20px rgba(255,255,255,0.2));display:flex;align-items:center;justify-content:center;}
 .wm-win-big-icon img{width:130px;height:130px;object-fit:contain;}
@@ -12960,7 +12976,7 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-win-close-btn:hover{border-color:#e4b84d;color:#e4b84d;background:rgba(228,184,77,0.08);}
 
-/* ── Win glow — soft radial pulse behind icon ── */
+/* ── Win glow — a single simple shine pulsing from the center behind the icon/text ── */
 .wm-sunrays{
   position:absolute;inset:0;pointer-events:none;
   display:flex;align-items:center;justify-content:center;
@@ -12968,24 +12984,17 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-sunrays-inner{
   position:absolute;
-  width:340px;height:340px;
+  width:300px;height:300px;
   border-radius:50%;
-  background:radial-gradient(circle, var(--wm-glow-color,#e4b84d) 0%, transparent 70%);
+  background:radial-gradient(circle, var(--wm-glow-color,#e4b84d) 0%, transparent 72%);
   opacity:0;
-  animation:wmGlowPulse 2.2s ease-in-out infinite;
-  filter:blur(18px);
-}
-.wm-sunrays-inner.layer2{
-  width:220px;height:220px;
-  animation-delay:0.6s;
-  opacity:0;
-  filter:blur(8px);
+  animation:wmGlowPulse 2.4s ease-in-out infinite;
+  filter:blur(20px);
 }
 @keyframes wmGlowPulse{
-  0%{opacity:0;transform:scale(0.7);}
-  40%{opacity:0.55;}
-  70%{opacity:0.35;}
-  100%{opacity:0;transform:scale(1.15);}
+  0%{opacity:0;transform:scale(0.8);}
+  45%{opacity:0.45;}
+  100%{opacity:0;transform:scale(1.1);}
 }
 /* Remove old confetti */
 .wm-confetti{display:none;}
@@ -13003,13 +13012,10 @@ window.addEventListener('hashchange', _routeFromHash);
     <span class="wm-logo">🛞 Wheel Spin</span>
     <input class="wm-case-name-inp" id="wmCaseNameInp" value="Main Wheel" oninput="wmRenameWheel(this.value,'wmCaseNameInp')" placeholder="Wheel name…">
     <!-- Mode toggle -->
-    <div style="display:flex;align-items:center;gap:10px;margin-left:12px;flex-shrink:0">
-      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#c8d0dc;letter-spacing:0.5px">
-        <input type="radio" name="wmMode" value="case" checked onchange="wmSetMode('case')" style="accent-color:#e4b84d;cursor:pointer"> Case Opening
-      </label>
-      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#c8d0dc;letter-spacing:0.5px">
-        <input type="radio" name="wmMode" value="wheel" onchange="wmSetMode('wheel')" style="accent-color:#e4b84d;cursor:pointer"> Wheel Spin
-      </label>
+    <div class="wm-mode-toggle" id="wmModeToggle">
+      <button type="button" class="wm-mode-btn active" id="wmModeCaseBtn" onclick="wmSetMode('case')">📦 Case Opening</button>
+      <button type="button" class="wm-mode-btn" id="wmModeWheelBtn" onclick="wmSetMode('wheel')">🛞 Wheel Spin</button>
+      <div class="wm-mode-thumb" id="wmModeThumb"></div>
     </div>
     <div class="wm-topbar-right">
       <span class="wm-vol-label">VOL</span>
@@ -14549,16 +14555,13 @@ function wmShowWinPopup(winner) {
   const descEl = document.getElementById('wmWinDesc');
   descEl.textContent = winner.desc || 'You got this one. Time to face the consequences.';
 
-  // Soft radial glow — two pulsing blurred circles behind the icon
+  // Simple radial shine — one soft pulsing glow behind the icon/text
   const rays = document.getElementById('wmSunrays');
   rays.innerHTML = '';
   rays.style.setProperty('--wm-glow-color', winner.color);
   const g1 = document.createElement('div');
   g1.className = 'wm-sunrays-inner';
-  const g2 = document.createElement('div');
-  g2.className = 'wm-sunrays-inner layer2';
   rays.appendChild(g1);
-  rays.appendChild(g2);
 
   popup.classList.add('open');
 }
@@ -14599,6 +14602,15 @@ function wmSetMode(mode) {
   const reelOuter  = document.getElementById('wmReelOuter');
   const wheelSec   = document.getElementById('wmWheelSection');
   const subtitleEl = document.getElementById('wmSubtitle');
+  const caseBtn    = document.getElementById('wmModeCaseBtn');
+  const wheelBtn   = document.getElementById('wmModeWheelBtn');
+  const thumb      = document.getElementById('wmModeThumb');
+
+  if (caseBtn && wheelBtn) {
+    caseBtn.classList.toggle('active', mode === 'case');
+    wheelBtn.classList.toggle('active', mode === 'wheel');
+  }
+  if (thumb) thumb.style.transform = mode === 'wheel' ? 'translateX(100%)' : 'translateX(0)';
 
   if (mode === 'case') {
     btn.textContent = 'OPEN CASE';
@@ -14716,7 +14728,7 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
   // Arc length of one slice at the midpoint radius — used for adaptive font/icon
   const arcLen   = R * 0.65 * seg;
-  const fontSize = Math.max(4, Math.min(9, (arcLen * 0.168) | 0));
+  const fontSize = Math.max(6, Math.min(13, (arcLen * 0.24) | 0));
   const showIcon = arcLen > 12; // only fully hide icons when there's truly no room left
 
   // Outer rim glow
@@ -14782,7 +14794,7 @@ function _wmRenderWheelFrame(angle, hovIdx) {
         // URL icons handled by DOM overlay (_wmUpdateIconOverlay) — canvas drawImage
         // only ever snapshots a static frame, so animated WebP/GIF must use real <img>.
       } else if (isEmoji) {
-        const eSz = Math.max(5, Math.min(12, (arcLen * 0.21) | 0));
+        const eSz = Math.max(8, Math.min(17, (arcLen * 0.30) | 0));
         ctx.font = `${eSz}px serif`;
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
@@ -14854,9 +14866,9 @@ function _wmUpdateIconOverlay(angle) {
   if (!n) { overlay.innerHTML = ''; return; }
   const seg    = (2 * Math.PI) / n;
   const arcLen = R * 0.65 * seg;
-  const fontSize = Math.max(4, Math.min(9, (arcLen * 0.168) | 0));
+  const fontSize = Math.max(6, Math.min(13, (arcLen * 0.24) | 0));
   const iconOff  = -(fontSize * 0.8 + 3); // negative = outward in local rotated frame
-  const iSz      = Math.max(6, Math.min(14, (arcLen * 0.224) | 0));
+  const iSz      = Math.max(9, Math.min(19, (arcLen * 0.32) | 0));
   const showIcon = arcLen > 12;
 
   // Collect items that need URL icon overlays
