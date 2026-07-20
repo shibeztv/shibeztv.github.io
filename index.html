@@ -947,7 +947,7 @@
     font-family: var(--mono);
     font-size: 15px;
     font-weight: 500;
-    color: var(--muted);
+    color: #c8d0dc;
   }
 
   .stream-grid {
@@ -2197,7 +2197,7 @@
     style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:900;letter-spacing:0.5px;background:rgba(228,184,77,0.12);border:1.5px solid rgba(228,184,77,0.5);color:#e4b84d;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap;box-shadow:0 0 10px rgba(228,184,77,0.1)"
     onmouseover="this.style.borderColor='#e4b84d';this.style.color='#f7d374';this.style.background='rgba(228,184,77,0.22)';this.style.boxShadow='0 0 16px rgba(228,184,77,0.28)'"
     onmouseout="this.style.borderColor='rgba(228,184,77,0.5)';this.style.color='#e4b84d';this.style.background='rgba(228,184,77,0.12)';this.style.boxShadow='0 0 10px rgba(228,184,77,0.1)'">
-    🛞 WHEEL SPIN
+    🛞 <b>WHEEL SPIN</b>
   </button>
 </nav>
 
@@ -12511,17 +12511,17 @@ window.addEventListener('hashchange', _routeFromHash);
   content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
 }
 
-/* ── Gold-rarity items: strong pulsing glow in the case-opening reel ── */
+/* ── Gold-rarity items: strong pulsing glow, contained inside the item box ── */
 .wm-item-gold{
-  box-shadow:0 0 34px 8px rgba(228,184,77,0.75), inset 0 0 28px rgba(228,184,77,0.25);
-  animation: wmGoldPulse 1.1s ease-in-out infinite;
+  box-shadow: inset 0 0 34px 6px rgba(228,184,77,0.55), inset 0 0 70px 14px rgba(228,184,77,0.25);
+  animation: wmGoldPulse 2.8s ease-in-out infinite;
 }
 .wm-item-gold .wm-item-icon{
-  filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 18px rgba(228,184,77,1));
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 14px rgba(228,184,77,0.9));
 }
 @keyframes wmGoldPulse{
-  0%, 100% { box-shadow:0 0 34px 8px rgba(228,184,77,0.75), inset 0 0 28px rgba(228,184,77,0.25); }
-  50%      { box-shadow:0 0 54px 16px rgba(228,184,77,1), inset 0 0 40px rgba(228,184,77,0.45); }
+  0%, 100% { box-shadow: inset 0 0 34px 6px rgba(228,184,77,0.55), inset 0 0 70px 14px rgba(228,184,77,0.25); }
+  50%      { box-shadow: inset 0 0 50px 10px rgba(228,184,77,0.9), inset 0 0 95px 20px rgba(228,184,77,0.45); }
 }
 
 /* center pointer — the CS2 gold tick line */
@@ -12570,27 +12570,28 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-wtab.active{background:rgba(228,184,77,0.1);border-color:#e4b84d;color:#e4b84d;}
 .wm-newbtn{
   font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;
-  background:rgba(228,184,77,0.1);border:1px dashed rgba(228,184,77,0.6);color:#e4b84d;
+  background:rgba(180,184,190,0.1);border:1px dashed rgba(180,184,190,0.6);color:#b4b8be;
   padding:8px 14px;border-radius:2px;cursor:pointer;transition:all 0.12s;
 }
-.wm-newbtn:hover{color:#f0cc6a;border-color:#f0cc6a;background:rgba(228,184,77,0.2);}
+.wm-newbtn:hover{color:#d0d4da;border-color:#d0d4da;background:rgba(180,184,190,0.2);}
 
 /* ── Spin button area ── */
 .wm-spinrow{
   display:flex;align-items:center;justify-content:center;gap:16px;
-  padding:8px 16px 10px;flex-shrink:0;
+  padding:2px 16px 4px;flex-shrink:0;
 }
 .wm-spinbtn{
-  font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:800;letter-spacing:4px;
-  text-transform:uppercase;
+  font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:800;
   background:linear-gradient(135deg,#c8972a 0%,#e4b84d 40%,#f0cc6a 60%,#c8972a 100%);
-  border:none;color:#0d0f14;padding:13px 60px;border-radius:3px;cursor:pointer;
+  border:none;color:#0d0f14;cursor:pointer;
+  width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
   box-shadow:0 2px 20px rgba(228,184,77,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
   transition:all 0.15s;position:relative;overflow:hidden;
 }
 .wm-spinbtn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.15) 50%,transparent 60%);transform:translateX(-100%);transition:transform 0.4s;}
 .wm-spinbtn:hover:not(:disabled)::after{transform:translateX(100%);}
-.wm-spinbtn:hover:not(:disabled){box-shadow:0 4px 30px rgba(228,184,77,0.55), inset 0 1px 0 rgba(255,255,255,0.3);}
+.wm-spinbtn:hover:not(:disabled){box-shadow:0 4px 30px rgba(228,184,77,0.55), inset 0 1px 0 rgba(255,255,255,0.3);transform:scale(1.06);}
 .wm-spinbtn:disabled{opacity:0.35;cursor:not-allowed;}
 
 /* ── Right panel: history + edit ── */
@@ -13065,7 +13066,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
       <!-- Spin -->
       <div class="wm-spinrow">
-        <button class="wm-spinbtn" id="wmSpinBtn" onclick="wmSpin()">SPIN WHEEL</button>
+        <button class="wm-spinbtn" id="wmSpinBtn" onclick="wmSpin()" title="Spin">▶</button>
       </div>
 
       <!-- Wheel tabs -->
@@ -14624,22 +14625,22 @@ function wmSetMode(mode) {
   if (thumb) thumb.style.transform = mode === 'wheel' ? 'translateX(100%)' : 'translateX(0)';
 
   if (mode === 'case') {
-    btn.textContent = 'OPEN CASE';
+    btn.textContent = '▶'; btn.title = 'Open Case';
     if (logo) logo.textContent = '📦 Case Opening';
     if (reelOuter)  reelOuter.style.display  = '';
     if (wheelSec)   wheelSec.classList.remove('active');
-    if (subtitleEl) subtitleEl.textContent = 'CONTAINS ONE OF THE FOLLOWING';
+    if (subtitleEl) { subtitleEl.textContent = 'CONTAINS ONE OF THE FOLLOWING'; subtitleEl.style.display = ''; }
     _wmStopAnimLoop();
     const ov = document.getElementById('_wmIconOverlay'); if (ov) ov.innerHTML = '';
     // Populate the reel with a static item preview if it's currently empty
     const track = document.getElementById('wmReelTrack');
     if (track && !track.children.length) try { _wmPreviewReel(); } catch(e) {}
   } else {
-    btn.textContent = 'SPIN WHEEL';
+    btn.textContent = '▶'; btn.title = 'Spin Wheel';
     if (logo) logo.textContent = '🛞 Wheel Spin';
     if (reelOuter)  reelOuter.style.display  = 'none';
     if (wheelSec)   wheelSec.classList.add('active');
-    if (subtitleEl) subtitleEl.textContent = 'SPIN THE WHEEL';
+    if (subtitleEl) subtitleEl.style.display = 'none';
     _wmDrawWheel(0);
     _wmFitWheel();
     setTimeout(_wmSetupHoverTooltip, 60);
@@ -14739,7 +14740,7 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
   // Arc length of one slice at the midpoint radius — used for adaptive font/icon
   const arcLen   = R * 0.65 * seg;
-  const fontSize = Math.max(6, Math.min(13, (arcLen * 0.24) | 0));
+  const fontSize = Math.max(5, Math.min(12, (arcLen * 0.216) | 0));
   const showIcon = arcLen > 12; // only fully hide icons when there's truly no room left
 
   // Outer rim glow
@@ -14798,14 +14799,14 @@ function _wmRenderWheelFrame(angle, hovIdx) {
     const icon   = item.icon;
     const isUrl   = icon && (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/'));
     const isEmoji = icon && !isUrl;
-    const iconOff = -(fontSize * 0.8 + 3); // y-offset above label centre
+    const eSz = Math.max(12, Math.min(26, (arcLen * 0.45) | 0));
+    const iconOff = -(fontSize * 0.6 + eSz * 0.55 + 4); // y-offset above label centre
 
     if (showIcon) {
       if (isUrl) {
         // URL icons handled by DOM overlay (_wmUpdateIconOverlay) — canvas drawImage
         // only ever snapshots a static frame, so animated WebP/GIF must use real <img>.
       } else if (isEmoji) {
-        const eSz = Math.max(8, Math.min(17, (arcLen * 0.30) | 0));
         ctx.font = `${eSz}px serif`;
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
@@ -14877,9 +14878,9 @@ function _wmUpdateIconOverlay(angle) {
   if (!n) { overlay.innerHTML = ''; return; }
   const seg    = (2 * Math.PI) / n;
   const arcLen = R * 0.65 * seg;
-  const fontSize = Math.max(6, Math.min(13, (arcLen * 0.24) | 0));
-  const iconOff  = -(fontSize * 0.8 + 3); // negative = outward in local rotated frame
-  const iSz      = Math.max(9, Math.min(19, (arcLen * 0.32) | 0));
+  const fontSize = Math.max(5, Math.min(12, (arcLen * 0.216) | 0));
+  const iSz      = Math.max(14, Math.min(29, (arcLen * 0.48) | 0));
+  const iconOff  = -(fontSize * 0.6 + iSz * 0.55 + 4); // negative = outward in local rotated frame
   const showIcon = arcLen > 12;
 
   // Collect items that need URL icon overlays
@@ -14921,10 +14922,10 @@ function _wmUpdateIconOverlay(angle) {
     img.style.height = iSz + 'px';
     img.style.left   = (worldX - iSz / 2) + 'px';
     img.style.top    = (worldY - iSz / 2) + 'px';
-    // Keep icons upright (no rotation). Emote images are small squares and look
-    // correct at any wheel position without rotation. Rotating them causes jarring
-    // 180° flips each time a slice crosses the top/bottom boundary while spinning.
-    img.style.transform = 'none';
+    // Rotate radially so the bottom of each emote faces the wheel's center —
+    // same single consistent rotation used for the text/emoji labels, no half-wheel flip.
+    const rotDeg = (midA + Math.PI / 2) * (180 / Math.PI);
+    img.style.transform = `rotate(${rotDeg}deg)`;
     img.style.display   = showIcon ? '' : 'none';
   });
 }
