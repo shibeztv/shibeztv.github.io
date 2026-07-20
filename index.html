@@ -791,7 +791,7 @@
     40% { transform: translateY(-10px); opacity: 1; }
   }
   .loader-gif {
-    width: 140px;
+    width: 56px;
     height: auto;
     image-rendering: pixelated;
   }
@@ -946,8 +946,8 @@
   .grid-header-count {
     font-family: var(--mono);
     font-size: 15px;
-    font-weight: 400;
-    color: #fff;
+    font-weight: 500;
+    color: var(--muted);
   }
 
   .stream-grid {
@@ -2703,7 +2703,7 @@
       </div>
     </div>
     <div class="stream-grid" id="streamGrid">
-      <div class="loader"><span>Loading streams</span><img class="loader-gif" src="loading.gif" alt=""></div>
+      <div class="loader"><img class="loader-gif" src="loading.gif" alt=""><span>Loading streams</span></div>
     </div>
     <div class="pagination" id="pagination" style="display:none">
       <button class="page-btn page-arrow" id="pageFirst" onclick="goToPage(0)" title="First page">«</button>
@@ -5041,7 +5041,7 @@ async function loadStreams() {
     }
   } catch(e) {}
 
-  if (grid) grid.innerHTML = '<div class="loader"><span>Loading streams</span><img class="loader-gif" src="loading.gif" alt=""></div>';
+  if (grid) grid.innerHTML = '<div class="loader"><img class="loader-gif" src="loading.gif" alt=""><span>Loading streams</span></div>';
   await refreshStreams(true);
   // Emotes load AFTER videos are fetched so they don't compete for connections
   setTimeout(loadEmotes, 300);
@@ -5049,7 +5049,7 @@ async function loadStreams() {
 
 async function refreshStreams(showErrors) {
   const grid = document.getElementById('streamGrid');
-  const setStatus = msg => { if (grid) grid.innerHTML = `<div class="loader"><span>${msg}</span><img class="loader-gif" src="loading.gif" alt=""></div>`; };
+  const setStatus = msg => { if (grid) grid.innerHTML = `<div class="loader"><img class="loader-gif" src="loading.gif" alt=""><span>${msg}</span></div>`; };
   try {
     setStatus('Resolving channel…');
     const channelId = config.ytChannel.startsWith('UC') ? config.ytChannel : await resolveChannelId(config.ytChannel, config.ytApiKey);
@@ -12428,7 +12428,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-subtitle{
   text-align:center;
   font-family:'Share Tech Mono',monospace;font-size:24px;font-weight:900;letter-spacing:4px;
-  color:#ffffff;text-transform:uppercase;padding:14px 0 10px;flex-shrink:0;
+  color:#ffffff;text-transform:uppercase;padding:14px 0 26px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   text-shadow:0 0 18px rgba(228,184,77,0.35);
 }
@@ -12436,7 +12436,7 @@ window.addEventListener('hashchange', _routeFromHash);
 /* ── Actual spinning wheel ── */
 .wm-wheel-section{
   display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;
-  position:relative;min-height:0;padding:16px 0 10px;min-height:280px;overflow:visible;
+  position:relative;min-height:0;padding:14px 0 28px;min-height:280px;overflow:visible;
 }
 .wm-wheel-section.active{display:flex;}
 .wm-wheel-canvas-wrap{
@@ -12455,17 +12455,11 @@ window.addEventListener('hashchange', _routeFromHash);
   filter:drop-shadow(0 2px 6px rgba(228,184,77,0.7));
   z-index:5;pointer-events:none;
 }
-.wm-wheel-center-dot{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:22px;height:22px;border-radius:50%;
-  background:radial-gradient(circle,#2a2e38,#141720);
-  border:2px solid #e4b84d;z-index:5;pointer-events:none;
-}
 
 /* ── Reel ── */
 .wm-reel-outer{
   position:relative;flex-shrink:0;
-  padding:0;margin:8px 0 0 0;
+  padding:0;margin:26px 0 26px 0;
   background:linear-gradient(180deg,#0d0f14 0%,#111418 50%,#0d0f14 100%);
   border-top:1px solid #252930;border-bottom:1px solid #252930;
   overflow:hidden;height:260px;
@@ -12953,7 +12947,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-win-stripe{height:3px;width:100%;}
 
 /* Text block */
-.wm-win-text{padding:24px 36px 28px;text-align:center;}
+.wm-win-text{padding:36px 36px 28px;text-align:center;}
 .wm-win-you-got{
   font-family:'Share Tech Mono',monospace;font-size:15px;letter-spacing:3px;
   text-transform:uppercase;color:#60ddff;margin-bottom:10px;
@@ -13049,7 +13043,6 @@ window.addEventListener('hashchange', _routeFromHash);
         <div class="wm-wheel-canvas-wrap" id="wmWheelCanvasWrap">
           <canvas id="wmWheelCanvas" width="440" height="440"></canvas>
           <div class="wm-wheel-pointer"></div>
-          <div class="wm-wheel-center-dot"></div>
         </div>
       </div>
 
@@ -14367,12 +14360,25 @@ function wmItemChance(i,v){
   n = Math.max(0, Math.min(100, n));
   item.chance = n; item.chanceLocked = true;
   _wmSave(); _wmRenderContents();
-  // Update this card's lock icon in place without re-rendering the whole list (keeps focus in the input)
+  // Recompute so every other item's shown % (unlocked ones sharing the remainder,
+  // or locked ones getting rescaled if the locked total is over 100%) stays in sync.
+  const chances = _wmComputeChances(w.items);
   const cards = document.querySelectorAll('.wm-item-card');
-  if (cards[i]) {
-    const btn = cards[i].querySelector('.wm-chance-lock');
-    if (btn) { btn.textContent = '🔒'; btn.classList.add('locked'); }
-  }
+  cards.forEach((card, idx) => {
+    const btn = card.querySelector('.wm-chance-lock');
+    if (idx === i) {
+      // This is the field being actively typed in — just flip its lock icon, leave the value alone.
+      if (btn) { btn.textContent = '🔒'; btn.classList.add('locked'); }
+      return;
+    }
+    const inp = card.querySelector('.wm-chance-inp');
+    if (inp && document.activeElement !== inp) inp.value = chances[idx].toFixed(1);
+    if (btn) {
+      const isLocked = !!w.items[idx].chanceLocked;
+      btn.textContent = isLocked ? '🔒' : '🔓';
+      btn.classList.toggle('locked', isLocked);
+    }
+  });
   if(_wmMode==='wheel') _wmDrawWheel(_wmWheelAngle);
 }
 // Toggle a specific item's % between locked (fixed) and auto (shares the rest equally).
@@ -14674,9 +14680,9 @@ function _wmFitWheel() {
   if (availH < 100) {
     // Section may not have laid out yet — grab from parent
     const wmLeft = document.querySelector('.wm-left');
-    availH = wmLeft ? Math.max(200, wmLeft.offsetHeight - 220) : 380;
+    availH = wmLeft ? Math.max(200, wmLeft.offsetHeight - 250) : 380;
   }
-  const size = Math.max(200, Math.min(availW, availH, 620));
+  const size = Math.max(200, Math.min(availW, availH, 760));
   canvas.width  = size;
   canvas.height = size;
   canvas.style.width  = size + 'px';
