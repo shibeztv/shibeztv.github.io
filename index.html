@@ -12436,7 +12436,7 @@ window.addEventListener('hashchange', _routeFromHash);
 /* ── Actual spinning wheel ── */
 .wm-wheel-section{
   display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;
-  position:relative;min-height:0;padding:14px 0 28px;min-height:280px;overflow:visible;
+  position:relative;min-height:0;padding:14px 0 10px;min-height:280px;overflow:visible;
 }
 .wm-wheel-section.active{display:flex;}
 .wm-wheel-canvas-wrap{
@@ -12564,10 +12564,18 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-wtab{
   font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;
   background:rgba(255,255,255,0.03);border:1px solid #252930;color:#60ddff;
-  padding:8px 18px;border-radius:2px;cursor:pointer;transition:all 0.12s;
+  padding:8px 18px;border-radius:2px 0 0 2px;cursor:pointer;transition:all 0.12s;border-right:none;
 }
 .wm-wtab:hover{border-color:#e4b84d;color:#e4b84d;}
 .wm-wtab.active{background:rgba(228,184,77,0.1);border-color:#e4b84d;color:#e4b84d;}
+.wm-wtab-wrap{display:inline-flex;align-items:stretch;}
+.wm-wtab-wrap:has(.wm-wtab.active) .wm-wtab-del{border-color:#e4b84d;}
+.wm-wtab-del{
+  font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1;
+  background:rgba(255,255,255,0.03);border:1px solid #252930;color:#6b6b7a;
+  padding:8px 9px;border-radius:0 2px 2px 0;cursor:pointer;transition:all 0.12s;
+}
+.wm-wtab-del:hover{background:rgba(235,75,75,0.18);border-color:#eb4b4b;color:#eb4b4b;}
 .wm-newbtn{
   font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;
   background:rgba(180,184,190,0.1);border:1px dashed rgba(180,184,190,0.6);color:#b4b8be;
@@ -12578,13 +12586,13 @@ window.addEventListener('hashchange', _routeFromHash);
 /* ── Spin button area ── */
 .wm-spinrow{
   display:flex;align-items:center;justify-content:center;gap:16px;
-  padding:2px 16px 4px;flex-shrink:0;
+  padding:0 16px 4px;flex-shrink:0;
 }
 .wm-spinbtn{
-  font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:800;
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;
   background:linear-gradient(135deg,#c8972a 0%,#e4b84d 40%,#f0cc6a 60%,#c8972a 100%);
   border:none;color:#0d0f14;cursor:pointer;
-  width:46px;height:46px;border-radius:50%;
+  min-width:170px;height:46px;padding:0 22px;border-radius:6px;
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 2px 20px rgba(228,184,77,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
   transition:all 0.15s;position:relative;overflow:hidden;
@@ -13066,7 +13074,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
       <!-- Spin -->
       <div class="wm-spinrow">
-        <button class="wm-spinbtn" id="wmSpinBtn" onclick="wmSpin()" title="Spin">▶</button>
+        <button class="wm-spinbtn" id="wmSpinBtn" onclick="wmSpin()" title="Spin">OPEN CASE</button>
       </div>
 
       <!-- Wheel tabs -->
@@ -14464,11 +14472,31 @@ function wmDelWheel(){if(!_wmCheckLock(_wmCurrent()))return;
   _wmSave();_wmRenderTabs();_wmRenderEdit();
   document.getElementById('wmCaseNameInp').value=_wmCurrent().name;
 }
+// Delete any wheel directly from the tab bar (doesn't require switching to it first).
+// Deletion itself always applies locally (per-browser) — it only becomes global/shared
+// for everyone when the wheel that's saved routes through _wmSave()'s auto-pin, which
+// only fires for shibez/shlbez (see _wmIsShibez / _wmAutoPinIfShibez above).
+function wmDelWheelById(id){
+  const w = _wm.wheels.find(x=>x.id===id);
+  if(!w) return;
+  if(!_wmCheckLock(w)) return;
+  if(_wm.wheels.length<=1){alert('Cannot delete the last wheel!');return;}
+  if(!confirm(`Delete "${w.name}"?`))return;
+  const wasActive = w.id === _wm.activeId;
+  _wm.wheels = _wm.wheels.filter(x=>x.id!==id);
+  if(wasActive) _wm.activeId = _wm.wheels[0].id;
+  _wmSave();_wmRenderTabs();_wmRenderEdit();
+  const nameInp = document.getElementById('wmCaseNameInp'); if(nameInp) nameInp.value=_wmCurrent().name;
+  if(_wmMode==='wheel') _wmDrawWheel(_wmWheelAngle);
+}
 
 // ── Wheel tabs ────────────────────────────────────────────────────────────
 function _wmRenderTabs(){
   document.getElementById('wmWheelTabs').innerHTML=
-    _wm.wheels.map(w=>`<button class="wm-wtab${w.id===_wm.activeId?' active':''}" onclick="wmSelectCase('${w.id}')">${w.name}</button>`).join('')+
+    _wm.wheels.map(w=>`<div class="wm-wtab-wrap">
+      <button class="wm-wtab${w.id===_wm.activeId?' active':''}" onclick="wmSelectCase('${w.id}')">${w.name}</button>
+      <button class="wm-wtab-del" onclick="event.stopPropagation();wmDelWheelById('${w.id}')" title="Delete wheel">✕</button>
+    </div>`).join('')+
     `<button class="wm-newbtn" onclick="wmNewCase()">+ New Wheel</button>`;
 }
 function wmSelectCase(id){
@@ -14625,7 +14653,7 @@ function wmSetMode(mode) {
   if (thumb) thumb.style.transform = mode === 'wheel' ? 'translateX(100%)' : 'translateX(0)';
 
   if (mode === 'case') {
-    btn.textContent = '▶'; btn.title = 'Open Case';
+    btn.textContent = 'OPEN CASE'; btn.title = 'Open Case';
     if (logo) logo.textContent = '📦 Case Opening';
     if (reelOuter)  reelOuter.style.display  = '';
     if (wheelSec)   wheelSec.classList.remove('active');
@@ -14636,7 +14664,7 @@ function wmSetMode(mode) {
     const track = document.getElementById('wmReelTrack');
     if (track && !track.children.length) try { _wmPreviewReel(); } catch(e) {}
   } else {
-    btn.textContent = '▶'; btn.title = 'Spin Wheel';
+    btn.textContent = 'SPIN THE WHEEL'; btn.title = 'Spin Wheel';
     if (logo) logo.textContent = '🛞 Wheel Spin';
     if (reelOuter)  reelOuter.style.display  = 'none';
     if (wheelSec)   wheelSec.classList.add('active');
@@ -14675,13 +14703,14 @@ function _wmFitWheel() {
   if (!wrap || !canvas) return;
   const section = document.getElementById('wmWheelSection');
   if (!section) return;
+  const POINTER_OVERHANG = 30; // pointer arrow sticks up above the wheel — reserve room so it isn't clipped
   const availW = section.offsetWidth - 24;
   // Use offsetHeight; if still 0 fall back to a sensible default
-  let availH = section.offsetHeight - 12;
+  let availH = section.offsetHeight - 12 - POINTER_OVERHANG;
   if (availH < 100) {
     // Section may not have laid out yet — grab from parent
     const wmLeft = document.querySelector('.wm-left');
-    availH = wmLeft ? Math.max(200, wmLeft.offsetHeight - 250) : 380;
+    availH = wmLeft ? Math.max(200, wmLeft.offsetHeight - 250 - POINTER_OVERHANG) : 350;
   }
   const size = Math.max(200, Math.min(availW, availH, 760));
   canvas.width  = size;
