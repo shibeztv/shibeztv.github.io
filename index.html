@@ -790,6 +790,11 @@
     0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
     40% { transform: translateY(-10px); opacity: 1; }
   }
+  .loader-gif {
+    width: 140px;
+    height: auto;
+    image-rendering: pixelated;
+  }
 
   /* Empty state */
   .empty-state {
@@ -941,7 +946,7 @@
   .grid-header-count {
     font-family: var(--mono);
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 400;
     color: #fff;
   }
 
@@ -2473,7 +2478,7 @@
             <span style="font-family:var(--mono);font-size:11px;color:#d3d7e0;font-weight:400">Is this image AI-generated or real?</span>
           </div>
           <div style="display:flex;align-items:center;gap:12px">
-            <span style="font-family:var(--mono);font-size:14px;color:#eee;font-weight:700">Score: <span id="aionScore" style="color:#fff;font-weight:900;font-size:17px">0</span></span>
+            <span style="font-family:var(--mono);font-size:14px;color:#eee;font-weight:700">Score: <span id="aionScore" style="color:#f472b6;font-weight:900;font-size:17px">0</span></span>
             <span style="font-family:var(--mono);font-size:14px;color:#eee;font-weight:700">Best: <span id="aionBest" style="color:#ffd700;font-weight:900;font-size:17px">0</span></span>
             <button onclick="closeAiOrNot()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;padding:2px 6px">✕</button>
           </div>
@@ -2536,11 +2541,11 @@
           <div style="display:flex;align-items:center;gap:8px">
             <span style="font-family:var(--mono);font-size:13px;color:#eee;font-weight:700">Score:</span>
             <span style="font-family:var(--mono);font-size:18px;font-weight:900;color:var(--text)" id="flappyScore">0</span>
-            <span style="font-family:var(--mono);font-size:24px;color:#aaa">🎵</span>
+            <span style="font-family:var(--mono);font-size:18px;color:#aaa">🎵</span>
             <input id="flappyVolSlider" type="range" min="0" max="100" value="31" title="Music volume"
               oninput="setFlappyVol(+this.value)"
               style="width:55px;accent-color:#ffd700;cursor:pointer;vertical-align:middle">
-            <span style="font-family:var(--mono);font-size:24px;color:#aaa">💥</span>
+            <span style="font-family:var(--mono);font-size:18px;color:#aaa">💥</span>
             <input id="flappySfxSlider" type="range" min="0" max="100" value="50" title="SFX volume"
               oninput="setFlappySfxVol(+this.value)"
               style="width:55px;accent-color:#fc5c7d;cursor:pointer;vertical-align:middle">
@@ -2698,7 +2703,7 @@
       </div>
     </div>
     <div class="stream-grid" id="streamGrid">
-      <div class="loader"><span>Loading streams</span><div class="loader-dots"><span></span><span></span><span></span></div></div>
+      <div class="loader"><span>Loading streams</span><img class="loader-gif" src="loading.gif" alt=""></div>
     </div>
     <div class="pagination" id="pagination" style="display:none">
       <button class="page-btn page-arrow" id="pageFirst" onclick="goToPage(0)" title="First page">«</button>
@@ -5005,6 +5010,17 @@ const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 async function loadStreams() {
   const grid = document.getElementById('streamGrid');
+
+  // Show the last known stream count instantly (even if the cache is stale),
+  // so the header count doesn't wait on a full reload to appear.
+  try {
+    const cachedCount = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (cachedCount && cachedCount.streams && cachedCount.streams.length) {
+      const countEl = document.getElementById('gridCount');
+      if (countEl) countEl.textContent = '(' + cachedCount.streams.length + ' streams)';
+    }
+  } catch(e) {}
+
   if (!config.ytApiKey || !config.ytChannel) {
     if (grid) grid.innerHTML = '<div class="loader"><span>Missing API config</span></div>';
     return;
@@ -5025,7 +5041,7 @@ async function loadStreams() {
     }
   } catch(e) {}
 
-  if (grid) grid.innerHTML = '<div class="loader"><span>Loading streams</span><div class="loader-dots"><span></span><span></span><span></span></div></div>';
+  if (grid) grid.innerHTML = '<div class="loader"><span>Loading streams</span><img class="loader-gif" src="loading.gif" alt=""></div>';
   await refreshStreams(true);
   // Emotes load AFTER videos are fetched so they don't compete for connections
   setTimeout(loadEmotes, 300);
@@ -5033,7 +5049,7 @@ async function loadStreams() {
 
 async function refreshStreams(showErrors) {
   const grid = document.getElementById('streamGrid');
-  const setStatus = msg => { if (grid) grid.innerHTML = `<div class="loader"><span>${msg}</span><div class="loader-dots"><span></span><span></span><span></span></div></div>`; };
+  const setStatus = msg => { if (grid) grid.innerHTML = `<div class="loader"><span>${msg}</span><img class="loader-gif" src="loading.gif" alt=""></div>`; };
   try {
     setStatus('Resolving channel…');
     const channelId = config.ytChannel.startsWith('UC') ? config.ytChannel : await resolveChannelId(config.ytChannel, config.ytApiKey);
@@ -12501,12 +12517,17 @@ window.addEventListener('hashchange', _routeFromHash);
   content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
 }
 
-/* ── Gold-rarity items: simple soft glow in the case-opening reel ── */
+/* ── Gold-rarity items: strong pulsing glow in the case-opening reel ── */
 .wm-item-gold{
-  box-shadow:0 0 20px 3px rgba(228,184,77,0.4), inset 0 0 20px rgba(228,184,77,0.1);
+  box-shadow:0 0 34px 8px rgba(228,184,77,0.75), inset 0 0 28px rgba(228,184,77,0.25);
+  animation: wmGoldPulse 1.1s ease-in-out infinite;
 }
 .wm-item-gold .wm-item-icon{
-  filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 10px rgba(228,184,77,0.7));
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 18px rgba(228,184,77,1));
+}
+@keyframes wmGoldPulse{
+  0%, 100% { box-shadow:0 0 34px 8px rgba(228,184,77,0.75), inset 0 0 28px rgba(228,184,77,0.25); }
+  50%      { box-shadow:0 0 54px 16px rgba(228,184,77,1), inset 0 0 40px rgba(228,184,77,0.45); }
 }
 
 /* center pointer — the CS2 gold tick line */
