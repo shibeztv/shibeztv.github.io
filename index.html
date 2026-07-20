@@ -13228,6 +13228,37 @@ function _wmWeightedPick(items){
   return items.length-1;
 }
 
+// ── Weighted wheel segment layout ──────────────────────────────────────────
+// The wheel's slice sizes are proportional to each item's actual % chance,
+// so a 1% item gets a thin sliver instead of the same-size wedge as every
+// other item. This makes the spin animation itself honest about rarity: a
+// rare slice is genuinely rare to land the pointer on, glance past, or hover
+// — not just rare to end on. Falls back to equal slices if chances are 0/invalid.
+function _wmSegLayout(items){
+  const n = items.length;
+  const chances = _wmComputeChances(items);
+  const total = chances.reduce((s,c)=>s+c,0);
+  let acc = 0;
+  return items.map((it,i) => {
+    const frac  = total > 0 ? (chances[i] / total) : (1 / n);
+    const size  = frac * 2 * Math.PI;
+    const start = acc;
+    acc += size;
+    return { start, size, mid: start + size / 2 };
+  });
+}
+// Given a weighted layout and an angle in the wheel's own (unrotated) frame,
+// return which slice index contains it.
+function _wmSegAt(layout, a){
+  const twoPi = 2 * Math.PI;
+  a = ((a % twoPi) + twoPi) % twoPi;
+  for (let i = 0; i < layout.length; i++) {
+    const s = layout[i];
+    if (a >= s.start && a < s.start + s.size) return i;
+  }
+  return layout.length - 1;
+}
+
 // ── Icon Picker (7TV / Emoji / Upload) ───────────────────────────────────
 const WM_7TV_SET = '01F6YHT8TG0003S6SNNTMYB87P';
 let _wmEmotes = [];
@@ -14771,13 +14802,8 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
   const items = _wmCurrent().items;
   if (!items.length) return;
-  const n   = items.length;
-  const seg = (2 * Math.PI) / n;
-
-  // Arc length of one slice at the midpoint radius — used for adaptive font/icon
-  const arcLen   = R * 0.65 * seg;
-  const fontSize = Math.max(5, Math.min(12, (arcLen * 0.216) | 0));
-  const showIcon = arcLen > 12; // only fully hide icons when there's truly no room left
+  const n      = items.length;
+  const layout = _wmSegLayout(items); // slice size ∝ item's actual % chance
 
   // Outer rim glow
   ctx.save();
@@ -14790,7 +14816,13 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
   for (let i = 0; i < n; i++) {
     const item    = items[i];
-    const startA  = angle + i * seg - Math.PI / 2;
+    const seg     = layout[i].size;
+    // Arc length of THIS slice at the midpoint radius — used for adaptive font/icon.
+    // Rare (thin) slices naturally get smaller/hidden labels, like a real weighted wheel.
+    const arcLen   = R * 0.65 * seg;
+    const fontSize = Math.max(5, Math.min(12, (arcLen * 0.216) | 0));
+    const showIcon = arcLen > 12;
+    const startA  = angle + layout[i].start - Math.PI / 2;
     const endA    = startA + seg;
     const midA    = startA + seg / 2;
     const col     = item.color || '#4b69ff';
@@ -14912,12 +14944,7 @@ function _wmUpdateIconOverlay(angle) {
   const items = _wmCurrent()?.items || [];
   const n   = items.length;
   if (!n) { overlay.innerHTML = ''; return; }
-  const seg    = (2 * Math.PI) / n;
-  const arcLen = R * 0.65 * seg;
-  const fontSize = Math.max(5, Math.min(12, (arcLen * 0.216) | 0));
-  const iSz      = Math.max(14, Math.min(29, (arcLen * 0.48) | 0));
-  const iconOff  = -(fontSize * 0.6 + iSz * 0.55 + 4); // negative = outward in local rotated frame
-  const showIcon = arcLen > 12;
+  const layout = _wmSegLayout(items); // slice size ∝ item's actual % chance
 
   // Collect items that need URL icon overlays
   const urlItems = [];
@@ -14942,8 +14969,16 @@ function _wmUpdateIconOverlay(angle) {
 
   const imgs = overlay.querySelectorAll('img');
   urlItems.forEach(({ it, i }, idx) => {
-    const img = imgs[idx];
-    const midA = angle + i * seg - Math.PI / 2 + seg / 2;
+    const img  = imgs[idx];
+    const seg  = layout[i].size;
+    const midA = angle + layout[i].start - Math.PI / 2 + seg / 2;
+
+    // Per-slice sizing so a thin (rare) slice shrinks/hides its icon just like its label.
+    const arcLen   = R * 0.65 * seg;
+    const fontSize = Math.max(5, Math.min(12, (arcLen * 0.216) | 0));
+    const iSz      = Math.max(14, Math.min(29, (arcLen * 0.48) | 0));
+    const iconOff  = -(fontSize * 0.6 + iSz * 0.55 + 4); // negative = outward in local rotated frame
+    const showIcon = arcLen > 12;
 
     // Icon sits further out than the text label (tR - iconOff = tR + |iconOff|).
     // No flip logic — matches the canvas which now uses a single consistent rotation.
@@ -14999,10 +15034,9 @@ function _wmSetupHoverTooltip() {
     if (dist > R + 14 || dist < 8) return -1;
     const items = _wmCurrent().items;
     if (!items.length) return -1;
-    const n = items.length, seg = (2 * Math.PI) / n;
+    const layout = _wmSegLayout(items); // weighted, not equal-sized
     let a = Math.atan2(my, mx) + Math.PI / 2 - _wmWheelAngle;
-    a = ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    return Math.floor(a / seg) % n;
+    return _wmSegAt(layout, a);
   }
 
   // Wrap description text at ~38 chars per line
@@ -15057,17 +15091,15 @@ function _wmSetupHoverTooltip() {
 // Determine winner from final angle
 function _wmWheelWinner(finalAngle) {
   const items = _wmCurrent().items;
-  const n   = items.length;
-  const seg = (2 * Math.PI) / n;
-  // The segment currently under the top pointer is the one whose angular
-  // range [i*seg, (i+1)*seg) (in the wheel's own un-rotated frame) contains
-  // the pointer position. This must be purely boundary-based — a stray
-  // "- seg/2" here previously shifted the check by half a segment, which
-  // made the live highlight show the previous segment for the first half
-  // of each segment's transit under the pointer (an intermittent
-  // "one segment ahead/behind" mismatch).
+  if (!items.length) return -1;
+  // The segment currently under the top pointer is the one whose weighted
+  // angular range (in the wheel's own un-rotated frame) contains the pointer
+  // position. Slices are sized by each item's actual % chance — not equal —
+  // so a rare item's slice is genuinely thin and rarely lingers under the
+  // pointer, matching how rarely it's actually landed on.
+  const layout = _wmSegLayout(items);
   let a = ((-finalAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-  return Math.floor(a / seg) % n;
+  return _wmSegAt(layout, a);
 }
 
 // Highlight the contents-list item currently under the pointer while spinning
@@ -15102,17 +15134,19 @@ function wmSpinWheel() {
 
   // Pick winner and compute target angle
   const winIdx = _wmWeightedPick(wheel.items);
-  const n   = wheel.items.length;
-  const seg = (2 * Math.PI) / n;
+  const n      = wheel.items.length;
+  const layout = _wmSegLayout(wheel.items); // slice size ∝ item's actual % chance
 
   // For segment i to land at the top pointer we need:
-  //   finalAngle = k*2π - (i*seg + seg/2)
+  //   finalAngle = k*2π - mid(i)
   // So we SUBTRACT the segment offset (sign was wrong before — it was added).
-  const jitter = (Math.random() - 0.5) * seg * 0.4;
+  // Jitter scales with the winning slice's actual (weighted) width, so landing
+  // inside a thin rare slice still looks precise rather than overshooting it.
+  const jitter = (Math.random() - 0.5) * layout[winIdx].size * 0.4;
   // Round UP to next full rotation to guarantee forward spin, then add 6-9 extra spins.
   const extraSpins = (6 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
   const base     = Math.ceil(_wmWheelAngle / (2 * Math.PI)) * 2 * Math.PI;
-  const targetA  = base + extraSpins - (winIdx * seg + seg / 2) + jitter;
+  const targetA  = base + extraSpins - layout[winIdx].mid + jitter;
 
   const totalMs = 5500 + Math.random() * 1000;
   const startAngle = _wmWheelAngle;
@@ -15184,8 +15218,9 @@ function _wmStopWheelSfx() {
 // Call this each animation frame with the current angle and n segments
 function _wmTickOnBoundary(angle, n) {
   if (_wm.muted || !n) return;
-  const seg = (2 * Math.PI) / n;
-  // Which segment is currently at the pointer?
+  // Which (weighted) segment is currently at the pointer? Thin/rare slices
+  // pass under the pointer fast, so they naturally tick less — matching
+  // how rarely they're actually landed on.
   const cur = _wmWheelWinner(angle);
   if (cur !== _wmLastTickSeg) {
     _wmLastTickSeg = cur;
