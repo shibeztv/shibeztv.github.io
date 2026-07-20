@@ -12564,16 +12564,15 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-wtab{
   font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;
   background:rgba(255,255,255,0.03);border:1px solid #252930;color:#60ddff;
-  padding:8px 18px;border-radius:2px 0 0 2px;cursor:pointer;transition:all 0.12s;border-right:none;
+  padding:8px 18px;border-radius:2px;cursor:pointer;transition:all 0.12s;
 }
 .wm-wtab:hover{border-color:#e4b84d;color:#e4b84d;}
 .wm-wtab.active{background:rgba(228,184,77,0.1);border-color:#e4b84d;color:#e4b84d;}
-.wm-wtab-wrap{display:inline-flex;align-items:stretch;}
-.wm-wtab-wrap:has(.wm-wtab.active) .wm-wtab-del{border-color:#e4b84d;}
+.wm-wtab-wrap{display:inline-flex;align-items:stretch;gap:3px;}
 .wm-wtab-del{
   font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1;
   background:rgba(255,255,255,0.03);border:1px solid #252930;color:#6b6b7a;
-  padding:8px 9px;border-radius:0 2px 2px 0;cursor:pointer;transition:all 0.12s;
+  padding:8px 9px;border-radius:2px;cursor:pointer;transition:all 0.12s;
 }
 .wm-wtab-del:hover{background:rgba(235,75,75,0.18);border-color:#eb4b4b;color:#eb4b4b;}
 .wm-newbtn{
@@ -12629,7 +12628,7 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-hist-n{font-family:'Share Tech Mono',monospace;font-size:9px;color:#c8d0dc;min-width:20px;}
 .wm-hist-lbl{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;flex:1;text-transform:uppercase;}
-.wm-hist-t{font-family:'Share Tech Mono',monospace;font-size:9px;color:#c8d0dc;}
+.wm-hist-t{font-family:'Share Tech Mono',monospace;font-size:9px;color:#c8d0dc;white-space:nowrap;flex-shrink:0;}
 .wm-hist-del{
   display:flex;align-items:center;justify-content:center;
   width:16px;height:16px;flex-shrink:0;margin-left:2px;
@@ -13969,6 +13968,14 @@ const WM_HIST_KEY = 'wm_history_v1'; // stores what was won so it survives a ref
 function _wmSaveHist() { try { localStorage.setItem(WM_HIST_KEY, JSON.stringify(_wm.history)); } catch(e) {} }
 function _wmLoadHist() { try { const d = JSON.parse(localStorage.getItem(WM_HIST_KEY)||'null'); if (Array.isArray(d)) _wm.history = d; } catch(e) {} }
 
+// Full "YYYY.MM.DD HH:MM:SS" timestamp for history entries
+function _wmNowStamp() {
+  const d = new Date();
+  const date = d.toLocaleDateString('en-CA').replace(/-/g, '.'); // YYYY.MM.DD
+  const time = d.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  return `${date} ${time}`;
+}
+
 // Only shibez/shlbez may delete history entries
 function wmDelHistItem(i) {
   if (!_wmIsShibez()) return;
@@ -14235,7 +14242,7 @@ function wmSpin() {
       if (rdCase) rdCase.textContent = winner.desc || '';
       _wmStopTickSfx();
       // History
-      _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
+      _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: _wmNowStamp()});
       _wmSaveHist();
       _wmRenderHist();
       // Show win popup after brief delay for drama — the case-open sfx now
@@ -15154,7 +15161,7 @@ function wmSpinWheel() {
       _wmLastPointerIdx = winIdx; // keep contents highlight on winner
       _wmRenderWheelFrame(_wmWheelAngle, -1); // redraw with winner glow
 
-      _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
+      _wm.history.unshift({label:winner.label, color:winner.color, icon:winner.icon, desc:winner.desc||'', time: _wmNowStamp()});
       _wmSaveHist();
       _wmRenderHist();
       setTimeout(() => wmShowWinPopup(winner), 300);
