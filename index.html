@@ -3008,6 +3008,7 @@ function lbRenderRows(key,highlightScore,limit){
   const entries=lbLoad(key);
   if(!entries.length) return '<div style="color:#eee;font-weight:700;font-size:15px;padding:8px 4px;text-align:center">No scores yet!</div>';
   const _esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const canDelete = _wmIsShibez();
   return entries.slice(0,limit||10).map((e,i)=>{
     const isHL=highlightScore!==undefined&&e.score===highlightScore;
     const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:#ddd;font-weight:700">${i+1}.</span>`;
@@ -3018,8 +3019,37 @@ function lbRenderRows(key,highlightScore,limit){
       <span style="color:${isHL?'#ffd700':'#fff'};font-weight:900;flex-shrink:0">${_esc(e.score)}</span>
       ${e.extra?`<span style="color:#e0e0e0;font-size:11px;flex-shrink:0;margin-left:2px">${_esc(e.extra)}</span>`:''}
       ${_dateStr?`<span style="color:#aaa;font-size:10px;flex-shrink:0;margin-left:2px">${_dateStr}</span>`:''}
+      ${canDelete?`<button onclick="lbDeleteEntry('${key}',${i})" title="Delete this entry (mod only)" style="background:none;border:none;color:#fc5c7d;cursor:pointer;font-size:13px;line-height:1;padding:2px 4px;flex-shrink:0;opacity:0.75" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.75'">🗑</button>`:''}
     </div>`;
   }).join('');
+}
+// ── Mod-only leaderboard entry deletion (shibez/shlbez, via Twitch login) ──
+// Deletes locally, then pushes the trimmed list to the shared cloud doc so
+// the removal is visible to every visitor, not just this browser.
+async function lbDeleteEntry(key, idx){
+  if (!_wmIsShibez()) return;
+  const entries = lbLoad(key);
+  if (idx < 0 || idx >= entries.length) return;
+  const victim = entries[idx];
+  if (!confirm(`Delete "${victim.name || 'Anonymous'}" — ${victim.score} pts — from this leaderboard? This can't be undone.`)) return;
+  entries.splice(idx, 1);
+  lbSave(key, entries);
+  lbCloudPush(key, entries).catch(()=>{});
+  _lbRerenderAll(key);
+}
+// Re-renders every on-screen leaderboard surface for a given key (a couple of
+// games show their leaderboard in more than one place at once).
+function _lbRerenderAll(key){
+  if (key === LB_FLAPPY_KEY) {
+    const el = document.getElementById('flappyLbRows'); if (el) el.innerHTML = lbRenderRows(key, undefined, 15);
+  } else if (key === LB_SPACE_KEY) {
+    const el1 = document.getElementById('spaceLbDeathRows');    if (el1) el1.innerHTML = lbRenderRows(key, undefined, 20);
+    const el2 = document.getElementById('spaceLbCompactRows');  if (el2) el2.innerHTML = lbRenderRows(key, undefined, 8);
+  } else if (key === LB_AION_KEY) {
+    const el = document.getElementById('aionLbRows'); if (el) el.innerHTML = lbRenderRows(key, undefined, 15);
+  } else if (key === LB_HOL_KEY) {
+    const el = document.getElementById('holLbRows'); if (el) el.innerHTML = _holRenderLbRows(_holScore);
+  }
 }
 // ─── USER PROFILE SYSTEM ────────────────────────────────────────────────────
 const _PROF_KEY = 'shibez_user_profile';
@@ -7196,12 +7226,14 @@ function _holShowGameOver() {
 function _holRenderLbRows(currentScore) {
   const entries = lbLoad(LB_HOL_KEY);
   if (!entries.length) return '<div style="text-align:center;color:#bbb;font-family:var(--mono);font-size:11px;padding:16px">No scores yet — be the first!</div>';
+  const canDelete = _wmIsShibez();
   return entries.slice(0, 10).map((e, i) => {
     const isNew = e.score === currentScore && e.name === (document.getElementById('holLbName')?.value?.trim() || '');
     return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:${i===0?'rgba(245,158,11,0.12)':'rgba(255,255,255,0.04)'};border-radius:4px;font-family:var(--mono);font-size:11px">
       <span style="color:${i===0?'#f59e0b':i===1?'#aaa':i===2?'#cd7f32':'#555'};font-weight:900;width:18px">${i+1}</span>
       <span style="flex:1;color:#ddd;font-weight:700">${e.name}</span>
       <span style="color:#f59e0b;font-weight:900">${e.score}</span>
+      ${canDelete?`<button onclick="lbDeleteEntry('${LB_HOL_KEY}',${i})" title="Delete this entry (mod only)" style="background:none;border:none;color:#fc5c7d;cursor:pointer;font-size:13px;line-height:1;padding:2px 4px;flex-shrink:0;opacity:0.75" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.75'">🗑</button>`:''}
     </div>`;
   }).join('');
 }
