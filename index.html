@@ -2373,7 +2373,7 @@
         <!-- Game area -->
         <div style="width:100%;flex:1;min-height:0;overflow-y:auto;padding:14px 20px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:10px">
           <!-- Pixelated emote display -->
-          <div style="position:relative;width:min(380px,42vh);height:min(380px,42vh);border-radius:8px;overflow:hidden;background:#111;border:1px solid var(--border);flex-shrink:0">
+          <div id="egImgBox" style="position:relative;width:min(380px,42vh);height:min(380px,42vh);border-radius:8px;overflow:hidden;background:#111;border:1px solid var(--border);flex-shrink:0;transition:width .25s ease">
             <canvas id="egCanvas" width="420" height="420" style="display:block;width:100%;height:100%;image-rendering:pixelated"></canvas>
             <img id="egAnimImg" src="" style="display:none;width:100%;height:100%;object-fit:contain;image-rendering:auto;position:absolute;inset:0">
             <div id="egBlurOverlay" style="display:none;position:absolute;inset:0;backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px)"></div>
@@ -2552,7 +2552,7 @@
     <!-- FLAPPY SHIBEZ MODAL -->
     <div id="flappyModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9002;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:10px;box-sizing:border-box">
       <div id="flappyMusicEl" style="display:none"></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;max-height:calc(100vh - var(--bars-h) - 20px);max-width:calc(100vw - 20px)">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:inline-flex;flex-direction:column;align-items:center;max-height:calc(100vh - var(--bars-h) - 20px);max-width:calc(100vw - 20px)">
         <div style="display:flex;flex-direction:column;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
             <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
@@ -2579,7 +2579,7 @@
             </div>
           </div>
         </div>
-        <canvas id="flappyCanvas" width="920" height="1180" style="display:block;cursor:pointer;flex:1 1 auto;min-height:0;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain;touch-action:none;-webkit-tap-highlight-color:transparent"></canvas>
+        <canvas id="flappyCanvas" width="920" height="1180" style="display:block;cursor:pointer;flex:1 1 auto;min-height:0;height:100%;width:auto;aspect-ratio:920/1180;max-width:100%;max-height:100%;object-fit:contain;touch-action:none;-webkit-tap-highlight-color:transparent"></canvas>
       </div>
     </div>
 
@@ -6673,6 +6673,14 @@ document.addEventListener('click', e => {
   if (modal && e.target === modal) closeFlappy();
 });
 
+// Wheel Spin: once the winner "shine sweep" animation finishes playing, permanently
+// drop its pseudo-element so it can never get stuck on-screen as a stray line.
+document.addEventListener('animationend', e => {
+  if (e.animationName === 'wmWinnerShine' && e.target?.classList) {
+    e.target.classList.add('wm-shine-done');
+  }
+});
+
 
 // ─── EMOTE GUESSER ────────────────────────────────────────────────────────
 // Twitch IDs for the target channels
@@ -6754,7 +6762,7 @@ function _egDrawPixelated(img, pixelSize) {
   const canvas = document.getElementById('egCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = 420, H = 420;
+  const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
   if (pixelSize <= 1) {
     ctx.drawImage(img, 0, 0, W, H);
@@ -6777,6 +6785,22 @@ function _egBoxPx() {
   return (box && box.clientWidth) ? box.clientWidth : 420;
 }
 
+// Wide emotes were being squashed into the square display box. Instead, size the box to
+// match the emote's real aspect ratio (capped so it doesn't blow out the layout), so wide
+// emotes actually render wide.
+function _egApplyBoxAspect(naturalW, naturalH) {
+  const box = document.getElementById('egImgBox');
+  const canvas = document.getElementById('egCanvas');
+  if (!box || !naturalW || !naturalH) return;
+  const baseSize = Math.min(380, window.innerHeight * 0.42);
+  const aspect = naturalW / naturalH;
+  const maxW = Math.min(baseSize * 3, (box.parentElement?.clientWidth || window.innerWidth) * 0.94);
+  const w = Math.max(baseSize, Math.min(baseSize * aspect, maxW));
+  box.style.width = w + 'px';
+  box.style.height = baseSize + 'px';
+  if (canvas) { canvas.width = Math.round(w); canvas.height = Math.round(baseSize); }
+}
+
 function _egRender() {
   const level = Math.min(_egAttempts, _egMaxAttempts - 1);
   const { pixelSize, blurPx } = _egLevelStyle(level);
@@ -6791,33 +6815,48 @@ function _egRender() {
     if (canvas) canvas.style.display = 'none';
     if (blurOverlay) blurOverlay.style.display = 'none';
     if (animImg) {
+      const _egApplyAnimStyle = () => {
+        const box = document.getElementById('egImgBox');
+        const boxW = (box && box.clientWidth) ? box.clientWidth : BOX;
+        const boxH = (box && box.clientHeight) ? box.clientHeight : BOX;
+        if (pixelSize <= 1 && blurPx <= 0) {
+          // Fully revealed — normal size, 0% blur
+          animImg.style.width = boxW + 'px';
+          animImg.style.height = boxH + 'px';
+          animImg.style.imageRendering = 'auto';
+          animImg.style.filter = '';
+          animImg.style.transform = 'none';
+          animImg.style.transformOrigin = 'top left';
+          animImg.style.position = 'absolute';
+          animImg.style.left = '0';
+          animImg.style.top = '0';
+        } else {
+          // Pixelate: render at very small size then scale up with pixelated rendering,
+          // plus a proportional CSS blur so the reveal smoothly clears up over 6 levels
+          const _tinyH = Math.max(1, Math.floor(boxH / pixelSize));
+          const _scale = boxH / _tinyH;
+          const _tinyW = Math.max(1, Math.round(boxW / _scale));
+          animImg.style.width = _tinyW + 'px';
+          animImg.style.height = _tinyH + 'px';
+          animImg.style.imageRendering = 'pixelated';
+          animImg.style.filter = blurPx > 0 ? `blur(${blurPx}px)` : '';
+          animImg.style.transform = `scale(${_scale})`;
+          animImg.style.transformOrigin = 'top left';
+          animImg.style.position = 'absolute';
+          animImg.style.left = '0';
+          animImg.style.top = '0';
+        }
+      };
+      animImg.onload = () => {
+        _egApplyBoxAspect(animImg.naturalWidth, animImg.naturalHeight);
+        _egApplyAnimStyle();
+      };
       animImg.src = _egCurrentEmote.url;
       animImg.style.display = 'block';
-      if (pixelSize <= 1 && blurPx <= 0) {
-        // Fully revealed — normal size, 0% blur
-        animImg.style.width = BOX + 'px';
-        animImg.style.height = BOX + 'px';
-        animImg.style.imageRendering = 'auto';
-        animImg.style.filter = '';
-        animImg.style.transform = 'none';
-        animImg.style.transformOrigin = 'top left';
-        animImg.style.position = 'absolute';
-        animImg.style.left = '0';
-        animImg.style.top = '0';
-      } else {
-        // Pixelate: render at very small size then scale up with pixelated rendering,
-        // plus a proportional CSS blur so the reveal smoothly clears up over 6 levels
-        const _tiny = Math.max(1, Math.floor(BOX / pixelSize));
-        const _scale = BOX / _tiny;
-        animImg.style.width = _tiny + 'px';
-        animImg.style.height = _tiny + 'px';
-        animImg.style.imageRendering = 'pixelated';
-        animImg.style.filter = blurPx > 0 ? `blur(${blurPx}px)` : '';
-        animImg.style.transform = `scale(${_scale})`;
-        animImg.style.transformOrigin = 'top left';
-        animImg.style.position = 'absolute';
-        animImg.style.left = '0';
-        animImg.style.top = '0';
+      // If the image is already cached, onload may not fire again — size it right away too.
+      if (animImg.complete && animImg.naturalWidth > 0) {
+        _egApplyBoxAspect(animImg.naturalWidth, animImg.naturalHeight);
+        _egApplyAnimStyle();
       }
     }
   } else {
@@ -6830,7 +6869,7 @@ function _egRender() {
     }
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => { _egCurrentEmoteImg = img; _egDrawPixelated(img, pixelSize); };
+    img.onload = () => { _egCurrentEmoteImg = img; _egApplyBoxAspect(img.naturalWidth, img.naturalHeight); _egDrawPixelated(img, pixelSize); };
     img.onerror = () => {
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
@@ -6850,6 +6889,8 @@ function _egStartRound() {
   _egDone = false;
   const _egAnimImg = document.getElementById('egAnimImg');
   if (_egAnimImg) { _egAnimImg.style.display = 'none'; _egAnimImg.src = ''; }
+  const _egImgBox = document.getElementById('egImgBox');
+  if (_egImgBox) { _egImgBox.style.width = 'min(380px,42vh)'; _egImgBox.style.height = 'min(380px,42vh)'; }
   const _egBlur = document.getElementById('egBlurOverlay');
   if (_egBlur) _egBlur.style.display = 'none';
   const _egCv = document.getElementById('egCanvas');
@@ -6970,7 +7011,7 @@ function _egShowResult(won) {
   resultEl.style.animation = 'egFadeIn .35s ease';
   const _link = `<a href="https://7tv.app/emotes/${_egCurrentEmote.id}" target="_blank" style="color:inherit;text-decoration:underline;cursor:pointer">${_egCurrentEmote.name}</a>`;
   if (won) {
-    resultEl.innerHTML = `✅ Correct! It was ${_link} (${_egAttempts} ${_egAttempts===1?'guess':'guesses'} · +${_egLastPoints} pts)`;
+    resultEl.innerHTML = `✅ Correct! It was ${_link} (${_egAttempts} ${_egAttempts===1?'try':'tries'} · +${_egLastPoints} pts)`;
     resultEl.style.color = '#7fd99a';
   } else {
     resultEl.innerHTML = `❌ The answer was: <span style="color:#e879f9;font-weight:900">${_link}</span>`;
@@ -6981,11 +7022,13 @@ function _egShowResult(won) {
   document.getElementById('egNextBtn').style.display = '';
   // Draw full clear image at end — use pixelSize 1 directly
   _egDrawPixelated(_egCurrentEmoteImg, 1);
-  // For animated: force full size (uses the box's actual responsive rendered size)
+  // For animated: force full size (uses the box's actual responsive rendered size, which may be wide)
   const _egAnimImgEl = document.getElementById('egAnimImg');
   if (_egAnimImgEl && _egAnimImgEl.style.display !== 'none') {
-    const BOX = _egBoxPx();
-    _egAnimImgEl.style.width=BOX+'px'; _egAnimImgEl.style.height=BOX+'px';
+    const _egBox = document.getElementById('egImgBox');
+    const _bw = (_egBox && _egBox.clientWidth) ? _egBox.clientWidth : _egBoxPx();
+    const _bh = (_egBox && _egBox.clientHeight) ? _egBox.clientHeight : _egBoxPx();
+    _egAnimImgEl.style.width=_bw+'px'; _egAnimImgEl.style.height=_bh+'px';
     _egAnimImgEl.style.imageRendering='auto'; _egAnimImgEl.style.filter='';
     _egAnimImgEl.style.transform='none';
   }
@@ -13127,6 +13170,9 @@ window.addEventListener('hashchange', _routeFromHash);
 @keyframes wmWinnerShine{
   to{ transform:translateX(150%) skewX(-15deg); }
 }
+/* Safety net: once the sweep animation finishes, kill the pseudo-element outright
+   (via JS adding this class on animationend) so it can never linger as a visible line. */
+.wm-item.winner.wm-shine-done::before{ content:none; }
 
 /* ── Description tooltip on case contents hover ── */
 .wm-citem{position:relative;}
@@ -14485,6 +14531,7 @@ function wmSpin() {
       // Highlight the card that visually stopped at center
       document.querySelectorAll('.wm-item').forEach((el, i) => {
         const isWinner = i === landedIdx;
+        el.classList.remove('wm-shine-done');
         el.classList.toggle('winner', isWinner);
         if (isWinner) el.style.setProperty('--wm-win-color', winner.color);
       });
