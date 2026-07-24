@@ -1822,10 +1822,10 @@
     letter-spacing: 0.4px;
   }
   .yt-main-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     line-height: 1.4;
-    color: var(--text);
+    color: #fff;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -1935,10 +1935,10 @@
     box-sizing: border-box;
   }
   .yt-short-title {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     line-height: 1.4;
-    color: var(--text);
+    color: #fff;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -2245,12 +2245,12 @@
 
       <!-- Counter + swipe hint BELOW the video — outside iframe -->
       <div style="display:flex;align-items:center;justify-content:center;gap:20px;pointer-events:none" onclick="event.stopPropagation()">
-        <div id="shortSwipeHint" style="display:flex;align-items:center;gap:6px;opacity:0.45">
-          <span style="font-size:13px;color:#fff">↑</span>
-          <span style="font-family:var(--mono);font-size:9px;color:#fff;letter-spacing:1px">SCROLL OR USE ARROWS</span>
-          <span style="font-size:13px;color:#fff">↓</span>
+        <div id="shortSwipeHint" style="display:flex;align-items:center;gap:6px;opacity:0.8">
+          <span style="font-size:15px;color:#fff;font-weight:700">↑</span>
+          <span style="font-family:var(--mono);font-size:11px;color:#fff;font-weight:700;letter-spacing:1px">SCROLL OR USE ARROWS</span>
+          <span style="font-size:15px;color:#fff;font-weight:700">↓</span>
         </div>
-        <div id="shortsCounter" style="font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.4)"></div>
+        <div id="shortsCounter" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff"></div>
       </div>
     </div>
 
@@ -2908,6 +2908,44 @@ const LB_AION_KEY   = 'shibez_lb_aion';
 function lbLoad(key){ try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; } }
 function lbSave(key,arr){ localStorage.setItem(key,JSON.stringify(arr)); }
 
+// ── Name filter for leaderboard entries ─────────────────────────────────────
+// Blocks the most egregious slurs/hate speech (roughly mirroring what Twitch's
+// own AutoMod would catch) so they can't end up permanently on a public,
+// shared leaderboard. Not exhaustive, and not meant to catch mild profanity —
+// just the clearly-not-allowed stuff. Normalizes common leetspeak/spacing
+// tricks (numbers-as-letters, repeated/separated characters) before matching.
+const _LB_BLOCKED_ROOTS = [
+  'nigger','nigga','niqqa','niqqer',
+  'faggot','fag',
+  'retard',
+  'chink','spic','kike','wetback','beaner','gook','tranny','coon',
+];
+function _lbNormalizeForFilter(s){
+  return String(s || '')
+    .toLowerCase()
+    .replace(/1/g,'i').replace(/!/g,'i').replace(/\|/g,'i').replace(/l/g,'i')
+    .replace(/3/g,'e')
+    .replace(/4/g,'a').replace(/@/g,'a')
+    .replace(/0/g,'o')
+    .replace(/5/g,'s').replace(/\$/g,'s')
+    .replace(/7/g,'t')
+    .replace(/9/g,'g').replace(/q/g,'g')
+    .replace(/[^a-z]/g,''); // strip spaces, symbols, and any leftover digits
+}
+function _lbNameIsClean(name){
+  const norm = _lbNormalizeForFilter(name);
+  return !_LB_BLOCKED_ROOTS.some(root => norm.includes(root));
+}
+// Shared "name rejected" UI feedback: flashes the input red and swaps its
+// placeholder so the player knows to pick a different name.
+function _lbRejectName(inputEl){
+  if (!inputEl) return;
+  inputEl.value = '';
+  inputEl.style.border = '1px solid #fc5c7d';
+  inputEl.placeholder = "That name isn't allowed";
+  inputEl.focus();
+}
+
 // ── Cloud-shared leaderboards (Firestore) ───────────────────────────────
 // Every leaderboard is mirrored to leaderboards/{key} in the same Firestore
 // project already used for the wheel spin + profile sync, so ANY visitor
@@ -2929,14 +2967,25 @@ async function lbCloudPull(key){
     const merged = _lbMerge(cloud, lbLoad(key));
     lbSave(key, merged);
     return merged;
-  } catch(e) { console.warn('[leaderboard] cloud pull failed:', e); return lbLoad(key); }
+  } catch(e) {
+    console.error('[leaderboard] cloud PULL failed for "' + key + '":', e.code || e.message || e,
+      '\n→ If this says "permission-denied", the Firestore security rules need to allow reads on leaderboards/{key}.');
+    return lbLoad(key);
+  }
 }
 async function lbCloudPush(key, arr){
-  if (typeof _wmDb === 'undefined') return;
+  if (typeof _wmDb === 'undefined') return false;
   try {
     if (typeof _wmAuth !== 'undefined' && !_wmAuth.currentUser) await _wmAuth.signInAnonymously();
     await _wmDb.collection('leaderboards').doc(key).set({ entries: arr.slice(0,100) });
-  } catch(e) { console.warn('[leaderboard] cloud push failed:', e); }
+    return true;
+  } catch(e) {
+    console.error('[leaderboard] cloud PUSH failed for "' + key + '":', e.code || e.message || e,
+      '\n→ "auth/operation-not-allowed" means Anonymous sign-in isn\'t enabled in the Firebase console (Authentication → Sign-in method).',
+      '\n→ "permission-denied" means the Firestore security rules need to allow writes on leaderboards/{key} (e.g. for any signed-in user, including anonymous).',
+      '\nScores are still saved locally in this browser either way — they just won\'t appear for other people until this is fixed.');
+    return false;
+  }
 }
 // Re-render a leaderboard's rows once fresh cloud data comes back, if the
 // element the caller tells us about is still on screen.
@@ -2946,13 +2995,14 @@ function lbCloudRefresh(key, elId, highlightScore, limit){
     if (el) el.innerHTML = lbRenderRows(key, highlightScore, limit);
   });
 }
-function lbSubmit(key,name,score,extra){
+async function lbSubmit(key,name,score,extra){
   const entries=lbLoad(key);
   entries.push({name:(name||'Anonymous').slice(0,20).trim()||'Anonymous',score,extra:extra||'',date:Date.now()});
   entries.sort((a,b)=>b.score-a.score);
   const capped = entries.slice(0,100);
   lbSave(key,capped);
-  lbCloudPush(key, capped); // fire-and-forget: push merged local list up to the shared cloud doc
+  const synced = await lbCloudPush(key, capped); // waits so callers can show real online/offline status
+  return synced;
 }
 function lbRenderRows(key,highlightScore,limit){
   const entries=lbLoad(key);
@@ -5595,8 +5645,7 @@ const _FC_WORKER = 'https://muddy-river-0109.shibezvods.workers.dev';
 const SHORTS_PLAYLIST = 'PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h';
 let _cachedShorts = [];
 let _shortsIdx = 0;           // current index into _cachedShorts
-let _shortsHistory = [];      // indices visited (for going back)
-let _shortsHistoryPos = -1;   // position in history for back/forward
+let _shortsHasNavigated = false; // true once the user has scrolled/swiped at least once (hides the swipe hint)
 
 async function _fetchShortsPlaylist() {
   if (_cachedShorts.length) return _cachedShorts;
@@ -5666,7 +5715,7 @@ function _shortsRenderAt(idx) {
   embedEl.appendChild(iframe);
 
   // Hide swipe hint after first nav
-  if (_shortsHistoryPos > 0) {
+  if (_shortsHasNavigated) {
     const hint = document.getElementById('shortSwipeHint');
     if (hint) hint.style.opacity = '0';
   }
@@ -5674,27 +5723,12 @@ function _shortsRenderAt(idx) {
 
 function shortsNav(dir) {
   // dir: +1 = next (scroll down), -1 = prev (scroll up)
+  // Always moves exactly one position through the actual list (wraps at the ends)
+  // so scrolling down from short #1 reliably lands on #2, and scrolling back up
+  // from #2 reliably returns to #1 — no random jumps.
   if (!_cachedShorts.length) return;
-  if (dir === 1) {
-    // Going forward — pick next in history or a new random
-    if (_shortsHistoryPos < _shortsHistory.length - 1) {
-      _shortsHistoryPos++;
-      _shortsRenderAt(_shortsHistory[_shortsHistoryPos]);
-    } else {
-      // Pick a new random index (not same as current)
-      let next;
-      do { next = Math.floor(Math.random() * _cachedShorts.length); } while (next === _shortsIdx && _cachedShorts.length > 1);
-      _shortsHistory.push(next);
-      _shortsHistoryPos = _shortsHistory.length - 1;
-      _shortsRenderAt(next);
-    }
-  } else {
-    // Going back
-    if (_shortsHistoryPos > 0) {
-      _shortsHistoryPos--;
-      _shortsRenderAt(_shortsHistory[_shortsHistoryPos]);
-    }
-  }
+  _shortsHasNavigated = true;
+  _shortsRenderAt(_shortsIdx + dir);
 }
 
 async function openRandomShort(targetVideoId) {
@@ -5718,8 +5752,7 @@ async function openRandomShort(targetVideoId) {
     startIdx = Math.floor(Math.random() * items.length);
   }
 
-  _shortsHistory = [startIdx];
-  _shortsHistoryPos = 0;
+  _shortsHasNavigated = false;
   _shortsRenderAt(startIdx);
   _shortsAttachEvents();
 }
@@ -6364,7 +6397,7 @@ function startFlappy() {
           <input id="flappyLbName" placeholder="Enter your name" maxlength="20" required
             style="flex:1;background:#0a0a18;border:1px solid #333;color:#eee;font-family:var(--mono,monospace);font-size:14px;padding:8px 12px;border-radius:4px;outline:none;min-width:0"
             value="${localStorage.getItem('shibez_lb_name')||''}" />
-          <button id="flappyLbSubmitBtn" onclick="(()=>{
+          <button id="flappyLbSubmitBtn" onclick="(async ()=>{
             const n=document.getElementById('flappyLbName').value.trim();
             if(!n){
               const inp=document.getElementById('flappyLbName');
@@ -6373,17 +6406,20 @@ function startFlappy() {
               inp.focus();
               return;
             }
+            if(!_lbNameIsClean(n)){ _lbRejectName(document.getElementById('flappyLbName')); return; }
             if(${finalScore}<5){
               const btn=document.getElementById('flappyLbSubmitBtn');
               if(btn){const orig=btn.textContent;btn.textContent='Need score ≥ 5';setTimeout(()=>{if(btn)btn.textContent=orig;},1500);}
               return;
             }
             localStorage.setItem('shibez_lb_name',n);
-            lbSubmit(LB_FLAPPY_KEY,n,${finalScore},''); try{profTrackScore('flappy',);}catch(e){}
+            const btnPre=document.getElementById('flappyLbSubmitBtn');
+            if(btnPre){btnPre.textContent='Saving…';btnPre.disabled=true;}
+            const synced = await lbSubmit(LB_FLAPPY_KEY,n,${finalScore},''); try{profTrackScore('flappy',);}catch(e){}
             document.getElementById('flappyLbRows').innerHTML=lbRenderRows(LB_FLAPPY_KEY,${finalScore});
             lbCloudRefresh(LB_FLAPPY_KEY,'flappyLbRows',${finalScore},15);
             const btn=document.getElementById('flappyLbSubmitBtn');
-            if(btn){btn.textContent='✓ Done';btn.disabled=true;btn.style.background='#1a3a1a';}
+            if(btn){btn.textContent=synced?'✓ Done':'✓ Saved (offline)';btn.disabled=true;btn.style.background=synced?'#1a3a1a':'#3a2a1a';}
           })()"
             style="background:#7c5cfc;border:none;color:#fff;font-family:var(--mono,monospace);font-size:13px;font-weight:900;padding:8px 16px;border-radius:4px;cursor:pointer;white-space:nowrap">
             Submit
@@ -7170,16 +7206,19 @@ function _holRenderLbRows(currentScore) {
   }).join('');
 }
 
-function holSubmitScore() {
+async function holSubmitScore() {
   const name = document.getElementById('holLbName')?.value?.trim();
   if (!name) { const inp = document.getElementById('holLbName'); if(inp){inp.style.borderColor='#fc5c7d';setTimeout(()=>inp.style.borderColor='',700);} return; }
+  if (!_lbNameIsClean(name)) { _lbRejectName(document.getElementById('holLbName')); return; }
   localStorage.setItem('holLastName', name);
-  lbSubmit(LB_HOL_KEY, name, _holScore, '');
+  const btnPre = document.getElementById('holLbSubmitBtn');
+  if (btnPre) { btnPre.textContent = 'Saving…'; btnPre.disabled = true; }
+  const synced = await lbSubmit(LB_HOL_KEY, name, _holScore, '');
   try { profTrackScore('hol', _holScore); } catch(e){}
   document.getElementById('holLbRows').innerHTML = _holRenderLbRows(_holScore);
   lbCloudRefresh(LB_HOL_KEY, 'holLbRows', _holScore, 10);
   const btn = document.getElementById('holLbSubmitBtn');
-  if (btn) { btn.textContent = '✓ SAVED'; btn.disabled = true; btn.style.opacity = '0.6'; }
+  if (btn) { btn.textContent = synced ? '✓ SAVED' : '✓ SAVED (offline)'; btn.disabled = true; btn.style.opacity = '0.6'; }
 }
 
 function holRestart() {
@@ -7617,16 +7656,19 @@ function _showSpaceLbDeath(finalScore, finalFrames, canvas) {
       <input id="spaceLbName" placeholder="Enter name to submit" maxlength="20"
         style="flex:1;background:#0a0a18;border:1px solid #333;color:#eee;font-family:var(--mono,monospace);font-size:11px;padding:6px 8px;border-radius:4px;outline:none;min-width:0"
         value="${localStorage.getItem('shibez_lb_name')||''}" />
-      <button id="spaceLbSubmitBtn" onclick="(()=>{
+      <button id="spaceLbSubmitBtn" onclick="(async ()=>{
         const n=document.getElementById('spaceLbName')?.value.trim();
         if(!n){ document.getElementById('spaceLbName').style.border='1px solid #fc5c7d'; document.getElementById('spaceLbName').placeholder='Name required!'; return; }
+        if(!_lbNameIsClean(n)){ _lbRejectName(document.getElementById('spaceLbName')); return; }
         if(${finalScore}<5){ document.getElementById('spaceLbSubmitBtn').textContent='Need score ≥ 5'; setTimeout(()=>{const b=document.getElementById('spaceLbSubmitBtn');if(b)b.textContent='Submit';},1500); return; }
         localStorage.setItem('shibez_lb_name',n);
-        lbSubmit(LB_SPACE_KEY,n,${finalScore},'⏱${timeStr}'); try{profTrackScore('space',);}catch(e){}
+        const btnPre=document.getElementById('spaceLbSubmitBtn');
+        if(btnPre){btnPre.textContent='Saving…';btnPre.disabled=true;}
+        const synced = await lbSubmit(LB_SPACE_KEY,n,${finalScore},'⏱${timeStr}'); try{profTrackScore('space',);}catch(e){}
         document.getElementById('spaceLbDeathRows').innerHTML=lbRenderRows(LB_SPACE_KEY,${finalScore});
         lbCloudRefresh(LB_SPACE_KEY,'spaceLbDeathRows',${finalScore},20);
         const btn=document.getElementById('spaceLbSubmitBtn');
-        if(btn){btn.textContent='✓ Done';btn.disabled=true;btn.style.background='#1a3a1a';}
+        if(btn){btn.textContent=synced?'✓ Done':'✓ Saved (offline)';btn.disabled=true;btn.style.background=synced?'#1a3a1a':'#3a2a1a';}
       })()"
         style="background:#7c5cfc;border:none;color:#fff;font-family:var(--mono,monospace);font-size:11px;font-weight:700;padding:6px 10px;border-radius:4px;cursor:pointer;flex-shrink:0">
         Submit
@@ -12191,17 +12233,20 @@ function _aionShowGameOver(entry){
   document.getElementById('aionLbRows').innerHTML=lbRenderRows(LB_AION_KEY,_aionScore,15);
   lbCloudRefresh(LB_AION_KEY,'aionLbRows',_aionScore,15);
 }
-function aionSubmitScore(){
+async function aionSubmitScore(){
   const n=document.getElementById('aionLbName').value.trim();
   if(!n){document.getElementById('aionLbName').style.border='1px solid #fc5c7d';return;}
+  if(!_lbNameIsClean(n)){_lbRejectName(document.getElementById('aionLbName'));return;}
   if(_aionScore<1){const b=document.getElementById('aionLbRows');b.innerHTML='<div style="color:#888;font-size:11px;padding:4px">Score at least 1 to submit</div>';return;}
   localStorage.setItem('shibez_lb_name',n);
-  lbSubmit(LB_AION_KEY,n,_aionScore,'');
+  const btnPre=document.querySelector('#aionGameOver button[onclick="aionSubmitScore()"]');
+  if(btnPre){btnPre.textContent='Saving…';btnPre.disabled=true;}
+  const synced = await lbSubmit(LB_AION_KEY,n,_aionScore,'');
   try{profTrackScore('aion',_aionScore);}catch(e){}
   document.getElementById('aionLbRows').innerHTML=lbRenderRows(LB_AION_KEY,_aionScore,15);
   lbCloudRefresh(LB_AION_KEY,'aionLbRows',_aionScore,15);
   const btn=document.querySelector('#aionGameOver button[onclick="aionSubmitScore()"]');
-  if(btn){btn.textContent='✓ Submitted';btn.disabled=true;}
+  if(btn){btn.textContent=synced?'✓ Submitted':'✓ Saved (offline)';btn.disabled=true;}
 }
 function _aionSetupSwipe(){
   const card=document.getElementById('aionCard');
@@ -15686,6 +15731,9 @@ async function _ytSecInit() {
   const wrap = document.getElementById('ytMainCardWrap');
   if (!wrap) { setTimeout(_ytSecInit, 200); return; }
 
+  const MIN_SHORTS = 30;   // keep fetching more pages of uploads until we have at least this many
+  const MAX_VIDEOS = 200;  // hard cap on total uploads scanned, so a shorts-light channel can't spin forever
+
   try {
     // 1. Resolve uploads playlist ID for @ShibezYT
     const chRes  = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle=${HL_CHANNEL_HANDLE}&key=${HL_API_KEY}`);
@@ -15693,28 +15741,35 @@ async function _ytSecInit() {
     const uploadsId = chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
     if (!uploadsId) { _ytSecRender(); return; }
 
-    // 2. Fetch latest 50 uploads
-    const upRes  = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&key=${HL_API_KEY}`);
-    const upData = await upRes.json();
-    const videoIds = (upData.items || [])
-      .map(i => i.snippet?.resourceId?.videoId)
-      .filter(Boolean);
-    if (!videoIds.length) { _ytSecRender(); return; }
+    // 2. Fetch uploads, paging through 50 at a time until we have enough shorts
+    //    (or hit MAX_VIDEOS / run out of pages), then batch-fetch details.
+    let videoIds = [];
+    let pageToken = '';
+    do {
+      const upRes  = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&key=${HL_API_KEY}` + (pageToken ? `&pageToken=${pageToken}` : ''));
+      const upData = await upRes.json();
+      const batch = (upData.items || [])
+        .map(i => i.snippet?.resourceId?.videoId)
+        .filter(Boolean);
+      videoIds = videoIds.concat(batch);
+      pageToken = upData.nextPageToken || '';
 
-    // 3. Fetch durations + snippets (batch up to 50)
-    const detRes  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds.slice(0,50).join(',')}&key=${HL_API_KEY}`);
-    const detData = await detRes.json();
-
-    for (const v of (detData.items || [])) {
-      const dur   = _parseIsoDuration(v.contentDetails?.duration);
-      const title = v.snippet?.title || '';
-      const thumb = `https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg`;
-      if (dur >= 62) {
-        if (!_ytSecLatest) _ytSecLatest = { id: v.id, title, thumb };
-      } else if (dur > 0) {
-        _ytSecShorts.push({ id: v.id, title, thumb });
+      // 3. Fetch durations + snippets for this page (videos.list caps at 50 ids per call)
+      if (batch.length) {
+        const detRes  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${batch.join(',')}&key=${HL_API_KEY}`);
+        const detData = await detRes.json();
+        for (const v of (detData.items || [])) {
+          const dur   = _parseIsoDuration(v.contentDetails?.duration);
+          const title = v.snippet?.title || '';
+          const thumb = `https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg`;
+          if (dur >= 62) {
+            if (!_ytSecLatest) _ytSecLatest = { id: v.id, title, thumb };
+          } else if (dur > 0) {
+            _ytSecShorts.push({ id: v.id, title, thumb });
+          }
+        }
       }
-    }
+    } while (pageToken && _ytSecShorts.length < MIN_SHORTS && videoIds.length < MAX_VIDEOS);
   } catch(e) {
     console.warn('[ytSec] fetch failed:', e);
   }
