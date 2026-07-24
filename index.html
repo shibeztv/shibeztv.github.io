@@ -2349,52 +2349,72 @@
     </div>
 
     <!-- EMOTE GUESSER MODAL -->
-    <style>#egInput::placeholder{color:#999;opacity:1}</style>
-    <div id="egModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9005;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:20px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:800px;height:calc(100vh - var(--topbar-h) - 40px);max-height:900px">
+    <style>
+      #egInput::placeholder{color:#999;opacity:1}
+      @keyframes egFadeIn{from{opacity:0}to{opacity:1}}
+      #egCanvas,#egAnimImg{transition:filter .4s ease-out}
+      #egResult{animation:egFadeIn .35s ease}
+      .egHistRow{animation:egFadeIn .3s ease}
+    </style>
+    <div id="egModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9005;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:14px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:800px;height:calc(100vh - var(--bars-h) - 28px);max-height:900px">
         <!-- Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
           <div style="display:flex;flex-direction:column;gap:2px">
             <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--text);letter-spacing:1px">🎭 EMOTE GUESSER</span>
             <span style="font-family:var(--mono);font-size:11px;color:#d3d7e0;font-weight:400">Guess the emote — more pixels revealed each wrong guess</span>
           </div>
           <div style="display:flex;align-items:center;gap:10px">
             <span id="egAttemptsBadge" style="font-family:var(--mono);font-size:14px;color:#f0f0f0;font-weight:800"></span>
+            <button onclick="egToggleLeaderboard()" title="Leaderboard" style="background:none;border:1px solid #555;color:#ffd700;cursor:pointer;font-size:14px;line-height:1;padding:6px 8px;border-radius:4px">🏆</button>
             <button onclick="closeEmoteGuesser()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
         <!-- Game area -->
-        <div style="width:100%;padding:24px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:16px">
+        <div style="width:100%;flex:1;min-height:0;overflow-y:auto;padding:14px 20px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:10px">
           <!-- Pixelated emote display -->
-          <div style="position:relative;width:420px;height:420px;border-radius:8px;overflow:hidden;background:#111;border:1px solid var(--border);flex-shrink:0">
-            <canvas id="egCanvas" width="420" height="420" style="display:block;width:420px;height:420px;image-rendering:pixelated"></canvas>
-            <img id="egAnimImg" src="" style="display:none;width:420px;height:420px;object-fit:contain;image-rendering:auto;position:absolute;inset:0">
+          <div style="position:relative;width:min(380px,42vh);height:min(380px,42vh);border-radius:8px;overflow:hidden;background:#111;border:1px solid var(--border);flex-shrink:0">
+            <canvas id="egCanvas" width="420" height="420" style="display:block;width:100%;height:100%;image-rendering:pixelated"></canvas>
+            <img id="egAnimImg" src="" style="display:none;width:100%;height:100%;object-fit:contain;image-rendering:auto;position:absolute;inset:0">
             <div id="egBlurOverlay" style="display:none;position:absolute;inset:0;backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px)"></div>
           </div>
           <!-- Guess history -->
-          <div id="egGuessHistory" style="width:100%;display:flex;flex-direction:column;gap:4px;min-height:28px"></div>
+          <div id="egGuessHistory" style="width:100%;display:flex;flex-direction:column;gap:4px;min-height:0"></div>
           <!-- Input row -->
-          <div id="egInputRow" style="display:flex;gap:8px;width:100%;position:relative">
+          <div id="egInputRow" style="display:flex;gap:8px;width:100%;position:relative;flex-shrink:0">
             <div style="flex:1;position:relative">
               <input id="egInput" type="text" placeholder="Type emote name…" autocomplete="off" maxlength="60"
-                style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:14px 12px;color:#fff;font-family:var(--mono);font-size:14px;outline:none;box-sizing:border-box;height:48px"
+                style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:14px 12px;color:#fff;font-family:var(--mono);font-size:14px;outline:none;box-sizing:border-box;height:44px"
                 oninput="egOnInput()" onkeydown="if(event.key==='Enter')egSubmitGuess();if(event.key==='ArrowDown'||event.key==='ArrowUp')egNavSuggest(event)">
               <div id="egSuggest" style="display:none;position:absolute;left:0;right:0;top:100%;background:#1a1a2e;border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;z-index:20;max-height:205px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent"></div>
             </div>
-            <button onclick="egSubmitGuess()" style="font-family:var(--mono);font-size:13px;font-weight:700;background:rgba(232,121,249,0.15);border:2px solid #e879f9;color:#e879f9;padding:0 22px;height:48px;border-radius:4px;cursor:pointer;white-space:nowrap"
+            <button onclick="egSubmitGuess()" style="font-family:var(--mono);font-size:13px;font-weight:700;background:rgba(232,121,249,0.15);border:2px solid #e879f9;color:#e879f9;padding:0 22px;height:44px;border-radius:4px;cursor:pointer;white-space:nowrap"
               onmouseover="this.style.background='rgba(232,121,249,0.28)'" onmouseout="this.style.background='rgba(232,121,249,0.15)'">GUESS</button>
           </div>
           <!-- Result / give up -->
-          <div id="egResult" style="font-family:var(--mono);font-size:13px;font-weight:700;text-align:center;min-height:18px"></div>
-          <button id="egSkipBtn" onclick="egGiveUp()" style="font-family:var(--mono);font-size:14px;font-weight:800;background:none;border:1px solid #555;color:#eee;padding:10px 24px;border-radius:4px;cursor:pointer"
+          <div id="egResult" style="font-family:var(--mono);font-size:13px;font-weight:700;text-align:center;min-height:18px;flex-shrink:0"></div>
+          <button id="egSkipBtn" onclick="egGiveUp()" style="flex-shrink:0;font-family:var(--mono);font-size:14px;font-weight:800;background:none;border:1px solid #555;color:#eee;padding:8px 22px;border-radius:4px;cursor:pointer"
             onmouseover="this.style.color='#fff';this.style.borderColor='#888';this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.color='#eee';this.style.borderColor='#555';this.style.background='none'">Give up / skip</button>
           <!-- Next emote button (shown after round ends) -->
-          <button id="egNextBtn" onclick="egNextEmote()" style="display:none;font-family:var(--mono);font-size:12px;font-weight:700;background:rgba(232,121,249,0.15);border:2px solid #e879f9;color:#e879f9;padding:10px 28px;border-radius:4px;cursor:pointer"
+          <button id="egNextBtn" onclick="egNextEmote()" style="flex-shrink:0;display:none;font-family:var(--mono);font-size:12px;font-weight:700;background:rgba(232,121,249,0.15);border:2px solid #e879f9;color:#e879f9;padding:8px 26px;border-radius:4px;cursor:pointer"
             onmouseover="this.style.background='rgba(232,121,249,0.28)'" onmouseout="this.style.background='rgba(232,121,249,0.15)'">▶ NEXT EMOTE</button>
           <!-- Score row -->
-          <div style="font-family:var(--mono);font-size:13px;color:#eee;font-weight:700;text-align:center">
-            Score: <span id="egScore" style="color:#e879f9;font-weight:900;font-size:17px">0</span> &nbsp;·&nbsp; Best streak: <span id="egBestStreak" style="color:#a78bfa;font-weight:900;font-size:17px">0</span>
+          <div style="flex-shrink:0;font-family:var(--mono);font-size:13px;color:#eee;font-weight:700;text-align:center">
+            Score: <span id="egScore" style="color:#e879f9;font-weight:900;font-size:17px">0</span> &nbsp;·&nbsp; Streak: <span id="egStreakDisp" style="color:#4ade80;font-weight:900;font-size:17px">0</span> &nbsp;·&nbsp; Best streak: <span id="egBestStreak" style="color:#a78bfa;font-weight:900;font-size:17px">0</span>
           </div>
+        </div>
+        <!-- Leaderboard overlay -->
+        <div id="egLbOverlay" style="display:none;position:absolute;inset:0;background:rgba(8,8,16,0.97);backdrop-filter:blur(4px);flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;gap:10px;z-index:15">
+          <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:380px">
+            <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:#ffd700;letter-spacing:1px">🏆 LEADERBOARD</span>
+            <button onclick="egToggleLeaderboard()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:#aaa;text-align:center;max-width:380px">Guess sooner for more points — save your current run below.</div>
+          <div style="display:flex;gap:8px;width:100%;max-width:380px">
+            <input id="egLbName" placeholder="Your name" maxlength="20" style="flex:1;background:#111;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#fff;font-family:var(--mono);font-size:12px;outline:none" value="">
+            <button onclick="egSubmitScore()" style="font-family:var(--mono);font-size:11px;font-weight:700;background:#e879f9;border:none;color:#000;padding:8px 14px;border-radius:4px;cursor:pointer">SAVE SCORE</button>
+          </div>
+          <div id="egLbRows" style="width:100%;max-width:380px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px"></div>
         </div>
       </div>
     </div>
@@ -2530,30 +2550,36 @@
     </div>
 
     <!-- FLAPPY SHIBEZ MODAL -->
-    <div id="flappyModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9002;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:10px">
+    <div id="flappyModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9002;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:10px;box-sizing:border-box">
       <div id="flappyMusicEl" style="display:none"></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
-          <div style="display:flex;flex-direction:column;gap:1px">
-            <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:var(--text);letter-spacing:1px">FLAPPY SHIBEZ</span>
-            <span style="font-family:var(--mono);font-size:11px;color:#d3d7e0;font-weight:400">Click / Space / Tap to flap</span>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;max-height:calc(100vh - var(--bars-h) - 20px);max-width:calc(100vw - 20px)">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:var(--text);letter-spacing:1px;white-space:nowrap">FLAPPY SHIBEZ</span>
+              <span style="font-family:var(--mono);font-size:11px;color:#d3d7e0;font-weight:400;white-space:nowrap">Click / Space / Tap to flap</span>
+            </div>
+            <button onclick="closeFlappy()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;flex-shrink:0">✕</button>
           </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-family:var(--mono);font-size:13px;color:#eee;font-weight:700">Score:</span>
-            <span style="font-family:var(--mono);font-size:18px;font-weight:900;color:var(--text)" id="flappyScore">0</span>
-            <span style="font-family:var(--mono);font-size:18px;color:#aaa">🎵</span>
-            <input id="flappyVolSlider" type="range" min="0" max="100" value="31" title="Music volume"
-              oninput="setFlappyVol(+this.value)"
-              style="width:55px;accent-color:#ffd700;cursor:pointer;vertical-align:middle">
-            <span style="font-family:var(--mono);font-size:18px;color:#aaa">💥</span>
-            <input id="flappySfxSlider" type="range" min="0" max="100" value="50" title="SFX volume"
-              oninput="setFlappySfxVol(+this.value)"
-              style="width:55px;accent-color:#fc5c7d;cursor:pointer;vertical-align:middle">
-            <button id="flappyMuteBtn" onclick="toggleFlappyMute()" title="Mute/Unmute all sounds" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">🔊</button>
-            <button onclick="closeFlappy()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;row-gap:6px">
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <span style="font-family:var(--mono);font-size:13px;color:#eee;font-weight:700">Score:</span>
+              <span style="font-family:var(--mono);font-size:34px;font-weight:900;color:var(--text);line-height:1" id="flappyScore">0</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-family:var(--mono);font-size:18px;color:#aaa">🎵</span>
+              <input id="flappyVolSlider" type="range" min="0" max="100" value="31" title="Music volume"
+                oninput="setFlappyVol(+this.value)"
+                style="width:55px;accent-color:#ffd700;cursor:pointer;vertical-align:middle">
+              <span style="font-family:var(--mono);font-size:18px;color:#aaa">💥</span>
+              <input id="flappySfxSlider" type="range" min="0" max="100" value="50" title="SFX volume"
+                oninput="setFlappySfxVol(+this.value)"
+                style="width:55px;accent-color:#fc5c7d;cursor:pointer;vertical-align:middle">
+              <button id="flappyMuteBtn" onclick="toggleFlappyMute()" title="Mute/Unmute all sounds" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">🔊</button>
+            </div>
           </div>
         </div>
-        <canvas id="flappyCanvas" width="760" height="1180" style="display:block;cursor:pointer;max-width:100%;max-height:calc(100vh - var(--bars-h) - 40px);width:auto;height:auto;touch-action:none;-webkit-tap-highlight-color:transparent"></canvas>
+        <canvas id="flappyCanvas" width="920" height="1180" style="display:block;cursor:pointer;flex:1 1 auto;min-height:0;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain;touch-action:none;-webkit-tap-highlight-color:transparent"></canvas>
       </div>
     </div>
 
@@ -2905,6 +2931,7 @@
 const LB_FLAPPY_KEY = 'shibez_lb_flappy';
 const LB_SPACE_KEY  = 'shibez_lb_space';
 const LB_AION_KEY   = 'shibez_lb_aion';
+const LB_EG_KEY      = 'shibez_lb_eg';
 function lbLoad(key){ try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; } }
 function lbSave(key,arr){ localStorage.setItem(key,JSON.stringify(arr)); }
 
@@ -3047,6 +3074,8 @@ function _lbRerenderAll(key){
     const el2 = document.getElementById('spaceLbCompactRows');  if (el2) el2.innerHTML = lbRenderRows(key, undefined, 8);
   } else if (key === LB_AION_KEY) {
     const el = document.getElementById('aionLbRows'); if (el) el.innerHTML = lbRenderRows(key, undefined, 15);
+  } else if (key === LB_EG_KEY) {
+    const el = document.getElementById('egLbRows'); if (el) el.innerHTML = lbRenderRows(key, undefined, 15);
   } else if (key === LB_HOL_KEY) {
     const el = document.getElementById('holLbRows'); if (el) el.innerHTML = _holRenderLbRows(_holScore);
   }
@@ -6670,7 +6699,13 @@ let _egDone = false;
 let _egScore = 0;
 let _egStreak = 0;
 let _egBestStreak = 0;
+let _egLastPoints = 0;
 let _egSuggestIdx = -1;
+// Points earned by guess number — earlier guesses are worth more (10, 8, 6, 4, 2, floor 2)
+const EG_POINTS = [10, 8, 6, 4, 2, 2];
+function _egPointsForGuess(attemptNum) {
+  return EG_POINTS[Math.min(attemptNum, EG_POINTS.length) - 1] ?? 2;
+}
 // Reveal levels — 6 total, smoothly stepping from 90% blurred down to 0% (fully clear)
 // Level 0 = 90% blurred/pixelated ... Level 5 = 0% (completely clear)
 const EG_BLUR_PERCENTS = [90, 72, 54, 36, 18, 0];
@@ -6735,6 +6770,13 @@ function _egDrawPixelated(img, pixelSize) {
   ctx.drawImage(small, 0, 0, W, H);
 }
 
+// Reads the emote box's actual rendered size (it's responsive now — CSS min(380px,42vh) —
+// rather than a hardcoded 420) so the animated-emote pixelation transform lines up correctly.
+function _egBoxPx() {
+  const box = document.getElementById('egCanvas')?.parentElement;
+  return (box && box.clientWidth) ? box.clientWidth : 420;
+}
+
 function _egRender() {
   const level = Math.min(_egAttempts, _egMaxAttempts - 1);
   const { pixelSize, blurPx } = _egLevelStyle(level);
@@ -6742,6 +6784,7 @@ function _egRender() {
   const canvas = document.getElementById('egCanvas');
   const animImg = document.getElementById('egAnimImg');
   const blurOverlay = document.getElementById('egBlurOverlay');
+  const BOX = _egBoxPx();
 
   if (_egCurrentEmote.animated) {
     // Always show animated img — hide canvas, hide blur overlay
@@ -6752,8 +6795,8 @@ function _egRender() {
       animImg.style.display = 'block';
       if (pixelSize <= 1 && blurPx <= 0) {
         // Fully revealed — normal size, 0% blur
-        animImg.style.width = '420px';
-        animImg.style.height = '420px';
+        animImg.style.width = BOX + 'px';
+        animImg.style.height = BOX + 'px';
         animImg.style.imageRendering = 'auto';
         animImg.style.filter = '';
         animImg.style.transform = 'none';
@@ -6764,8 +6807,8 @@ function _egRender() {
       } else {
         // Pixelate: render at very small size then scale up with pixelated rendering,
         // plus a proportional CSS blur so the reveal smoothly clears up over 6 levels
-        const _tiny = Math.max(1, Math.floor(420 / pixelSize));
-        const _scale = 420 / _tiny;
+        const _tiny = Math.max(1, Math.floor(BOX / pixelSize));
+        const _scale = BOX / _tiny;
         animImg.style.width = _tiny + 'px';
         animImg.style.height = _tiny + 'px';
         animImg.style.imageRendering = 'pixelated';
@@ -6821,6 +6864,7 @@ function _egStartRound() {
   document.getElementById('egSkipBtn').style.display = '';
   document.getElementById('egNextBtn').style.display = 'none';
   document.getElementById('egScore').textContent = _egScore;
+  document.getElementById('egStreakDisp').textContent = _egStreak;
   document.getElementById('egBestStreak').textContent = _egBestStreak;
   _egRender();
 }
@@ -6873,11 +6917,12 @@ function egSubmitGuess() {
   const answer = _egCurrentEmote.name.toLowerCase();
   const isCorrect = raw.length > 0 && guess === answer;
 
-  // Add to history
+  // Add to history — softer, lower-contrast colors + a gentle fade-in instead of popping in at full brightness
   const hist = document.getElementById('egGuessHistory');
   const row = document.createElement('div');
+  row.className = 'egHistRow';
   const _rowLabel = raw.length === 0 ? 'skipped' : raw;
-  row.style.cssText = `display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:4px;background:${isCorrect?'rgba(74,222,128,0.12)':raw.length===0?'rgba(167,139,250,0.08)':'rgba(252,92,125,0.08)'};border:1px solid ${isCorrect?'#4ade80':raw.length===0?'#a78bfa':'#333'}`;
+  row.style.cssText = `display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:4px;background:${isCorrect?'rgba(74,222,128,0.08)':raw.length===0?'rgba(167,139,250,0.06)':'rgba(252,92,125,0.06)'};border:1px solid ${isCorrect?'rgba(74,222,128,0.5)':raw.length===0?'rgba(167,139,250,0.4)':'#333'}`;
   row.innerHTML = `<span style="font-family:var(--mono);font-size:11px;color:${isCorrect?'#4ade80':raw.length===0?'#a78bfa':'#fc5c7d'}">${isCorrect?'✅':raw.length===0?'⏭':'❌'}</span><span style="font-family:var(--mono);font-size:12px;color:${raw.length===0?'#a78bfa':'#ddd'}">${_rowLabel}</span>`;
   hist.appendChild(row);
 
@@ -6885,7 +6930,8 @@ function egSubmitGuess() {
 
   if (isCorrect) {
     _egDone = true;
-    _egScore++;
+    _egLastPoints = _egPointsForGuess(_egAttempts);
+    _egScore += _egLastPoints;
     _egStreak++;
     if (_egStreak > _egBestStreak) {
       _egBestStreak = _egStreak;
@@ -6902,6 +6948,7 @@ function egSubmitGuess() {
     _egRender(); // reveal more pixels
   }
   document.getElementById('egScore').textContent = _egScore;
+  document.getElementById('egStreakDisp').textContent = _egStreak;
   document.getElementById('egBestStreak').textContent = _egBestStreak;
 }
 
@@ -6910,29 +6957,35 @@ function egGiveUp() {
   _egDone = true;
   _egAttempts = _egMaxAttempts;
   _egStreak = 0;
+  document.getElementById('egStreakDisp').textContent = _egStreak;
   _egRender();
   _egShowResult(false);
 }
 
 function _egShowResult(won) {
   const resultEl = document.getElementById('egResult');
+  // Restart the fade-in each time (a CSS animation only auto-plays once by default)
+  resultEl.style.animation = 'none';
+  void resultEl.offsetWidth;
+  resultEl.style.animation = 'egFadeIn .35s ease';
   const _link = `<a href="https://7tv.app/emotes/${_egCurrentEmote.id}" target="_blank" style="color:inherit;text-decoration:underline;cursor:pointer">${_egCurrentEmote.name}</a>`;
   if (won) {
-    resultEl.innerHTML = `✅ Correct! It was ${_link} (${_egAttempts} ${_egAttempts===1?'guess':'guesses'})`;
-    resultEl.style.color = '#4ade80';
+    resultEl.innerHTML = `✅ Correct! It was ${_link} (${_egAttempts} ${_egAttempts===1?'guess':'guesses'} · +${_egLastPoints} pts)`;
+    resultEl.style.color = '#7fd99a';
   } else {
     resultEl.innerHTML = `❌ The answer was: <span style="color:#e879f9;font-weight:900">${_link}</span>`;
-    resultEl.style.color = '#fc5c7d';
+    resultEl.style.color = '#e0899a';
   }
   document.getElementById('egInputRow').style.display = 'none';
   document.getElementById('egSkipBtn').style.display = 'none';
   document.getElementById('egNextBtn').style.display = '';
   // Draw full clear image at end — use pixelSize 1 directly
   _egDrawPixelated(_egCurrentEmoteImg, 1);
-  // For animated: force full size
+  // For animated: force full size (uses the box's actual responsive rendered size)
   const _egAnimImgEl = document.getElementById('egAnimImg');
   if (_egAnimImgEl && _egAnimImgEl.style.display !== 'none') {
-    _egAnimImgEl.style.width='420px'; _egAnimImgEl.style.height='420px';
+    const BOX = _egBoxPx();
+    _egAnimImgEl.style.width=BOX+'px'; _egAnimImgEl.style.height=BOX+'px';
     _egAnimImgEl.style.imageRendering='auto'; _egAnimImgEl.style.filter='';
     _egAnimImgEl.style.transform='none';
   }
@@ -6947,6 +7000,8 @@ async function openEmoteGuesser() {
   const modal = document.getElementById('egModal');
   if (!modal) return;
   modal.style.display = 'flex';
+  const lbOverlay = document.getElementById('egLbOverlay');
+  if (lbOverlay) lbOverlay.style.display = 'none';
   _egBestStreak = parseInt(localStorage.getItem('egBestStreak') || '0');
   document.getElementById('egResult').textContent = 'Loading emotes…';
   document.getElementById('egInputRow').style.display = 'none';
@@ -6975,8 +7030,38 @@ async function openEmoteGuesser() {
 function closeEmoteGuesser() {
   const modal = document.getElementById('egModal');
   if (modal) modal.style.display = 'none';
+  const lbOverlay = document.getElementById('egLbOverlay');
+  if (lbOverlay) lbOverlay.style.display = 'none';
   try { if(_egScore>0) profTrackScore('eg', _egScore); } catch(e){}
   _clearHash();
+}
+
+function egToggleLeaderboard() {
+  const overlay = document.getElementById('egLbOverlay');
+  if (!overlay) return;
+  const showing = overlay.style.display === 'flex';
+  if (showing) { overlay.style.display = 'none'; return; }
+  overlay.style.display = 'flex';
+  document.getElementById('egLbName').value = localStorage.getItem('shibez_lb_name') || '';
+  document.getElementById('egLbRows').innerHTML = lbRenderRows(LB_EG_KEY, _egScore, 15);
+  lbCloudRefresh(LB_EG_KEY, 'egLbRows', _egScore, 15);
+}
+
+async function egSubmitScore() {
+  const n = document.getElementById('egLbName').value.trim();
+  if (!n) { document.getElementById('egLbName').style.border = '1px solid #fc5c7d'; return; }
+  if (!_lbNameIsClean(n)) { _lbRejectName(document.getElementById('egLbName')); return; }
+  if (_egScore < 1) {
+    document.getElementById('egLbRows').innerHTML = '<div style="color:#888;font-size:11px;padding:4px">Score at least 1 point to submit</div>';
+    return;
+  }
+  localStorage.setItem('shibez_lb_name', n);
+  const btn = document.querySelector('#egLbOverlay button[onclick="egSubmitScore()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'SAVING…'; }
+  await lbSubmit(LB_EG_KEY, n, _egScore, `🔥${_egStreak} (best ${_egBestStreak})`);
+  document.getElementById('egLbRows').innerHTML = lbRenderRows(LB_EG_KEY, _egScore, 15);
+  lbCloudRefresh(LB_EG_KEY, 'egLbRows', _egScore, 15);
+  if (btn) { btn.disabled = false; btn.textContent = 'SAVE SCORE'; }
 }
 
 document.addEventListener('click', e => {
@@ -12996,31 +13081,52 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-win-flash.show{opacity:1;}
 
-/* ── Item winner highlight: a colored comet-line traces around the item's edge
-   instead of a gold glow. Ring sits at inset:0 (not extended outward) so it
-   never spills past the item's own box, and its color follows the item's own
-   rarity color via --wm-win-color instead of always being gold. ── */
+/* ── Item winner highlight: a bright rarity-colored pop + pulsing glow + a
+   single diagonal shine sweep, with a quick radial flash burst behind the
+   card. Replaces the old spinning comet-ring, which read as messy/busy. ── */
 .wm-item.winner{
-  border-color:transparent !important;
-  box-shadow:none !important;
-  animation:none !important;
+  border-color:var(--wm-win-color,#e4b84d) !important;
+  box-shadow:0 0 0 2px var(--wm-win-color,#e4b84d), 0 0 16px 2px var(--wm-win-color,#e4b84d);
+  animation:wmWinnerPop 0.5s cubic-bezier(0.34,1.56,0.64,1),
+            wmWinnerGlow 1.7s ease-in-out 0.5s infinite;
+  z-index:5;
 }
+@keyframes wmWinnerPop{
+  0%{ transform:scale(1); }
+  45%{ transform:scale(1.09); }
+  70%{ transform:scale(0.97); }
+  100%{ transform:scale(1); }
+}
+@keyframes wmWinnerGlow{
+  0%,100%{ box-shadow:0 0 0 2px var(--wm-win-color,#e4b84d), 0 0 14px 2px var(--wm-win-color,#e4b84d); }
+  50%{ box-shadow:0 0 0 2px var(--wm-win-color,#e4b84d), 0 0 32px 8px var(--wm-win-color,#e4b84d); }
+}
+/* Quick radial flash burst behind the card the moment it's crowned winner */
 .wm-item.winner::after{
   content:'';
-  position:absolute;inset:0;border-radius:inherit;padding:3px;
-  background:conic-gradient(from 0deg,
-    transparent 0deg, transparent 250deg,
-    var(--wm-win-color,#e4b84d) 290deg,
-    #fff 310deg,
-    var(--wm-win-color,#e4b84d) 330deg,
-    transparent 360deg);
-  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor; mask-composite:exclude;
-  animation:wmWinnerRing 1.6s linear infinite;
-  pointer-events:none; z-index:4;
-  filter:drop-shadow(0 0 6px var(--wm-win-color,#e4b84d));
+  position:absolute;inset:-30%;border-radius:inherit;
+  background:radial-gradient(circle, var(--wm-win-color,#e4b84d) 0%, transparent 65%);
+  opacity:0;
+  animation:wmWinnerBurst 0.7s ease-out;
+  pointer-events:none; z-index:1;
+  mix-blend-mode:screen;
 }
-@keyframes wmWinnerRing{ to{ transform:rotate(360deg); } }
+@keyframes wmWinnerBurst{
+  0%{ opacity:0.9; transform:scale(0.25); }
+  100%{ opacity:0; transform:scale(1.5); }
+}
+/* Single diagonal shine sweep across the card face */
+.wm-item.winner::before{
+  content:'';
+  position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.65) 48%, transparent 66%);
+  transform:translateX(-150%) skewX(-15deg);
+  animation:wmWinnerShine 0.9s ease-out 0.2s 1;
+  pointer-events:none; z-index:6;
+}
+@keyframes wmWinnerShine{
+  to{ transform:translateX(150%) skewX(-15deg); }
+}
 
 /* ── Description tooltip on case contents hover ── */
 .wm-citem{position:relative;}
