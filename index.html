@@ -2451,7 +2451,7 @@
           <!-- Result feedback -->
           <div id="holResult" style="font-family:var(--mono);font-size:20px;font-weight:900;min-height:28px;text-align:center"></div>
           <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:#eee;text-align:center;margin-top:4px">Click on which emote you think has been typed more on Twitch!</div>
-          <div style="font-family:var(--mono);font-size:12px;color:#ccc;font-weight:600;text-align:right;margin-top:4px;padding-right:4px">Data: StreamElements global stats · 7TV emote set</div>
+          <div style="font-family:var(--mono);font-size:12px;color:#ccc;font-weight:600;text-align:right;margin-top:4px;padding-right:4px">Data: StreamElements global stats (lifetime total ÷ emote age) · 7TV emote set</div>
         </div>
         <!-- Leaderboard panel -->
         <div id="holLbPanel" style="display:none;position:absolute;inset:0;background:rgba(5,5,20,0.97);z-index:10;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
@@ -6999,6 +6999,34 @@ let _holLeftIdx = -1;
 let _holRightIdx = -1;
 let _holAnimating = false;
 
+// 7TV emote IDs are ULIDs — the first 10 characters encode the creation
+// timestamp (ms since epoch) in Crockford base32. Decoding this lets us
+// figure out how OLD an emote is, so we can turn StreamElements' lifetime
+// usage total into a fair "average uses per day" rate instead. Without
+// this, an emote from 2017 will always beat a newer emote just for having
+// existed longer, even if the newer one is way more popular right now.
+const _ULID_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+function _ulidTimestampMs(id) {
+  if (!id || id.length < 10) return null;
+  const timePart = id.substring(0, 10).toUpperCase();
+  let ms = 0;
+  for (let i = 0; i < timePart.length; i++) {
+    const idx = _ULID_ALPHABET.indexOf(timePart[i]);
+    if (idx === -1) return null; // not a valid ULID, bail out
+    ms = ms * 32 + idx;
+  }
+  return ms;
+}
+
+// Given raw lifetime usage count + emote id, return uses-per-day. Floors
+// the age at 1 day so a same-day emote doesn't divide into a huge number.
+function _holUsagePerDay(channels, id) {
+  const createdMs = _ulidTimestampMs(id);
+  if (!createdMs) return channels; // fallback: treat as raw count
+  const ageDays = Math.max(1, (Date.now() - createdMs) / 86400000);
+  return channels / ageDays;
+}
+
 async function _holLoadEmotes() {
   if (_holLoaded && _holEmotes.length > 0) return;
   try {
@@ -7019,7 +7047,10 @@ async function _holLoadEmotes() {
     // made "higher/lower" comparisons meaningless for a lot of pairs.
     _holEmotes = (setData.emotes || [])
       .filter(e => e.id && e.name && seMap[e.id] > 0)
-      .map(e => ({ id: e.id, name: e.name, channels: seMap[e.id] }));
+      .map(e => {
+        const channels = seMap[e.id];
+        return { id: e.id, name: e.name, channels, rate: _holUsagePerDay(channels, e.id) };
+      });
 
     // If StreamElements barely overlaps with this emote set, fall back to the
     // hardcoded real-data list below rather than showing too small a pool.
@@ -7040,13 +7071,23 @@ async function _holLoadEmotes() {
       {id:'01F6YHTH5G00007TQNKXE5VR9B',name:'FeelsBadMan',channels:4300},
       {id:'01F6YTHMPG00008JPQN4X6CRTW',name:'OMEGALUL',channels:3900},
       {id:'01F6YHTQNG00009P3S8YW4DZMV',name:'5Head',channels:3500},
-    ].sort(() => Math.random() - 0.5);
+    ].map(e => ({ ...e, rate: _holUsagePerDay(e.channels, e.id) }))
+     .sort(() => Math.random() - 0.5);
     _holLoaded = true;
   }
 }
 
 function _holEmoteUrl(id) {
   return `https://cdn.7tv.app/emote/${id}/2x.webp`;
+}
+
+// We compare/rank emotes by uses-per-day (age-normalized), but still show
+// the raw lifetime count underneath so it's clear what's really being
+// measured and the numbers stay honest/checkable.
+function _holFormatUsage(emote) {
+  const rate = Math.round(emote.rate || emote.channels || 0);
+  const total = (emote.channels || 0).toLocaleString();
+  return `~${rate.toLocaleString()} uses/day  ·  ${total} total`;
 }
 
 function _holPickTwo() {
@@ -7072,18 +7113,17 @@ function _holRender(revealRight = false) {
 
   document.getElementById('holLeftImg').src = _holEmoteUrl(left.id);
   document.getElementById('holLeftName').textContent = left.name;
-  document.getElementById('holLeftCount').textContent = left.channels.toLocaleString() + ' times typed';
+  document.getElementById('holLeftCount').textContent = _holFormatUsage(left);
 
   document.getElementById('holRightImg').src = _holEmoteUrl(right.id);
   document.getElementById('holRightName').textContent = right.name;
 
-  const rightCountEl = document.getElementById('holRightCount');
   const rightCard = document.getElementById('holRightCard');
   if (revealRight) {
-    rightCountEl.textContent = right.channels.toLocaleString() + ' times typed';
+    document.getElementById('holRightCount').textContent = _holFormatUsage(right);
     rightCard.style.borderColor = ''; // reset
   } else {
-    rightCountEl.textContent = '??? times typed';
+    document.getElementById('holRightCount').textContent = '??? uses/day';
     rightCard.style.borderColor = 'var(--border)';
   }
 
@@ -7098,26 +7138,14 @@ function holGetBest() {
 
 // Clicking a card means "I think THIS card has higher usage"
 function holGuessCard(side) {
-  if (_holAnimating) return;
-  const left = _holEmotes[_holLeftIdx];
-  const right = _holEmotes[_holRightIdx];
-  if (!left || !right) return;
-  const pickedIsHigher = side === 'left'
-    ? left.channels >= right.channels
-    : right.channels >= left.channels;
-  holGuess(pickedIsHigher ? 'higher' : 'lower');
-}
-
-// Clicking a card means "I think THIS card has higher usage"
-function holGuessCard(side) {
   if (_holAnimating || _holEmotes.length < 2) return;
   const left = _holEmotes[_holLeftIdx];
   const right = _holEmotes[_holRightIdx];
   if (!left || !right) return;
   // Correct if the card they clicked actually has more (or equal) usage
   const correct = side === 'left'
-    ? left.channels >= right.channels
-    : right.channels >= left.channels;
+    ? left.rate >= right.rate
+    : right.rate >= left.rate;
   _holHandleGuess(correct);
 }
 
@@ -7126,7 +7154,7 @@ function holGuess(dir) {
   const left = _holEmotes[_holLeftIdx];
   const right = _holEmotes[_holRightIdx];
   if (!left || !right) return;
-  const isHigher = right.channels >= left.channels;
+  const isHigher = right.rate >= left.rate;
   const correct = (dir === 'higher' && isHigher) || (dir === 'lower' && !isHigher);
   _holHandleGuess(correct);
 }
@@ -7137,16 +7165,16 @@ function _holHandleGuess(correct) {
   const left = _holEmotes[_holLeftIdx];
   const right = _holEmotes[_holRightIdx];
   // Reveal both counts
-  if (left) document.getElementById('holLeftCount').textContent = left.channels.toLocaleString() + ' times typed';
-  if (right) document.getElementById('holRightCount').textContent = right.channels.toLocaleString() + ' times typed';
+  if (left) document.getElementById('holLeftCount').textContent = _holFormatUsage(left);
+  if (right) document.getElementById('holRightCount').textContent = _holFormatUsage(right);
 
   const resultEl = document.getElementById('holResult');
   const rightCard = document.getElementById('holRightCard');
   const leftCard = document.getElementById('holLeftCard');
 
-  // Highlight higher = green, lower = red
+  // Highlight higher = green, lower = red (by age-normalized rate)
   if (left && right) {
-    const leftIsHigher = left.channels >= right.channels;
+    const leftIsHigher = left.rate >= right.rate;
     leftCard.style.borderColor = leftIsHigher ? '#4ade80' : '#fc5c7d';
     rightCard.style.borderColor = leftIsHigher ? '#fc5c7d' : '#4ade80';
   }
@@ -7158,7 +7186,7 @@ function _holHandleGuess(correct) {
     resultEl.style.fontSize = '26px';
     resultEl.style.textShadow = '0 0 20px #4ade80, 0 0 40px #4ade8088';
     // Highlight the winning card with bright glow + background flash
-    const winCard = (left && right && left.channels >= right.channels) ? leftCard : rightCard;
+    const winCard = (left && right && left.rate >= right.rate) ? leftCard : rightCard;
     winCard.style.boxShadow = '0 0 0 3px #4ade80, 0 0 28px #4ade80aa';
     winCard.style.background = 'rgba(74,222,128,0.15)';
     // Show big checkmark in center
@@ -12968,16 +12996,31 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-win-flash.show{opacity:1;}
 
-/* ── Item winner highlight ── */
+/* ── Item winner highlight: a colored comet-line traces around the item's edge
+   instead of a gold glow. Ring sits at inset:0 (not extended outward) so it
+   never spills past the item's own box, and its color follows the item's own
+   rarity color via --wm-win-color instead of always being gold. ── */
 .wm-item.winner{
-  box-shadow:0 0 0 2.5px #e4b84d, 0 0 24px 4px rgba(228,184,77,0.7), 0 0 50px 8px rgba(228,184,77,0.3) !important;
-  border-color:#e4b84d !important;
-  animation:wmWinnerPulse 0.8s ease-in-out infinite alternate;
+  border-color:transparent !important;
+  box-shadow:none !important;
+  animation:none !important;
 }
-@keyframes wmWinnerPulse{
-  from{box-shadow:0 0 0 2px #e4b84d,0 0 18px 3px rgba(228,184,77,0.6);}
-  to  {box-shadow:0 0 0 3px #e4b84d,0 0 36px 8px rgba(228,184,77,0.85),0 0 60px 12px rgba(228,184,77,0.25);}
+.wm-item.winner::after{
+  content:'';
+  position:absolute;inset:0;border-radius:inherit;padding:3px;
+  background:conic-gradient(from 0deg,
+    transparent 0deg, transparent 250deg,
+    var(--wm-win-color,#e4b84d) 290deg,
+    #fff 310deg,
+    var(--wm-win-color,#e4b84d) 330deg,
+    transparent 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  animation:wmWinnerRing 1.6s linear infinite;
+  pointer-events:none; z-index:4;
+  filter:drop-shadow(0 0 6px var(--wm-win-color,#e4b84d));
 }
+@keyframes wmWinnerRing{ to{ transform:rotate(360deg); } }
 
 /* ── Description tooltip on case contents hover ── */
 .wm-citem{position:relative;}
@@ -14335,7 +14378,9 @@ function wmSpin() {
 
       // Highlight the card that visually stopped at center
       document.querySelectorAll('.wm-item').forEach((el, i) => {
-        el.classList.toggle('winner', i === landedIdx);
+        const isWinner = i === landedIdx;
+        el.classList.toggle('winner', isWinner);
+        if (isWinner) el.style.setProperty('--wm-win-color', winner.color);
       });
       // Flash
       document.getElementById('wmWinFlash').classList.add('show');
