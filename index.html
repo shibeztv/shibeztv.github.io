@@ -2556,8 +2556,8 @@
     <!-- FLAPPY SHIBEZ MODAL -->
     <div id="flappyModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9002;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:10px;box-sizing:border-box">
       <div id="flappyMusicEl" style="display:none"></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:inline-flex;flex-direction:column;align-items:center;max-height:calc(100vh - var(--bars-h) - 20px);max-width:calc(100vw - 20px)">
-        <div style="display:flex;flex-direction:column;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
+      <div id="flappyBox" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;max-height:calc(100vh - var(--bars-h) - 20px);max-width:calc(100vw - 20px)">
+        <div id="flappyHeader" style="display:flex;flex-direction:column;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
             <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
               <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:var(--text);letter-spacing:1px;white-space:nowrap">FLAPPY SHIBEZ</span>
@@ -6142,6 +6142,37 @@ function openFlappyShibez() {
   initFlappyMusic();
   preloadFlappyEmotes(); // fire-and-forget — sets _flappyEmotesReady when done
   startFlappy();
+  // Size the box to the canvas itself (not the full modal width) — run once now
+  // and again next frame once the header has actually laid out its real height.
+  _flappySizeBox();
+  requestAnimationFrame(_flappySizeBox);
+  if (!window._flappyResizeHandler) {
+    window._flappyResizeHandler = () => _flappySizeBox();
+    window.addEventListener('resize', window._flappyResizeHandler);
+  }
+}
+
+// Keeps the visible game box exactly as wide as the canvas — the header/score
+// bar hugs the canvas width instead of stretching across the whole screen.
+function _flappySizeBox() {
+  const modal = document.getElementById('flappyModal');
+  const box = document.getElementById('flappyBox');
+  const header = document.getElementById('flappyHeader');
+  const canvas = document.getElementById('flappyCanvas');
+  if (!modal || !box || !header || !canvas || modal.style.display === 'none') return;
+  const availH = modal.clientHeight - 20;  // modal has 10px padding top+bottom
+  const availW = modal.clientWidth - 20;   // modal has 10px padding left+right
+  const headerH = header.getBoundingClientRect().height;
+  let canvasH = Math.max(120, availH - headerH);
+  let canvasW = canvasH * (920 / 1180);
+  if (canvasW > availW) {
+    canvasW = availW;
+    canvasH = canvasW * (1180 / 920);
+  }
+  canvas.style.flex = '0 0 auto';
+  canvas.style.width = canvasW + 'px';
+  canvas.style.height = canvasH + 'px';
+  box.style.width = canvasW + 'px';
 }
 
 function closeFlappy() {
@@ -6150,6 +6181,7 @@ function closeFlappy() {
   // Stop death sound if still playing
   if (_currentDeathSfxGlobal) { try { _currentDeathSfxGlobal.pause(); _currentDeathSfxGlobal.currentTime=0; } catch(e){} _currentDeathSfxGlobal=null; }
   document.getElementById('flappyModal').style.display = 'none';
+  if (window._flappyResizeHandler) { window.removeEventListener('resize', window._flappyResizeHandler); window._flappyResizeHandler = null; }
   _clearHash();
 }
 
@@ -6662,6 +6694,7 @@ function closeFlappy() {
   document.getElementById('flappyGroundEmotes')?.remove();
   document.getElementById('flappyLbOverlay')?.remove();
   document.getElementById('flappyModal').style.display = 'none';
+  if (window._flappyResizeHandler) { window.removeEventListener('resize', window._flappyResizeHandler); window._flappyResizeHandler = null; }
   try { _flappyMusicPlayer?.pauseVideo(); } catch(e) {}
   _clearHash();
 }
@@ -13451,6 +13484,7 @@ window.addEventListener('hashchange', _routeFromHash);
   <div class="wm-ep-header">🎨 Pick Icon</div>
   <div class="wm-ep-tabs">
     <button class="wm-ep-tab active" id="wmEpTab7tv" onclick="wmEpSwitchTab('7tv')">7TV Emotes</button>
+    <button class="wm-ep-tab" id="wmEpTabFfz" onclick="wmEpSwitchTab('ffz')">FFZ Emotes</button>
     <button class="wm-ep-tab" id="wmEpTabEmoji" onclick="wmEpSwitchTab('emoji')">Emoji</button>
     <button class="wm-ep-tab" id="wmEpTabUpload" onclick="wmEpSwitchTab('upload')">Upload</button>
   </div>
@@ -13616,6 +13650,29 @@ async function _wmFetchEmotes() {
   return _wmEmotes;
 }
 
+const WM_FFZ_ROOM = 'shlbez';
+let _wmFFZEmotes = [];
+async function _wmFetchFFZEmotes() {
+  if (_wmFFZEmotes.length) return _wmFFZEmotes;
+  try {
+    const r = await fetch('https://api.frankerfacez.com/v1/room/' + WM_FFZ_ROOM);
+    const d = await r.json();
+    const setId = d.room && d.room.set;
+    const emoticons = (setId && d.sets && d.sets[setId] && d.sets[setId].emoticons) || [];
+    _wmFFZEmotes = emoticons.map(e => {
+      // Prefer the animated variant if present, otherwise the static urls map.
+      // Both are keyed by scale ('1','2','4') — grab the highest available.
+      const urls = (e.animated && Object.keys(e.animated).length ? e.animated : e.urls) || {};
+      let best = urls['4'] || urls['2'] || urls['1'];
+      if (!best) { const vals = Object.values(urls); best = vals[vals.length - 1]; }
+      if (!best) return null;
+      const url = best.startsWith('//') ? 'https:' + best : best;
+      return { name: e.name, url };
+    }).filter(Boolean);
+  } catch(err) { console.warn('FFZ emote fetch failed', err); }
+  return _wmFFZEmotes;
+}
+
 function _wmRenderIcon(icon) {
   if (!icon) return '<span style="font-size:48px;line-height:1">🎲</span>';
   if (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/')) {
@@ -13708,7 +13765,7 @@ async function wmEpSwitchTab(tab) {
   _wmEpTab = tab;
   const search = document.getElementById('wmEpSearch');
   if (search) search.style.display = tab === 'upload' ? 'none' : '';
-  ['7tv','emoji','upload'].forEach(t => {
+  ['7tv','ffz','emoji','upload'].forEach(t => {
     const id = 'wmEpTab' + t.charAt(0).toUpperCase() + t.slice(1);
     const el = document.getElementById(id);
     if (el) el.classList.toggle('active', t === tab);
@@ -13721,6 +13778,11 @@ async function wmEpSwitchTab(tab) {
     grid.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;color:#c8d0dc;padding:12px;text-align:center">Loading emotes…</div>';
     const emotes = await _wmFetchEmotes();
     if (_wmEpTab === '7tv') _wmRenderEmoteGrid(emotes);
+  } else if (tab === 'ffz') {
+    if (search) search.placeholder = 'Search FFZ emotes…';
+    grid.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;color:#c8d0dc;padding:12px;text-align:center">Loading emotes…</div>';
+    const emotes = await _wmFetchFFZEmotes();
+    if (_wmEpTab === 'ffz') _wmRenderEmoteGrid(emotes);
   } else if (tab === 'emoji') {
     if (search) search.placeholder = 'Search emoji…';
     _wmRenderEmojiGrid(WM_EMOJI_LIST);
@@ -13808,6 +13870,8 @@ const WM_EMOJI_NAMES = {
 function wmEmoteSearch(q) {
   if (_wmEpTab === '7tv') {
     _wmRenderEmoteGrid(q ? _wmEmotes.filter(e => e.name.toLowerCase().includes(q.toLowerCase())) : _wmEmotes);
+  } else if (_wmEpTab === 'ffz') {
+    _wmRenderEmoteGrid(q ? _wmFFZEmotes.filter(e => e.name.toLowerCase().includes(q.toLowerCase())) : _wmFFZEmotes);
   } else if (_wmEpTab === 'emoji') {
     _wmRenderEmojiGrid(q ? WM_EMOJI_LIST.filter(e => (WM_EMOJI_NAMES[e]||e).toLowerCase().includes(q.toLowerCase())) : WM_EMOJI_LIST);
   }
