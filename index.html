@@ -999,15 +999,17 @@
     font-family: var(--mono); font-size: 13px;
     padding: 3px 8px; border-radius: 2px; color: #fff;
   }
+  .grid-card-date-badge {
+    position: absolute; bottom: 5px; left: 5px;
+    background: rgba(0,0,0,0.85);
+    font-family: var(--mono); font-size: 13px;
+    padding: 3px 8px; border-radius: 2px; color: #fff;
+  }
   .grid-card-parts {
     position: absolute; top: 5px; left: 5px;
     background: rgba(145,70,255,0.9);
     font-family: var(--mono); font-size: 11px; font-weight: 700;
     padding: 3px 8px; border-radius: 3px; color: #fff;
-  }
-  .grid-card-date {
-    font-family: var(--mono); font-size: 9px;
-    color: var(--accent); margin-bottom: 4px;
   }
   .grid-card-title {
     font-size: 13.5px; font-weight: 700;
@@ -2430,7 +2432,7 @@
 
     <!-- HIGHER OR LOWER MODAL -->
     <div id="holModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9004;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:640px;max-height:calc(100vh - var(--topbar-h) - 24px)">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow-x:hidden;overflow-y:auto;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:780px;max-height:calc(100vh - var(--topbar-h) - 24px)">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
           <div style="display:flex;flex-direction:column;gap:2px">
@@ -2446,35 +2448,35 @@
         <!-- Game area -->
         <div id="holGame" style="width:100%;padding:20px 20px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:16px">
           <!-- Emote comparison row — grid keeps VS pinned to center regardless of card content -->
-          <div style="display:grid;grid-template-columns:1fr 56px 1fr;align-items:center;gap:10px;width:100%;position:relative">
+          <div style="display:grid;grid-template-columns:1fr 68px 1fr;align-items:center;gap:12px;width:100%;position:relative">
             <!-- Left emote (reference) — clicking it means "left is higher" -->
-            <div id="holLeftCard" onclick="holGuessCard('left')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:220px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
+            <div id="holLeftCard" onclick="holGuessCard('left')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:24px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:270px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
               onmouseover="if(!window._holAnimating)this.style.borderColor='#4ade80'" onmouseout="if(!window._holAnimating)this.style.borderColor='var(--border)'">
-              <img id="holLeftImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto;pointer-events:none">
-              <div id="holLeftName" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
-              <div id="holLeftCount" style="font-family:var(--mono);font-size:13px;color:#f59e0b;font-weight:700;pointer-events:none"></div>
+              <img id="holLeftImg" src="" style="width:150px;height:150px;object-fit:contain;image-rendering:auto;pointer-events:none">
+              <div id="holLeftName" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
+              <div id="holLeftCount" style="font-family:var(--mono);font-size:15px;color:#f59e0b;font-weight:700;pointer-events:none"></div>
             </div>
             <!-- VS divider — always exactly centered in its column -->
             <div style="display:flex;align-items:center;justify-content:center">
-              <div style="font-family:var(--mono);font-size:26px;font-weight:900;color:#fff">VS</div>
+              <div style="font-family:var(--mono);font-size:32px;font-weight:900;color:#fff">VS</div>
             </div>
             <!-- Right emote (guess target) — clicking it means "right is higher" -->
-            <div id="holRightCard" onclick="holGuessCard('right')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:220px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
+            <div id="holRightCard" onclick="holGuessCard('right')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:24px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:270px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
               onmouseover="if(!window._holAnimating)this.style.borderColor='#4ade80'" onmouseout="if(!window._holAnimating)this.style.borderColor='var(--border)'">
-              <img id="holRightImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto;pointer-events:none">
-              <div id="holRightName" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
-              <div id="holRightCount" style="font-family:var(--mono);font-size:13px;color:#aaa;font-weight:700;pointer-events:none">??? times typed</div>
+              <img id="holRightImg" src="" style="width:150px;height:150px;object-fit:contain;image-rendering:auto;pointer-events:none">
+              <div id="holRightName" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
+              <div id="holRightCount" style="font-family:var(--mono);font-size:15px;color:#aaa;font-weight:700;pointer-events:none">??? times typed</div>
             </div>
             <!-- Big checkmark overlay — shown in center on correct guess -->
             <div id="holCheckmark" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;pointer-events:none;z-index:5">
-              <div style="font-size:72px;line-height:1;filter:drop-shadow(0 0 24px #4ade80);animation:holCheckPop 0.18s ease-out">✅</div>
+              <div style="font-size:84px;line-height:1;filter:drop-shadow(0 0 24px #4ade80);animation:holCheckPop 0.18s ease-out">✅</div>
             </div>
           </div>
           <!-- Buttons -->
-          <div id="holButtons" style="display:flex;gap:10px">
-            <button onclick="holGuess('higher')" style="font-family:var(--mono);font-size:13px;font-weight:900;background:rgba(74,222,128,0.15);border:2px solid #4ade80;color:#4ade80;padding:12px 30px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
+          <div id="holButtons" style="display:flex;gap:12px">
+            <button onclick="holGuess('higher')" style="font-family:var(--mono);font-size:15px;font-weight:900;background:rgba(74,222,128,0.15);border:2px solid #4ade80;color:#4ade80;padding:14px 36px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
               onmouseover="this.style.background='rgba(74,222,128,0.28)'" onmouseout="this.style.background='rgba(74,222,128,0.15)'">▲ HIGHER</button>
-            <button onclick="holGuess('lower')" style="font-family:var(--mono);font-size:13px;font-weight:900;background:rgba(252,92,125,0.15);border:2px solid #fc5c7d;color:#fc5c7d;padding:12px 30px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
+            <button onclick="holGuess('lower')" style="font-family:var(--mono);font-size:15px;font-weight:900;background:rgba(252,92,125,0.15);border:2px solid #fc5c7d;color:#fc5c7d;padding:14px 36px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
               onmouseover="this.style.background='rgba(252,92,125,0.28)'" onmouseout="this.style.background='rgba(252,92,125,0.15)'">▼ LOWER</button>
           </div>
           <!-- Result feedback -->
@@ -4025,11 +4027,11 @@ function renderPage() {
       <div class="grid-card-thumb">
         <img src="${s.thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="thumb-fallback" style="display:none">ðº</div>
+        <span class="grid-card-date-badge">${date}</span>
         <span class="grid-card-dur">${formatDuration(s.totalDuration)}</span>
         ${parts}
       </div>
       <div class="grid-card-body">
-        <div class="grid-card-date">${date}</div>
         <div class="grid-card-title">${escHtml(s.title)}</div>
         <div class="grid-card-games">${games}</div>
       </div>
