@@ -1722,8 +1722,9 @@
     font-size: 15px;
     font-weight: 800;
     letter-spacing: 0.5px;
-    color: var(--text);
+    color: var(--text) !important;
     white-space: nowrap;
+    font-family: inherit;
   }
   .yt-header-btn {
     display: inline-flex;
@@ -2403,18 +2404,21 @@
             Score: <span id="egScore" style="color:#e879f9;font-weight:900;font-size:17px">0</span> &nbsp;·&nbsp; Streak: <span id="egStreakDisp" style="color:#4ade80;font-weight:900;font-size:17px">0</span> &nbsp;·&nbsp; Best streak: <span id="egBestStreak" style="color:#a78bfa;font-weight:900;font-size:17px">0</span>
           </div>
         </div>
-        <!-- Leaderboard overlay -->
+        <!-- Leaderboard / Game Over overlay -->
         <div id="egLbOverlay" style="display:none;position:absolute;inset:0;background:rgba(8,8,16,0.97);backdrop-filter:blur(4px);flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;gap:10px;z-index:15">
           <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:380px">
-            <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:#ffd700;letter-spacing:1px">🏆 LEADERBOARD</span>
-            <button onclick="egToggleLeaderboard()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
+            <span id="egLbTitleTxt" style="font-family:var(--mono);font-size:14px;font-weight:900;color:#ffd700;letter-spacing:1px">🏆 LEADERBOARD</span>
+            <button id="egLbCloseBtn" onclick="egToggleLeaderboard()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
+          <div id="egLbFinalScore" style="display:none;font-family:var(--mono);font-size:22px;font-weight:900;color:#eee;text-align:center"></div>
           <div style="font-family:var(--mono);font-size:11px;color:#aaa;text-align:center;max-width:380px">Guess sooner for more points — save your current run below.</div>
           <div style="display:flex;gap:8px;width:100%;max-width:380px">
             <input id="egLbName" placeholder="Your name" maxlength="20" style="flex:1;background:#111;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#fff;font-family:var(--mono);font-size:12px;outline:none" value="">
             <button onclick="egSubmitScore()" style="font-family:var(--mono);font-size:11px;font-weight:700;background:#e879f9;border:none;color:#000;padding:8px 14px;border-radius:4px;cursor:pointer">SAVE SCORE</button>
           </div>
           <div id="egLbRows" style="width:100%;max-width:380px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px"></div>
+          <button id="egLbPlayAgainBtn" onclick="egPlayAgain()" style="display:none;flex-shrink:0;font-family:var(--mono);font-size:12px;font-weight:800;background:rgba(124,92,252,0.18);border:2px solid #7c5cfc;color:#a78bfa;padding:10px 28px;border-radius:4px;cursor:pointer"
+            onmouseover="this.style.background='rgba(124,92,252,0.3)'" onmouseout="this.style.background='rgba(124,92,252,0.18)'">▶ PLAY AGAIN</button>
         </div>
       </div>
     </div>
@@ -6673,14 +6677,6 @@ document.addEventListener('click', e => {
   if (modal && e.target === modal) closeFlappy();
 });
 
-// Wheel Spin: once the winner "shine sweep" animation finishes playing, permanently
-// drop its pseudo-element so it can never get stuck on-screen as a stray line.
-document.addEventListener('animationend', e => {
-  if (e.animationName === 'wmWinnerShine' && e.target?.classList) {
-    e.target.classList.add('wm-shine-done');
-  }
-});
-
 
 // ─── EMOTE GUESSER ────────────────────────────────────────────────────────
 // Twitch IDs for the target channels
@@ -7019,7 +7015,14 @@ function _egShowResult(won) {
   }
   document.getElementById('egInputRow').style.display = 'none';
   document.getElementById('egSkipBtn').style.display = 'none';
-  document.getElementById('egNextBtn').style.display = '';
+  if (won) {
+    document.getElementById('egNextBtn').style.display = '';
+  } else {
+    // Game over — no more "Next Emote"; show the reveal for a beat, then
+    // drop into the game-over/leaderboard screen automatically.
+    document.getElementById('egNextBtn').style.display = 'none';
+    setTimeout(_egShowGameOver, 1400);
+  }
   // Draw full clear image at end — use pixelSize 1 directly
   _egDrawPixelated(_egCurrentEmoteImg, 1);
   // For animated: force full size (uses the box's actual responsive rendered size, which may be wide)
@@ -7034,6 +7037,48 @@ function _egShowResult(won) {
   }
 }
 
+// Auto-shown when a round ends in failure (wrong on last attempt, or gave up).
+// Reuses the leaderboard overlay but in "GAME OVER" mode: shows final score,
+// hides the manual-peek close button, and offers Play Again instead.
+function _egShowGameOver() {
+  const overlay = document.getElementById('egLbOverlay');
+  if (!overlay) return;
+  const titleEl = document.getElementById('egLbTitleTxt');
+  if (titleEl) titleEl.textContent = '💀 GAME OVER';
+  const closeBtn = document.getElementById('egLbCloseBtn');
+  if (closeBtn) closeBtn.style.display = 'none';
+  const fs = document.getElementById('egLbFinalScore');
+  if (fs) { fs.style.display = ''; fs.textContent = `Final score: ${_egScore} · Best streak: ${_egBestStreak}`; }
+  const pa = document.getElementById('egLbPlayAgainBtn');
+  if (pa) pa.style.display = '';
+  overlay.style.display = 'flex';
+  const nameInp = document.getElementById('egLbName');
+  if (nameInp) { nameInp.value = localStorage.getItem('shibez_lb_name') || ''; nameInp.style.border = ''; }
+  const btn = document.querySelector('#egLbOverlay button[onclick="egSubmitScore()"]');
+  if (btn) { btn.disabled = false; btn.textContent = 'SAVE SCORE'; }
+  document.getElementById('egLbRows').innerHTML = lbRenderRows(LB_EG_KEY, _egScore, 15);
+  lbCloudRefresh(LB_EG_KEY, 'egLbRows', _egScore, 15);
+}
+
+// Resets score/streak and starts a fresh run after Game Over.
+function egPlayAgain() {
+  const overlay = document.getElementById('egLbOverlay');
+  if (overlay) overlay.style.display = 'none';
+  const titleEl = document.getElementById('egLbTitleTxt');
+  if (titleEl) titleEl.textContent = '🏆 LEADERBOARD';
+  const closeBtn = document.getElementById('egLbCloseBtn');
+  if (closeBtn) closeBtn.style.display = '';
+  const fs = document.getElementById('egLbFinalScore');
+  if (fs) fs.style.display = 'none';
+  const pa = document.getElementById('egLbPlayAgainBtn');
+  if (pa) pa.style.display = 'none';
+  _egScore = 0;
+  _egStreak = 0;
+  document.getElementById('egScore').textContent = _egScore;
+  document.getElementById('egStreakDisp').textContent = _egStreak;
+  _egStartRound();
+}
+
 function egNextEmote() {
   _egStartRound();
 }
@@ -7045,6 +7090,14 @@ async function openEmoteGuesser() {
   modal.style.display = 'flex';
   const lbOverlay = document.getElementById('egLbOverlay');
   if (lbOverlay) lbOverlay.style.display = 'none';
+  const egLbTitleTxt = document.getElementById('egLbTitleTxt');
+  if (egLbTitleTxt) egLbTitleTxt.textContent = '🏆 LEADERBOARD';
+  const egLbCloseBtn = document.getElementById('egLbCloseBtn');
+  if (egLbCloseBtn) egLbCloseBtn.style.display = '';
+  const egLbFinalScore = document.getElementById('egLbFinalScore');
+  if (egLbFinalScore) egLbFinalScore.style.display = 'none';
+  const egLbPlayAgainBtn = document.getElementById('egLbPlayAgainBtn');
+  if (egLbPlayAgainBtn) egLbPlayAgainBtn.style.display = 'none';
   _egBestStreak = parseInt(localStorage.getItem('egBestStreak') || '0');
   document.getElementById('egResult').textContent = 'Loading emotes…';
   document.getElementById('egInputRow').style.display = 'none';
@@ -7084,6 +7137,16 @@ function egToggleLeaderboard() {
   if (!overlay) return;
   const showing = overlay.style.display === 'flex';
   if (showing) { overlay.style.display = 'none'; return; }
+  // Manual "peek" open (trophy button) always shows the plain leaderboard view —
+  // not the Game Over state, even if a previous run ended in Game Over.
+  const titleEl = document.getElementById('egLbTitleTxt');
+  if (titleEl) titleEl.textContent = '🏆 LEADERBOARD';
+  const closeBtn = document.getElementById('egLbCloseBtn');
+  if (closeBtn) closeBtn.style.display = '';
+  const fs = document.getElementById('egLbFinalScore');
+  if (fs) fs.style.display = 'none';
+  const pa = document.getElementById('egLbPlayAgainBtn');
+  if (pa) pa.style.display = 'none';
   overlay.style.display = 'flex';
   document.getElementById('egLbName').value = localStorage.getItem('shibez_lb_name') || '';
   document.getElementById('egLbRows').innerHTML = lbRenderRows(LB_EG_KEY, _egScore, 15);
@@ -7794,27 +7857,27 @@ function _renderSpaceLbPanel(canvas) {
   wrap.style.position = 'relative';
   const div = document.createElement('div');
   div.id = 'spaceLbPanel';
-  div.style.cssText = 'position:absolute;right:8px;top:8px;width:260px;background:rgba(5,5,18,0.92);border:1px solid #2a2a4a;border-radius:8px;padding:10px;pointer-events:auto;z-index:15';
-  // Compact render for overlay panel (no date, smaller font)
+  div.style.cssText = 'position:absolute;right:8px;top:8px;width:340px;max-width:44vw;background:rgba(5,5,18,0.92);border:1px solid #2a2a4a;border-radius:8px;padding:12px;pointer-events:auto;z-index:15';
+  // Compact render for overlay panel (no date, larger font so names are legible)
   const _compactRows = (()=>{
     const entries=lbLoad(LB_SPACE_KEY);
-    if(!entries.length) return '<div style="color:#bbb;font-size:10px;padding:6px 4px;text-align:center">No scores yet!</div>';
+    if(!entries.length) return '<div style="color:#bbb;font-size:12px;padding:6px 4px;text-align:center">No scores yet!</div>';
     const _esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     return entries.slice(0,8).map((e,i)=>{
-      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:#777">${i+1}.</span>`;
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:#999">${i+1}.</span>`;
       const isHL=false;
-      const nm=String(e.name||'').slice(0,14);
-      return `<div style="display:flex;align-items:center;gap:4px;padding:2px 4px;border-radius:3px;font-family:var(--mono,monospace);font-size:10px">
-        <span style="width:18px;text-align:center;flex-shrink:0">${medal}</span>
-        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ccc">${_esc(nm)}</span>
-        <span style="color:#ffd700;font-weight:700;flex-shrink:0">${_esc(e.score)}</span>
-        ${e.extra?`<span style="color:#888;font-size:9px;flex-shrink:0">${_esc(e.extra)}</span>`:''}
+      const nm=String(e.name||'').slice(0,24);
+      return `<div style="display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:4px;font-family:var(--mono,monospace);font-size:13px">
+        <span style="width:22px;text-align:center;flex-shrink:0">${medal}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e2e2e2;font-weight:600">${_esc(nm)}</span>
+        <span style="color:#ffd700;font-weight:800;flex-shrink:0">${_esc(e.score)}</span>
+        ${e.extra?`<span style="color:#999;font-size:11px;flex-shrink:0">${_esc(e.extra)}</span>`:''}
       </div>`;
     }).join('');
   })();
   div.innerHTML = `
-    <div style="font-family:var(--mono,monospace);font-size:11px;font-weight:900;color:#a78bfa;margin-bottom:6px;letter-spacing:1px">🏆 TOP SCORES</div>
-    <div id="spaceLbCompactRows" style="display:flex;flex-direction:column;gap:1px">
+    <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:900;color:#a78bfa;margin-bottom:8px;letter-spacing:1px">🏆 TOP SCORES</div>
+    <div id="spaceLbCompactRows" style="display:flex;flex-direction:column;gap:2px">
       ${_compactRows}
     </div>`;
   wrap.appendChild(div);
@@ -12836,7 +12899,7 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* ── Right panel: history + edit ── */
 .wm-right{
-  width:340px;flex-shrink:0;
+  width:400px;flex-shrink:0;
   border-left:1px solid #1e2028;
   display:flex;flex-direction:column;overflow:hidden;
 }
@@ -12898,19 +12961,23 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* item card in edit */
 .wm-item-card{
-  background:#0e1117;border:1px solid #1e2028;border-radius:3px;
-  padding:10px;margin-bottom:6px;display:flex;flex-direction:column;gap:8px;
-  position:relative;
+  background:#0e1117;border:1px solid #1e2028;border-radius:6px;
+  padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:9px;
+  position:relative;transition:border-color 0.12s;
 }
+.wm-item-card:hover{border-color:#33384a;}
 .wm-item-card-header{display:flex;align-items:center;gap:8px;}
 .wm-item-card-num{
   font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;color:#c8d0dc;
   min-width:20px;text-align:center;
 }
+/* Name gets its own full-width row so it's never squeezed by the icon/color/% controls */
+.wm-item-card-namerow{display:flex;align-items:center;gap:8px;}
+.wm-item-card-ctrlrow{display:flex;align-items:center;gap:8px;}
 
 /* color swatch button */
 .wm-col-btn{
-  width:28px;height:28px;border-radius:3px;border:2px solid #2a2e38;
+  width:32px;height:32px;border-radius:4px;border:2px solid #2a2e38;
   cursor:pointer;padding:0;flex-shrink:0;position:relative;overflow:hidden;
   transition:border-color 0.1s;
 }
@@ -12936,9 +13003,9 @@ window.addEventListener('hashchange', _routeFromHash);
 
 /* name/desc inputs */
 .wm-seg-inp{
-  flex:1;background:#141720;border:1px solid #1e2028;color:#c8d0dc;
-  font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;
-  padding:5px 8px;border-radius:2px;outline:none;min-width:0;letter-spacing:0.5px;
+  flex:1;background:#141720;border:1px solid #262b36;color:#e8edf2;
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;
+  padding:8px 10px;border-radius:4px;outline:none;min-width:0;letter-spacing:0.4px;
 }
 .wm-seg-inp:focus{border-color:#e4b84d;}
 .wm-seg-inp.desc{
@@ -13158,21 +13225,9 @@ window.addEventListener('hashchange', _routeFromHash);
   0%{ opacity:0.9; transform:scale(0.25); }
   100%{ opacity:0; transform:scale(1.5); }
 }
-/* Single diagonal shine sweep across the card face */
-.wm-item.winner::before{
-  content:'';
-  position:absolute;inset:0;border-radius:inherit;
-  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.65) 48%, transparent 66%);
-  transform:translateX(-150%) skewX(-15deg);
-  animation:wmWinnerShine 0.9s ease-out 0.2s 1;
-  pointer-events:none; z-index:6;
-}
-@keyframes wmWinnerShine{
-  to{ transform:translateX(150%) skewX(-15deg); }
-}
-/* Safety net: once the sweep animation finishes, kill the pseudo-element outright
-   (via JS adding this class on animationend) so it can never linger as a visible line. */
-.wm-item.winner.wm-shine-done::before{ content:none; }
+/* NOTE: the old diagonal white "shine sweep" (.wm-item.winner::before) has been
+   removed entirely — it was the stray white line that could linger on-screen
+   as a bug. The pop + glow + radial burst above are enough to sell the reveal. */
 
 /* ── Description tooltip on case contents hover ── */
 .wm-citem{position:relative;}
@@ -13373,6 +13428,7 @@ window.addEventListener('hashchange', _routeFromHash);
           <input class="wm-seg-inp" style="width:100%" id="wmNameInp2" placeholder="Wheel name…" oninput="wmRenameWheel(this.value,'wmNameInp2')">
         </div>
         <!-- Item list -->
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#6a7085;letter-spacing:1.5px;margin-bottom:6px">ITEMS</div>
         <div id="wmSegList"></div>
         <!-- Add item -->
         <button class="wm-add-item-btn" onclick="wmAddItem()">
@@ -14645,8 +14701,15 @@ function _wmRenderEdit() {
     const chanceVal = chances[i];
     const isLocked = !!item.chanceLocked;
     return `<div class="wm-item-card">
-      <div class="wm-item-card-header">
+      <!-- Name row: full width, so it's never squeezed by the controls below -->
+      <div class="wm-item-card-namerow">
         <span class="wm-item-card-num">${i+1}</span>
+        <input class="wm-seg-inp" style="flex:1" value="${item.label.replace(/"/g,'&quot;')}" oninput="wmItemLabel(${i},this.value)" placeholder="Item name…">
+        <!-- Delete -->
+        <button class="wm-seg-del" onclick="wmDelItem(${i})" title="Delete item">✕</button>
+      </div>
+      <!-- Controls row: color, icon, % chance -->
+      <div class="wm-item-card-ctrlrow">
         <!-- Color swatch -->
         <label class="wm-col-btn" style="background:${item.color}" title="Pick color">
           <input type="color" value="${item.color}" oninput="wmItemColor(${i},this.value)" onchange="wmItemColor(${i},this.value)">
@@ -14654,19 +14717,14 @@ function _wmRenderEdit() {
         <!-- Icon picker -->
         <button class="wm-icon-btn" onclick="wmOpenEmotePick(${i},this)" title="Pick icon / emote / image">
           ${iconPreview}
-          
         </button>
-        <!-- Name -->
-        <input class="wm-seg-inp" style="flex:1" value="${item.label.replace(/"/g,'&quot;')}" oninput="wmItemLabel(${i},this.value)" placeholder="Item name…">
         <!-- % chance -->
-        <div class="wm-chance-box" title="${isLocked ? 'Locked — will not change when items are added or removed' : 'Auto — shares the remaining % equally with other unlocked items'}">
+        <div class="wm-chance-box" style="margin-left:auto" title="${isLocked ? 'Locked — will not change when items are added or removed' : 'Auto — shares the remaining % equally with other unlocked items'}">
           <input type="number" class="wm-chance-inp" min="0" max="100" step="0.1"
             value="${chanceVal.toFixed(1)}" oninput="wmItemChance(${i},this.value)">
           <span class="wm-chance-pct">%</span>
           <button class="wm-chance-lock${isLocked?' locked':''}" onclick="wmToggleChanceLock(${i})">${isLocked?'🔒':'🔓'}</button>
         </div>
-        <!-- Delete -->
-        <button class="wm-seg-del" onclick="wmDelItem(${i})" title="Delete item">✕</button>
       </div>
       <!-- Description -->
       <textarea class="wm-seg-inp desc" oninput="wmItemDesc(${i},this.value)" placeholder="Description / punishment… e.g. Do 20 push-ups on stream.">${(item.desc||'').replace(/</g,'&lt;')}</textarea>
@@ -15957,12 +16015,31 @@ function _ytThumbFallback(img, id, step) {
   }
 }
 
+// YouTube Shorts can now run up to ~3 minutes, so duration alone (the old
+// "under 62 seconds" rule) can't reliably tell a Short apart from a real
+// upload anymore. Shorts thumbnails are vertical (portrait), while normal
+// uploads are landscape — so we confirm with the actual thumbnail's aspect
+// ratio before ever letting something into the main video slot.
+function _ytIsPortrait(url) {
+  return new Promise(resolve => {
+    const img = new Image();
+    let done = false;
+    const finish = v => { if (!done) { done = true; resolve(v); } };
+    img.onload = () => finish(img.naturalHeight > img.naturalWidth);
+    // Can't verify — fail safe by treating it as a Short so it never
+    // wrongly lands in the main "latest video" slot.
+    img.onerror = () => finish(true);
+    img.src = url;
+  });
+}
+
 async function _ytSecInit() {
   const wrap = document.getElementById('ytMainCardWrap');
   if (!wrap) { setTimeout(_ytSecInit, 200); return; }
 
   const MIN_SHORTS = 30;   // keep fetching more pages of uploads until we have at least this many
   const MAX_VIDEOS = 200;  // hard cap on total uploads scanned, so a shorts-light channel can't spin forever
+  const _ytLongCandidates = []; // dur>=62 candidates, newest first — verified by aspect ratio below
 
   try {
     // 1. Resolve uploads playlist ID for @ShibezYT
@@ -15993,13 +16070,23 @@ async function _ytSecInit() {
           const title = v.snippet?.title || '';
           const thumb = `https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg`;
           if (dur >= 62) {
-            if (!_ytSecLatest) _ytSecLatest = { id: v.id, title, thumb };
+            _ytLongCandidates.push({ id: v.id, title, thumb });
           } else if (dur > 0) {
             _ytSecShorts.push({ id: v.id, title, thumb });
           }
         }
       }
     } while (pageToken && _ytSecShorts.length < MIN_SHORTS && videoIds.length < MAX_VIDEOS);
+
+    // Walk the long-duration candidates newest-first and confirm each one's
+    // thumbnail is actually landscape before crowning it the main video —
+    // any vertical (Short) thumbnail we catch here gets folded into the
+    // shorts list instead of ever showing in the main slot.
+    for (const cand of _ytLongCandidates) {
+      const portrait = await _ytIsPortrait(cand.thumb);
+      if (!portrait) { _ytSecLatest = cand; break; }
+      _ytSecShorts.push(cand);
+    }
   } catch(e) {
     console.warn('[ytSec] fetch failed:', e);
   }
