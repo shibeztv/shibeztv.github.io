@@ -579,7 +579,7 @@
     padding: 6px 10px;
     border-top: 1px solid var(--border);
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 11px;
     color: var(--muted);
     display: flex;
     align-items: center;
@@ -1005,13 +1005,12 @@
     font-family: var(--mono); font-size: 11px; font-weight: 700;
     padding: 3px 8px; border-radius: 3px; color: #fff;
   }
-  .grid-card-
   .grid-card-date {
     font-family: var(--mono); font-size: 9px;
     color: var(--accent); margin-bottom: 4px;
   }
   .grid-card-title {
-    font-size: 12px; font-weight: 700;
+    font-size: 13.5px; font-weight: 700;
     line-height: 1.4; color: var(--text);
     margin-bottom: 6px;
     display: -webkit-box;
@@ -1751,15 +1750,13 @@
     box-shadow: 0 0 8px rgba(255,51,51,0.3);
   }
   .yt-header-btn-shorts {
-    background: rgba(255,80,80,0.08);
-    border-color: rgba(255,80,80,0.35);
-    color: #ff9090;
+    /* Intentionally identical to .yt-header-btn — both buttons should look the same */
   }
   .yt-header-btn-shorts:hover {
-    background: rgba(255,40,40,0.2);
-    border-color: #ff5555;
-    color: #ff6060;
-    box-shadow: 0 0 8px rgba(255,80,80,0.28);
+    background: rgba(255,40,40,0.22);
+    border-color: #ff3333;
+    color: #ff4444;
+    box-shadow: 0 0 8px rgba(255,51,51,0.3);
   }
   /* Row: [main video] [← arrow] [6 shorts] [→ arrow] */
   .yt-latest-row {
@@ -1811,16 +1808,16 @@
   .yt-main-info {
     padding: 9px 12px 11px;
     background: #000;
-    min-height: 73px;
+    min-height: 78px;
     box-sizing: border-box;
   }
   .yt-main-label {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 800;
     color: #ff4444;
     margin-bottom: 4px;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
   }
   .yt-main-title {
     font-size: 14px;
@@ -2198,7 +2195,7 @@
     style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:900;letter-spacing:0.5px;background:rgba(228,184,77,0.12);border:1.5px solid rgba(228,184,77,0.5);color:#e4b84d;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap;box-shadow:0 0 10px rgba(228,184,77,0.1)"
     onmouseover="this.style.borderColor='#e4b84d';this.style.color='#f7d374';this.style.background='rgba(228,184,77,0.22)';this.style.boxShadow='0 0 16px rgba(228,184,77,0.28)'"
     onmouseout="this.style.borderColor='rgba(228,184,77,0.5)';this.style.color='#e4b84d';this.style.background='rgba(228,184,77,0.12)';this.style.boxShadow='0 0 10px rgba(228,184,77,0.1)'">
-    🛞 <b>WHEEL SPIN</b>
+    <img src="https://cdn.7tv.app/emote/01F9C42KS80009N7XVDB6JDCAH/2x.webp" alt="" style="height:18px;width:18px;object-fit:contain;vertical-align:middle"> <b>WHEEL SPIN</b>
   </button>
 </nav>
 
@@ -2295,7 +2292,7 @@
               <span style="font-family:var(--mono);font-size:12px;color:#eee;font-weight:700">SFX</span>
               <input id="spaceSfxVol" type="range" min="0" max="100" value="22" style="width:100px;accent-color:#fc5c7d;cursor:pointer">
             </div>
-            <button onclick="spaceShopToggle()" style="font-family:var(--mono);font-size:10px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 10px;border-radius:3px;cursor:pointer" title="Press E or Tab">🛒 SHOP [E]</button>
+            <button onclick="spaceShopToggle()" style="font-family:var(--mono);font-size:13px;font-weight:900;background:rgba(255,215,0,0.22);border:2px solid rgba(255,215,0,0.65);color:#ffd700;padding:6px 16px;border-radius:5px;cursor:pointer;letter-spacing:0.5px;box-shadow:0 0 8px rgba(255,215,0,0.25)" title="Press E or Tab">🛒 SHOP [E]</button>
             <button id="spaceMuteBtn" onclick="toggleMuteAll()" title="Mute all sound" style="background:rgba(255,255,255,0.07);border:1px solid #2a2a4a;color:#aaa;cursor:pointer;font-size:16px;line-height:1;padding:3px 8px;border-radius:4px">🔊</button>
             <button onclick="closeSpace()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
@@ -2344,6 +2341,14 @@
           <div style="font-family:var(--mono);font-size:11px;color:#aaa;margin-bottom:8px">🪙 <span id="shopCoinsDisp" style="color:#ffd700;font-weight:900">0</span> coins &nbsp;·&nbsp; E/Tab to close &nbsp;·&nbsp; After Death = You keep half of current coins 🪙 + 1🪙 / every 10 score</div>
           <div id="shopGrid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%;max-width:1200px;overflow-y:auto;overflow-x:hidden;max-height:72vh;box-sizing:border-box;padding:2px 4px"></div>
           <div class="shopMusicLabel" style="margin-top:10px;font-family:var(--mono);font-size:12px;color:#6a5a9a;letter-spacing:0.5px">♪ Shop music: Motoi Sakuraba — Majula</div>
+          </div>
+
+          <!-- CHEST REWARD MODAL — only over canvas, topbar stays visible -->
+          <div id="spaceChestModal" style="display:none;position:absolute;inset:0;background:rgba(2,2,18,0.96);backdrop-filter:blur(4px);flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;box-sizing:border-box;z-index:11;touch-action:auto;pointer-events:auto">
+            <div style="font-family:var(--mono);font-size:16px;font-weight:900;color:#ffd700;letter-spacing:2px;display:flex;align-items:center;gap:8px">🎁 CHEST FOUND!</div>
+            <div style="font-family:var(--mono);font-size:11px;color:#aaa;margin-bottom:4px">Choose 1 free upgrade</div>
+            <div id="chestGrid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%;max-width:760px;box-sizing:border-box"></div>
+            <button onclick="spaceChestSkip()" style="font-family:var(--mono);font-size:12px;font-weight:900;background:rgba(255,255,255,0.06);border:1px solid #3a3a5a;color:#aaa;padding:8px 26px;border-radius:5px;cursor:pointer;letter-spacing:0.5px;margin-top:6px">SKIP</button>
           </div>
         </div>
       </div>
@@ -2406,7 +2411,7 @@
         </div>
         <!-- Leaderboard / Game Over overlay -->
         <div id="egLbOverlay" style="display:none;position:absolute;inset:0;background:rgba(8,8,16,0.97);backdrop-filter:blur(4px);flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;gap:10px;z-index:15">
-          <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:380px">
+          <div id="egLbTitleRow" style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:380px">
             <span id="egLbTitleTxt" style="font-family:var(--mono);font-size:14px;font-weight:900;color:#ffd700;letter-spacing:1px">🏆 LEADERBOARD</span>
             <button id="egLbCloseBtn" onclick="egToggleLeaderboard()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
@@ -2425,7 +2430,7 @@
 
     <!-- HIGHER OR LOWER MODAL -->
     <div id="holModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9004;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:1400px;max-height:calc(100vh - var(--topbar-h) - 24px)">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:640px;max-height:calc(100vh - var(--topbar-h) - 24px)">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box">
           <div style="display:flex;flex-direction:column;gap:2px">
@@ -2439,43 +2444,43 @@
           </div>
         </div>
         <!-- Game area -->
-        <div id="holGame" style="width:100%;padding:24px 28px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:20px">
+        <div id="holGame" style="width:100%;padding:20px 20px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:16px">
           <!-- Emote comparison row — grid keeps VS pinned to center regardless of card content -->
-          <div style="display:grid;grid-template-columns:1fr 80px 1fr;align-items:center;gap:16px;width:100%;position:relative">
+          <div style="display:grid;grid-template-columns:1fr 56px 1fr;align-items:center;gap:10px;width:100%;position:relative">
             <!-- Left emote (reference) — clicking it means "left is higher" -->
-            <div id="holLeftCard" onclick="holGuessCard('left')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;min-height:330px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
+            <div id="holLeftCard" onclick="holGuessCard('left')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:220px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
               onmouseover="if(!window._holAnimating)this.style.borderColor='#4ade80'" onmouseout="if(!window._holAnimating)this.style.borderColor='var(--border)'">
-              <img id="holLeftImg" src="" style="width:190px;height:190px;object-fit:contain;image-rendering:auto;pointer-events:none">
-              <div id="holLeftName" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
-              <div id="holLeftCount" style="font-family:var(--mono);font-size:16px;color:#f59e0b;font-weight:700;pointer-events:none"></div>
+              <img id="holLeftImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto;pointer-events:none">
+              <div id="holLeftName" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
+              <div id="holLeftCount" style="font-family:var(--mono);font-size:13px;color:#f59e0b;font-weight:700;pointer-events:none"></div>
             </div>
             <!-- VS divider — always exactly centered in its column -->
             <div style="display:flex;align-items:center;justify-content:center">
-              <div style="font-family:var(--mono);font-size:38px;font-weight:900;color:#fff">VS</div>
+              <div style="font-family:var(--mono);font-size:26px;font-weight:900;color:#fff">VS</div>
             </div>
             <!-- Right emote (guess target) — clicking it means "right is higher" -->
-            <div id="holRightCard" onclick="holGuessCard('right')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;min-height:330px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
+            <div id="holRightCard" onclick="holGuessCard('right')" style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:20px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:220px;justify-content:center;cursor:pointer;transition:border-color 0.15s"
               onmouseover="if(!window._holAnimating)this.style.borderColor='#4ade80'" onmouseout="if(!window._holAnimating)this.style.borderColor='var(--border)'">
-              <img id="holRightImg" src="" style="width:190px;height:190px;object-fit:contain;image-rendering:auto;pointer-events:none">
-              <div id="holRightName" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
-              <div id="holRightCount" style="font-family:var(--mono);font-size:16px;color:#aaa;font-weight:700;pointer-events:none">??? times typed</div>
+              <img id="holRightImg" src="" style="width:120px;height:120px;object-fit:contain;image-rendering:auto;pointer-events:none">
+              <div id="holRightName" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);text-align:center;pointer-events:none"></div>
+              <div id="holRightCount" style="font-family:var(--mono);font-size:13px;color:#aaa;font-weight:700;pointer-events:none">??? times typed</div>
             </div>
             <!-- Big checkmark overlay — shown in center on correct guess -->
             <div id="holCheckmark" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;pointer-events:none;z-index:5">
-              <div style="font-size:100px;line-height:1;filter:drop-shadow(0 0 24px #4ade80);animation:holCheckPop 0.18s ease-out">✅</div>
+              <div style="font-size:72px;line-height:1;filter:drop-shadow(0 0 24px #4ade80);animation:holCheckPop 0.18s ease-out">✅</div>
             </div>
           </div>
           <!-- Buttons -->
-          <div id="holButtons" style="display:flex;gap:12px">
-            <button onclick="holGuess('higher')" style="font-family:var(--mono);font-size:14px;font-weight:900;background:rgba(74,222,128,0.15);border:2px solid #4ade80;color:#4ade80;padding:14px 38px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
+          <div id="holButtons" style="display:flex;gap:10px">
+            <button onclick="holGuess('higher')" style="font-family:var(--mono);font-size:13px;font-weight:900;background:rgba(74,222,128,0.15);border:2px solid #4ade80;color:#4ade80;padding:12px 30px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
               onmouseover="this.style.background='rgba(74,222,128,0.28)'" onmouseout="this.style.background='rgba(74,222,128,0.15)'">▲ HIGHER</button>
-            <button onclick="holGuess('lower')" style="font-family:var(--mono);font-size:14px;font-weight:900;background:rgba(252,92,125,0.15);border:2px solid #fc5c7d;color:#fc5c7d;padding:14px 38px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
+            <button onclick="holGuess('lower')" style="font-family:var(--mono);font-size:13px;font-weight:900;background:rgba(252,92,125,0.15);border:2px solid #fc5c7d;color:#fc5c7d;padding:12px 30px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:1px"
               onmouseover="this.style.background='rgba(252,92,125,0.28)'" onmouseout="this.style.background='rgba(252,92,125,0.15)'">▼ LOWER</button>
           </div>
           <!-- Result feedback -->
-          <div id="holResult" style="font-family:var(--mono);font-size:20px;font-weight:900;min-height:28px;text-align:center"></div>
-          <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:#eee;text-align:center;margin-top:4px">Click on which emote you think has been typed more on Twitch!</div>
-          <div style="font-family:var(--mono);font-size:12px;color:#ccc;font-weight:600;text-align:right;margin-top:4px;padding-right:4px">Data: StreamElements global stats (lifetime total ÷ emote age) · 7TV emote set</div>
+          <div id="holResult" style="font-family:var(--mono);font-size:17px;font-weight:900;min-height:24px;text-align:center"></div>
+          <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:#eee;text-align:center;margin-top:2px">Click on which emote you think has been typed more on Twitch!</div>
+          <div style="font-family:var(--mono);font-size:11px;color:#ccc;font-weight:600;text-align:right;margin-top:2px;padding-right:4px;width:100%">Data: StreamElements global stats (lifetime total ÷ emote age) · 7TV emote set</div>
         </div>
         <!-- Leaderboard panel -->
         <div id="holLbPanel" style="display:none;position:absolute;inset:0;background:rgba(5,5,20,0.97);z-index:10;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
@@ -2716,14 +2721,14 @@
       </div>
       <div id="dateFilterWrap" style="display:flex;align-items:center;gap:6px;margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted)">
         <div style="display:flex;flex-direction:column;gap:1px">
-          <span style="font-size:11px;color:var(--muted);letter-spacing:0.5px;opacity:0.95;font-weight:700">FROM</span>
+          <span style="font-size:11px;color:#b8bccc;letter-spacing:0.5px;opacity:0.95;font-weight:700">FROM</span>
           <input type="date" id="dateFrom" lang="en" title="From date"
             style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;color-scheme:dark"
             oninput="applyDateFilter()">
         </div>
         <span style="font-size:18px;color:#bbb;align-self:flex-end;padding-bottom:3px;font-weight:300">→</span>
         <div style="display:flex;flex-direction:column;gap:1px">
-          <span style="font-size:11px;color:var(--muted);letter-spacing:0.5px;opacity:0.95;font-weight:700">TO</span>
+          <span style="font-size:11px;color:#b8bccc;letter-spacing:0.5px;opacity:0.95;font-weight:700">TO</span>
           <input type="date" id="dateTo" lang="en" title="To date"
             style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;color-scheme:dark"
             oninput="applyDateFilter()">
@@ -2757,7 +2762,7 @@
           <span class="yt-latest-title">LATEST STREAM HIGHLIGHTS</span>
           <a class="yt-header-btn yt-header-btn-shorts" href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" title="Go to Shorts page">
             <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
-            📱 Shorts
+            ▶ Shorts
           </a>
         </div>
       </div>
@@ -2872,7 +2877,7 @@
         <div class="chat-header">
           <span class="chat-header-icon">💬</span>
           <span class="chat-header-title">CHAT REPLAY</span>
-          <span id="chatHeaderNote" style="font-family:var(--mono);font-size:9px;color:#bbb">—</span>
+          <span id="chatHeaderNote" style="font-family:var(--mono);font-size:9px;color:#c9cdd8">—</span>
           <button onclick="toggleChatSettings()" title="Chat settings" style="background:none;border:none;color:#bbb;cursor:pointer;padding:2px 4px;border-radius:3px;display:flex;align-items:center" id="chatSettingsBtn">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
@@ -2919,7 +2924,7 @@
         </div>
         <div class="chat-footer" id="chatFooter" style="display:none">
           <span id="chatSyncStatus" style="color:#bbb">⏸ paused</span>
-          <span style="margin-left:auto;color:#bbb;font-family:var(--mono);font-size:9px" id="statusText"></span>
+          <span style="margin-left:auto;color:#bbb;font-family:var(--mono);font-size:11px" id="statusText"></span>
         </div>
         <div class="site-footer player-footer" style="border-top:1px solid var(--border);margin:0;padding:10px 0;flex-shrink:0">
           <span>Made by Shibez</span>
@@ -4995,7 +5000,7 @@ async function renderChat(stream) {
 
     if (note) {
       note.textContent = msgs.length + ' messages';
-      note.style.color = 'var(--muted)';
+      note.style.color = '#c9cdd8';
     }
     if (footer) footer.style.display = '';
 
@@ -7080,6 +7085,8 @@ function _egShowGameOver() {
   if (titleEl) titleEl.textContent = '💀 GAME OVER';
   const closeBtn = document.getElementById('egLbCloseBtn');
   if (closeBtn) closeBtn.style.display = 'none';
+  const titleRow = document.getElementById('egLbTitleRow');
+  if (titleRow) titleRow.style.justifyContent = 'center';
   const fs = document.getElementById('egLbFinalScore');
   if (fs) { fs.style.display = ''; fs.textContent = `Final score: ${_egScore} · Best streak: ${_egBestStreak}`; }
   const pa = document.getElementById('egLbPlayAgainBtn');
@@ -7101,6 +7108,8 @@ function egPlayAgain() {
   if (titleEl) titleEl.textContent = '🏆 LEADERBOARD';
   const closeBtn = document.getElementById('egLbCloseBtn');
   if (closeBtn) closeBtn.style.display = '';
+  const titleRow = document.getElementById('egLbTitleRow');
+  if (titleRow) titleRow.style.justifyContent = 'space-between';
   const fs = document.getElementById('egLbFinalScore');
   if (fs) fs.style.display = 'none';
   const pa = document.getElementById('egLbPlayAgainBtn');
@@ -7127,6 +7136,8 @@ async function openEmoteGuesser() {
   if (egLbTitleTxt) egLbTitleTxt.textContent = '🏆 LEADERBOARD';
   const egLbCloseBtn = document.getElementById('egLbCloseBtn');
   if (egLbCloseBtn) egLbCloseBtn.style.display = '';
+  const egLbTitleRow = document.getElementById('egLbTitleRow');
+  if (egLbTitleRow) egLbTitleRow.style.justifyContent = 'space-between';
   const egLbFinalScore = document.getElementById('egLbFinalScore');
   if (egLbFinalScore) egLbFinalScore.style.display = 'none';
   const egLbPlayAgainBtn = document.getElementById('egLbPlayAgainBtn');
@@ -7176,6 +7187,8 @@ function egToggleLeaderboard() {
   if (titleEl) titleEl.textContent = '🏆 LEADERBOARD';
   const closeBtn = document.getElementById('egLbCloseBtn');
   if (closeBtn) closeBtn.style.display = '';
+  const titleRow = document.getElementById('egLbTitleRow');
+  if (titleRow) titleRow.style.justifyContent = 'space-between';
   const fs = document.getElementById('egLbFinalScore');
   if (fs) fs.style.display = 'none';
   const pa = document.getElementById('egLbPlayAgainBtn');
@@ -7930,7 +7943,7 @@ function _showSpaceLbDeath(finalScore, finalFrames, canvas) {
   const div = document.createElement('div');
   div.id = 'spaceLbDeathOverlay';
   // Full-height right panel — matches the red rectangle position in the screenshot
-  div.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:280px;background:rgba(4,4,16,0.97);border-left:1px solid #3a2a6a;display:flex;flex-direction:column;padding:16px 14px;box-sizing:border-box;pointer-events:auto;z-index:20;gap:10px';
+  div.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:360px;max-width:70vw;background:rgba(4,4,16,0.97);border-left:1px solid #3a2a6a;display:flex;flex-direction:column;padding:16px 14px;box-sizing:border-box;pointer-events:auto;z-index:20;gap:10px';
   div.innerHTML = `
     <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:900;color:#a78bfa;letter-spacing:1px">🏆 LEADERBOARD</div>
     <div style="font-family:var(--mono,monospace);font-size:12px;color:#aaa">
@@ -8282,12 +8295,12 @@ function startSpace() {
     const statHtml = UPGRADE_DEFS.map(def=>{
       const lvl=upgrades[def.key],maxed=lvl>=def.maxLvl,cost=def.cost(lvl),canAfford=coins>=cost&&!maxed;
       return `<div style="background:rgba(255,255,255,0.05);border:1px solid ${canAfford?'rgba(255,215,0,0.4)':'rgba(255,255,255,0.1)'};border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px">
-        <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff">${def.label}</div>
-        <div style="font-family:var(--mono);font-size:9px;color:#aaa">${def.desc}</div>
+        <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff">${def.label}</div>
+        <div style="font-family:var(--mono);font-size:13px;color:#ddd">${def.desc}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
-          <div style="font-family:var(--mono);font-size:9px;color:#aaa">Lv ${lvl}/${def.maxLvl}</div>
-          ${maxed?'<span style="font-family:var(--mono);font-size:10px;color:#4ade80;font-weight:700">MAX</span>'
-          :`<button onmousedown="window._holdBuyStart('${def.key}')" onmouseup="window._holdBuyStop()" onmouseleave="window._holdBuyStop()" onclick="spaceBuyUpgrade('${def.key}')" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${canAfford?'rgba(255,215,0,0.15)':'rgba(255,255,255,0.04)'};border:1px solid ${canAfford?'rgba(255,215,0,0.55)':'rgba(255,255,255,0.12)'};color:${canAfford?'#ffd700':'#aaa'};padding:4px 10px;border-radius:3px;cursor:${canAfford?'pointer':'default'}">🪙${cost}</button>`}
+          <div style="font-family:var(--mono);font-size:13px;color:#ddd">Lv ${lvl}/${def.maxLvl}</div>
+          ${maxed?'<span style="font-family:var(--mono);font-size:12px;color:#4ade80;font-weight:700">MAX</span>'
+          :`<button onmousedown="window._holdBuyStart('${def.key}')" onmouseup="window._holdBuyStop()" onmouseleave="window._holdBuyStop()" onclick="spaceBuyUpgrade('${def.key}')" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${canAfford?'rgba(255,215,0,0.15)':'rgba(255,255,255,0.04)'};border:1px solid ${canAfford?'rgba(255,215,0,0.55)':'rgba(255,255,255,0.12)'};color:${canAfford?'#ffd700':'#ddd'};padding:4px 10px;border-radius:3px;cursor:${canAfford?'pointer':'default'}">🪙${cost}</button>`}
         </div>
       </div>`;
     }).join('');
@@ -8312,12 +8325,12 @@ function startSpace() {
       const t1BuyFn = isFriendsKey ? `spaceBuyFriendsUnlock()` : `spaceBuyWeapon('${def.key}')`;
       const t1Btn = t1owned
         ? (isActive
-            ? `<button onclick="spaceDeequipWeapon('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:rgba(255,60,60,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff8888;padding:4px 9px;border-radius:3px;cursor:pointer;white-space:nowrap">✕</button>`
-            : `<button onclick="spaceEquipWeaponAuto('${def.key}')" style="font-family:var(--mono);font-size:9px;font-weight:700;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.4);color:#60ddff;padding:4px 10px;border-radius:3px;cursor:pointer;white-space:nowrap">EQUIP</button>`)
+            ? `<button onclick="spaceDeequipWeapon('${def.key}')" style="font-family:var(--mono);font-size:13px;font-weight:700;background:rgba(255,60,60,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff8888;padding:4px 9px;border-radius:3px;cursor:pointer;white-space:nowrap">✕</button>`
+            : `<button onclick="spaceEquipWeaponAuto('${def.key}')" style="font-family:var(--mono);font-size:13px;font-weight:700;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.4);color:#60ddff;padding:4px 10px;border-radius:3px;cursor:pointer;white-space:nowrap">EQUIP</button>`)
         : `<button onclick="${t1BuyFn}" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${t1CanAfford?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${t1CanAfford?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${t1CanAfford?'#ffd700':'#aaa'};padding:4px 10px;border-radius:4px;cursor:${t1CanAfford?'pointer':'default'};white-space:nowrap">🪙${t1Cost}</button>`;
       const t1Row = `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:5px;background:${t1owned?'rgba(100,200,255,0.08)':'rgba(255,255,255,0.03)'};border:1px solid ${t1owned?'rgba(100,200,255,0.3)':'rgba(255,255,255,0.08)'}">
-        <span style="font-family:var(--mono);font-size:9px;font-weight:900;color:${t1owned?'#60ddff':'#aaa'};min-width:56px;flex-shrink:0">UNLOCK</span>
-        <span style="font-family:var(--mono);font-size:10px;color:#aaa;flex:1;min-width:0;line-height:1.4">${t1Desc}</span>
+        <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:${t1owned?'#60ddff':'#ddd'};min-width:56px;flex-shrink:0">UNLOCK</span>
+        <span style="font-family:var(--mono);font-size:12px;color:#ddd;flex:1;min-width:0;line-height:1.4">${t1Desc}</span>
         ${t1Btn}
       </div>`;
 
@@ -8331,10 +8344,10 @@ function startSpace() {
         const t2bg = t1owned ? (fl>1?'rgba(240,171,252,0.08)':'rgba(255,255,255,0.03)') : 'rgba(20,20,30,0.5)';
         const t2border = t1owned ? 'rgba(240,171,252,0.25)' : 'rgba(255,255,255,0.03)';
         t2Row = `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:5px;background:${t2bg};border:1px solid ${t2border}">
-          <span style="font-family:var(--mono);font-size:9px;font-weight:900;color:${t1owned?'#f0abfc':'#aaa'};min-width:56px;flex-shrink:0">ENHANCE</span>
-          <span style="font-family:var(--mono);font-size:10px;color:#aaa;flex:1;min-width:0;line-height:1.4">+1 follower (${fl}/${maxFl})</span>
-          ${fl>=maxFl?'<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900;white-space:nowrap">MAX</span>':
-            !t1owned?'<span style="font-family:var(--mono);font-size:9px;color:#bbb;white-space:nowrap">LOCKED</span>':
+          <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:${t1owned?'#f0abfc':'#ddd'};min-width:56px;flex-shrink:0">ENHANCE</span>
+          <span style="font-family:var(--mono);font-size:12px;color:#ddd;flex:1;min-width:0;line-height:1.4">+1 follower (${fl}/${maxFl})</span>
+          ${fl>=maxFl?'<span style="font-family:var(--mono);font-size:13px;color:#4ade80;font-weight:900;white-space:nowrap">MAX</span>':
+            !t1owned?'<span style="font-family:var(--mono);font-size:13px;color:#bbb;white-space:nowrap">LOCKED</span>':
             `<button onclick="spaceBuyWeapon('friends')" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${fa?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${fa?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${fa?'#ffd700':'#aaa'};padding:4px 10px;border-radius:4px;cursor:${fa?'pointer':'default'};white-space:nowrap">🪙${fc}</button>`}
         </div>`;
       } else if(def.tier2){
@@ -8343,26 +8356,26 @@ function startSpace() {
         const t2border = t2owned?def.color+'55':t1owned?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)';
         const t2desc = def.tier2.desc;
         t2Row = `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:5px;background:${t2bg};border:1px solid ${t2border}">
-          <span style="font-family:var(--mono);font-size:9px;font-weight:900;color:${t2owned?def.color:t1owned?'#aaa':'#aaa'};min-width:56px;flex-shrink:0">ENHANCE</span>
-          <span style="font-family:var(--mono);font-size:10px;color:#aaa;flex:1;min-width:0;line-height:1.4">${t2desc}</span>
-          ${t2owned?'<span style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:900;white-space:nowrap">✓ ON</span>':
-            !t1owned?'<span style="font-family:var(--mono);font-size:9px;color:#bbb;white-space:nowrap">LOCKED</span>':
+          <span style="font-family:var(--mono);font-size:13px;font-weight:900;color:${t2owned?def.color:t1owned?'#ddd':'#ddd'};min-width:56px;flex-shrink:0">ENHANCE</span>
+          <span style="font-family:var(--mono);font-size:12px;color:#ddd;flex:1;min-width:0;line-height:1.4">${t2desc}</span>
+          ${t2owned?'<span style="font-family:var(--mono);font-size:13px;color:#4ade80;font-weight:900;white-space:nowrap">✓ ON</span>':
+            !t1owned?'<span style="font-family:var(--mono);font-size:13px;color:#bbb;white-space:nowrap">LOCKED</span>':
             `<button onclick="spaceBuyTier2('${def.key}')" style="font-family:var(--mono);font-size:12px;font-weight:900;background:${t2CanAfford?'rgba(255,215,0,0.25)':'rgba(255,255,255,0.05)'};border:1px solid ${t2CanAfford?'rgba(255,215,0,0.7)':'rgba(255,255,255,0.15)'};color:${t2CanAfford?'#ffd700':'#aaa'};padding:4px 10px;border-radius:4px;cursor:${t2CanAfford?'pointer':'default'};white-space:nowrap">🪙${def.tier2.cost}</button>`}
         </div>`;
       }
 
       return `<div style="background:${isActive?'rgba(100,200,255,0.07)':'rgba(255,255,255,0.03)'};border:2px solid ${isActive?def.color:'rgba(255,255,255,0.08)'};border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:5px;position:relative;min-width:0">
-        ${isActive?`<div style="position:absolute;top:5px;right:6px;font-family:var(--mono);font-size:7px;color:${def.color};font-weight:900;white-space:nowrap">${t2owned?'Enhanced':t1owned?'Unlocked':''}</div>`:''}
-        <div style="font-family:var(--mono);font-size:11px;font-weight:800;color:#fff;padding-right:${isActive?'60px':'0'}">${def.label}</div>
+        ${isActive?`<div style="position:absolute;top:5px;right:6px;font-family:var(--mono);font-size:8px;color:${def.color};font-weight:900;white-space:nowrap">${t2owned?'Enhanced':t1owned?'Unlocked':''}</div>`:''}
+        <div style="font-family:var(--mono);font-size:13px;font-weight:800;color:#fff;padding-right:${isActive?'60px':'0'}">${def.label}</div>
         ${t1Row}
         ${t2Row}
       </div>`;
     }).join('');
 
     grid.innerHTML = `
-      <div style="grid-column:1/-1;font-family:var(--mono);font-size:11px;font-weight:900;color:#aaa;letter-spacing:2px;padding:4px 0 2px;border-bottom:1px solid #1a1a3a;margin-bottom:4px">▸ STAT UPGRADES</div>
+      <div style="grid-column:1/-1;font-family:var(--mono);font-size:13px;font-weight:900;color:#ddd;letter-spacing:2px;padding:4px 0 2px;border-bottom:1px solid #1a1a3a;margin-bottom:4px">▸ STAT UPGRADES</div>
       ${statHtml}
-      <div style="grid-column:1/-1;font-family:var(--mono);font-size:11px;font-weight:900;color:#aaa;letter-spacing:2px;padding:10px 0 2px;border-bottom:1px solid #1a1a3a;margin-bottom:4px;margin-top:8px">▸ WEAPONS — buy once, equip anytime ${getMaxWeaponSlots()>1?`<span style="color:#ffd700;font-size:9px;margin-left:8px">(${getMaxWeaponSlots()} slots active)</span>`:''}</div>
+      <div style="grid-column:1/-1;font-family:var(--mono);font-size:13px;font-weight:900;color:#ddd;letter-spacing:2px;padding:10px 0 2px;border-bottom:1px solid #1a1a3a;margin-bottom:4px;margin-top:8px">▸ WEAPONS — buy once, equip anytime ${getMaxWeaponSlots()>1?`<span style="color:#ffd700;font-size:13px;margin-left:8px">(${getMaxWeaponSlots()} slots active)</span>`:''}</div>
       <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${weaponHtml}</div>
     `;
   };
@@ -8449,6 +8462,55 @@ function startSpace() {
     } catch(e){}
   };
 
+  // ── Chest reward modal: shows 3 random shop upgrades, pick 1 for free (or skip) ──
+  window.openChestModal = function(){
+    const eligible = UPGRADE_DEFS.filter(d=>(upgrades[d.key]||0) < d.maxLvl);
+    const pool = (eligible.length ? eligible : UPGRADE_DEFS).slice();
+    const picks = [];
+    while(picks.length<3 && pool.length){
+      picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+    }
+    const grid = document.getElementById('chestGrid');
+    if(grid){
+      grid.innerHTML = picks.map(def=>{
+        const lvl = upgrades[def.key]||0;
+        const spaceIdx = def.label.indexOf(' ');
+        const emoji = spaceIdx>0 ? def.label.slice(0,spaceIdx) : '✨';
+        const text = spaceIdx>0 ? def.label.slice(spaceIdx+1) : def.label;
+        return `<button onclick="spaceChestPick('${def.key}')" style="font-family:var(--mono);text-align:left;background:rgba(255,215,0,0.08);border:2px solid rgba(255,215,0,0.5);color:#fff;padding:14px 12px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;gap:6px" onmouseover="this.style.background='rgba(255,215,0,0.18)'" onmouseout="this.style.background='rgba(255,215,0,0.08)'">
+          <span style="font-size:24px;line-height:1">${emoji}</span>
+          <span style="font-size:12px;font-weight:900;color:#ffd700;letter-spacing:0.3px">${text}</span>
+          <span style="font-size:10px;color:#ccc">${def.desc}</span>
+          <span style="font-size:10px;color:#8ef58e;font-weight:700">Lv ${lvl} → ${lvl+1}${def.maxLvl?('/'+def.maxLvl):''}</span>
+        </button>`;
+      }).join('');
+    }
+    const modal = document.getElementById('spaceChestModal');
+    if(modal) modal.style.display='flex';
+  };
+
+  function closeChestModal(){
+    const modal = document.getElementById('spaceChestModal');
+    if(modal) modal.style.display='none';
+    if(window._spaceSetState) window._spaceSetState('playing');
+  }
+
+  window.spaceChestPick = function(key){
+    const def = UPGRADE_DEFS.find(d=>d.key===key);
+    if(def){
+      const lvl = upgrades[key]||0;
+      if(lvl<def.maxLvl){
+        upgrades[key]=lvl+1;
+        if(key==='maxHp'){ lives=Math.min(5+upgrades.maxHp,lives+1); updateHeartsDisplay(lives,silverLives,getMaxHp()); }
+        sfxPowerup(); playTone(1400,'sine',0.14,0.3); setTimeout(()=>playTone(1800,'sine',0.10,0.25),90);
+        spawnParticles(ship.x,ship.y,'#ffd700',20);
+      }
+    }
+    closeChestModal();
+  };
+
+  window.spaceChestSkip = function(){ closeChestModal(); };
+
   // Hold-to-buy: after 400ms hold, auto-buy every 150ms
   let _holdBuyTimer = null, _holdBuyInterval = null;
   window._holdBuyStart = function(key) {
@@ -8480,7 +8542,7 @@ function startSpace() {
 
   let _pilotIdx = Math.floor(Math.random()*_spaceEmotes.length);
   let ship = {x:Math.floor(WW/2), y:Math.floor(WH/2), vx:0, vy:0, angle:0};
-  let bullets=[],enemies=[],particles=[],drops=[],powerupDrops=[],_burstRings=[];
+  let bullets=[],enemies=[],particles=[],drops=[],powerupDrops=[],_burstRings=[],chests=[];
   let score=(_saved&&_saved.score)||0, lives=(_saved&&_saved.lives)||getMaxHp(), frame=(_saved&&_saved.frame)||0, survivalFrames=(_saved&&_saved.survivalFrames)||0;
   window._spaceGameActive=false;
   let lastTitanMinute=0;
@@ -8497,6 +8559,8 @@ function startSpace() {
   let _pauseStartTime=null;
   let _lastShownSec=-1;
   let state=(_saved&&_saved.state==='playing')?'playing':'waiting', enemyTimer=90, difficulty=1, invincible=0, shootCooldown=0;
+  // Chest drops: rare free-upgrade pickups. First one 90-150s in, then every 2.5-4min after (never more than 1 waiting in the world).
+  let chestTimer = Math.floor((90+Math.random()*60)*120);
   // Multi-weapon slots: active weapons array (slot 0 = primary)
   let activeWeapon = (_saved&&_saved.activeWeapon)||'default';
   let activeWeapons = (_saved&&_saved.activeWeapons)||['default']; // slot array — grows with weaponSlots upgrade
@@ -9295,6 +9359,13 @@ function startSpace() {
   // ───────────────────────────────────────────────────────────────────────────
 
 
+  function spawnChestObj(x,y){
+    const margin=150;
+    const cx = x!==undefined ? x : margin+Math.random()*(WW-margin*2);
+    const cy = y!==undefined ? y : margin+Math.random()*(WH-margin*2);
+    chests.push({ x:cx, y:cy, bobSeed: Math.random()*Math.PI*2 });
+  }
+
   function spawnDrop(x,y,type){
     if(type==='coin')drops.push({x,y,vx:0,vy:0,life:99999999,collected:false,settled:true});
     else powerupDrops.push({x,y,vx:0,vy:0,type,life:99999999,collected:false,freezeFrames:180});
@@ -9321,7 +9392,8 @@ function startSpace() {
     // New random pilot
     if(_spaceEmotes.length>1){let n;do{n=Math.floor(Math.random()*_spaceEmotes.length);}while(n===_pilotIdx);_pilotIdx=n;}
     const ne=_spaceEmotes[_pilotIdx];shipImg.src=ne.url;shipImg.crossOrigin='anonymous';
-    bullets=[];enemies=[];particles=[];drops=[];powerupDrops=[];_burstRings=[];
+    bullets=[];enemies=[];particles=[];drops=[];powerupDrops=[];_burstRings=[];chests=[];
+    chestTimer=Math.floor((90+Math.random()*60)*120);
     window._narcSymbols=null; window._narcClowns=null;
     // Reset abandoned ships
     abandonedShips.forEach((as,si)=>{ as.hp=as.maxHp; as.dead=false; as.deathFrame=-999; });
@@ -9734,7 +9806,7 @@ function startSpace() {
             e.hp-=_gDmg;
             if(Math.floor(frame)%30===0) spawnParticles(e.x,e.y,'#e8d5a3',2);
             if(e.hp<=0){
-              score++;document.getElementById('spaceScore').textContent=score;
+              score++;document.getElementById('spaceScore').textContent=score;if(e.isTitan||e.isMegaBoss)spawnChestObj(e.x,e.y);
               spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
               const r2=Math.random();let du=false;
               if(r2<0.0121){spawnDrop(e.x,e.y,'heart');du=true;}
@@ -9791,7 +9863,7 @@ function startSpace() {
               if(_nT2) e._narcDebuff=(e._narcDebuff||0)+180;
               spawnParticles(e.x,e.y,'#aaaaaa',5);
               if(e.hp<=0){
-                score++;document.getElementById('spaceScore').textContent=score;
+                score++;document.getElementById('spaceScore').textContent=score;if(e.isTitan||e.isMegaBoss)spawnChestObj(e.x,e.y);
                 spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
                 const r2=Math.random();let du=false;
                 if(r2<0.0121){spawnDrop(e.x,e.y,'heart');du=true;}
@@ -9892,6 +9964,13 @@ function startSpace() {
       }
       if(_titanWarning>0) _titanWarning-=dt;
 
+      // Chest timer — only spawn a new one if none is currently out there uncollected
+      chestTimer-=dt;
+      if(chestTimer<=0 && chests.length===0){
+        spawnChestObj();
+        chestTimer=Math.floor((150+Math.random()*90)*120); // next chest in 2.5–4 min
+      }
+
       enemyTimer-=dt;
       if(enemyTimer<=0){
         spawnEnemy();
@@ -9920,7 +9999,7 @@ function startSpace() {
         const bossHp=Math.ceil(840*bossWave*(1+difficulty*0.4)*0.60); // -40% HP
         enemies.push({
           x:cam.x+W+bossSize, y:cam.y+H/2+(Math.random()-0.5)*H*0.3,
-          img:bossImg, size:bossSize, sizeScale:10, isBoss:true, isBig:false,
+          img:bossImg, size:bossSize, sizeScale:10, isBoss:true, isBig:false, isMegaBoss:true,
           vx:-(0.18+bossWave*0.02)*0.459, vy:0, // extra -15% speed
           hp:bossHp, maxHp:bossHp, age:0,
           wobble:false, wobbleAmp:0, wobbleFreq:0,
@@ -9976,7 +10055,7 @@ function startSpace() {
         if(e.deepFrozen>0){ e.deepFrozen--; e.vx=0; e.vy=0; } // freeze this enemy only
         if(e._deepFreezeTimer>0&&!e.deepFrozen){e._deepFreezeTimer=Math.max(0,e._deepFreezeTimer-1);}
         // Deep freeze timer decay
-        if(e.burnTimer>0){ e.burnTimer-=dt; if(e.burnTimer%60===0){const bd=e._burnFlat||1;e.hp-=bd;spawnParticles(e.x,e.y,'#ff4400',3);if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();const bc2=Math.ceil(Math.min(3,e.sizeScale||1));for(let bi=0;bi<bc2;bi++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');enemies=enemies.filter(x=>x!==e);return;}} }
+        if(e.burnTimer>0){ e.burnTimer-=dt; if(e.burnTimer%60===0){const bd=e._burnFlat||1;e.hp-=bd;spawnParticles(e.x,e.y,'#ff4400',3);if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;if(e.isTitan||e.isMegaBoss)spawnChestObj(e.x,e.y);spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();const bc2=Math.ceil(Math.min(3,e.sizeScale||1));for(let bi=0;bi<bc2;bi++)spawnDrop(e.x+(Math.random()-0.5)*20,e.y+(Math.random()-0.5)*20,'coin');enemies=enemies.filter(x=>x!==e);return;}} }
         if(isFrozen){e.vx=0;e.vy=0;return;}
         const _garlicSlowMult = e._garlicSlow ? 0.93 : 1.0; // T2 garlic: -7% speed
         e._garlicSlow = false; // cleared each frame, re-set by garlic logic if still in range
@@ -10077,7 +10156,7 @@ function startSpace() {
               b.hitEnemiesBeam.add(e);
               const hpBonus = b.highHpBonus && e.maxHp>50 ? (b.isT2Sniper ? e.maxHp*0.11 : e.maxHp*0.07) : 0;
               const _nDbuff=(e._narcDebuff>0)?1.20:1.0; e.hp-=( b.dmg + hpBonus )*_nDbuff; spawnParticles(e.x,e.y,'#ff6644',4); sfxHit();
-              if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;spawnParticles(e.x,e.y,'#ffd700',12);sfxExplode();return null;}
+              if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;if(e.isTitan||e.isMegaBoss)spawnChestObj(e.x,e.y);spawnParticles(e.x,e.y,'#ffd700',12);sfxExplode();return null;}
             }
             return e;
           }).filter(Boolean);
@@ -10137,7 +10216,7 @@ function startSpace() {
                 }
               }
               if(e.hp<=0){
-                score++;document.getElementById('spaceScore').textContent=score;
+                score++;document.getElementById('spaceScore').textContent=score;if(e.isTitan||e.isMegaBoss)spawnChestObj(e.x,e.y);
                 spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
                 const r2=Math.random();let du=false;
                 if(r2<0.0121){spawnDrop(e.x,e.y,'heart');du=true;}
@@ -10255,7 +10334,7 @@ function startSpace() {
                 spawnParticles(ce.x,ce.y,b.color||'#7df9ff',5);
                 if(!window._lightningArcs) window._lightningArcs=[];
                 window._lightningArcs.push({x1:e.x,y1:e.y,x2:ce.x,y2:ce.y,col:b.color||'#7df9ff',life:30,thick:true});
-                if(ce.hp<=0){score++;document.getElementById('spaceScore').textContent=score;spawnParticles(ce.x,ce.y,'#ffd700',10);sfxExplode();
+                if(ce.hp<=0){score++;document.getElementById('spaceScore').textContent=score;if(ce.isTitan||ce.isMegaBoss)spawnChestObj(ce.x,ce.y);spawnParticles(ce.x,ce.y,'#ffd700',10);sfxExplode();
                   // Also check abandoned ships for chain damage
                   for(let _lasi=0;_lasi<abandonedShips.length;_lasi++){
                     const _las=abandonedShips[_lasi];if(_las.dead)continue;
@@ -10269,7 +10348,7 @@ function startSpace() {
               if(_chainTargets.length>0) b.chained=true;
             }
             if(e.hp<=0){
-              score++;document.getElementById('spaceScore').textContent=score;
+              score++;document.getElementById('spaceScore').textContent=score;if(e.isTitan||e.isMegaBoss)spawnChestObj(e.x,e.y);
               spawnParticles(e.x,e.y,'#ffd700',14);sfxExplode();
               const swarmCoinMult=1+(upgrades.enemySwarm||0)*0.10;
               const riskBonus=Math.floor((upgrades.riskReward||0)*0.2);
@@ -10430,7 +10509,7 @@ function startSpace() {
               e.hp-=nd;
               spawnParticles(e.x,e.y,'#ff8800',5);
               if(e.hp>0){survivingEnemies.push(e);}
-              else{score++;document.getElementById('spaceScore').textContent=score;spawnParticles(e.x,e.y,'#ffd700',10);sfxExplode();
+              else{score++;document.getElementById('spaceScore').textContent=score;if(e.isTitan||e.isMegaBoss)spawnChestObj(e.x,e.y);spawnParticles(e.x,e.y,'#ffd700',10);sfxExplode();
                 const cc=Math.min(3,Math.max(1,e.sizeScale||1));
                 for(let ci=0;ci<cc;ci++)spawnDrop(e.x+(Math.random()-0.5)*30,e.y+(Math.random()-0.5)*30,'coin');}
             });
@@ -10477,6 +10556,18 @@ function startSpace() {
             activePowerups.set(d.type,cur2+(pt?.dur||420));
             sfxPowerup();spawnParticles(d.x,d.y,pt?.color||'#fff',8);
           }
+          return false;
+        }
+        return true;
+      });
+
+      // Chest pickup — pause and let the player choose 1 of 3 free upgrades
+      chests=chests.filter(c=>{
+        if(Math.sqrt((c.x-ship.x)**2+(c.y-ship.y)**2)<80){
+          spawnParticles(c.x,c.y,'#ffd700',20);
+          sfxPowerup(); playTone(700,'sine',0.12,0.25);setTimeout(()=>playTone(1050,'sine',0.10,0.22),90);
+          if(window._spaceSetState) window._spaceSetState('paused');
+          openChestModal();
           return false;
         }
         return true;
@@ -10734,6 +10825,26 @@ function startSpace() {
       ctx.textAlign='left';ctx.textBaseline='alphabetic';
     });
 
+    // Chest drops — glowing gift icon, visible from a distance
+    chests.forEach(c=>{
+      const bob=Math.sin(frame*0.05+c.bobSeed)*4;
+      const pulse=0.85+Math.sin(frame*0.08+c.bobSeed)*0.15;
+      ctx.save();
+      ctx.globalAlpha=0.32*pulse;
+      ctx.fillStyle='#ffd700';
+      ctx.beginPath();ctx.arc(c.x,c.y+bob,34*pulse,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.globalAlpha=1;
+      ctx.font='34px serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.filter='drop-shadow(0 0 10px gold)';
+      ctx.fillText('🎁', c.x, c.y+bob);
+      ctx.filter='none';
+      ctx.restore();
+      ctx.textAlign='left';ctx.textBaseline='alphabetic';
+    });
+
     // Lightning chain arcs
     if(window._lightningArcs){
       window._lightningArcs=window._lightningArcs.filter(arc=>{
@@ -10772,7 +10883,7 @@ function startSpace() {
           ring.hitEnemies.add(e);
           e.hp-=ring.dmg;
           spawnParticles(e.x,e.y,`hsl(${ring.hue},100%,70%)`,6);
-          if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;spawnParticles(e.x,e.y,'#ffd700',12);sfxExplode();return null;}
+          if(e.hp<=0){score++;document.getElementById('spaceScore').textContent=score;if(e.isTitan||e.isMegaBoss)spawnChestObj(e.x,e.y);spawnParticles(e.x,e.y,'#ffd700',12);sfxExplode();return null;}
         }
         return e;
       }).filter(Boolean);
@@ -11462,7 +11573,7 @@ function startSpace() {
     // Mini-map (bottom-right, above powerup bar)
     {
       const mm_w=Math.floor(W*0.12), mm_h=Math.floor(mm_w*(WH/WW));
-      const mm_x=W-mm_w-6, mm_y=H-mm_h-40;
+      const mm_x=W-mm_w-6, mm_y=H-mm_h-45;
       ctx.save();ctx.globalAlpha=0.55;
       ctx.fillStyle='rgba(5,5,25,0.85)';ctx.beginPath();ctx.roundRect(mm_x,mm_y,mm_w,mm_h,4);ctx.fill();
       ctx.strokeStyle='rgba(100,120,255,0.35)';ctx.lineWidth=1;ctx.stroke();
@@ -11472,6 +11583,12 @@ function startSpace() {
         if(as.dead||!as.discovered) return;
         ctx.fillStyle='#ffd700';
         ctx.beginPath();ctx.rect(mm_x+Math.floor((as.x/WW)*mm_w)-2,mm_y+Math.floor((as.y/WH)*mm_h)-2,4,4);ctx.fill();
+      });
+      // Chests — gold diamond, always visible (rare, worth seeking out)
+      ctx.globalAlpha=0.9;
+      chests.forEach(c=>{
+        const _cx=mm_x+Math.floor((c.x/WW)*mm_w), _cy=mm_y+Math.floor((c.y/WH)*mm_h);
+        ctx.save();ctx.translate(_cx,_cy);ctx.rotate(Math.PI/4);ctx.fillStyle='#ffd700';ctx.fillRect(-3,-3,6,6);ctx.restore();
       });
       // Enemies — red dots, with ! for high HP
       ctx.globalAlpha=0.55;ctx.fillStyle='#fc5c7d';
@@ -12996,14 +13113,23 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-item-card{
   background:#0e1117;border:1px solid #1e2028;border-radius:6px;
   padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:9px;
-  position:relative;transition:border-color 0.12s;
+  position:relative;transition:border-color 0.12s, transform 0.12s, opacity 0.12s;
 }
 .wm-item-card:hover{border-color:#33384a;}
+.wm-item-card.wm-dragging{opacity:0.35;}
+.wm-item-card.wm-drag-over-top{box-shadow:inset 0 2px 0 0 #e4b84d;}
+.wm-item-card.wm-drag-over-bottom{box-shadow:inset 0 -2px 0 0 #e4b84d;}
 .wm-item-card-header{display:flex;align-items:center;gap:8px;}
 .wm-item-card-num{
   font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;color:#c8d0dc;
   min-width:20px;text-align:center;
 }
+.wm-drag-handle{
+  cursor:grab;user-select:none;color:#4a5060;font-size:14px;line-height:1;
+  padding:2px 4px;flex-shrink:0;letter-spacing:-2px;
+}
+.wm-drag-handle:hover{color:#e4b84d;}
+.wm-drag-handle:active{cursor:grabbing;}
 /* Name gets its own full-width row so it's never squeezed by the icon/color/% controls */
 .wm-item-card-namerow{display:flex;align-items:center;gap:8px;}
 .wm-item-card-ctrlrow{display:flex;align-items:center;gap:8px;}
@@ -14764,9 +14890,11 @@ function _wmRenderEdit() {
       : `${item.icon||'🎲'}`;
     const chanceVal = chances[i];
     const isLocked = !!item.chanceLocked;
-    return `<div class="wm-item-card">
+    return `<div class="wm-item-card" data-idx="${i}"
+      ondragover="wmDragOver(${i},event)" ondragleave="wmDragLeave(event)" ondrop="wmDrop(${i},event)">
       <!-- Name row: full width, so it's never squeezed by the controls below -->
       <div class="wm-item-card-namerow">
+        <span class="wm-drag-handle" draggable="true" ondragstart="wmDragStart(${i},event)" ondragend="wmDragEnd(event)" title="Drag to reorder">⠿</span>
         <span class="wm-item-card-num">${i+1}</span>
         <input class="wm-seg-inp" style="flex:1" value="${item.label.replace(/"/g,'&quot;')}" oninput="wmItemLabel(${i},this.value)" placeholder="Item name…">
         <!-- Delete -->
@@ -14794,6 +14922,55 @@ function _wmRenderEdit() {
       <textarea class="wm-seg-inp desc" oninput="wmItemDesc(${i},this.value)" placeholder="Description / punishment… e.g. Do 20 push-ups on stream.">${(item.desc||'').replace(/</g,'&lt;')}</textarea>
     </div>`;
   }).join('');
+}
+
+// ── Drag-to-reorder wheel items ──────────────────────────────────────────
+// Order only affects display/edit convenience (e.g. grouping low-% items) —
+// weighted chance calc and wheel drawing don't care about array order, so a
+// plain splice-and-rerender is all that's needed.
+let _wmDragIdx = null;
+function wmDragStart(i, ev) {
+  if (!_wmCheckLock(_wmCurrent())) { ev.preventDefault(); return; }
+  _wmDragIdx = i;
+  ev.dataTransfer.effectAllowed = 'move';
+  try { ev.dataTransfer.setData('text/plain', String(i)); } catch(e) {}
+  const card = ev.currentTarget.closest('.wm-item-card');
+  if (card) setTimeout(() => card.classList.add('wm-dragging'), 0);
+}
+function wmDragOver(i, ev) {
+  if (_wmDragIdx === null) return;
+  ev.preventDefault();
+  ev.dataTransfer.dropEffect = 'move';
+  const card = ev.currentTarget;
+  const rect = card.getBoundingClientRect();
+  const before = (ev.clientY - rect.top) < rect.height / 2;
+  card.classList.toggle('wm-drag-over-top', before && i !== _wmDragIdx);
+  card.classList.toggle('wm-drag-over-bottom', !before && i !== _wmDragIdx);
+}
+function wmDragLeave(ev) {
+  ev.currentTarget.classList.remove('wm-drag-over-top', 'wm-drag-over-bottom');
+}
+function wmDrop(i, ev) {
+  ev.preventDefault();
+  const card = ev.currentTarget;
+  const before = card.classList.contains('wm-drag-over-top');
+  card.classList.remove('wm-drag-over-top', 'wm-drag-over-bottom');
+  const from = _wmDragIdx;
+  _wmDragIdx = null;
+  if (from === null || !_wmCheckLock(_wmCurrent())) return;
+  const w = _wmCurrent();
+  let to = before ? i : i + 1;
+  if (from === to || from === to - 1) return; // dropped in place
+  const [moved] = w.items.splice(from, 1);
+  if (from < to) to--; // account for the removed slot shifting indices
+  w.items.splice(to, 0, moved);
+  _wmSave(); _wmRenderEdit(); _wmRenderContents();
+  if (_wmMode === 'wheel') _wmDrawWheel(_wmWheelAngle);
+}
+function wmDragEnd(ev) {
+  document.querySelectorAll('.wm-item-card.wm-dragging').forEach(el => el.classList.remove('wm-dragging'));
+  document.querySelectorAll('.wm-item-card.wm-drag-over-top, .wm-item-card.wm-drag-over-bottom').forEach(el => el.classList.remove('wm-drag-over-top', 'wm-drag-over-bottom'));
+  _wmDragIdx = null;
 }
 function wmItemLabel(i,v){if(!_wmCheckLock(_wmCurrent()))return;_wmCurrent().items[i].label=v;_wmSave();}
 // Typing an exact % locks that item so it stops auto-sharing with the rest.
@@ -16103,7 +16280,31 @@ async function _ytSecInit() {
 
   const MIN_SHORTS = 30;   // keep fetching more pages of uploads until we have at least this many
   const MAX_VIDEOS = 200;  // hard cap on total uploads scanned, so a shorts-light channel can't spin forever
-  const _ytLongCandidates = []; // dur>=62 candidates, newest first — verified by aspect ratio below
+  const _ytLongCandidates = []; // dur>=62 candidates, newest first — verified below
+
+  // Shibez's own curated "Twitch Shorts and Highlights" playlist. Membership here is a
+  // hard confirmation that a video is a Short — far more reliable than guessing from
+  // duration or thumbnail aspect ratio (YouTube always serves a 16:9 thumbnail image
+  // even for vertical Shorts, so the old portrait-pixel check could be fooled).
+  const YT_SHORTS_PLAYLIST_ID = 'PLQVA9I-T7BGF-C6Ed-0nMW5A26Y0xOL9h';
+  const _ytKnownShortIds = new Set();
+
+  try {
+    // 0. Pull every video ID out of the curated Shorts playlist first, so the
+    //    upload-scanning pass below can check membership with a plain Set lookup.
+    let spToken = '';
+    do {
+      const spRes  = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${YT_SHORTS_PLAYLIST_ID}&maxResults=50&key=${HL_API_KEY}` + (spToken ? `&pageToken=${spToken}` : ''));
+      const spData = await spRes.json();
+      (spData.items || []).forEach(i => {
+        const id = i.snippet?.resourceId?.videoId;
+        if (id) _ytKnownShortIds.add(id);
+      });
+      spToken = spData.nextPageToken || '';
+    } while (spToken);
+  } catch(e) {
+    console.warn('[ytSec] shorts playlist fetch failed:', e);
+  }
 
   try {
     // 1. Resolve uploads playlist ID for @ShibezYT
@@ -16133,7 +16334,11 @@ async function _ytSecInit() {
           const dur   = _parseIsoDuration(v.contentDetails?.duration);
           const title = v.snippet?.title || '';
           const thumb = `https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg`;
-          if (dur >= 62) {
+          if (_ytKnownShortIds.has(v.id)) {
+            // Confirmed Short via the curated playlist — never a main-video candidate,
+            // no matter what duration YouTube reports for it.
+            _ytSecShorts.push({ id: v.id, title, thumb });
+          } else if (dur >= 62) {
             _ytLongCandidates.push({ id: v.id, title, thumb });
           } else if (dur > 0) {
             _ytSecShorts.push({ id: v.id, title, thumb });
