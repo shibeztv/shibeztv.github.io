@@ -1049,32 +1049,39 @@
     border: 1px solid rgba(145,70,255,0.25);
     color: rgba(145,70,255,0.9);
     padding: 1px 5px; border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .grid-game-tag:hover {
+    background: rgba(145,70,255,0.25);
+    border-color: rgba(145,70,255,0.5);
+    color: #fff;
   }
 
   /* ── Longest-category icon + chapters dropdown (grid card) ───────── */
   .grid-card-meta-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     margin-top: 8px;
     position: relative;
   }
   .grid-card-cat-icon {
-    width: 26px; height: 26px;
+    width: 56px; height: 56px;
     flex-shrink: 0;
-    border-radius: 4px;
+    border-radius: 6px;
     overflow: hidden;
     background: linear-gradient(135deg, #1a1a2e 0%, #0e0e1a 100%);
     border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 11px; font-weight: 800;
+    font-family: var(--mono); font-size: 22px; font-weight: 800;
     color: #d3d0ff;
   }
   .grid-card-cat-icon img {
     width: 100%; height: 100%; object-fit: cover; display: block;
   }
   .grid-card-chapters-btn {
-    display: flex; align-items: center; gap: 5px;
+    display: inline-flex; align-items: center; gap: 5px;
     background: var(--surface2);
     border: 1px solid var(--border);
     color: var(--text);
@@ -1083,25 +1090,25 @@
     border-radius: 4px;
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
-    flex: 1;
-    min-width: 0;
-    justify-content: center;
+    width: auto;
+    white-space: nowrap;
   }
   .grid-card-chapters-btn:hover {
     border-color: var(--accent);
     color: #fff;
   }
   .grid-card-chapters-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+  /* Shared dropdown portal — appended to <body> and positioned via JS
+     (position:fixed) so it can't be clipped by the card's overflow:hidden
+     or trapped behind sibling cards by the card's hover-transform stacking context. */
   .grid-card-chapters-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0; right: 0;
+    position: fixed;
     background: #101018;
     border: 1px solid var(--accent);
     border-radius: 6px;
     max-height: 220px;
     overflow-y: auto;
-    z-index: 30;
+    z-index: 9999;
     box-shadow: 0 10px 28px rgba(0,0,0,0.55);
   }
   .grid-card-chapters-dropdown::-webkit-scrollbar { width: 4px; }
@@ -1864,7 +1871,7 @@
   /* ── Main latest video card (16:9) ── */
   #ytMainCardWrap {
     flex-shrink: 0;
-    width: 600px; /* sized so thumb (16:9) + info block matches short-card height */
+    width: 660px; /* sized so thumb (16:9) + info block matches short-card height */
   }
   .yt-main-card {
     text-decoration: none;
@@ -1954,7 +1961,7 @@
     box-shadow: 0 0 8px rgba(255,51,51,0.25);
   }
   .yt-short-arrow:disabled { opacity: 0.2; cursor: default; box-shadow: none; }
-  /* ── Shorts list (6 cards, fills remaining row width) ── */
+  /* ── Shorts list (5 cards, fills remaining row width) ── */
   .yt-shorts-list {
     display: flex;
     gap: 8px;
@@ -1971,7 +1978,7 @@
   .yt-short-card {
     text-decoration: none;
     color: inherit;
-    flex: 0 0 calc((100% - 5 * 8px) / 6); /* exactly 6 cards fill the row width */
+    flex: 0 0 calc((100% - 4 * 8px) / 5); /* exactly 5 cards fill the row width */
     min-width: 0;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -2870,7 +2877,6 @@
         </div>
         <button class="yt-short-arrow" id="ytShortLeft" onclick="ytShortsNav(-1)" disabled>&#8249;</button>
         <div class="yt-shorts-list" id="ytShortsList">
-          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
@@ -4110,12 +4116,13 @@ try {
   }
 } catch(e) {}
 
-// Track which grid card's chapters dropdown is currently open (index within page)
-let openChapterDropdown = null;
-
 // Returns { games, count, longestLabel } for a stream, or null if no chapters.
 // Mirrors the leading-filler filter used by renderSegments() so counts match
 // what the player itself shows.
+// Chapter data for each rendered card, keyed by cardKey (page-relative index).
+// Populated in renderPage(); consumed lazily by the shared dropdown portal below.
+let _gridChapterMap = {};
+
 function computeStreamChapterInfo(s) {
   const raw = s.games || [];
   if (!raw.length) return null;
@@ -4228,32 +4235,85 @@ async function hydrateGridChapters(pageStreams) {
   }
 }
 
+// ─── SHARED CHAPTER DROPDOWN PORTAL ─────────────────────────────────────────
+// Rendered once, appended to <body>, and positioned via getBoundingClientRect
+// on open. This avoids the grid card's own `overflow:hidden` (needed for the
+// thumbnail hover-zoom) clipping the dropdown, and avoids z-index/stacking
+// issues caused by the card's hover transform creating a new stacking context.
+let _chapterPortalOpenKey = null;
+
+function _getChapterPortal() {
+  let el = document.getElementById('chapterDropdownPortal');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'chapterDropdownPortal';
+    el.className = 'grid-card-chapters-dropdown';
+    el.style.display = 'none';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function _closeChapterPortal() {
+  const el = document.getElementById('chapterDropdownPortal');
+  if (el) el.style.display = 'none';
+  _chapterPortalOpenKey = null;
+}
+
 function toggleChapterDropdown(evt, cardKey) {
   evt.preventDefault();
   evt.stopPropagation();
-  const el = document.getElementById('chapdrop-' + cardKey);
-  if (!el) return;
-  const isOpen = el.style.display === 'block';
-  // Close any other open dropdown first
-  document.querySelectorAll('.grid-card-chapters-dropdown').forEach(d => d.style.display = 'none');
-  if (!isOpen) {
-    el.style.display = 'block';
-    openChapterDropdown = cardKey;
-  } else {
-    openChapterDropdown = null;
+
+  const portal = _getChapterPortal();
+
+  // Clicking the already-open card's button again closes it
+  if (_chapterPortalOpenKey === cardKey && portal.style.display !== 'none') {
+    _closeChapterPortal();
+    return;
   }
+
+  const data = _gridChapterMap[cardKey];
+  if (!data) return;
+
+  portal.innerHTML = data.items.map(item =>
+    `<div class="chapdrop-item" onclick="event.preventDefault();event.stopPropagation();_closeChapterPortal();openStreamAtTime(${data.globalIdx}, ${item.t});">
+      <span class="chapdrop-label">${escHtml(item.label)}</span>
+      <span class="chapdrop-time">${formatDuration(item.t)}</span>
+    </div>`
+  ).join('');
+
+  // Position beneath the button using viewport coordinates (position:fixed)
+  const btn = evt.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  const width = Math.max(rect.width, 220);
+  let left = rect.left;
+  // Keep it on-screen if it would overflow the right edge
+  if (left + width > window.innerWidth - 8) left = window.innerWidth - width - 8;
+  if (left < 8) left = 8;
+
+  portal.style.left = left + 'px';
+  portal.style.top = (rect.bottom + 6) + 'px';
+  portal.style.width = width + 'px';
+  portal.style.display = 'block';
+  _chapterPortalOpenKey = cardKey;
 }
 
-// Close open chapter dropdowns when clicking anywhere else on the page
-document.addEventListener('click', () => {
-  if (openChapterDropdown !== null) {
-    document.querySelectorAll('.grid-card-chapters-dropdown').forEach(d => d.style.display = 'none');
-    openChapterDropdown = null;
-  }
+// Close the open dropdown on any outside click, or if the grid scrolls/resizes
+// (its fixed position would otherwise drift away from the button that opened it)
+document.addEventListener('click', evt => {
+  if (_chapterPortalOpenKey === null) return;
+  const portal = document.getElementById('chapterDropdownPortal');
+  if (portal && !portal.contains(evt.target)) _closeChapterPortal();
+});
+window.addEventListener('resize', _closeChapterPortal);
+document.addEventListener('DOMContentLoaded', () => {
+  const gv = document.getElementById('gridView');
+  if (gv) gv.addEventListener('scroll', _closeChapterPortal, { passive: true });
 });
 
 // Open a stream (from the grid) and seek straight to an absolute time offset
 function openStreamAtTime(globalIdx, t) {
+
   const stream = allStreams[globalIdx];
   if (!stream) return;
   selectStream(globalIdx);
@@ -4339,32 +4399,44 @@ function renderPage() {
     const titleDay = extractDateFromTitle(s.vids[0].title);
     const displayDay = titleDay || s.day;
     const date = new Date(displayDay+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    const games = [...new Set(s.games.map(g=>g.label))].slice(0,3).map(g=>`<span class="grid-game-tag">${escHtml(g)}</span>`).join('');
     const parts = s.vids.length > 1 ? `<span class="grid-card-parts">${s.vids.length} PARTS</span>` : '';
     const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
 
     // Longest-category icon + chapters dropdown
     const chapInfo = computeStreamChapterInfo(s);
     let metaRow = '';
+    let games = '';
     if (chapInfo) {
       const cardKey = idx;
+      // Purple category tags — one per unique category, clickable to jump straight
+      // to that category's first timestamp in the VOD.
+      const seenLabels = new Set();
+      const uniqueGameHits = [];
+      chapInfo.games.forEach(g => {
+        const label = translateGameLabel(g.label);
+        if (!seenLabels.has(label)) { seenLabels.add(label); uniqueGameHits.push({ label, t: g.t }); }
+      });
+      games = uniqueGameHits.slice(0,3).map(g =>
+        `<span class="grid-game-tag" onclick="event.preventDefault();event.stopPropagation();openStreamAtTime(${globalIdx}, ${g.t});">${escHtml(g.label)}</span>`
+      ).join('');
+
+      // Store this card's chapters for the shared dropdown portal (built lazily on click)
+      _gridChapterMap[cardKey] = {
+        globalIdx,
+        items: chapInfo.games.map(g => ({ label: translateGameLabel(g.label), t: g.t }))
+      };
+
       const icon = renderCategoryIcon(chapInfo.longestLabel);
       const chapterLabel = chapInfo.count === 1 ? '1 chapter' : (chapInfo.count + ' chapters');
-      const dropdownItems = chapInfo.games.map(g => {
-        const label = translateGameLabel(g.label);
-        return `<div class="chapdrop-item" onclick="event.preventDefault();event.stopPropagation();openStreamAtTime(${globalIdx}, ${g.t});">
-          <span class="chapdrop-label">${escHtml(label)}</span>
-          <span class="chapdrop-time">${formatDuration(g.t)}</span>
-        </div>`;
-      }).join('');
       metaRow = `<div class="grid-card-meta-row">
         ${icon}
         <button type="button" class="grid-card-chapters-btn" onclick="toggleChapterDropdown(event, ${cardKey})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
           ${chapterLabel}
         </button>
-        <div class="grid-card-chapters-dropdown" id="chapdrop-${cardKey}" style="display:none">${dropdownItems}</div>
       </div>`;
+    } else {
+      games = [...new Set(s.games.map(g=>g.label))].slice(0,3).map(g=>`<span class="grid-game-tag">${escHtml(g)}</span>`).join('');
     }
 
     return `<a class="grid-card" href="#stream-${s.day}" onclick="selectStream(${globalIdx});return false;">
@@ -16781,7 +16853,7 @@ function _ytSecRender() {
 function ytShortsNav(dir) {
   const list = document.getElementById('ytShortsList');
   if (!list) return;
-  const cardStep = list.clientWidth / 3; // 2 of the 6 visible cards per click
+  const cardStep = list.clientWidth * 2 / 5; // 2 of the 5 visible cards per click
   list.scrollBy({ left: dir * cardStep, behavior: 'smooth' }); // 2 cards per arrow click
   setTimeout(_ytSecUpdateArrows, 350);
 }
