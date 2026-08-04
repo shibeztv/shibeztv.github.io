@@ -925,21 +925,23 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 24px clamp(20px, 6vw, 130px);
+    padding: 24px clamp(20px, 6vw, 100px);
     background: var(--bg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
   }
   .grid-view::-webkit-scrollbar { width: 4px; }
   .grid-view::-webkit-scrollbar-thumb { background: var(--border); }
-  /* Center + cap the width of the main content column (moon.tv-style edge gutters) */
+  /* Center + cap the width of the main content column (moon.tv-style edge gutters).
+     These stay normal block elements (not flex) so any section not listed here
+     still falls back to filling the container at 100% width like before. */
   .grid-view > .live-banner,
   .grid-view > .grid-header,
   .grid-view > .stream-grid,
-  .grid-view > .pagination {
-    width: 100%;
+  .grid-view > .pagination,
+  .grid-view > .yt-latest-section,
+  .grid-view > .site-footer {
     max-width: 1680px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .grid-header {
@@ -964,16 +966,13 @@
 
   .stream-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 16px;
   }
-  @media (max-width: 1500px) {
-    .stream-grid { grid-template-columns: repeat(5, 1fr); }
-  }
-  @media (max-width: 1150px) {
+  @media (max-width: 1300px) {
     .stream-grid { grid-template-columns: repeat(4, 1fr); }
   }
-  @media (max-width: 900px) {
+  @media (max-width: 1000px) {
     .stream-grid { grid-template-columns: repeat(3, 1fr); }
   }
 
@@ -4152,6 +4151,83 @@ function renderCategoryIcon(label) {
   return `<div class="grid-card-cat-icon" title="${escHtml(label)}">${escHtml(initial)}</div>`;
 }
 
+// ─── LAZY CHAPTER HYDRATION FOR GRID CARDS ──────────────────────────────────
+// Most VOD descriptions don't contain timestamp lines, so at grid-render time
+// stream.games is usually empty. We lazily pull the real chapters from
+// Twitch's GQL API (same source the player itself uses) for whichever cards
+// are on the currently-visible page, cache them, then refresh the page once.
+const _chapterCache = {}; // day -> deduped chapters array
+const CHAPTERS_CACHE_KEY = 'shibez_chapters_v1';
+const CHAPTERS_CACHE_TTL = 3 * 24 * 60 * 60 * 1000; // 3 days
+try {
+  const cachedCh = JSON.parse(localStorage.getItem(CHAPTERS_CACHE_KEY) || 'null');
+  if (cachedCh && cachedCh.data && (Date.now() - cachedCh.ts) < CHAPTERS_CACHE_TTL) {
+    Object.assign(_chapterCache, cachedCh.data);
+  }
+} catch(e) {}
+
+function saveChaptersCache() {
+  try { localStorage.setItem(CHAPTERS_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: _chapterCache })); } catch(e) {}
+}
+
+// Same per-part vodId resolution used by renderVideoMeta
+function getPartVodIds(stream) {
+  const vodId = twitchVodMap[stream.day];
+  if (!vodId) return [];
+  return stream.vids.map((v, pi) => {
+    if (pi === 0) return vodId;
+    const pubDay = v.publishedAt ? v.publishedAt.slice(0, 10) : null;
+    return pubDay ? (twitchVodMap[pubDay] || null) : null;
+  });
+}
+
+// Fetch + merge chapters across all parts of a stream (mirrors renderVideoMeta's logic)
+async function fetchMergedChapters(stream) {
+  const partVodIds = getPartVodIds(stream);
+  if (!partVodIds.length || !partVodIds.some(Boolean)) return null;
+  const results = await Promise.all(partVodIds.map((vid, pi) =>
+    vid ? fetchTwitchChapters(vid).then(chs => ({ pi, chs })) : Promise.resolve({ pi, chs: [] })
+  ));
+  let offset = 0;
+  const merged = [];
+  results.forEach(({ pi, chs }) => {
+    const partDur = stream.vids[pi]?.duration || 0;
+    if (chs.length) chs.forEach(c => merged.push({ label: c.label, t: offset + c.t, partIdx: pi }));
+    offset += partDur;
+  });
+  const deduped = merged.filter((g, i) => i === 0 || g.label !== merged[i - 1].label);
+  return deduped.length ? deduped : null;
+}
+
+async function hydrateGridChapters(pageStreams) {
+  const pageAtStart = currentPage;
+  const targets = pageStreams.filter(s => (!s.games || !s.games.length) && !s._chaptersTried);
+  if (!targets.length) return;
+
+  let changed = false;
+  await Promise.all(targets.map(async s => {
+    s._chaptersTried = true;
+    if (_chapterCache[s.day]) {
+      s.games = _chapterCache[s.day];
+      changed = true;
+      return;
+    }
+    try {
+      const chs = await fetchMergedChapters(s);
+      if (chs && chs.length) {
+        s.games = chs;
+        _chapterCache[s.day] = chs;
+        changed = true;
+      }
+    } catch(e) { /* leave uncharted — card just won't show chapters */ }
+  }));
+
+  if (changed) {
+    saveChaptersCache();
+    if (currentPage === pageAtStart) renderPage(); // don't clobber if user paged away
+  }
+}
+
 function toggleChapterDropdown(evt, cardKey) {
   evt.preventDefault();
   evt.stopPropagation();
@@ -4338,6 +4414,11 @@ function renderPage() {
         : `<button class="page-btn${p === currentPage ? ' active' : ''}" onclick="goToPage(${p})">${p+1}</button>`
     ).join('');
   }
+
+  // Most VODs don't have chapter timestamps in their YouTube description —
+  // fetch the real chapters from Twitch for whichever cards on this page
+  // don't have any yet, then quietly refresh just this page once they land.
+  hydrateGridChapters(pageStreams);
 }
 
 function applyDateFilter() {
