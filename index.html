@@ -1035,10 +1035,9 @@
     font-size: 13.5px; font-weight: 700;
     line-height: 1.4; color: var(--text);
     margin-bottom: 6px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
   }
   .grid-card-games {
     display: flex; flex-wrap: wrap; gap: 3px;
@@ -1961,7 +1960,7 @@
     box-shadow: 0 0 8px rgba(255,51,51,0.25);
   }
   .yt-short-arrow:disabled { opacity: 0.2; cursor: default; box-shadow: none; }
-  /* ── Shorts list (5 cards, fills remaining row width) ── */
+  /* ── Shorts list (~3.6 cards visible, rest scrolls) ── */
   .yt-shorts-list {
     display: flex;
     gap: 8px;
@@ -1978,7 +1977,7 @@
   .yt-short-card {
     text-decoration: none;
     color: inherit;
-    flex: 0 0 calc((100% - 4 * 8px) / 5); /* exactly 5 cards fill the row width */
+    flex: 0 0 calc((100% - 4 * 8px) / 5 * 1.4); /* ~3.6 cards visible — 40% wider than the old 5-card layout, rest scrolls */
     min-width: 0;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -2075,7 +2074,7 @@
   }
   .yt-main-skel-line.s2 { width: 60%; margin-top: 5px; }
   .yt-short-skeleton {
-    flex: 0 0 calc((100% - 5 * 8px) / 6);
+    flex: 0 0 calc((100% - 4 * 8px) / 5 * 1.4);
     min-width: 0;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -4448,7 +4447,7 @@ function renderPage() {
         ${parts}
       </div>
       <div class="grid-card-body">
-        <div class="grid-card-title">${escHtml(s.title)}</div>
+        <div class="grid-card-title" title="${escHtml(s.title)}">${escHtml(s.title)}</div>
         <div class="grid-card-games">${games}</div>
         ${metaRow}
       </div>
@@ -16853,7 +16852,7 @@ function _ytSecRender() {
 function ytShortsNav(dir) {
   const list = document.getElementById('ytShortsList');
   if (!list) return;
-  const cardStep = list.clientWidth * 2 / 5; // 2 of the 5 visible cards per click
+  const cardStep = list.clientWidth * 2 / 3.6; // 2 of the ~3.6 visible cards per click
   list.scrollBy({ left: dir * cardStep, behavior: 'smooth' }); // 2 cards per arrow click
   setTimeout(_ytSecUpdateArrows, 350);
 }
