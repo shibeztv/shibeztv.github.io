@@ -1039,52 +1039,24 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .grid-card-games {
-    display: flex; flex-wrap: wrap; gap: 3px;
-    justify-content: flex-end;
-  }
-  .grid-game-tag {
-    font-family: var(--mono); font-size: 9px;
-    background: rgba(145,70,255,0.1);
-    border: 1px solid rgba(145,70,255,0.25);
-    color: rgba(145,70,255,0.9);
-    padding: 1px 5px; border-radius: 2px;
-    cursor: pointer;
-    transition: background 0.12s, border-color 0.12s, color 0.12s;
-  }
-  .grid-game-tag:hover {
-    background: rgba(145,70,255,0.25);
-    border-color: rgba(145,70,255,0.5);
-    color: #fff;
-  }
-
   /* ── Longest-category icon + chapters dropdown (grid card) ───────── */
-  /* Icon/chapters button (left) and the purple category tags (right) now
-     share a single row instead of stacking, so the card isn't as tall. */
+  /* Icon on the left, chapters button pushed to the right of the row. */
   .grid-card-meta-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 8px;
     margin-top: 8px;
     position: relative;
   }
-  .grid-card-meta-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    flex-shrink: 0;
-  }
   .grid-card-cat-icon {
-    width: 56px; height: 56px;
+    width: 40px; height: 56px;
     flex-shrink: 0;
-    border-radius: 6px;
+    border-radius: 5px;
     overflow: hidden;
     background: linear-gradient(135deg, #1a1a2e 0%, #0e0e1a 100%);
     border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 22px; font-weight: 800;
+    font-family: var(--mono); font-size: 18px; font-weight: 800;
     color: #d3d0ff;
   }
   .grid-card-cat-icon img {
@@ -1098,6 +1070,7 @@
     font-family: var(--mono); font-size: 11px; font-weight: 700;
     padding: 0 10px; height: 26px;
     border-radius: 4px;
+    margin-left: auto;
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
     width: auto;
@@ -4486,21 +4459,9 @@ function renderPage() {
 
     // Longest-category icon + chapters dropdown
     const chapInfo = computeStreamChapterInfo(s);
-    let games = '';
     let metaLeft = '';
     if (chapInfo) {
       const cardKey = idx;
-      // Purple category tags — one per unique category, clickable to jump straight
-      // to that category's first timestamp in the VOD.
-      const seenLabels = new Set();
-      const uniqueGameHits = [];
-      chapInfo.games.forEach(g => {
-        const label = translateGameLabel(g.label);
-        if (!seenLabels.has(label)) { seenLabels.add(label); uniqueGameHits.push({ label, t: g.t }); }
-      });
-      games = uniqueGameHits.slice(0,3).map(g =>
-        `<span class="grid-game-tag" onclick="event.preventDefault();event.stopPropagation();openStreamAtTime(${globalIdx}, ${g.t});">${escHtml(g.label)}</span>`
-      ).join('');
 
       // Store this card's chapters for the shared dropdown portal (built lazily on click)
       _gridChapterMap[cardKey] = {
@@ -4510,15 +4471,13 @@ function renderPage() {
 
       const icon = renderCategoryIcon(chapInfo.longestLabel);
       const chapterLabel = chapInfo.count === 1 ? '1 chapter' : (chapInfo.count + ' chapters');
-      metaLeft = `<div class="grid-card-meta-left">
+      metaLeft = `<div class="grid-card-meta-row">
         ${icon}
         <button type="button" class="grid-card-chapters-btn" onclick="toggleChapterDropdown(event, ${cardKey})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
           ${chapterLabel}
         </button>
       </div>`;
-    } else {
-      games = [...new Set(s.games.map(g=>g.label))].slice(0,3).map(g=>`<span class="grid-game-tag">${escHtml(g)}</span>`).join('');
     }
 
     return `<a class="grid-card" href="#stream-${s.day}" onclick="selectStream(${globalIdx});return false;">
@@ -4531,10 +4490,7 @@ function renderPage() {
       </div>
       <div class="grid-card-body">
         <div class="grid-card-title" title="${escHtml(s.title)}">${escHtml(s.title)}</div>
-        <div class="grid-card-meta-row">
-          ${metaLeft}
-          <div class="grid-card-games">${games}</div>
-        </div>
+        ${metaLeft}
       </div>
     </a>`;
   }).join('');
@@ -13363,17 +13319,9 @@ window.addEventListener('hashchange', _routeFromHash);
   font-size:18px;line-height:1;
 }
 .wm-citem-icon img{width:26px;height:26px;object-fit:contain;}
-.wm-citem-label-wrap{
-  flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;
-}
 .wm-citem-label{
   font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;
-  color:#c8d0dc;text-transform:uppercase;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.wm-citem-tier{
-  font-family:'Share Tech Mono',monospace;font-size:8.5px;font-weight:700;
-  letter-spacing:1px;opacity:0.75;
+  color:#c8d0dc;text-transform:uppercase;flex:1;min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .wm-citem-chance{
@@ -14037,11 +13985,7 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-win-name{
   font-family:'Rajdhani',sans-serif;font-size:42px;font-weight:800;
   letter-spacing:2px;text-transform:uppercase;
-  line-height:1.1;margin-bottom:4px;
-}
-.wm-win-tier{
-  font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;
-  letter-spacing:3px;text-transform:uppercase;opacity:0.8;margin-bottom:14px;
+  line-height:1.1;margin-bottom:14px;
 }
 .wm-win-divider{width:50px;height:1px;background:#2a2e38;margin:0 auto 14px;}
 .wm-win-desc{
@@ -14234,7 +14178,6 @@ window.addEventListener('hashchange', _routeFromHash);
       <div class="wm-win-text">
         <div class="wm-win-you-got">— You received —</div>
         <div class="wm-win-name" id="wmWinName">Item</div>
-        <div class="wm-win-tier" id="wmWinTier"></div>
         <div class="wm-win-divider"></div>
         <div class="wm-win-desc" id="wmWinDesc"></div>
       </div>
@@ -15622,8 +15565,7 @@ function _wmRenderEdit() {
           ${iconPreview}
         </button>
         <!-- % chance -->
-        <div class="wm-chance-tier" style="color:${item.color};margin-left:auto" title="Rarity tier">${_wmTierLabel(item, chanceVal)}</div>
-        <div class="wm-chance-box" title="${isLocked ? 'Locked — will not change when items are added or removed' : item.tier ? 'Shared with this item\'s tier — type a number to override just this item' : 'Auto — shares the remaining % equally with other untiered items'}">
+        <div class="wm-chance-box" style="margin-left:auto" title="${isLocked ? 'Locked — will not change when items are added or removed' : item.tier ? 'Shared with this item\'s tier — type a number to override just this item' : 'Auto — shares the remaining % equally with other untiered items'}">
           <input type="number" class="wm-chance-inp" min="0" max="100" step="0.1"
             value="${chanceVal.toFixed(1)}" oninput="wmItemChance(${i},this.value)">
           <span class="wm-chance-pct">%</span>
@@ -15700,9 +15642,7 @@ function wmItemChance(i,v){
   const cards = document.querySelectorAll('.wm-item-card');
   cards.forEach((card, idx) => {
     const btn = card.querySelector('.wm-chance-lock');
-    const tierEl = card.querySelector('.wm-chance-tier');
     const swatch = card.querySelector('.wm-col-btn');
-    if (tierEl) { tierEl.textContent = _wmTierLabel(w.items[idx], chances[idx]); tierEl.style.color = w.items[idx].color; }
     if (swatch && !w.items[idx].colorLocked) swatch.style.background = w.items[idx].color;
     if (idx === i) {
       // This is the field being actively typed in — just flip its lock icon, leave the value alone.
@@ -15885,13 +15825,9 @@ function _wmRenderContents() {
     const hoverBg = item.color + '33'; // item color at ~20% opacity — subtle row highlight, fine translucent
     const tipBg   = '#12151e'; // solid, opaque tooltip background (not tinted/translucent)
     const lockIco = item.chanceLocked ? '<span class="wm-lock-ico">🔒</span>' : '';
-    const tierName = _wmTierLabel(item, chance);
     return `<div class="wm-citem" style="border-left-color:${item.color};--item-color:${item.color};--hover-bg:${hoverBg};--tip-bg:${tipBg}">
       <div class="wm-citem-icon">${iconHtml}</div>
-      <div class="wm-citem-label-wrap">
-        <div class="wm-citem-label" style="color:${item.color}">${item.label}</div>
-        <div class="wm-citem-tier" style="color:${item.color}">${tierName}</div>
-      </div>
+      <div class="wm-citem-label" style="color:${item.color}">${item.label}</div>
       <div class="wm-citem-chance">${lockIco}${_wmFmtChance(chance)}</div>
       ${descHtml}
     </div>`;
@@ -15924,21 +15860,6 @@ function wmShowWinPopup(winner) {
   nameEl.textContent = winner.label;
   nameEl.style.color = winner.color;
   nameEl.style.textShadow = `0 0 30px ${winner.color}55`;
-
-  // CS2-style rarity tier badge under the name
-  const tierEl = document.getElementById('wmWinTier');
-  if (tierEl) {
-    const w = _wmCurrent();
-    const idx = w ? w.items.indexOf(winner) : -1;
-    const chance = idx >= 0 ? _wmRecalcChances(w.items)[idx] : null;
-    if (chance != null) {
-      tierEl.textContent = _wmTierLabel(winner, chance);
-      tierEl.style.color = winner.color;
-      tierEl.style.display = '';
-    } else {
-      tierEl.style.display = 'none';
-    }
-  }
 
   const descEl = document.getElementById('wmWinDesc');
   descEl.textContent = winner.desc || 'You got this one. Time to face the consequences.';
