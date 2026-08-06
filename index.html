@@ -1041,6 +1041,7 @@
   }
   .grid-card-games {
     display: flex; flex-wrap: wrap; gap: 3px;
+    justify-content: flex-end;
   }
   .grid-game-tag {
     font-family: var(--mono); font-size: 9px;
@@ -1058,12 +1059,22 @@
   }
 
   /* ── Longest-category icon + chapters dropdown (grid card) ───────── */
+  /* Icon/chapters button (left) and the purple category tags (right) now
+     share a single row instead of stacking, so the card isn't as tall. */
   .grid-card-meta-row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
     margin-top: 8px;
     position: relative;
+  }
+  .grid-card-meta-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex-shrink: 0;
   }
   .grid-card-cat-icon {
     width: 56px; height: 56px;
@@ -4159,22 +4170,68 @@ function renderCategoryIcon(label) {
 
 // ─── LAZY CHAPTER HYDRATION FOR GRID CARDS ──────────────────────────────────
 // Most VOD descriptions don't contain timestamp lines, so at grid-render time
-// stream.games is usually empty. We lazily pull the real chapters from
-// Twitch's GQL API (same source the player itself uses) for whichever cards
-// are on the currently-visible page, cache them, then refresh the page once.
+// stream.games is usually empty. We pull the real chapters from Twitch's GQL
+// API (same source the player itself uses), cache them, then refresh.
+//
+// Why categories used to only go back ~2 weeks: Twitch deletes VODs after a
+// retention window (14 days on standard accounts, longer for Partners/
+// Affiliates) — once a VOD is gone from Twitch, its chapters can never be
+// fetched again from there, even though the YouTube copy is permanent. So:
+//   1. The cache below no longer expires — once we successfully grab a
+//      stream's chapters, they're kept in this browser for good instead of
+//      being re-fetched (and silently failing once Twitch drops the VOD).
+//   2. hydrateGridChapters() covers whichever page you're viewing; a second
+//      pass, hydrateAllChaptersInBackground(), quietly walks *every* stream
+//      in the background after load so older streams get captured before
+//      their Twitch VOD expires — not just the ones you happen to scroll to.
+//   3. exportChapterCache() (callable from the browser console) downloads
+//      everything captured so far as chapters-seed.json. Dropping that file
+//      next to index.html makes the site auto-load it on startup for every
+//      visitor — a permanent, shared archive that survives Twitch deleting
+//      the source VODs entirely. Re-run it occasionally to catch new streams
+//      before their 14-day window closes.
 const _chapterCache = {}; // day -> deduped chapters array
 const CHAPTERS_CACHE_KEY = 'shibez_chapters_v1';
-const CHAPTERS_CACHE_TTL = 3 * 24 * 60 * 60 * 1000; // 3 days
 try {
   const cachedCh = JSON.parse(localStorage.getItem(CHAPTERS_CACHE_KEY) || 'null');
-  if (cachedCh && cachedCh.data && (Date.now() - cachedCh.ts) < CHAPTERS_CACHE_TTL) {
-    Object.assign(_chapterCache, cachedCh.data);
-  }
+  if (cachedCh && cachedCh.data) Object.assign(_chapterCache, cachedCh.data);
 } catch(e) {}
 
 function saveChaptersCache() {
   try { localStorage.setItem(CHAPTERS_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: _chapterCache })); } catch(e) {}
 }
+
+// Auto-load a permanent, committed-to-the-repo seed file if one exists next
+// to index.html. Silently does nothing if the file isn't there yet. Seed
+// data is treated as a baseline — anything already in the (fresher) local
+// cache wins, so this only fills in gaps.
+async function loadChapterSeed() {
+  try {
+    const r = await fetch('chapters-seed.json', { cache: 'no-store' });
+    if (!r.ok) return;
+    const seed = await r.json();
+    let added = false;
+    Object.entries(seed || {}).forEach(([day, chs]) => {
+      if (!_chapterCache[day] && Array.isArray(chs) && chs.length) {
+        _chapterCache[day] = chs;
+        added = true;
+      }
+    });
+    if (added) renderPage();
+  } catch(e) { /* no seed file yet — fine */ }
+}
+
+// Console-callable: downloads everything cached in this browser so it can be
+// committed as chapters-seed.json for a permanent, all-visitors archive.
+window.exportChapterCache = function() {
+  const blob = new Blob([JSON.stringify(_chapterCache, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'chapters-seed.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  console.log(`Exported chapters for ${Object.keys(_chapterCache).length} stream(s).`);
+};
 
 // Same per-part vodId resolution used by renderVideoMeta
 function getPartVodIds(stream) {
@@ -4232,6 +4289,32 @@ async function hydrateGridChapters(pageStreams) {
     saveChaptersCache();
     if (currentPage === pageAtStart) renderPage(); // don't clobber if user paged away
   }
+}
+
+// Quietly walk every stream (not just the page you're on) a few at a time in
+// the background, so long-tail history gets its chapters captured — and
+// permanently cached — before Twitch's VOD retention window closes on it.
+let _bgHydrateRunning = false;
+async function hydrateAllChaptersInBackground() {
+  if (_bgHydrateRunning) return;
+  _bgHydrateRunning = true;
+  const BATCH = 4;
+  const DELAY_MS = 800; // stay well clear of GQL rate limits
+  const todo = allStreams.filter(s => (!s.games || !s.games.length) && !s._chaptersTried && !_chapterCache[s.day]);
+  for (let i = 0; i < todo.length; i += BATCH) {
+    const batch = todo.slice(i, i + BATCH);
+    await Promise.all(batch.map(async s => {
+      s._chaptersTried = true;
+      try {
+        const chs = await fetchMergedChapters(s);
+        if (chs && chs.length) { s.games = chs; _chapterCache[s.day] = chs; }
+      } catch(e) {}
+    }));
+    saveChaptersCache();
+    await new Promise(res => setTimeout(res, DELAY_MS));
+  }
+  _bgHydrateRunning = false;
+  renderPage(); // pick up any chapters found for streams on the currently-visible page
 }
 
 // ─── SHARED CHAPTER DROPDOWN PORTAL ─────────────────────────────────────────
@@ -4403,8 +4486,8 @@ function renderPage() {
 
     // Longest-category icon + chapters dropdown
     const chapInfo = computeStreamChapterInfo(s);
-    let metaRow = '';
     let games = '';
+    let metaLeft = '';
     if (chapInfo) {
       const cardKey = idx;
       // Purple category tags — one per unique category, clickable to jump straight
@@ -4427,7 +4510,7 @@ function renderPage() {
 
       const icon = renderCategoryIcon(chapInfo.longestLabel);
       const chapterLabel = chapInfo.count === 1 ? '1 chapter' : (chapInfo.count + ' chapters');
-      metaRow = `<div class="grid-card-meta-row">
+      metaLeft = `<div class="grid-card-meta-left">
         ${icon}
         <button type="button" class="grid-card-chapters-btn" onclick="toggleChapterDropdown(event, ${cardKey})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
@@ -4448,8 +4531,10 @@ function renderPage() {
       </div>
       <div class="grid-card-body">
         <div class="grid-card-title" title="${escHtml(s.title)}">${escHtml(s.title)}</div>
-        <div class="grid-card-games">${games}</div>
-        ${metaRow}
+        <div class="grid-card-meta-row">
+          ${metaLeft}
+          <div class="grid-card-games">${games}</div>
+        </div>
       </div>
     </a>`;
   }).join('');
@@ -5577,6 +5662,7 @@ async function loadStreams() {
       // VODs already cached — safe to load emotes now (won't compete)
       setTimeout(loadEmotes, 200);
       setTimeout(loadCategoryBoxArt, 250);
+      setTimeout(async () => { await loadChapterSeed(); hydrateAllChaptersInBackground(); }, 400);
       return;
     }
   } catch(e) {}
@@ -5623,6 +5709,7 @@ async function refreshStreams(showErrors) {
 
     renderStreamList(allStreams);
     setTimeout(loadCategoryBoxArt, 350);
+    setTimeout(async () => { await loadChapterSeed(); hydrateAllChaptersInBackground(); }, 500);
   } catch(e) {
     console.error('Load error:', e);
     if (!showErrors || !grid) return;
@@ -13276,9 +13363,17 @@ window.addEventListener('hashchange', _routeFromHash);
   font-size:18px;line-height:1;
 }
 .wm-citem-icon img{width:26px;height:26px;object-fit:contain;}
+.wm-citem-label-wrap{
+  flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;
+}
 .wm-citem-label{
   font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;
-  color:#c8d0dc;text-transform:uppercase;flex:1;min-width:0;
+  color:#c8d0dc;text-transform:uppercase;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.wm-citem-tier{
+  font-family:'Share Tech Mono',monospace;font-size:8.5px;font-weight:700;
+  letter-spacing:1px;opacity:0.75;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .wm-citem-chance{
@@ -13614,12 +13709,82 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-chance-inp::-webkit-inner-spin-button,.wm-chance-inp::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .wm-chance-pct{font-family:'Share Tech Mono',monospace;font-size:11px;color:#7a8090;flex-shrink:0;}
+.wm-chance-tier{
+  font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase;flex-shrink:0;opacity:0.85;
+}
 .wm-chance-lock{
   background:none;border:none;cursor:pointer;font-size:13px;line-height:1;
   padding:4px 5px;border-radius:2px;opacity:0.55;transition:opacity 0.1s;flex-shrink:0;
 }
 .wm-chance-lock:hover{opacity:1;}
 .wm-chance-lock.locked{opacity:1;}
+
+/* per-item rarity tier picker row */
+.wm-item-card-tierrow{
+  display:flex;align-items:center;gap:6px;
+  padding:2px 2px 8px;
+}
+.wm-tier-pick-label{
+  font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:#6a7085;margin-right:2px;
+}
+.wm-tier-pick{
+  width:20px;height:20px;border-radius:50%;flex-shrink:0;
+  border:2px solid transparent;cursor:pointer;
+  background:var(--tier-color,#4b69ff);
+  color:transparent;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;line-height:1;
+  transition:transform 0.1s,border-color 0.1s;
+  opacity:0.55;
+}
+.wm-tier-pick:hover{opacity:0.85;transform:scale(1.08);}
+.wm-tier-pick.active{
+  opacity:1;border-color:#fff;
+  box-shadow:0 0 8px var(--tier-color,#4b69ff);
+}
+.wm-tier-pick.custom{
+  background:#22242c;color:#9aa0b0;font-size:10px;opacity:0.7;
+}
+.wm-tier-pick.custom.active{border-color:#fff;opacity:1;box-shadow:0 0 8px rgba(255,255,255,0.3);}
+
+/* rarity tier odds config panel (site-wide, shown above the item list) */
+.wm-tier-config{
+  background:#0e1117;border:1px solid #1e2028;border-radius:5px;
+  padding:9px 10px 10px;margin-bottom:12px;
+}
+.wm-tier-config-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:1.5px;color:#6a7085;margin-bottom:7px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.wm-tier-config-total{
+  font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:800;
+  color:#4ade80;letter-spacing:0.5px;
+}
+.wm-tier-config-total.over{color:#eb4b4b;}
+.wm-tier-config-row{display:flex;gap:6px;flex-wrap:wrap;}
+.wm-tier-cfg-inp{
+  display:flex;align-items:center;gap:4px;flex:1;min-width:56px;
+  background:#141720;border:1px solid #1e2028;border-radius:3px;
+  padding:5px 6px;
+}
+.wm-tier-cfg-dot{
+  width:9px;height:9px;border-radius:50%;flex-shrink:0;
+  background:var(--tier-color,#4b69ff);
+}
+.wm-tier-cfg-inp input{
+  width:100%;min-width:0;background:none;border:none;color:#fff;
+  font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:800;
+  outline:none;padding:0;-moz-appearance:textfield;
+}
+.wm-tier-cfg-inp input::-webkit-inner-spin-button,.wm-tier-cfg-inp input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+.wm-tier-cfg-pct{font-family:'Share Tech Mono',monospace;font-size:10px;color:#7a8090;flex-shrink:0;}
+.wm-tier-config-hint{
+  font-family:'Rajdhani',sans-serif;font-size:10.5px;color:#565c6e;
+  line-height:1.4;margin-top:8px;
+}
 
 /* add item button */
 .wm-add-item-btn{
@@ -13872,7 +14037,11 @@ window.addEventListener('hashchange', _routeFromHash);
 .wm-win-name{
   font-family:'Rajdhani',sans-serif;font-size:42px;font-weight:800;
   letter-spacing:2px;text-transform:uppercase;
-  line-height:1.1;margin-bottom:14px;
+  line-height:1.1;margin-bottom:4px;
+}
+.wm-win-tier{
+  font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;opacity:0.8;margin-bottom:14px;
 }
 .wm-win-divider{width:50px;height:1px;background:#2a2e38;margin:0 auto 14px;}
 .wm-win-desc{
@@ -14009,6 +14178,12 @@ window.addEventListener('hashchange', _routeFromHash);
         <div style="margin-bottom:8px">
           <input class="wm-seg-inp" style="width:100%" id="wmNameInp2" placeholder="Wheel name…" oninput="wmRenameWheel(this.value,'wmNameInp2')">
         </div>
+        <!-- Rarity tier odds (shared across all wheels on the site) -->
+        <div class="wm-tier-config">
+          <div class="wm-tier-config-label">RARITY TIER ODDS <span class="wm-tier-config-total" id="wmTierTotalBadge"></span></div>
+          <div class="wm-tier-config-row" id="wmTierConfigRow"></div>
+          <div class="wm-tier-config-hint">Each tier's % is a shared pool — items you assign to a tier split it evenly, so adding more items to one tier never overloads the wheel.</div>
+        </div>
         <!-- Item list -->
         <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#6a7085;letter-spacing:1.5px;margin-bottom:6px">ITEMS</div>
         <div id="wmSegList"></div>
@@ -14059,6 +14234,7 @@ window.addEventListener('hashchange', _routeFromHash);
       <div class="wm-win-text">
         <div class="wm-win-you-got">— You received —</div>
         <div class="wm-win-name" id="wmWinName">Item</div>
+        <div class="wm-win-tier" id="wmWinTier"></div>
         <div class="wm-win-divider"></div>
         <div class="wm-win-desc" id="wmWinDesc"></div>
       </div>
@@ -14084,26 +14260,66 @@ const WM_RARITIES = [
 ];
 const WM_ICONS = ['⚔️','🛡️','💣','🔫','🎯','🏆','💀','🔥','⚡','🌊','🎲','🗡️','💎','🎰','🌀'];
 
+// ── CS2-style rarity tiers ─────────────────────────────────────────────────
+// Each tier owns a fixed "budget" % of the wheel. Assigning items to a tier
+// (item.tier = 'blue'|'purple'|'pink'|'red'|'gold') splits that tier's budget
+// evenly among however many items are currently in it — so e.g. adding 30 red
+// items doesn't make the wheel 90% red, it just makes each red item worth
+// less. Odds are configurable per-site (not per-wheel) via the tier config
+// panel; defaults roughly mirror real CS2 case odds, scaled to be usable with
+// small item counts.
+const WM_TIER_DEFS = [
+  { key: 'blue',   name: 'MIL-SPEC',     color: '#4b69ff' },
+  { key: 'purple', name: 'RESTRICTED',   color: '#8847ff' },
+  { key: 'pink',   name: 'CLASSIFIED',   color: '#d32ce6' },
+  { key: 'red',    name: 'COVERT',       color: '#eb4b4b' },
+  { key: 'gold',   name: 'RARE SPECIAL', color: '#e4b84d' },
+];
+const WM_TIER_DEFAULT_PCTS = { blue: 70, purple: 20, pink: 6, red: 3, gold: 1 };
+const WM_TIER_PCTS_KEY = 'shibez_wheel_tier_pcts_v1';
+let _wmTierPcts = { ...WM_TIER_DEFAULT_PCTS };
+try {
+  const savedTierPcts = JSON.parse(localStorage.getItem(WM_TIER_PCTS_KEY) || 'null');
+  if (savedTierPcts) _wmTierPcts = { ...WM_TIER_DEFAULT_PCTS, ...savedTierPcts };
+} catch(e) {}
+function _wmSaveTierPcts() { try { localStorage.setItem(WM_TIER_PCTS_KEY, JSON.stringify(_wmTierPcts)); } catch(e) {} }
+function _wmTierDef(key) { return WM_TIER_DEFS.find(t => t.key === key) || null; }
+
 // ── Weighted % chance system ──────────────────────────────────────────────
-// Items can have a manually-locked % (item.chanceLocked = true, item.chance = number).
-// Everything else splits the remaining % equally, so adding/removing unlocked
-// items never disturbs a locked item's %. Locked totals over 100% get scaled
-// back down so the numbers always add up.
+// Three ways an item's % can be determined, in priority order:
+//   1. item.chanceLocked — a manually-typed exact %. Always wins.
+//   2. item.tier — shares that tier's fixed budget evenly with its tier-mates.
+//   3. Neither — shares whatever % is left over evenly (legacy behavior).
+// If locked %s + tier budgets exceed 100%, everything scales down together
+// so the numbers always add up.
 function _wmComputeChances(items){
   if (!items || !items.length) return [];
-  let locked = items.filter(it => it.chanceLocked && typeof it.chance === 'number');
-  let lockedSum = locked.reduce((s,it)=>s+Math.max(0,it.chance), 0);
-  let scale = 1;
-  if (lockedSum > 100) scale = 100 / lockedSum;
-  const remaining = Math.max(0, 100 - lockedSum * scale);
-  const unlockedCount = items.length - locked.length;
-  const unlockedShare = unlockedCount > 0 ? remaining / unlockedCount : 0;
+
+  const locked = items.filter(it => it.chanceLocked && typeof it.chance === 'number');
+  const lockedSum = locked.reduce((s,it)=>s+Math.max(0,it.chance), 0);
+
+  const tierGroups = {};
+  items.forEach(it => {
+    if (it.chanceLocked) return;
+    if (it.tier && _wmTierDef(it.tier)) (tierGroups[it.tier] = tierGroups[it.tier] || []).push(it);
+  });
+  const tierSum = Object.keys(tierGroups).reduce((s,t)=>s+Math.max(0,_wmTierPcts[t]||0), 0);
+
+  const untiered = items.filter(it => !it.chanceLocked && !(it.tier && _wmTierDef(it.tier)));
+
+  const declaredTotal = lockedSum + tierSum;
+  const scale = declaredTotal > 100 ? 100 / declaredTotal : 1;
+  const remaining = Math.max(0, 100 - declaredTotal * scale);
+  const untieredShare = untiered.length > 0 ? remaining / untiered.length : 0;
+
   return items.map(it => {
     if (it.chanceLocked && typeof it.chance === 'number') return Math.max(0, it.chance) * scale;
-    return unlockedShare;
+    if (it.tier && tierGroups[it.tier]) return (Math.max(0,_wmTierPcts[it.tier]||0) * scale) / tierGroups[it.tier].length;
+    return untieredShare;
   });
 }
-// CS2-case-style rarity color by drop chance — rarer (lower %) = fancier color.
+// CS2-case-style rarity color by drop chance — used only as a fallback for
+// items with no tier assigned (legacy "auto color by %" behavior).
 function _wmColorForChance(pct){
   if (pct <= 2)  return '#e4b84d'; // gold — exceedingly rare
   if (pct <= 5)  return '#eb4b4b'; // red — covert
@@ -14111,19 +14327,52 @@ function _wmColorForChance(pct){
   if (pct <= 30) return '#8847ff'; // purple — restricted
   return '#4b69ff';                // blue — mil-spec / common
 }
+// Rarity tier label for display. Uses the item's actual assigned tier name
+// when it has one; falls back to the legacy %-threshold guess for untiered
+// / fully-custom items so they still show *something*.
+function _wmTierName(pct){
+  if (pct <= 2)  return 'RARE SPECIAL';
+  if (pct <= 5)  return 'COVERT';
+  if (pct <= 10) return 'CLASSIFIED';
+  if (pct <= 30) return 'RESTRICTED';
+  return 'MIL-SPEC';
+}
+function _wmTierLabel(item, pct){
+  const def = item && item.tier ? _wmTierDef(item.tier) : null;
+  return def ? def.name : _wmTierName(pct);
+}
 const WM_GOLD_HEX = '#e4b84d';
 function _wmIsGold(color){ return !!color && color.toLowerCase() === WM_GOLD_HEX; }
 // Recompute chances and, for any item whose color hasn't been manually picked
-// (item.colorLocked isn't set), apply the rarity color matching its current %.
-// Called before anything reads item.color (contents list, edit list, wheel/reel).
+// (item.colorLocked isn't set), apply its tier's color (or the legacy
+// auto-by-% color for untiered items). Called before anything reads
+// item.color (contents list, edit list, wheel/reel).
 function _wmRecalcChances(items){
   if (!items || !items.length) return [];
   const chances = _wmComputeChances(items);
-  items.forEach((it, i) => { if (!it.colorLocked) it.color = _wmColorForChance(chances[i]); });
+  items.forEach((it, i) => {
+    if (it.colorLocked) return;
+    const tierDef = it.tier ? _wmTierDef(it.tier) : null;
+    it.color = tierDef ? tierDef.color : _wmColorForChance(chances[i]);
+  });
   return chances;
 }
 function _wmFmtChance(pct){
   return (pct >= 10 || Math.abs(pct - Math.round(pct)) < 0.05) ? Math.round(pct)+'%' : pct.toFixed(1)+'%';
+}
+// Assign (or clear) an item's rarity tier. Clears any manual override so it
+// cleanly follows the tier's shared budget; passing null makes it "custom"
+// again (keeps whatever color/% it already had).
+function wmSetItemTier(i, tierKey){
+  const w = _wmCurrent();
+  if (!_wmCheckLock(w)) return;
+  const item = w.items[i];
+  item.tier = tierKey || null;
+  item.chanceLocked = false;
+  item.colorLocked = false;
+  delete item.chance;
+  _wmSave(); _wmRenderEdit(); _wmRenderContents();
+  if (_wmMode === 'wheel') _wmDrawWheel(_wmWheelAngle);
 }
 // Pick a winning index respecting each item's weighted % chance (falls back to
 // uniform if something's off, e.g. all-zero weights).
@@ -15293,10 +15542,41 @@ function wmTab(t) {
   if (t==='e') _wmRenderEdit();
 }
 
+// ── Rarity tier odds config panel ───────────────────────────────────────────
+// Site-wide (not per-wheel) so odds stay consistent across every wheel.
+function _wmRenderTierConfig(){
+  const row = document.getElementById('wmTierConfigRow');
+  if (!row) return;
+  row.innerHTML = WM_TIER_DEFS.map(t => `<label class="wm-tier-cfg-inp" style="--tier-color:${t.color}" title="${t.name}">
+    <span class="wm-tier-cfg-dot"></span>
+    <input type="number" min="0" max="100" step="0.1" value="${(_wmTierPcts[t.key]||0)}" oninput="wmSetTierPct('${t.key}',this.value)">
+    <span class="wm-tier-cfg-pct">%</span>
+  </label>`).join('');
+  _wmUpdateTierTotalBadge();
+}
+function _wmUpdateTierTotalBadge(){
+  const badge = document.getElementById('wmTierTotalBadge');
+  if (!badge) return;
+  const total = WM_TIER_DEFS.reduce((s,t)=>s+(_wmTierPcts[t.key]||0), 0);
+  badge.textContent = total.toFixed(1) + '%';
+  badge.classList.toggle('over', total > 100.05);
+}
+function wmSetTierPct(tierKey, v){
+  let n = parseFloat(v); if (isNaN(n)) n = 0;
+  n = Math.max(0, Math.min(100, n));
+  _wmTierPcts[tierKey] = n;
+  _wmSaveTierPcts();
+  _wmUpdateTierTotalBadge();
+  // Every wheel's items may reference this tier — refresh whichever is on screen.
+  const w = _wmCurrent();
+  if (w) { _wmRenderEdit(); _wmRenderContents(); if (_wmMode === 'wheel') _wmDrawWheel(_wmWheelAngle); }
+}
+
 // ── Edit ──────────────────────────────────────────────────────────────────
 function _wmRenderEdit() {
   const w = _wmCurrent();
   document.getElementById('wmNameInp2').value = w.name;
+  _wmRenderTierConfig();
 
   // Lock bar
   const locked = !!w.password;
@@ -15323,6 +15603,14 @@ function _wmRenderEdit() {
         <!-- Delete -->
         <button class="wm-seg-del" onclick="wmDelItem(${i})" title="Delete item">✕</button>
       </div>
+      <!-- Rarity tier picker: click a swatch to put this item in that tier's
+           odds pool, or ✎ to detach it and set a fully custom color/%. -->
+      <div class="wm-item-card-tierrow">
+        <span class="wm-tier-pick-label">Rarity</span>
+        ${WM_TIER_DEFS.map(t => `<button class="wm-tier-pick${item.tier===t.key?' active':''}"
+          style="--tier-color:${t.color}" onclick="wmSetItemTier(${i},'${t.key}')" title="${t.name} — ${_wmFmtChance(_wmTierPcts[t.key]||0)} shared pool">●</button>`).join('')}
+        <button class="wm-tier-pick custom${!item.tier?' active':''}" onclick="wmSetItemTier(${i},null)" title="Custom — set your own color &amp; %">✎</button>
+      </div>
       <!-- Controls row: color, icon, % chance -->
       <div class="wm-item-card-ctrlrow">
         <!-- Color swatch -->
@@ -15334,7 +15622,8 @@ function _wmRenderEdit() {
           ${iconPreview}
         </button>
         <!-- % chance -->
-        <div class="wm-chance-box" style="margin-left:auto" title="${isLocked ? 'Locked — will not change when items are added or removed' : 'Auto — shares the remaining % equally with other unlocked items'}">
+        <div class="wm-chance-tier" style="color:${item.color};margin-left:auto" title="Rarity tier">${_wmTierLabel(item, chanceVal)}</div>
+        <div class="wm-chance-box" title="${isLocked ? 'Locked — will not change when items are added or removed' : item.tier ? 'Shared with this item\'s tier — type a number to override just this item' : 'Auto — shares the remaining % equally with other untiered items'}">
           <input type="number" class="wm-chance-inp" min="0" max="100" step="0.1"
             value="${chanceVal.toFixed(1)}" oninput="wmItemChance(${i},this.value)">
           <span class="wm-chance-pct">%</span>
@@ -15406,10 +15695,15 @@ function wmItemChance(i,v){
   _wmSave(); _wmRenderContents();
   // Recompute so every other item's shown % (unlocked ones sharing the remainder,
   // or locked ones getting rescaled if the locked total is over 100%) stays in sync.
-  const chances = _wmComputeChances(w.items);
+  // _wmRecalcChances also refreshes item.color for any item without a manually-locked color.
+  const chances = _wmRecalcChances(w.items);
   const cards = document.querySelectorAll('.wm-item-card');
   cards.forEach((card, idx) => {
     const btn = card.querySelector('.wm-chance-lock');
+    const tierEl = card.querySelector('.wm-chance-tier');
+    const swatch = card.querySelector('.wm-col-btn');
+    if (tierEl) { tierEl.textContent = _wmTierLabel(w.items[idx], chances[idx]); tierEl.style.color = w.items[idx].color; }
+    if (swatch && !w.items[idx].colorLocked) swatch.style.background = w.items[idx].color;
     if (idx === i) {
       // This is the field being actively typed in — just flip its lock icon, leave the value alone.
       if (btn) { btn.textContent = '🔒'; btn.classList.add('locked'); }
@@ -15591,9 +15885,13 @@ function _wmRenderContents() {
     const hoverBg = item.color + '33'; // item color at ~20% opacity — subtle row highlight, fine translucent
     const tipBg   = '#12151e'; // solid, opaque tooltip background (not tinted/translucent)
     const lockIco = item.chanceLocked ? '<span class="wm-lock-ico">🔒</span>' : '';
+    const tierName = _wmTierLabel(item, chance);
     return `<div class="wm-citem" style="border-left-color:${item.color};--item-color:${item.color};--hover-bg:${hoverBg};--tip-bg:${tipBg}">
       <div class="wm-citem-icon">${iconHtml}</div>
-      <div class="wm-citem-label" style="color:${item.color}">${item.label}</div>
+      <div class="wm-citem-label-wrap">
+        <div class="wm-citem-label" style="color:${item.color}">${item.label}</div>
+        <div class="wm-citem-tier" style="color:${item.color}">${tierName}</div>
+      </div>
       <div class="wm-citem-chance">${lockIco}${_wmFmtChance(chance)}</div>
       ${descHtml}
     </div>`;
@@ -15626,6 +15924,21 @@ function wmShowWinPopup(winner) {
   nameEl.textContent = winner.label;
   nameEl.style.color = winner.color;
   nameEl.style.textShadow = `0 0 30px ${winner.color}55`;
+
+  // CS2-style rarity tier badge under the name
+  const tierEl = document.getElementById('wmWinTier');
+  if (tierEl) {
+    const w = _wmCurrent();
+    const idx = w ? w.items.indexOf(winner) : -1;
+    const chance = idx >= 0 ? _wmRecalcChances(w.items)[idx] : null;
+    if (chance != null) {
+      tierEl.textContent = _wmTierLabel(winner, chance);
+      tierEl.style.color = winner.color;
+      tierEl.style.display = '';
+    } else {
+      tierEl.style.display = 'none';
+    }
+  }
 
   const descEl = document.getElementById('wmWinDesc');
   descEl.textContent = winner.desc || 'You got this one. Time to face the consequences.';
