@@ -924,25 +924,11 @@
   .grid-view {
     flex: 1;
     overflow-y: auto;
-    overflow-x: hidden;
-    padding: 24px clamp(20px, 6vw, 100px);
+    padding: 24px 20px;
     background: var(--bg);
   }
   .grid-view::-webkit-scrollbar { width: 4px; }
   .grid-view::-webkit-scrollbar-thumb { background: var(--border); }
-  /* Center + cap the width of the main content column (moon.tv-style edge gutters).
-     These stay normal block elements (not flex) so any section not listed here
-     still falls back to filling the container at 100% width like before. */
-  .grid-view > .live-banner,
-  .grid-view > .grid-header,
-  .grid-view > .stream-grid,
-  .grid-view > .pagination,
-  .grid-view > .yt-latest-section,
-  .grid-view > .site-footer {
-    max-width: 1680px;
-    margin-left: auto;
-    margin-right: auto;
-  }
 
   .grid-header {
     margin-top: 14px;
@@ -967,13 +953,7 @@
   .stream-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
-  }
-  @media (max-width: 1300px) {
-    .stream-grid { grid-template-columns: repeat(4, 1fr); }
-  }
-  @media (max-width: 1000px) {
-    .stream-grid { grid-template-columns: repeat(3, 1fr); }
+    gap: 14px;
   }
 
   .grid-card {
@@ -1035,85 +1015,20 @@
     font-size: 13.5px; font-weight: 700;
     line-height: 1.4; color: var(--text);
     margin-bottom: 6px;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
   }
-  /* ── Longest-category icon + chapters dropdown (grid card) ───────── */
-  /* Icon on the left, chapters button pushed to the right of the row. */
-  .grid-card-meta-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-    position: relative;
+  .grid-card-games {
+    display: flex; flex-wrap: wrap; gap: 3px;
   }
-  .grid-card-cat-icon {
-    width: 40px; height: 56px;
-    flex-shrink: 0;
-    border-radius: 5px;
-    overflow: hidden;
-    background: linear-gradient(135deg, #1a1a2e 0%, #0e0e1a 100%);
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 18px; font-weight: 800;
-    color: #d3d0ff;
-  }
-  .grid-card-cat-icon img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-  }
-  .grid-card-chapters-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--mono); font-size: 11px; font-weight: 700;
-    padding: 0 10px; height: 26px;
-    border-radius: 4px;
-    margin-left: auto;
-    cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
-    width: auto;
-    white-space: nowrap;
-  }
-  .grid-card-chapters-btn:hover {
-    border-color: var(--accent);
-    color: #fff;
-  }
-  .grid-card-chapters-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
-  /* Shared dropdown portal — appended to <body> and positioned via JS
-     (position:fixed) so it can't be clipped by the card's overflow:hidden
-     or trapped behind sibling cards by the card's hover-transform stacking context. */
-  .grid-card-chapters-dropdown {
-    position: fixed;
-    background: #101018;
-    border: 1px solid var(--accent);
-    border-radius: 6px;
-    max-height: 220px;
-    overflow-y: auto;
-    z-index: 9999;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.55);
-  }
-  .grid-card-chapters-dropdown::-webkit-scrollbar { width: 4px; }
-  .grid-card-chapters-dropdown::-webkit-scrollbar-thumb { background: var(--border); }
-  .chapdrop-item {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 8px;
-    padding: 7px 10px;
-    font-family: var(--mono); font-size: 10.5px;
-    color: #d3d7e0;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    transition: background 0.12s, color 0.12s;
-  }
-  .chapdrop-item:last-child { border-bottom: none; }
-  .chapdrop-item:hover { background: rgba(145,70,255,0.15); color: #fff; }
-  .chapdrop-label {
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    font-weight: 700;
-  }
-  .chapdrop-time {
-    flex-shrink: 0; opacity: 0.7;
+  .grid-game-tag {
+    font-family: var(--mono); font-size: 9px;
+    background: rgba(145,70,255,0.1);
+    border: 1px solid rgba(145,70,255,0.25);
+    color: rgba(145,70,255,0.9);
+    padding: 1px 5px; border-radius: 2px;
   }
 
   .pagination {
@@ -1854,7 +1769,7 @@
   /* ── Main latest video card (16:9) ── */
   #ytMainCardWrap {
     flex-shrink: 0;
-    width: 660px; /* sized so thumb (16:9) + info block matches short-card height */
+    width: 600px; /* sized so thumb (16:9) + info block matches short-card height */
   }
   .yt-main-card {
     text-decoration: none;
@@ -1944,7 +1859,7 @@
     box-shadow: 0 0 8px rgba(255,51,51,0.25);
   }
   .yt-short-arrow:disabled { opacity: 0.2; cursor: default; box-shadow: none; }
-  /* ── Shorts list (~3.6 cards visible, rest scrolls) ── */
+  /* ── Shorts list (6 cards, fills remaining row width) ── */
   .yt-shorts-list {
     display: flex;
     gap: 8px;
@@ -1961,7 +1876,7 @@
   .yt-short-card {
     text-decoration: none;
     color: inherit;
-    flex: 0 0 calc((100% - 4 * 8px) / 5 * 1.4); /* ~3.6 cards visible — 40% wider than the old 5-card layout, rest scrolls */
+    flex: 0 0 calc((100% - 5 * 8px) / 6); /* exactly 6 cards fill the row width */
     min-width: 0;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -2058,7 +1973,7 @@
   }
   .yt-main-skel-line.s2 { width: 60%; margin-top: 5px; }
   .yt-short-skeleton {
-    flex: 0 0 calc((100% - 4 * 8px) / 5 * 1.4);
+    flex: 0 0 calc((100% - 5 * 8px) / 6);
     min-width: 0;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -2860,6 +2775,7 @@
         </div>
         <button class="yt-short-arrow" id="ytShortLeft" onclick="ytShortsNav(-1)" disabled>&#8249;</button>
         <div class="yt-shorts-list" id="ytShortsList">
+          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
@@ -4086,356 +4002,6 @@ const PAGE_SIZE = 20;
 let currentPage = 0;
 let totalPages = 1;
 
-// ─── LONGEST-CATEGORY ICON + CHAPTERS DROPDOWN (grid cards) ────────────────
-
-// label(lowercased) -> box art image URL, filled in by loadCategoryBoxArt()
-let categoryBoxArt = {};
-const BOXART_CACHE_KEY = 'shibez_boxart_v1';
-const BOXART_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days — box art rarely changes
-try {
-  const cachedArt = JSON.parse(localStorage.getItem(BOXART_CACHE_KEY) || 'null');
-  if (cachedArt && cachedArt.art && (Date.now() - cachedArt.ts) < BOXART_CACHE_TTL) {
-    categoryBoxArt = cachedArt.art;
-  }
-} catch(e) {}
-
-// Returns { games, count, longestLabel } for a stream, or null if no chapters.
-// Mirrors the leading-filler filter used by renderSegments() so counts match
-// what the player itself shows.
-// Chapter data for each rendered card, keyed by cardKey (page-relative index).
-// Populated in renderPage(); consumed lazily by the shared dropdown portal below.
-let _gridChapterMap = {};
-
-function computeStreamChapterInfo(s) {
-  const raw = s.games || [];
-  if (!raw.length) return null;
-  const games = raw.filter((g, i) => {
-    if (i > 0) return true;
-    const firstEnd = raw[1]?.t ?? s.totalDuration;
-    return firstEnd > 180;
-  });
-  if (!games.length) return null;
-
-  const durByLabel = {};
-  games.forEach((g, i) => {
-    const end = games[i + 1]?.t ?? s.totalDuration;
-    const label = translateGameLabel(g.label);
-    durByLabel[label] = (durByLabel[label] || 0) + Math.max(0, end - g.t);
-  });
-  let longestLabel = games[0] ? translateGameLabel(games[0].label) : null;
-  let longestDur = -1;
-  Object.entries(durByLabel).forEach(([label, dur]) => {
-    if (dur > longestDur) { longestDur = dur; longestLabel = label; }
-  });
-
-  return { games, count: games.length, longestLabel };
-}
-
-function renderCategoryIcon(label) {
-  if (!label) return '<div class="grid-card-cat-icon">?</div>';
-  const art = categoryBoxArt[label.toLowerCase()];
-  if (art) {
-    return `<div class="grid-card-cat-icon" title="${escHtml(label)}"><img src="${art}" alt="" loading="lazy"></div>`;
-  }
-  const initial = label.trim().charAt(0).toUpperCase() || '?';
-  return `<div class="grid-card-cat-icon" title="${escHtml(label)}">${escHtml(initial)}</div>`;
-}
-
-// ─── LAZY CHAPTER HYDRATION FOR GRID CARDS ──────────────────────────────────
-// Most VOD descriptions don't contain timestamp lines, so at grid-render time
-// stream.games is usually empty. We pull the real chapters from Twitch's GQL
-// API (same source the player itself uses), cache them, then refresh.
-//
-// Why categories used to only go back ~2 weeks: Twitch deletes VODs after a
-// retention window (14 days on standard accounts, longer for Partners/
-// Affiliates) — once a VOD is gone from Twitch, its chapters can never be
-// fetched again from there, even though the YouTube copy is permanent. So:
-//   1. The cache below no longer expires — once we successfully grab a
-//      stream's chapters, they're kept in this browser for good instead of
-//      being re-fetched (and silently failing once Twitch drops the VOD).
-//   2. hydrateGridChapters() covers whichever page you're viewing; a second
-//      pass, hydrateAllChaptersInBackground(), quietly walks *every* stream
-//      in the background after load so older streams get captured before
-//      their Twitch VOD expires — not just the ones you happen to scroll to.
-//   3. exportChapterCache() (callable from the browser console) downloads
-//      everything captured so far as chapters-seed.json. Dropping that file
-//      next to index.html makes the site auto-load it on startup for every
-//      visitor — a permanent, shared archive that survives Twitch deleting
-//      the source VODs entirely. Re-run it occasionally to catch new streams
-//      before their 14-day window closes.
-const _chapterCache = {}; // day -> deduped chapters array
-const CHAPTERS_CACHE_KEY = 'shibez_chapters_v1';
-try {
-  const cachedCh = JSON.parse(localStorage.getItem(CHAPTERS_CACHE_KEY) || 'null');
-  if (cachedCh && cachedCh.data) Object.assign(_chapterCache, cachedCh.data);
-} catch(e) {}
-
-function saveChaptersCache() {
-  try { localStorage.setItem(CHAPTERS_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: _chapterCache })); } catch(e) {}
-}
-
-// Auto-load a permanent, committed-to-the-repo seed file if one exists next
-// to index.html. Silently does nothing if the file isn't there yet. Seed
-// data is treated as a baseline — anything already in the (fresher) local
-// cache wins, so this only fills in gaps.
-async function loadChapterSeed() {
-  try {
-    const r = await fetch('chapters-seed.json', { cache: 'no-store' });
-    if (!r.ok) return;
-    const seed = await r.json();
-    let added = false;
-    Object.entries(seed || {}).forEach(([day, chs]) => {
-      if (!_chapterCache[day] && Array.isArray(chs) && chs.length) {
-        _chapterCache[day] = chs;
-        added = true;
-      }
-    });
-    if (added) renderPage();
-  } catch(e) { /* no seed file yet — fine */ }
-}
-
-// Console-callable: downloads everything cached in this browser so it can be
-// committed as chapters-seed.json for a permanent, all-visitors archive.
-window.exportChapterCache = function() {
-  const blob = new Blob([JSON.stringify(_chapterCache, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'chapters-seed.json';
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-  console.log(`Exported chapters for ${Object.keys(_chapterCache).length} stream(s).`);
-};
-
-// Same per-part vodId resolution used by renderVideoMeta
-function getPartVodIds(stream) {
-  const vodId = twitchVodMap[stream.day];
-  if (!vodId) return [];
-  return stream.vids.map((v, pi) => {
-    if (pi === 0) return vodId;
-    const pubDay = v.publishedAt ? v.publishedAt.slice(0, 10) : null;
-    return pubDay ? (twitchVodMap[pubDay] || null) : null;
-  });
-}
-
-// Fetch + merge chapters across all parts of a stream (mirrors renderVideoMeta's logic)
-async function fetchMergedChapters(stream) {
-  const partVodIds = getPartVodIds(stream);
-  if (!partVodIds.length || !partVodIds.some(Boolean)) return null;
-  const results = await Promise.all(partVodIds.map((vid, pi) =>
-    vid ? fetchTwitchChapters(vid).then(chs => ({ pi, chs })) : Promise.resolve({ pi, chs: [] })
-  ));
-  let offset = 0;
-  const merged = [];
-  results.forEach(({ pi, chs }) => {
-    const partDur = stream.vids[pi]?.duration || 0;
-    if (chs.length) chs.forEach(c => merged.push({ label: c.label, t: offset + c.t, partIdx: pi }));
-    offset += partDur;
-  });
-  const deduped = merged.filter((g, i) => i === 0 || g.label !== merged[i - 1].label);
-  return deduped.length ? deduped : null;
-}
-
-async function hydrateGridChapters(pageStreams) {
-  const pageAtStart = currentPage;
-  const targets = pageStreams.filter(s => (!s.games || !s.games.length) && !s._chaptersTried);
-  if (!targets.length) return;
-
-  let changed = false;
-  await Promise.all(targets.map(async s => {
-    s._chaptersTried = true;
-    if (_chapterCache[s.day]) {
-      s.games = _chapterCache[s.day];
-      changed = true;
-      return;
-    }
-    try {
-      const chs = await fetchMergedChapters(s);
-      if (chs && chs.length) {
-        s.games = chs;
-        _chapterCache[s.day] = chs;
-        changed = true;
-      }
-    } catch(e) { /* leave uncharted — card just won't show chapters */ }
-  }));
-
-  if (changed) {
-    saveChaptersCache();
-    if (currentPage === pageAtStart) renderPage(); // don't clobber if user paged away
-  }
-}
-
-// Quietly walk every stream (not just the page you're on) a few at a time in
-// the background, so long-tail history gets its chapters captured — and
-// permanently cached — before Twitch's VOD retention window closes on it.
-let _bgHydrateRunning = false;
-async function hydrateAllChaptersInBackground() {
-  if (_bgHydrateRunning) return;
-  _bgHydrateRunning = true;
-  const BATCH = 4;
-  const DELAY_MS = 800; // stay well clear of GQL rate limits
-  const todo = allStreams.filter(s => (!s.games || !s.games.length) && !s._chaptersTried && !_chapterCache[s.day]);
-  for (let i = 0; i < todo.length; i += BATCH) {
-    const batch = todo.slice(i, i + BATCH);
-    await Promise.all(batch.map(async s => {
-      s._chaptersTried = true;
-      try {
-        const chs = await fetchMergedChapters(s);
-        if (chs && chs.length) { s.games = chs; _chapterCache[s.day] = chs; }
-      } catch(e) {}
-    }));
-    saveChaptersCache();
-    await new Promise(res => setTimeout(res, DELAY_MS));
-  }
-  _bgHydrateRunning = false;
-  renderPage(); // pick up any chapters found for streams on the currently-visible page
-}
-
-// ─── SHARED CHAPTER DROPDOWN PORTAL ─────────────────────────────────────────
-// Rendered once, appended to <body>, and positioned via getBoundingClientRect
-// on open. This avoids the grid card's own `overflow:hidden` (needed for the
-// thumbnail hover-zoom) clipping the dropdown, and avoids z-index/stacking
-// issues caused by the card's hover transform creating a new stacking context.
-let _chapterPortalOpenKey = null;
-
-function _getChapterPortal() {
-  let el = document.getElementById('chapterDropdownPortal');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'chapterDropdownPortal';
-    el.className = 'grid-card-chapters-dropdown';
-    el.style.display = 'none';
-    document.body.appendChild(el);
-  }
-  return el;
-}
-
-function _closeChapterPortal() {
-  const el = document.getElementById('chapterDropdownPortal');
-  if (el) el.style.display = 'none';
-  _chapterPortalOpenKey = null;
-}
-
-function toggleChapterDropdown(evt, cardKey) {
-  evt.preventDefault();
-  evt.stopPropagation();
-
-  const portal = _getChapterPortal();
-
-  // Clicking the already-open card's button again closes it
-  if (_chapterPortalOpenKey === cardKey && portal.style.display !== 'none') {
-    _closeChapterPortal();
-    return;
-  }
-
-  const data = _gridChapterMap[cardKey];
-  if (!data) return;
-
-  portal.innerHTML = data.items.map(item =>
-    `<div class="chapdrop-item" onclick="event.preventDefault();event.stopPropagation();_closeChapterPortal();openStreamAtTime(${data.globalIdx}, ${item.t});">
-      <span class="chapdrop-label">${escHtml(item.label)}</span>
-      <span class="chapdrop-time">${formatDuration(item.t)}</span>
-    </div>`
-  ).join('');
-
-  // Position beneath the button using viewport coordinates (position:fixed)
-  const btn = evt.currentTarget;
-  const rect = btn.getBoundingClientRect();
-  const width = Math.max(rect.width, 220);
-  let left = rect.left;
-  // Keep it on-screen if it would overflow the right edge
-  if (left + width > window.innerWidth - 8) left = window.innerWidth - width - 8;
-  if (left < 8) left = 8;
-
-  portal.style.left = left + 'px';
-  portal.style.top = (rect.bottom + 6) + 'px';
-  portal.style.width = width + 'px';
-  portal.style.display = 'block';
-  _chapterPortalOpenKey = cardKey;
-}
-
-// Close the open dropdown on any outside click, or if the grid scrolls/resizes
-// (its fixed position would otherwise drift away from the button that opened it)
-document.addEventListener('click', evt => {
-  if (_chapterPortalOpenKey === null) return;
-  const portal = document.getElementById('chapterDropdownPortal');
-  if (portal && !portal.contains(evt.target)) _closeChapterPortal();
-});
-window.addEventListener('resize', _closeChapterPortal);
-document.addEventListener('DOMContentLoaded', () => {
-  const gv = document.getElementById('gridView');
-  if (gv) gv.addEventListener('scroll', _closeChapterPortal, { passive: true });
-});
-
-// Open a stream (from the grid) and seek straight to an absolute time offset
-function openStreamAtTime(globalIdx, t) {
-
-  const stream = allStreams[globalIdx];
-  if (!stream) return;
-  selectStream(globalIdx);
-
-  // Figure out which part contains this absolute timestamp
-  let cumulative = 0, partIdx = 0;
-  for (let i = 0; i < stream.vids.length; i++) {
-    const partEnd = cumulative + stream.vids[i].duration;
-    if (t < partEnd || i === stream.vids.length - 1) { partIdx = i; break; }
-    cumulative += stream.vids[i].duration;
-  }
-  const startSec = Math.max(0, t - cumulative);
-
-  if (partIdx !== 0) {
-    currentPartIdx = partIdx;
-    renderVideoPlayer(stream, partIdx);
-  }
-
-  // Wait for the YouTube player to be ready, then seek
-  const waitAndSeek = setInterval(() => {
-    if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
-      clearInterval(waitAndSeek);
-      ytPlayer.seekTo(startSec, true);
-      ytPlayer.playVideo();
-    }
-  }, 200);
-  setTimeout(() => clearInterval(waitAndSeek), 15000); // safety timeout
-}
-
-// Fetch box art for every unique category seen across all streams (batched,
-// via Twitch Helix — same app-token flow already used for VOD matching).
-async function loadCategoryBoxArt() {
-  try {
-    const labels = new Set();
-    allStreams.forEach(s => {
-      const info = computeStreamChapterInfo(s);
-      if (info) info.games.forEach(g => labels.add(translateGameLabel(g.label)));
-    });
-    const missing = [...labels].filter(l => !categoryBoxArt[l.toLowerCase()]);
-    if (!missing.length) return;
-
-    const token = await fetchTwitchToken();
-    const chunkSize = 100;
-    for (let i = 0; i < missing.length; i += chunkSize) {
-      const chunk = missing.slice(i, i + chunkSize);
-      const qs = chunk.map(n => 'name=' + encodeURIComponent(n)).join('&');
-      const r = await fetch(`https://api.twitch.tv/helix/games?${qs}`, {
-        headers: { 'Client-ID': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + token }
-      });
-      const d = await r.json();
-      (d.data || []).forEach(g => {
-        const url = (g.box_art_url || '').replace('{width}', '52').replace('{height}', '72');
-        if (url) categoryBoxArt[g.name.toLowerCase()] = url;
-      });
-    }
-
-    try {
-      localStorage.setItem(BOXART_CACHE_KEY, JSON.stringify({ ts: Date.now(), art: categoryBoxArt }));
-    } catch(e) {}
-
-    // Refresh icons already on screen now that art is available
-    renderPage();
-  } catch(e) {
-    console.warn('Box art fetch failed:', e.message);
-  }
-}
-
 function goToPage(page) {
   if (page < 0 || page >= totalPages) return;
   currentPage = page;
@@ -4454,43 +4020,20 @@ function renderPage() {
     const titleDay = extractDateFromTitle(s.vids[0].title);
     const displayDay = titleDay || s.day;
     const date = new Date(displayDay+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const games = [...new Set(s.games.map(g=>g.label))].slice(0,3).map(g=>`<span class="grid-game-tag">${escHtml(g)}</span>`).join('');
     const parts = s.vids.length > 1 ? `<span class="grid-card-parts">${s.vids.length} PARTS</span>` : '';
     const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
-
-    // Longest-category icon + chapters dropdown
-    const chapInfo = computeStreamChapterInfo(s);
-    let metaLeft = '';
-    if (chapInfo) {
-      const cardKey = idx;
-
-      // Store this card's chapters for the shared dropdown portal (built lazily on click)
-      _gridChapterMap[cardKey] = {
-        globalIdx,
-        items: chapInfo.games.map(g => ({ label: translateGameLabel(g.label), t: g.t }))
-      };
-
-      const icon = renderCategoryIcon(chapInfo.longestLabel);
-      const chapterLabel = chapInfo.count === 1 ? '1 chapter' : (chapInfo.count + ' chapters');
-      metaLeft = `<div class="grid-card-meta-row">
-        ${icon}
-        <button type="button" class="grid-card-chapters-btn" onclick="toggleChapterDropdown(event, ${cardKey})">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
-          ${chapterLabel}
-        </button>
-      </div>`;
-    }
-
     return `<a class="grid-card" href="#stream-${s.day}" onclick="selectStream(${globalIdx});return false;">
       <div class="grid-card-thumb">
         <img src="${s.thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-        <div class="thumb-fallback" style="display:none">📺</div>
+        <div class="thumb-fallback" style="display:none">ðº</div>
         <span class="grid-card-date-badge">${date}</span>
         <span class="grid-card-dur">${formatDuration(s.totalDuration)}</span>
         ${parts}
       </div>
       <div class="grid-card-body">
-        <div class="grid-card-title" title="${escHtml(s.title)}">${escHtml(s.title)}</div>
-        ${metaLeft}
+        <div class="grid-card-title">${escHtml(s.title)}</div>
+        <div class="grid-card-games">${games}</div>
       </div>
     </a>`;
   }).join('');
@@ -4526,11 +4069,6 @@ function renderPage() {
         : `<button class="page-btn${p === currentPage ? ' active' : ''}" onclick="goToPage(${p})">${p+1}</button>`
     ).join('');
   }
-
-  // Most VODs don't have chapter timestamps in their YouTube description —
-  // fetch the real chapters from Twitch for whichever cards on this page
-  // don't have any yet, then quietly refresh just this page once they land.
-  hydrateGridChapters(pageStreams);
 }
 
 function applyDateFilter() {
@@ -5617,8 +5155,6 @@ async function loadStreams() {
       refreshStreams(false); // silent background refresh
       // VODs already cached — safe to load emotes now (won't compete)
       setTimeout(loadEmotes, 200);
-      setTimeout(loadCategoryBoxArt, 250);
-      setTimeout(async () => { await loadChapterSeed(); hydrateAllChaptersInBackground(); }, 400);
       return;
     }
   } catch(e) {}
@@ -5664,8 +5200,6 @@ async function refreshStreams(showErrors) {
     } catch(e) {}
 
     renderStreamList(allStreams);
-    setTimeout(loadCategoryBoxArt, 350);
-    setTimeout(async () => { await loadChapterSeed(); hydrateAllChaptersInBackground(); }, 500);
   } catch(e) {
     console.error('Load error:', e);
     if (!showErrors || !grid) return;
@@ -13657,82 +13191,12 @@ window.addEventListener('hashchange', _routeFromHash);
 }
 .wm-chance-inp::-webkit-inner-spin-button,.wm-chance-inp::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .wm-chance-pct{font-family:'Share Tech Mono',monospace;font-size:11px;color:#7a8090;flex-shrink:0;}
-.wm-chance-tier{
-  font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:800;
-  letter-spacing:1px;text-transform:uppercase;flex-shrink:0;opacity:0.85;
-}
 .wm-chance-lock{
   background:none;border:none;cursor:pointer;font-size:13px;line-height:1;
   padding:4px 5px;border-radius:2px;opacity:0.55;transition:opacity 0.1s;flex-shrink:0;
 }
 .wm-chance-lock:hover{opacity:1;}
 .wm-chance-lock.locked{opacity:1;}
-
-/* per-item rarity tier picker row */
-.wm-item-card-tierrow{
-  display:flex;align-items:center;gap:6px;
-  padding:2px 2px 8px;
-}
-.wm-tier-pick-label{
-  font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:700;
-  letter-spacing:1px;text-transform:uppercase;color:#6a7085;margin-right:2px;
-}
-.wm-tier-pick{
-  width:20px;height:20px;border-radius:50%;flex-shrink:0;
-  border:2px solid transparent;cursor:pointer;
-  background:var(--tier-color,#4b69ff);
-  color:transparent;
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;line-height:1;
-  transition:transform 0.1s,border-color 0.1s;
-  opacity:0.55;
-}
-.wm-tier-pick:hover{opacity:0.85;transform:scale(1.08);}
-.wm-tier-pick.active{
-  opacity:1;border-color:#fff;
-  box-shadow:0 0 8px var(--tier-color,#4b69ff);
-}
-.wm-tier-pick.custom{
-  background:#22242c;color:#9aa0b0;font-size:10px;opacity:0.7;
-}
-.wm-tier-pick.custom.active{border-color:#fff;opacity:1;box-shadow:0 0 8px rgba(255,255,255,0.3);}
-
-/* rarity tier odds config panel (site-wide, shown above the item list) */
-.wm-tier-config{
-  background:#0e1117;border:1px solid #1e2028;border-radius:5px;
-  padding:9px 10px 10px;margin-bottom:12px;
-}
-.wm-tier-config-label{
-  font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;
-  letter-spacing:1.5px;color:#6a7085;margin-bottom:7px;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.wm-tier-config-total{
-  font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:800;
-  color:#4ade80;letter-spacing:0.5px;
-}
-.wm-tier-config-total.over{color:#eb4b4b;}
-.wm-tier-config-row{display:flex;gap:6px;flex-wrap:wrap;}
-.wm-tier-cfg-inp{
-  display:flex;align-items:center;gap:4px;flex:1;min-width:56px;
-  background:#141720;border:1px solid #1e2028;border-radius:3px;
-  padding:5px 6px;
-}
-.wm-tier-cfg-dot{
-  width:9px;height:9px;border-radius:50%;flex-shrink:0;
-  background:var(--tier-color,#4b69ff);
-}
-.wm-tier-cfg-inp input{
-  width:100%;min-width:0;background:none;border:none;color:#fff;
-  font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:800;
-  outline:none;padding:0;-moz-appearance:textfield;
-}
-.wm-tier-cfg-inp input::-webkit-inner-spin-button,.wm-tier-cfg-inp input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
-.wm-tier-cfg-pct{font-family:'Share Tech Mono',monospace;font-size:10px;color:#7a8090;flex-shrink:0;}
-.wm-tier-config-hint{
-  font-family:'Rajdhani',sans-serif;font-size:10.5px;color:#565c6e;
-  line-height:1.4;margin-top:8px;
-}
 
 /* add item button */
 .wm-add-item-btn{
@@ -14122,12 +13586,6 @@ window.addEventListener('hashchange', _routeFromHash);
         <div style="margin-bottom:8px">
           <input class="wm-seg-inp" style="width:100%" id="wmNameInp2" placeholder="Wheel name…" oninput="wmRenameWheel(this.value,'wmNameInp2')">
         </div>
-        <!-- Rarity tier odds (shared across all wheels on the site) -->
-        <div class="wm-tier-config">
-          <div class="wm-tier-config-label">RARITY TIER ODDS <span class="wm-tier-config-total" id="wmTierTotalBadge"></span></div>
-          <div class="wm-tier-config-row" id="wmTierConfigRow"></div>
-          <div class="wm-tier-config-hint">Each tier's % is a shared pool — items you assign to a tier split it evenly, so adding more items to one tier never overloads the wheel.</div>
-        </div>
         <!-- Item list -->
         <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#6a7085;letter-spacing:1.5px;margin-bottom:6px">ITEMS</div>
         <div id="wmSegList"></div>
@@ -14203,66 +13661,26 @@ const WM_RARITIES = [
 ];
 const WM_ICONS = ['⚔️','🛡️','💣','🔫','🎯','🏆','💀','🔥','⚡','🌊','🎲','🗡️','💎','🎰','🌀'];
 
-// ── CS2-style rarity tiers ─────────────────────────────────────────────────
-// Each tier owns a fixed "budget" % of the wheel. Assigning items to a tier
-// (item.tier = 'blue'|'purple'|'pink'|'red'|'gold') splits that tier's budget
-// evenly among however many items are currently in it — so e.g. adding 30 red
-// items doesn't make the wheel 90% red, it just makes each red item worth
-// less. Odds are configurable per-site (not per-wheel) via the tier config
-// panel; defaults roughly mirror real CS2 case odds, scaled to be usable with
-// small item counts.
-const WM_TIER_DEFS = [
-  { key: 'blue',   name: 'MIL-SPEC',     color: '#4b69ff' },
-  { key: 'purple', name: 'RESTRICTED',   color: '#8847ff' },
-  { key: 'pink',   name: 'CLASSIFIED',   color: '#d32ce6' },
-  { key: 'red',    name: 'COVERT',       color: '#eb4b4b' },
-  { key: 'gold',   name: 'RARE SPECIAL', color: '#e4b84d' },
-];
-const WM_TIER_DEFAULT_PCTS = { blue: 70, purple: 20, pink: 6, red: 3, gold: 1 };
-const WM_TIER_PCTS_KEY = 'shibez_wheel_tier_pcts_v1';
-let _wmTierPcts = { ...WM_TIER_DEFAULT_PCTS };
-try {
-  const savedTierPcts = JSON.parse(localStorage.getItem(WM_TIER_PCTS_KEY) || 'null');
-  if (savedTierPcts) _wmTierPcts = { ...WM_TIER_DEFAULT_PCTS, ...savedTierPcts };
-} catch(e) {}
-function _wmSaveTierPcts() { try { localStorage.setItem(WM_TIER_PCTS_KEY, JSON.stringify(_wmTierPcts)); } catch(e) {} }
-function _wmTierDef(key) { return WM_TIER_DEFS.find(t => t.key === key) || null; }
-
 // ── Weighted % chance system ──────────────────────────────────────────────
-// Three ways an item's % can be determined, in priority order:
-//   1. item.chanceLocked — a manually-typed exact %. Always wins.
-//   2. item.tier — shares that tier's fixed budget evenly with its tier-mates.
-//   3. Neither — shares whatever % is left over evenly (legacy behavior).
-// If locked %s + tier budgets exceed 100%, everything scales down together
-// so the numbers always add up.
+// Items can have a manually-locked % (item.chanceLocked = true, item.chance = number).
+// Everything else splits the remaining % equally, so adding/removing unlocked
+// items never disturbs a locked item's %. Locked totals over 100% get scaled
+// back down so the numbers always add up.
 function _wmComputeChances(items){
   if (!items || !items.length) return [];
-
-  const locked = items.filter(it => it.chanceLocked && typeof it.chance === 'number');
-  const lockedSum = locked.reduce((s,it)=>s+Math.max(0,it.chance), 0);
-
-  const tierGroups = {};
-  items.forEach(it => {
-    if (it.chanceLocked) return;
-    if (it.tier && _wmTierDef(it.tier)) (tierGroups[it.tier] = tierGroups[it.tier] || []).push(it);
-  });
-  const tierSum = Object.keys(tierGroups).reduce((s,t)=>s+Math.max(0,_wmTierPcts[t]||0), 0);
-
-  const untiered = items.filter(it => !it.chanceLocked && !(it.tier && _wmTierDef(it.tier)));
-
-  const declaredTotal = lockedSum + tierSum;
-  const scale = declaredTotal > 100 ? 100 / declaredTotal : 1;
-  const remaining = Math.max(0, 100 - declaredTotal * scale);
-  const untieredShare = untiered.length > 0 ? remaining / untiered.length : 0;
-
+  let locked = items.filter(it => it.chanceLocked && typeof it.chance === 'number');
+  let lockedSum = locked.reduce((s,it)=>s+Math.max(0,it.chance), 0);
+  let scale = 1;
+  if (lockedSum > 100) scale = 100 / lockedSum;
+  const remaining = Math.max(0, 100 - lockedSum * scale);
+  const unlockedCount = items.length - locked.length;
+  const unlockedShare = unlockedCount > 0 ? remaining / unlockedCount : 0;
   return items.map(it => {
     if (it.chanceLocked && typeof it.chance === 'number') return Math.max(0, it.chance) * scale;
-    if (it.tier && tierGroups[it.tier]) return (Math.max(0,_wmTierPcts[it.tier]||0) * scale) / tierGroups[it.tier].length;
-    return untieredShare;
+    return unlockedShare;
   });
 }
-// CS2-case-style rarity color by drop chance — used only as a fallback for
-// items with no tier assigned (legacy "auto color by %" behavior).
+// CS2-case-style rarity color by drop chance — rarer (lower %) = fancier color.
 function _wmColorForChance(pct){
   if (pct <= 2)  return '#e4b84d'; // gold — exceedingly rare
   if (pct <= 5)  return '#eb4b4b'; // red — covert
@@ -14270,52 +13688,19 @@ function _wmColorForChance(pct){
   if (pct <= 30) return '#8847ff'; // purple — restricted
   return '#4b69ff';                // blue — mil-spec / common
 }
-// Rarity tier label for display. Uses the item's actual assigned tier name
-// when it has one; falls back to the legacy %-threshold guess for untiered
-// / fully-custom items so they still show *something*.
-function _wmTierName(pct){
-  if (pct <= 2)  return 'RARE SPECIAL';
-  if (pct <= 5)  return 'COVERT';
-  if (pct <= 10) return 'CLASSIFIED';
-  if (pct <= 30) return 'RESTRICTED';
-  return 'MIL-SPEC';
-}
-function _wmTierLabel(item, pct){
-  const def = item && item.tier ? _wmTierDef(item.tier) : null;
-  return def ? def.name : _wmTierName(pct);
-}
 const WM_GOLD_HEX = '#e4b84d';
 function _wmIsGold(color){ return !!color && color.toLowerCase() === WM_GOLD_HEX; }
 // Recompute chances and, for any item whose color hasn't been manually picked
-// (item.colorLocked isn't set), apply its tier's color (or the legacy
-// auto-by-% color for untiered items). Called before anything reads
-// item.color (contents list, edit list, wheel/reel).
+// (item.colorLocked isn't set), apply the rarity color matching its current %.
+// Called before anything reads item.color (contents list, edit list, wheel/reel).
 function _wmRecalcChances(items){
   if (!items || !items.length) return [];
   const chances = _wmComputeChances(items);
-  items.forEach((it, i) => {
-    if (it.colorLocked) return;
-    const tierDef = it.tier ? _wmTierDef(it.tier) : null;
-    it.color = tierDef ? tierDef.color : _wmColorForChance(chances[i]);
-  });
+  items.forEach((it, i) => { if (!it.colorLocked) it.color = _wmColorForChance(chances[i]); });
   return chances;
 }
 function _wmFmtChance(pct){
   return (pct >= 10 || Math.abs(pct - Math.round(pct)) < 0.05) ? Math.round(pct)+'%' : pct.toFixed(1)+'%';
-}
-// Assign (or clear) an item's rarity tier. Clears any manual override so it
-// cleanly follows the tier's shared budget; passing null makes it "custom"
-// again (keeps whatever color/% it already had).
-function wmSetItemTier(i, tierKey){
-  const w = _wmCurrent();
-  if (!_wmCheckLock(w)) return;
-  const item = w.items[i];
-  item.tier = tierKey || null;
-  item.chanceLocked = false;
-  item.colorLocked = false;
-  delete item.chance;
-  _wmSave(); _wmRenderEdit(); _wmRenderContents();
-  if (_wmMode === 'wheel') _wmDrawWheel(_wmWheelAngle);
 }
 // Pick a winning index respecting each item's weighted % chance (falls back to
 // uniform if something's off, e.g. all-zero weights).
@@ -15485,41 +14870,10 @@ function wmTab(t) {
   if (t==='e') _wmRenderEdit();
 }
 
-// ── Rarity tier odds config panel ───────────────────────────────────────────
-// Site-wide (not per-wheel) so odds stay consistent across every wheel.
-function _wmRenderTierConfig(){
-  const row = document.getElementById('wmTierConfigRow');
-  if (!row) return;
-  row.innerHTML = WM_TIER_DEFS.map(t => `<label class="wm-tier-cfg-inp" style="--tier-color:${t.color}" title="${t.name}">
-    <span class="wm-tier-cfg-dot"></span>
-    <input type="number" min="0" max="100" step="0.1" value="${(_wmTierPcts[t.key]||0)}" oninput="wmSetTierPct('${t.key}',this.value)">
-    <span class="wm-tier-cfg-pct">%</span>
-  </label>`).join('');
-  _wmUpdateTierTotalBadge();
-}
-function _wmUpdateTierTotalBadge(){
-  const badge = document.getElementById('wmTierTotalBadge');
-  if (!badge) return;
-  const total = WM_TIER_DEFS.reduce((s,t)=>s+(_wmTierPcts[t.key]||0), 0);
-  badge.textContent = total.toFixed(1) + '%';
-  badge.classList.toggle('over', total > 100.05);
-}
-function wmSetTierPct(tierKey, v){
-  let n = parseFloat(v); if (isNaN(n)) n = 0;
-  n = Math.max(0, Math.min(100, n));
-  _wmTierPcts[tierKey] = n;
-  _wmSaveTierPcts();
-  _wmUpdateTierTotalBadge();
-  // Every wheel's items may reference this tier — refresh whichever is on screen.
-  const w = _wmCurrent();
-  if (w) { _wmRenderEdit(); _wmRenderContents(); if (_wmMode === 'wheel') _wmDrawWheel(_wmWheelAngle); }
-}
-
 // ── Edit ──────────────────────────────────────────────────────────────────
 function _wmRenderEdit() {
   const w = _wmCurrent();
   document.getElementById('wmNameInp2').value = w.name;
-  _wmRenderTierConfig();
 
   // Lock bar
   const locked = !!w.password;
@@ -15546,14 +14900,6 @@ function _wmRenderEdit() {
         <!-- Delete -->
         <button class="wm-seg-del" onclick="wmDelItem(${i})" title="Delete item">✕</button>
       </div>
-      <!-- Rarity tier picker: click a swatch to put this item in that tier's
-           odds pool, or ✎ to detach it and set a fully custom color/%. -->
-      <div class="wm-item-card-tierrow">
-        <span class="wm-tier-pick-label">Rarity</span>
-        ${WM_TIER_DEFS.map(t => `<button class="wm-tier-pick${item.tier===t.key?' active':''}"
-          style="--tier-color:${t.color}" onclick="wmSetItemTier(${i},'${t.key}')" title="${t.name} — ${_wmFmtChance(_wmTierPcts[t.key]||0)} shared pool">●</button>`).join('')}
-        <button class="wm-tier-pick custom${!item.tier?' active':''}" onclick="wmSetItemTier(${i},null)" title="Custom — set your own color &amp; %">✎</button>
-      </div>
       <!-- Controls row: color, icon, % chance -->
       <div class="wm-item-card-ctrlrow">
         <!-- Color swatch -->
@@ -15565,7 +14911,7 @@ function _wmRenderEdit() {
           ${iconPreview}
         </button>
         <!-- % chance -->
-        <div class="wm-chance-box" style="margin-left:auto" title="${isLocked ? 'Locked — will not change when items are added or removed' : item.tier ? 'Shared with this item\'s tier — type a number to override just this item' : 'Auto — shares the remaining % equally with other untiered items'}">
+        <div class="wm-chance-box" style="margin-left:auto" title="${isLocked ? 'Locked — will not change when items are added or removed' : 'Auto — shares the remaining % equally with other unlocked items'}">
           <input type="number" class="wm-chance-inp" min="0" max="100" step="0.1"
             value="${chanceVal.toFixed(1)}" oninput="wmItemChance(${i},this.value)">
           <span class="wm-chance-pct">%</span>
@@ -15637,13 +14983,10 @@ function wmItemChance(i,v){
   _wmSave(); _wmRenderContents();
   // Recompute so every other item's shown % (unlocked ones sharing the remainder,
   // or locked ones getting rescaled if the locked total is over 100%) stays in sync.
-  // _wmRecalcChances also refreshes item.color for any item without a manually-locked color.
-  const chances = _wmRecalcChances(w.items);
+  const chances = _wmComputeChances(w.items);
   const cards = document.querySelectorAll('.wm-item-card');
   cards.forEach((card, idx) => {
     const btn = card.querySelector('.wm-chance-lock');
-    const swatch = card.querySelector('.wm-col-btn');
-    if (swatch && !w.items[idx].colorLocked) swatch.style.background = w.items[idx].color;
     if (idx === i) {
       // This is the field being actively typed in — just flip its lock icon, leave the value alone.
       if (btn) { btn.textContent = '🔒'; btn.classList.add('locked'); }
@@ -17086,7 +16429,7 @@ function _ytSecRender() {
 function ytShortsNav(dir) {
   const list = document.getElementById('ytShortsList');
   if (!list) return;
-  const cardStep = list.clientWidth * 2 / 3.6; // 2 of the ~3.6 visible cards per click
+  const cardStep = list.clientWidth / 3; // 2 of the 6 visible cards per click
   list.scrollBy({ left: dir * cardStep, behavior: 'smooth' }); // 2 cards per arrow click
   setTimeout(_ytSecUpdateArrows, 350);
 }
