@@ -16504,8 +16504,7 @@ function hlCloseModal() {
 // Shows: [latest regular video] [← arrow] [6 short cards] [→ arrow]
 // Left arrow  = more recent shorts  |  Right arrow = older shorts
 
-const YT_SEC_PER_PAGE = 6; // cards visible at once (used for arrow scroll step)
-const YT_SEC_VISIBLE_MAX = 5; // only render this many short cards in the row (pool used for random-short picking stays larger)
+const YT_SEC_PER_PAGE = 5; // cards visible at once (used for arrow scroll step, matches card width sizing)
 let _ytSecLatest = null;  // { id, title, thumb }
 let _ytSecShorts = [];    // [{ id, title, thumb }, ...]
 let _ytSecPage   = 0;     // 0 = newest page of shorts
@@ -16674,7 +16673,7 @@ function _ytSecRender() {
   const list = document.getElementById('ytShortsList');
   if (list) {
     const start = _ytSecPage * YT_SEC_PER_PAGE;
-    const page  = _ytSecShorts.slice(0, YT_SEC_VISIBLE_MAX); // only show the newest N; overflow:hidden clips, scrollLeft reveals
+    const page  = _ytSecShorts; // full pool — 5 fit in view at a time, scroll/arrows reveal the rest
 
     if (!page.length) {
       list.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:20px 0">No shorts found.</div>`;
