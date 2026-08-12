@@ -1133,6 +1133,44 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  .grid-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .grid-card-chapters-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px 4px 9px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    transition: all 0.15s;
+    margin-left: auto;
+  }
+  .grid-card-chapters-btn:hover {
+    border-color: var(--accent);
+    background: rgba(124,92,252,0.12);
+    color: var(--accent);
+  }
+  .grid-card-chapters-count {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--muted);
+    background: rgba(0,0,0,0.3);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+  .grid-card-chapters-btn:hover .grid-card-chapters-count { color: var(--accent); }
   .grid-card-games {
     display: flex; flex-wrap: wrap; gap: 3px;
   }
@@ -4011,18 +4049,56 @@ function groupIntoStreams(videos) {
     }
   });
 
-  return Object.entries(byDay)
-    .sort((a, b) => {
-      const da = a[0].slice(0, 10);
-      const db = b[0].slice(0, 10);
-      return db.localeCompare(da);
-    })
+  // Build initial groups, sorted chronologically ASCENDING for the merge pass below
+  // (the object key can be either a plain "YYYY-MM-DD" day or a "YYYY-MM-DD_videoId"
+  // fallback key — both slice(0,10) down to the calendar day either way).
+  let groups = Object.entries(byDay)
     .map(([key, vids]) => {
       vids.sort((a,b) => a.publishedAt.localeCompare(b.publishedAt));
-      const day = key.slice(0, 10); // works for both "2025-07-29" and "2025-07-29_videoId"
+      return { day: key.slice(0, 10), vids };
+    })
+    .sort((a, b) => a.vids[0].publishedAt.localeCompare(b.vids[0].publishedAt));
+
+  // ── Merge streams split across midnight ──────────────────────────────────
+  // A single broadcast that's still live after midnight ends up labeled with
+  // two different calendar days (either from the date baked into the title,
+  // or from the fallback publishedAt-based day), so it shows up as two
+  // separate cards even though it's one continuous stream. Detect that by
+  // checking the gap between one group's last video and the next group's
+  // first video: if it's small, they're almost certainly the same broadcast
+  // (just crossing midnight), not two unrelated streams — a real day off
+  // usually leaves a much bigger gap than this. Duration is used to estimate
+  // each video's start time from its publish time, since publishedAt reflects
+  // upload/end time, not stream start.
+  const MERGE_GAP_MS = 2 * 60 * 60 * 1000; // 2 hours
+  const merged = [];
+  for (const g of groups) {
+    const prev = merged[merged.length - 1];
+    if (prev) {
+      const prevLast = prev.vids[prev.vids.length - 1];
+      const nextFirst = g.vids[0];
+      const prevEndApprox = new Date(prevLast.publishedAt).getTime();
+      const nextStartApprox = new Date(nextFirst.publishedAt).getTime() - (nextFirst.duration * 1000);
+      const gapMs = nextStartApprox - prevEndApprox;
+
+      // Allow a little negative slack (publish-time estimates aren't exact),
+      // but require the gap to be short — this is what keeps two genuinely
+      // separate streams on different days from getting merged together.
+      if (gapMs > -30 * 60 * 1000 && gapMs < MERGE_GAP_MS) {
+        prev.vids = prev.vids.concat(g.vids);
+        continue;
+      }
+    }
+    merged.push({ day: g.day, vids: g.vids.slice() });
+  }
+
+  return merged
+    .sort((a, b) => b.day.localeCompare(a.day))
+    .map(g => {
+      const vids = g.vids;
       const totalDuration = vids.reduce((s,v) => s + v.duration, 0);
       const games = parseGamesFromDescriptions(vids);
-      return { day, vids, totalDuration, games, thumb: vids[0].thumb, title: buildStreamTitle(vids, day) };
+      return { day: g.day, vids, totalDuration, games, thumb: vids[0].thumb, title: buildStreamTitle(vids, g.day) };
     });
 }
 
@@ -4111,6 +4187,61 @@ function getDominantGame(stream) {
   return best;
 }
 
+// Same source data as getDominantGame (chapter cache first, description-parsed
+// fallback second), but returns the actual filtered chapter list — used for
+// the grid-card "Chapters" count chip and reused by the player's chapter UI.
+// Filters out a leading filler chapter shorter than 3 minutes, same rule the
+// player's segment bar uses, so the count shown on the grid card always
+// matches what you'll see once you open the stream.
+function getChapterList(stream) {
+  const vodId = twitchVodMap[stream.day];
+  let chapters = (vodId && _chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length)
+    ? _chapterCache[vodId].games
+    : null;
+  if (!chapters) chapters = (stream.games && stream.games.length) ? stream.games : null;
+  if (!chapters || !chapters.length) return [];
+
+  const sorted = [...chapters].sort((a, b) => a.t - b.t);
+  const total = stream.totalDuration || (sorted[sorted.length - 1].t + 1);
+  return sorted.filter((g, i) => {
+    if (i > 0) return true;
+    const firstEnd = sorted[1]?.t ?? total;
+    return firstEnd > 180;
+  });
+}
+
+// Chapter data for most streams only exists in the chapter cache (localStorage
+// / Firestore) or is fetched live per-VOD when a stream is opened. On a fresh
+// page load the grid renders before the Firestore cache pull resolves, so
+// game icons and chapter counts come up empty even though the data exists.
+// This walks the CURRENTLY VISIBLE page, background-fetches chapters for any
+// card that's missing them (staggered, gentle on Twitch's API), then quietly
+// re-renders just that page once new data comes in — no visible reload/flicker
+// for cards that already had data.
+let _enrichToken = 0;
+async function enrichVisiblePageChapters() {
+  const myToken = ++_enrichToken;
+  const start = currentPage * PAGE_SIZE;
+  const pageStreams = displayedStreams.slice(start, start + PAGE_SIZE);
+  const targets = pageStreams.filter(s => {
+    const vodId = twitchVodMap[s.day];
+    return vodId && !(_chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length);
+  });
+  if (!targets.length) return;
+
+  let gotAny = false;
+  for (const s of targets) {
+    if (myToken !== _enrichToken) return; // page changed — abandon
+    const vodId = twitchVodMap[s.day];
+    try {
+      const games = await getChaptersForVod(vodId); // saves to _chapterCache internally
+      if (games.length) gotAny = true;
+    } catch(e) { /* ignore — best effort */ }
+    await new Promise(r => setTimeout(r, 120));
+  }
+  if (myToken === _enrichToken && gotAny) renderPage();
+}
+
 // Translate non-English Twitch category names to English
 const _GAME_TRANSLATIONS = {
   // Hungarian
@@ -4175,10 +4306,15 @@ function renderPage() {
     const dominantGame = dominantGameRaw ? translateGameLabel(dominantGameRaw) : null;
     const gameIcon = dominantGame ? `<div class="grid-card-game-icon" title="${escHtml(dominantGame)}"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-52x72.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : '';
     const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
+    const chapCount = getChapterList(s).length;
+    const chapChip = chapCount ? `<button class="grid-card-chapters-btn" onclick="openStreamChapters(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
+        Chapters <span class="grid-card-chapters-count">${chapCount}</span>
+      </button>` : '';
     return `<a class="grid-card" href="#stream-${s.day}" onclick="selectStream(${globalIdx});return false;">
       <div class="grid-card-thumb">
         <img src="${s.thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-        <div class="thumb-fallback" style="display:none">ðº</div>
+        <div class="thumb-fallback" style="display:none">📺</div>
         <span class="grid-card-date-badge">${date}</span>
         <span class="grid-card-dur">${formatDuration(s.totalDuration)}</span>
         ${parts}
@@ -4186,10 +4322,15 @@ function renderPage() {
       </div>
       <div class="grid-card-body">
         <div class="grid-card-title">${escHtml(s.title)}</div>
-        <div class="grid-card-games">${games}</div>
+        <div class="grid-card-actions">
+          <div class="grid-card-games">${games}</div>
+          ${chapChip}
+        </div>
       </div>
     </a>`;
   }).join('');
+
+  enrichVisiblePageChapters();
 
   const pg = document.getElementById('pagination');
   totalPages = Math.ceil(displayedStreams.length / PAGE_SIZE);
@@ -4364,6 +4505,17 @@ function selectStream(idx, pushHistory=true) {
   renderChat(currentStream);
 }
 
+// Fired by the "Chapters" chip on a grid card. Opens the stream like a normal
+// card click, but also flags that the chapters dropdown should pop open as
+// soon as this stream's chapter data finishes loading — so tapping the chip
+// takes you straight into the chapter list instead of just the video top.
+let _pendingChapterAutoOpen = null;
+function openStreamChapters(evt, globalIdx) {
+  if (evt) { evt.preventDefault(); evt.stopPropagation(); }
+  _pendingChapterAutoOpen = allStreams[globalIdx]?.day ?? null;
+  selectStream(globalIdx);
+}
+
 let theaterMode = false;
 function toggleTheater() {
   theaterMode = !theaterMode;
@@ -4500,7 +4652,17 @@ async function _chapterCloudPull() {
     snap.forEach(doc => {
       if (!_chapterCache[doc.id]) { _chapterCache[doc.id] = doc.data(); added++; }
     });
-    if (added) { _saveChapterCache(); console.log(`Chapter cache: pulled ${added} VOD(s) from Firestore`); }
+    if (added) {
+      _saveChapterCache();
+      console.log(`Chapter cache: pulled ${added} VOD(s) from Firestore`);
+      // The grid often renders (from the fast localStorage stream-list cache)
+      // before this Firestore pull resolves, so category icons and chapter
+      // chips come up empty on first paint. Re-render the current page now
+      // that the cache is populated so they appear without a manual refresh.
+      if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) {
+        renderPage();
+      }
+    }
   } catch(e) {
     console.error('[chapterCache] cloud PULL failed:', e.code || e.message || e,
       '\n→ "permission-denied" means the Firestore rules need to allow reads on chapterCache/{vodId}.');
@@ -4867,6 +5029,14 @@ function renderSegments(stream) {
   document.getElementById('chaptersDropdown').innerHTML = chapHtml;
   document.getElementById('chaptersCount').textContent = games.length;
   chaptersWrap.style.display = 'inline-block';
+
+  // If the user got here by tapping the "Chapters" chip on the grid card,
+  // pop the dropdown open now that it's actually populated, then clear the
+  // flag so it doesn't re-open on later re-renders (part switches, etc).
+  if (_pendingChapterAutoOpen === stream.day) {
+    _pendingChapterAutoOpen = null;
+    toggleChaptersDropdown();
+  }
 }
 
 function toggleChaptersDropdown(evt) {
