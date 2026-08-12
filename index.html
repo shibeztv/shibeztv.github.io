@@ -1115,7 +1115,7 @@
   }
   .grid-card-game-icon {
     position: absolute; bottom: 5px; left: 5px;
-    width: 36px; height: 48px;
+    width: 28px; height: 37px;
     border-radius: 3px; overflow: hidden;
     box-shadow: 0 1px 5px rgba(0,0,0,0.65);
     border: 1px solid rgba(255,255,255,0.15);
@@ -4071,7 +4071,6 @@ function groupIntoStreams(videos) {
   // each video's start time from its publish time, since publishedAt reflects
   // upload/end time, not stream start.
   const MERGE_GAP_MS = 2 * 60 * 60 * 1000; // 2 hours
-  const MAX_MERGE_DAY_DIFF = 1; // groups can only merge if their calendar days are the same or adjacent (genuine midnight crossing)
   const merged = [];
   for (const g of groups) {
     const prev = merged[merged.length - 1];
@@ -4082,21 +4081,10 @@ function groupIntoStreams(videos) {
       const nextStartApprox = new Date(nextFirst.publishedAt).getTime() - (nextFirst.duration * 1000);
       const gapMs = nextStartApprox - prevEndApprox;
 
-      // Guard against merging two genuinely separate streams (e.g. Aug 5 and
-      // Aug 8) into one card. The gap-based heuristic below relies on
-      // publishedAt/duration estimates which can occasionally be off by a
-      // wide margin — without this check, that miscalculation alone could
-      // land inside the merge window even though the two groups are days
-      // apart. Calendar-day distance is a hard, reliable check: real
-      // midnight-crossing streams are on the same day or the very next day,
-      // never further apart than that.
-      const dayDiffMs = Math.abs(new Date(g.day + 'T00:00:00Z') - new Date(prev.day + 'T00:00:00Z'));
-      const dayDiffOk = dayDiffMs <= MAX_MERGE_DAY_DIFF * 24 * 60 * 60 * 1000;
-
       // Allow a little negative slack (publish-time estimates aren't exact),
       // but require the gap to be short — this is what keeps two genuinely
       // separate streams on different days from getting merged together.
-      if (dayDiffOk && gapMs > -30 * 60 * 1000 && gapMs < MERGE_GAP_MS) {
+      if (gapMs > -30 * 60 * 1000 && gapMs < MERGE_GAP_MS) {
         prev.vids = prev.vids.concat(g.vids);
         continue;
       }
@@ -4176,10 +4164,7 @@ function colorFor(i) { return PALETTE[i % PALETTE.length]; }
 // synchronously the moment twitchVodMap + _chapterCache are populated —
 // no need to open the stream first.
 function getDominantGame(stream) {
-  // twitchVodMap only covers VODs still inside Twitch's retention window.
-  // Older streams fall back to their date string as the chapter-cache key —
-  // matches the key merge-backfill.js writes for streams with no live VOD id.
-  const vodId = twitchVodMap[stream.day] || stream.day;
+  const vodId = twitchVodMap[stream.day];
   let chapters = (vodId && _chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length)
     ? _chapterCache[vodId].games
     : null;
@@ -4209,7 +4194,7 @@ function getDominantGame(stream) {
 // player's segment bar uses, so the count shown on the grid card always
 // matches what you'll see once you open the stream.
 function getChapterList(stream) {
-  const vodId = twitchVodMap[stream.day] || stream.day;
+  const vodId = twitchVodMap[stream.day];
   let chapters = (vodId && _chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length)
     ? _chapterCache[vodId].games
     : null;
