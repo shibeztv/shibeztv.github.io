@@ -4164,7 +4164,10 @@ function colorFor(i) { return PALETTE[i % PALETTE.length]; }
 // synchronously the moment twitchVodMap + _chapterCache are populated —
 // no need to open the stream first.
 function getDominantGame(stream) {
-  const vodId = twitchVodMap[stream.day];
+  // twitchVodMap only covers VODs still inside Twitch's retention window.
+  // Older streams fall back to their date string as the chapter-cache key —
+  // matches the key merge-backfill.js writes for streams with no live VOD id.
+  const vodId = twitchVodMap[stream.day] || stream.day;
   let chapters = (vodId && _chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length)
     ? _chapterCache[vodId].games
     : null;
@@ -4194,7 +4197,7 @@ function getDominantGame(stream) {
 // player's segment bar uses, so the count shown on the grid card always
 // matches what you'll see once you open the stream.
 function getChapterList(stream) {
-  const vodId = twitchVodMap[stream.day];
+  const vodId = twitchVodMap[stream.day] || stream.day;
   let chapters = (vodId && _chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length)
     ? _chapterCache[vodId].games
     : null;
