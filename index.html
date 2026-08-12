@@ -1884,7 +1884,7 @@
   .yt-short-card {
     text-decoration: none;
     color: inherit;
-    flex: 0 0 calc((100% - 5 * 8px) / 6); /* exactly 6 cards fill the row width */
+    flex: 0 0 calc((100% - 4 * 8px) / 5); /* exactly 5 cards fill the row width */
     min-width: 0;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -13792,6 +13792,7 @@ window.addEventListener('hashchange', _routeFromHash);
           <button class="wm-act" id="wmLocalPinBtn" onclick="wmPinWheel()" style="display:none;background:rgba(124,92,252,0.12);border-color:rgba(124,92,252,0.45);color:#a78bfa">📌 Save as My Wheel</button>
           <button class="wm-act red" onclick="wmDelWheel()">🗑 Delete Wheel</button>
         </div>
+        <div id="wmSyncStatus" style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.4px;margin-top:8px;padding:6px 10px;border-radius:4px;display:none"></div>
       </div>
     </div>
 
@@ -14732,7 +14733,7 @@ function _wmIsShibez() {
   return login === 'shlbez' || login === 'shibez';
 }
 
-function _wmSave() { try { localStorage.setItem('wm_cs2_v1', JSON.stringify({wheels:_wm.wheels,activeId:_wm.activeId})); } catch(e) {} _wmAutoPinIfShibez(); }
+function _wmSave() { try { localStorage.setItem('wm_cs2_v1', JSON.stringify({wheels:_wm.wheels,activeId:_wm.activeId})); } catch(e) {} _wmAutoPinIfShibez(); _wmAutoBackupToCloud(); }
 let _wmHadPersonal = false; // true if this visitor has their own saved wheel (don't clobber it with the cloud-pinned one)
 
 // ── Auto-pin: every edit Shibez makes is pushed to the shared cloud wheel automatically ──
@@ -14753,8 +14754,70 @@ async function _wmAutoPinNow() {
       wheels: _wm.wheels, activeId: _wm.activeId,
       pinnedBy: _profUser?.login || 'shlbez', updatedAt: Date.now()
     });
-  } catch(e) { console.warn('[wm] auto-pin failed:', e); }
+    _wmFlashSyncStatus('✅ Synced live just now', '#4ade80', 'rgba(74,222,128,0.1)', 'rgba(74,222,128,0.3)');
+  } catch(e) {
+    console.warn('[wm] auto-pin failed:', e);
+    _wmFlashSyncStatus('⚠ Sync failed — edits saved locally only (see console)', '#ff7070', 'rgba(255,96,96,0.1)', 'rgba(255,96,96,0.3)');
+  }
 }
+// Briefly overrides the status line with a live save result, then reverts to the normal login-state message
+function _wmFlashSyncStatus(text, color, bg, border) {
+  const status = document.getElementById('wmSyncStatus');
+  if (!status) return;
+  status.style.display = 'block';
+  status.style.color = color; status.style.background = bg; status.style.border = '1px solid ' + border;
+  status.textContent = text;
+  clearTimeout(_wmFlashTimer);
+  _wmFlashTimer = setTimeout(_wmUpdatePinBtn, 3000);
+}
+let _wmFlashTimer = null;
+
+// ── Always-on personal cloud backup — independent of Twitch login ──────────
+// The auto-pin above only fires when _wmIsShibez() is true, i.e. you're
+// actively logged into the site as shlbez/shibez. If you build/edit a wheel
+// while NOT logged in on that browser, the auto-pin never runs and the wheel
+// only ever exists in that one browser's localStorage — if that gets cleared
+// (cache clear, testing on a different domain, private window, new device)
+// it's gone with no recovery path. This backs up EVERY edit to a private
+// Firestore doc keyed to this browser's anonymous auth session, no login
+// required, so it can always be recovered with window.recoverMyWheel().
+let _wmBackupTimer = null;
+function _wmAutoBackupToCloud() {
+  clearTimeout(_wmBackupTimer);
+  _wmBackupTimer = setTimeout(_wmDoCloudBackup, 800);
+}
+async function _wmDoCloudBackup() {
+  if (typeof _wmDb === 'undefined') return;
+  try {
+    if (!_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+    const uid = _wmAuth.currentUser.uid;
+    await _wmDb.collection('wheelBackups').doc(uid).set({
+      wheels: _wm.wheels, activeId: _wm.activeId,
+      login: _profUser?.login || null, updatedAt: Date.now()
+    });
+  } catch(e) { console.warn('[wm] cloud backup failed:', e); }
+}
+
+// Recover a wheel from this browser's private cloud backup. Run
+// window.recoverMyWheel() in the console — pulls whatever was last backed up
+// under this browser's anonymous auth session and loads it into the editor.
+// Only works if this is the same browser/profile that made the original
+// edits (that's what ties it to the right backup).
+window.recoverMyWheel = async function() {
+  if (typeof _wmDb === 'undefined') { console.warn('Firestore not available.'); return null; }
+  try {
+    if (!_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+    const uid = _wmAuth.currentUser.uid;
+    const snap = await _wmDb.collection('wheelBackups').doc(uid).get();
+    if (!snap.exists) { console.log('No cloud backup found for this browser.'); return null; }
+    const data = snap.data();
+    console.log(`Found backup from ${new Date(data.updatedAt).toLocaleString()} with ${data.wheels?.length||0} wheel(s). Loading it now…`);
+    _wm.wheels = data.wheels; _wm.activeId = data.activeId;
+    try { localStorage.setItem('wm_cs2_v1', JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId})); } catch(e) {}
+    try { _wmRenderTabs(); _wmRenderContents(); if (_wmMode === 'wheel') _wmDrawWheel(_wmWheelAngle); } catch(e) {}
+    return data;
+  } catch(e) { console.warn('[wm] recovery failed:', e); return null; }
+};
 function _wmLoad() {
   _wmHadPersonal = false;
   _wmLoadHist();
@@ -16117,12 +16180,32 @@ async function wmPinWheel() {
 function _wmUpdatePinBtn() {
   const globalBtn = document.getElementById('wmPinBtn');
   const localBtn  = document.getElementById('wmLocalPinBtn');
+  const status    = document.getElementById('wmSyncStatus');
   const loggedIn  = !!_profUser?.login;
   const isShibez  = _wmIsShibez();
   // Global pin button: only for Shibez
   if (globalBtn) globalBtn.style.display = isShibez  ? '' : 'none';
   // Local pin button: for any logged-in user who is NOT Shibez
   if (localBtn)  localBtn.style.display  = (loggedIn && !isShibez) ? '' : 'none';
+  if (status) {
+    status.style.display = 'block';
+    if (isShibez) {
+      status.style.background = 'rgba(74,222,128,0.1)';
+      status.style.border = '1px solid rgba(74,222,128,0.3)';
+      status.style.color = '#4ade80';
+      status.textContent = '✅ Logged in as ' + _profUser.login + ' — every edit auto-saves live for everyone, no button needed.';
+    } else if (loggedIn) {
+      status.style.background = 'rgba(228,184,77,0.1)';
+      status.style.border = '1px solid rgba(228,184,77,0.3)';
+      status.style.color = '#e4b84d';
+      status.textContent = '⚠ Logged in as ' + _profUser.login + ', not shlbez — edits save to your own browser + a personal cloud backup, but won\'t publish to the site.';
+    } else {
+      status.style.background = 'rgba(255,96,96,0.1)';
+      status.style.border = '1px solid rgba(255,96,96,0.3)';
+      status.style.color = '#ff7070';
+      status.textContent = '⚠ Not logged in — edits only save to this browser. Log in as shlbez (top-right profile icon) to auto-publish live.';
+    }
+  }
 }
 
 function wmShareWheel() {
