@@ -924,7 +924,7 @@
   .grid-view {
     flex: 1;
     overflow-y: auto;
-    padding: 24px 20px;
+    padding: 24px clamp(20px, 5vw, 72px);
     background: var(--bg);
   }
   .grid-view::-webkit-scrollbar { width: 4px; }
@@ -2788,9 +2788,6 @@
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
           <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
-          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
-          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
-          <div class="yt-short-skeleton"><div class="yt-short-skel-thumb"></div><div class="yt-short-skel-line"></div><div class="yt-short-skel-line s2"></div></div>
         </div>
         <button class="yt-short-arrow" id="ytShortRight" onclick="ytShortsNav(1)" disabled>&#8250;</button>
       </div>
@@ -4336,16 +4333,20 @@ function onYouTubeIframeAPIReady() {
 // VOD. Once that window closes (or the VOD is deleted from Twitch, even if
 // still up on YouTube), a live GQL fetch returns nothing and the category is
 // lost forever unless we've saved it somewhere durable. This cache:
-//   1. Saves every successful chapter fetch to localStorage — no TTL, since
-//      a VOD's categories never change once the stream is over.
+//   1. Saves every successful chapter fetch to localStorage instantly — no
+//      TTL, since a VOD's categories never change once the stream is over.
 //   2. Checks that cache before ever hitting Twitch again for the same VOD.
-//   3. Loads a static chapters-seed.json (if present) on startup, so data
-//      fetched once in ANY browser can be baked into the site for everyone —
-//      localStorage alone only helps the one browser that fetched it.
-// Run window.exportChapterCache() in the console periodically to download the
-// current cache as JSON, then save it as chapters-seed.json next to
-// index.html to make that fetched data permanent and shared.
+//   3. Also pushes every fetch up to a shared Firestore collection
+//      ('chapterCache', same project already used for leaderboards/wheels),
+//      so once ANY visitor's browser fetches a VOD's chapters, they're saved
+//      to the server permanently and every other visitor gets them for free
+//      on their next page load — no manual export/download/upload needed.
+//   4. A static chapters-seed.json (if present next to index.html) is still
+//      loaded too, as an offline-friendly fallback/backup layer, but it's no
+//      longer required for the cache to be permanent — Firestore is now the
+//      real source of truth.
 const CHAPTER_CACHE_KEY = 'shibez_chapter_cache_v1';
+const CHAPTER_CLOUD_COLLECTION = 'chapterCache';
 let _chapterCache = {};
 try { _chapterCache = JSON.parse(localStorage.getItem(CHAPTER_CACHE_KEY) || '{}'); } catch(e) { _chapterCache = {}; }
 
@@ -4355,9 +4356,48 @@ function _saveChapterCache() {
   }
 }
 
+// Push one VOD's chapters up to Firestore so they're saved server-side for
+// every visitor, permanently — fire-and-forget, never blocks the UI.
+async function _chapterCloudPush(vodId, entry) {
+  if (typeof _wmDb === 'undefined') return false;
+  try {
+    if (typeof _wmAuth !== 'undefined' && !_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+    await _wmDb.collection(CHAPTER_CLOUD_COLLECTION).doc(vodId).set(entry);
+    return true;
+  } catch(e) {
+    console.error('[chapterCache] cloud PUSH failed for VOD ' + vodId + ':', e.code || e.message || e,
+      '\n→ "permission-denied" means the Firestore rules need to allow writes on chapterCache/{vodId} (same as leaderboards/wheels).',
+      '\nThe chapters are still saved locally in this browser either way.');
+    return false;
+  }
+}
+
+// Pull every cached VOD from Firestore on startup and merge into the local
+// cache WITHOUT overwriting anything already present locally (local data is
+// at least as fresh). This is what makes the cache "permanent" across every
+// visitor with zero manual steps — once one browser fetches a VOD's chapters
+// it's in the cloud, and every future page load (yours or anyone else's)
+// pulls it back down automatically.
+async function _chapterCloudPull() {
+  if (typeof _wmDb === 'undefined') return;
+  try {
+    const snap = await _wmDb.collection(CHAPTER_CLOUD_COLLECTION).get();
+    let added = 0;
+    snap.forEach(doc => {
+      if (!_chapterCache[doc.id]) { _chapterCache[doc.id] = doc.data(); added++; }
+    });
+    if (added) { _saveChapterCache(); console.log(`Chapter cache: pulled ${added} VOD(s) from Firestore`); }
+  } catch(e) {
+    console.error('[chapterCache] cloud PULL failed:', e.code || e.message || e,
+      '\n→ "permission-denied" means the Firestore rules need to allow reads on chapterCache/{vodId}.');
+  }
+}
+_chapterCloudPull();
+
 // Load the static seed file once on startup and merge it in WITHOUT
 // overwriting anything already cached locally (local data is at least as
-// fresh, and this avoids clobbering entries mid-session).
+// fresh, and this avoids clobbering entries mid-session). Optional backup
+// layer — Firestore (above) is the primary shared cache now.
 (async function _loadChapterSeed() {
   try {
     const resp = await fetch('chapters-seed.json', { cache: 'no-store' });
@@ -4374,10 +4414,10 @@ function _saveChapterCache() {
   }
 })();
 
-// Dump the full chapter cache as a downloadable JSON file. Run this in the
-// console every so often and save the result as chapters-seed.json next to
-// index.html — that "bakes in" everything fetched so far for every visitor,
-// permanently, even after Twitch's own copy of the chapter data is long gone.
+// Dump the full chapter cache as a downloadable JSON file. Not required for
+// day-to-day use anymore (Firestore handles that automatically), but handy
+// as an occasional offline backup — run in the console and save the result
+// as chapters-seed.json next to index.html if you ever want a static copy.
 window.exportChapterCache = function() {
   const json = JSON.stringify(_chapterCache, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
@@ -4394,8 +4434,9 @@ window.exportChapterCache = function() {
 // every stream), not just the ones you've happened to open. Run this in the
 // console periodically — it's the only way to capture streams that are still
 // within Twitch's retention window right now but haven't been viewed yet.
-// After it finishes, run window.exportChapterCache() and save the result as
-// chapters-seed.json to make the captured data permanent for every visitor.
+// Each fetch is auto-pushed to Firestore as it happens (via getChaptersForVod),
+// so as soon as this finishes, every visitor's browser has that data too —
+// no export/upload step needed.
 window.backfillAllChapters = async function() {
   const allVodIds = new Set();
   (allStreams || []).forEach(stream => {
@@ -4420,7 +4461,7 @@ window.backfillAllChapters = async function() {
     await new Promise(r => setTimeout(r, 150)); // be gentle with Twitch's API
   }
   console.log(`Backfill done. Newly fetched: ${fetched}, already cached: ${alreadyCached}, no data available: ${empty}.`);
-  console.log('Run window.exportChapterCache() now to save chapters-seed.json.');
+  console.log('Newly fetched VODs were already pushed to Firestore as they were fetched — nothing else to do.');
   return { fetched, alreadyCached, empty };
 };
 
@@ -4432,8 +4473,10 @@ async function getChaptersForVod(vodId) {
   }
   const games = await fetchTwitchChapters(vodId);
   if (games.length) {
-    _chapterCache[vodId] = { games, fetchedAt: Date.now() };
+    const entry = { games, fetchedAt: Date.now() };
+    _chapterCache[vodId] = entry;
     _saveChapterCache();
+    _chapterCloudPush(vodId, entry); // fire-and-forget — saves it for every visitor, permanently
   }
   return games;
 }
@@ -16379,6 +16422,7 @@ function hlCloseModal() {
 // Left arrow  = more recent shorts  |  Right arrow = older shorts
 
 const YT_SEC_PER_PAGE = 6; // cards visible at once (used for arrow scroll step)
+const YT_SEC_VISIBLE_MAX = 5; // only render this many short cards in the row (pool used for random-short picking stays larger)
 let _ytSecLatest = null;  // { id, title, thumb }
 let _ytSecShorts = [];    // [{ id, title, thumb }, ...]
 let _ytSecPage   = 0;     // 0 = newest page of shorts
@@ -16547,7 +16591,7 @@ function _ytSecRender() {
   const list = document.getElementById('ytShortsList');
   if (list) {
     const start = _ytSecPage * YT_SEC_PER_PAGE;
-    const page  = _ytSecShorts; // all shorts; overflow:hidden clips, scrollLeft reveals
+    const page  = _ytSecShorts.slice(0, YT_SEC_VISIBLE_MAX); // only show the newest N; overflow:hidden clips, scrollLeft reveals
 
     if (!page.length) {
       list.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:20px 0">No shorts found.</div>`;
