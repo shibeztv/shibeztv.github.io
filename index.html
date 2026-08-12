@@ -380,6 +380,108 @@
   }
   .seg-part-header:first-child { border-top: none; margin-top: 0; padding-top: 0; }
 
+  /* CHAPTERS DROPDOWN BUTTON */
+  .chapters-dropdown-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 12px;
+  }
+  .chapters-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    transition: all 0.15s;
+  }
+  .chapters-btn:hover {
+    border-color: var(--accent);
+    background: rgba(124,92,252,0.1);
+  }
+  .chapters-btn.open {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .chapters-btn .chapters-count {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    background: rgba(0,0,0,0.3);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+  .chapters-btn .chapters-caret {
+    transition: transform 0.15s;
+  }
+  .chapters-btn.open .chapters-caret {
+    transform: rotate(180deg);
+  }
+  .chapters-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 280px;
+    max-width: 380px;
+    max-height: 340px;
+    overflow-y: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    z-index: 500;
+    padding: 6px;
+  }
+  .chapters-dropdown.open { display: block; }
+  .chapters-dropdown .chap-part-header {
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    padding: 8px 8px 4px;
+  }
+  .chapter-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 8px;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--sans);
+    font-size: 12.5px;
+    color: var(--text);
+  }
+  .chapter-item:hover { background: rgba(124,92,252,0.12); }
+  .chapter-item .chap-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .chapter-item .chap-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chapter-item .chap-time {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
   /* TIMELINE BAR */
   .timeline-wrap {
     padding: 0 20px 0;
@@ -2874,6 +2976,15 @@
             <div class="video-date-badge" id="videoDateBadge"></div>
           </div>
           <div class="video-stats" id="videoStats"></div>
+          <div class="chapters-dropdown-wrap" id="chaptersDropdownWrap" style="display:none">
+            <button class="chapters-btn" id="chaptersBtn" onclick="toggleChaptersDropdown(event)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
+              Chapters
+              <span class="chapters-count" id="chaptersCount"></span>
+              <svg class="chapters-caret" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="chapters-dropdown" id="chaptersDropdown"></div>
+          </div>
           <div class="timeline-wrap" id="timelineWrap" style="display:none">
             <div class="timeline-bar" id="timelineBar"></div>
             <div class="timeline-labels" id="timelineLabels"></div>
@@ -4561,6 +4672,8 @@ function renderVideoMeta(stream) {
   segs.innerHTML = '<span style="font-family:var(--mono);font-size:11px;color:#999">Loading chapters…</span>';
   timelineWrap.style.display = 'none';
   if (segLabelEl) segLabelEl.style.display = 'none'; // hidden until chapters confirmed
+  closeChaptersDropdown();
+  document.getElementById('chaptersDropdownWrap').style.display = 'none';
 
   const vodId = twitchVodMap[stream.day];
   console.log('Stream day:', stream.day, '| Twitch vodId:', vodId, '| twitchVodMap keys:', Object.keys(twitchVodMap).slice(0,5));
@@ -4654,10 +4767,13 @@ function renderSegments(stream) {
     return firstEnd > 180;
   });
 
+  const chaptersWrap = document.getElementById('chaptersDropdownWrap');
+
   if (!games.length) {
     segsEl.innerHTML = '';
     timelineWrap.style.display = 'none';
     if (segLabel) segLabel.style.display = 'none';
+    chaptersWrap.style.display = 'none';
     return;
   }
 
@@ -4724,7 +4840,58 @@ function renderSegments(stream) {
   }
 
   timelineWrap.style.display = 'block';
+
+  // ── Chapters dropdown ────────────────────────────────────────────────────
+  // Same game list as the segment buttons above, but shown as a compact
+  // clickable dropdown list under a "Chapters" button instead of a row of
+  // pills — handy when there are a lot of categories in one stream.
+  let chapHtml = '';
+  let lastChapPart = -1;
+  games.forEach((g) => {
+    const origIdx = raw.indexOf(g);
+    const color   = colorFor(origIdx);
+    const label   = translateGameLabel(g.label);
+    const partI   = g.partIdx ?? 0;
+
+    if (isMultiPart && partI !== lastChapPart) {
+      lastChapPart = partI;
+      chapHtml += `<div class="chap-part-header">Part ${partI + 1}</div>`;
+    }
+
+    chapHtml += `<button class="chapter-item" data-orig-idx="${origIdx}" onclick="jumpToSegment(${origIdx});closeChaptersDropdown()">
+      <span class="chap-dot" style="background:${color}"></span>
+      <span class="chap-label">${escHtml(label)}</span>
+      <span class="chap-time">${formatDuration(g.t)}</span>
+    </button>`;
+  });
+  document.getElementById('chaptersDropdown').innerHTML = chapHtml;
+  document.getElementById('chaptersCount').textContent = games.length;
+  chaptersWrap.style.display = 'inline-block';
 }
+
+function toggleChaptersDropdown(evt) {
+  if (evt) evt.stopPropagation();
+  const btn = document.getElementById('chaptersBtn');
+  const dd = document.getElementById('chaptersDropdown');
+  const isOpen = dd.classList.contains('open');
+  if (isOpen) closeChaptersDropdown();
+  else {
+    dd.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+function closeChaptersDropdown() {
+  const btn = document.getElementById('chaptersBtn');
+  const dd = document.getElementById('chaptersDropdown');
+  if (dd) dd.classList.remove('open');
+  if (btn) btn.classList.remove('open');
+}
+
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('chaptersDropdownWrap');
+  if (wrap && !wrap.contains(e.target)) closeChaptersDropdown();
+});
 
 function renderTimeline(stream) {
   // Legacy shim — just delegate to renderSegments
