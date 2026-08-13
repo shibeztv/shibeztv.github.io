@@ -440,7 +440,8 @@
     padding: 6px;
   }
   .chapters-dropdown.open { display: block; }
-  .chapters-dropdown .chap-part-header {
+  .chapters-dropdown .chap-part-header,
+  .grid-chap-dropdown .chap-part-header {
     font-family: var(--mono);
     font-size: 9px;
     text-transform: uppercase;
@@ -1171,6 +1172,33 @@
     border-radius: 8px;
   }
   .grid-card-chapters-btn:hover .grid-card-chapters-count { color: var(--accent); }
+  .grid-card-chapters-btn.open {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .grid-card-chapters-wrap {
+    position: relative;
+    display: inline-flex;
+    margin-left: auto;
+  }
+  /* Shared floating dropdown for every grid card's Chapters button — a single
+     element positioned with JS (position:fixed) rather than one per card, so
+     it's never clipped by a card's own overflow:hidden. */
+  .grid-chap-dropdown {
+    display: none;
+    position: fixed;
+    min-width: 220px;
+    max-width: 320px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+    z-index: 9300;
+    padding: 6px;
+  }
+  .grid-chap-dropdown.open { display: block; }
   .grid-card-games {
     display: flex; flex-wrap: wrap; gap: 3px;
   }
@@ -2943,6 +2971,9 @@
       <img class="footer-emote" src="https://cdn.7tv.app/emote/01GB9W8JN80004CKF2H1TWA99H/2x.webp" alt="" onclick="secretLiveClick()" style="cursor:pointer" title="">
     </div>  </div>
 
+  <!-- Shared floating dropdown used by every grid card's "Chapters" button -->
+  <div class="grid-chap-dropdown" id="gridChapDropdown"></div>
+
   <!-- HIGHLIGHTS VIDEO MODAL -->
   <div id="hlModal" onclick="if(event.target===this)hlCloseModal()">
     <div class="hl-modal-inner">
@@ -4322,10 +4353,12 @@ function renderPage() {
     const gameIcon = dominantGame ? `<div class="grid-card-game-icon" title="${escHtml(dominantGame)}"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-52x72.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : '';
     const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
     const chapCount = getChapterList(s).length;
-    const chapChip = chapCount ? `<button class="grid-card-chapters-btn" onclick="openStreamChapters(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
+    const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
+      <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
         Chapters <span class="grid-card-chapters-count">${chapCount}</span>
-      </button>` : '';
+      </button>
+      </div>` : '';
     return `<a class="grid-card" href="#stream-${s.day}" onclick="selectStream(${globalIdx});return false;">
       <div class="grid-card-thumb">
         <img src="${s.thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
@@ -4528,6 +4561,101 @@ let _pendingChapterAutoOpen = null;
 function openStreamChapters(evt, globalIdx) {
   if (evt) { evt.preventDefault(); evt.stopPropagation(); }
   _pendingChapterAutoOpen = allStreams[globalIdx]?.day ?? null;
+  selectStream(globalIdx);
+}
+
+// ─── GRID CARD CHAPTERS DROPDOWN ───────────────────────────────────────────
+// Clicking the "Chapters" chip on a grid card no longer jumps straight into
+// the player — it opens a dropdown right at the button listing every
+// category/chapter for that stream. Clicking a category in the dropdown is
+// what actually opens the video player, seeked straight to that chapter.
+let _gridChapOpenIdx = null;
+
+function toggleGridChapDropdown(evt, globalIdx) {
+  if (evt) { evt.preventDefault(); evt.stopPropagation(); }
+  const dd = document.getElementById('gridChapDropdown');
+  if (!dd) return;
+
+  // Clicking the same button again just closes it.
+  if (_gridChapOpenIdx === globalIdx && dd.classList.contains('open')) {
+    closeGridChapDropdown();
+    return;
+  }
+
+  const s = allStreams[globalIdx];
+  const chapters = s ? getChapterList(s) : [];
+  if (!chapters.length) return;
+
+  const isMultiPart = s.vids.length > 1;
+  let html = '';
+  let lastPart = -1;
+  chapters.forEach((g, i) => {
+    const color = colorFor(i);
+    const label = translateGameLabel(g.label);
+    const partI = g.partIdx ?? 0;
+    if (isMultiPart && partI !== lastPart) {
+      lastPart = partI;
+      html += `<div class="chap-part-header">Part ${partI + 1}</div>`;
+    }
+    html += `<button class="chapter-item" onclick="event.stopPropagation();selectGridChapter(${globalIdx},${g.t})">
+      <span class="chap-dot" style="background:${color}"></span>
+      <span class="chap-label">${escHtml(label)}</span>
+      <span class="chap-time">${formatDuration(g.t)}</span>
+    </button>`;
+  });
+  dd.innerHTML = html;
+
+  // Mark this button active, clear any other open button's active state.
+  document.querySelectorAll('.grid-card-chapters-btn.open').forEach(b => b.classList.remove('open'));
+  const btn = evt ? evt.currentTarget : null;
+  if (btn) btn.classList.add('open');
+
+  // Open first so we can measure real dimensions, then position via the
+  // button's viewport rect (position:fixed — immune to any ancestor's
+  // overflow:hidden, unlike an absolutely-positioned per-card dropdown).
+  dd.classList.add('open');
+  if (btn) {
+    const rect = btn.getBoundingClientRect();
+    const ddW = dd.offsetWidth;
+    const ddH = dd.offsetHeight;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = (spaceBelow < ddH + 12 && rect.top > ddH + 12) ? (rect.top - ddH - 6) : (rect.bottom + 6);
+    let left = rect.right - ddW;
+    if (left < 8) left = 8;
+    const maxLeft = window.innerWidth - ddW - 8;
+    if (left > maxLeft) left = maxLeft;
+    dd.style.top = Math.max(8, top) + 'px';
+    dd.style.left = left + 'px';
+  }
+  _gridChapOpenIdx = globalIdx;
+}
+
+function closeGridChapDropdown() {
+  const dd = document.getElementById('gridChapDropdown');
+  if (dd) dd.classList.remove('open');
+  document.querySelectorAll('.grid-card-chapters-btn.open').forEach(b => b.classList.remove('open'));
+  _gridChapOpenIdx = null;
+}
+
+document.addEventListener('click', (e) => {
+  const dd = document.getElementById('gridChapDropdown');
+  if (dd && dd.classList.contains('open') && !dd.contains(e.target) && !e.target.closest('.grid-card-chapters-btn')) {
+    closeGridChapDropdown();
+  }
+});
+// Keep the dropdown glued to its button on scroll/resize instead of drifting.
+window.addEventListener('scroll', () => { if (_gridChapOpenIdx !== null) closeGridChapDropdown(); }, true);
+window.addEventListener('resize', () => { if (_gridChapOpenIdx !== null) closeGridChapDropdown(); });
+
+// Timestamp (not array index) of the chapter to jump to once the player has
+// loaded — matched by nearest timestamp against whatever fresh chapter data
+// the player fetches, since that data can differ from the cached list the
+// grid card used to build its dropdown.
+let _pendingChapterJump = null;
+function selectGridChapter(globalIdx, chapterT) {
+  closeGridChapDropdown();
+  const day = allStreams[globalIdx]?.day ?? null;
+  _pendingChapterJump = { day, t: chapterT };
   selectStream(globalIdx);
 }
 
@@ -4949,6 +5077,7 @@ function renderSegments(stream) {
     timelineWrap.style.display = 'none';
     if (segLabel) segLabel.style.display = 'none';
     chaptersWrap.style.display = 'none';
+    if (_pendingChapterJump && _pendingChapterJump.day === stream.day) _pendingChapterJump = null;
     return;
   }
 
@@ -5043,10 +5172,26 @@ function renderSegments(stream) {
   document.getElementById('chaptersCount').textContent = games.length;
   chaptersWrap.style.display = 'inline-block';
 
-  // If the user got here by tapping the "Chapters" chip on the grid card,
-  // pop the dropdown open now that it's actually populated, then clear the
-  // flag so it doesn't re-open on later re-renders (part switches, etc).
-  if (_pendingChapterAutoOpen === stream.day) {
+  // If the user picked a specific category from the grid card's Chapters
+  // dropdown, jump straight to it now that fresh chapter data has loaded.
+  // Match by nearest timestamp rather than array index, since the chapter
+  // data the player just fetched can differ slightly from the cached list
+  // the grid card used to build its dropdown.
+  if (_pendingChapterJump && _pendingChapterJump.day === stream.day) {
+    const targetT = _pendingChapterJump.t;
+    _pendingChapterJump = null;
+    let bestIdx = -1, bestDiff = Infinity;
+    raw.forEach((g, i) => {
+      const diff = Math.abs(g.t - targetT);
+      if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+    });
+    if (bestIdx >= 0) {
+      setTimeout(() => jumpToSegmentSafe(bestIdx), 0);
+    }
+  } else if (_pendingChapterAutoOpen === stream.day) {
+    // If the user got here by tapping the old "Chapters" chip behavior,
+    // pop the dropdown open now that it's actually populated, then clear
+    // the flag so it doesn't re-open on later re-renders (part switches, etc).
     _pendingChapterAutoOpen = null;
     toggleChaptersDropdown();
   }
@@ -5143,6 +5288,55 @@ function jumpToSegment(origIdx) {
   document.querySelectorAll('.timeline-seg').forEach(el => {
     el.style.filter = parseInt(el.dataset.origIdx ?? '-1') === origIdx ? 'brightness(1.4)' : '';
   });
+}
+
+// Like jumpToSegment, but always waits for the YouTube player to report
+// ready before seeking instead of assuming it already is. jumpToSegment only
+// waits when switching parts because normally the player has already been
+// sitting loaded for a while when it's called; here we can land on a stream
+// that was JUST opened (from the grid card's chapter dropdown), so the
+// iframe/player may still be initializing even if we're staying on part 0.
+function jumpToSegmentSafe(origIdx) {
+  const seg = currentStream.games[origIdx];
+  if (!seg) return;
+
+  let cumulative = 0;
+  let partIdx = 0;
+  for (let i = 0; i < currentStream.vids.length; i++) {
+    const partEnd = cumulative + currentStream.vids[i].duration;
+    if (seg.t < partEnd || i === currentStream.vids.length - 1) {
+      partIdx = i;
+      break;
+    }
+    cumulative += currentStream.vids[i].duration;
+  }
+  const startSec = Math.max(0, seg.t - cumulative);
+
+  if (partIdx !== currentPartIdx) {
+    currentPartIdx = partIdx;
+    document.querySelectorAll('.part-btn').forEach((el, i) => el.classList.toggle('active', i === partIdx));
+    renderVideoPlayer(currentStream, partIdx);
+  }
+
+  const waitAndSeek = setInterval(() => {
+    if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+      clearInterval(waitAndSeek);
+      ytPlayer.seekTo(startSec, true);
+      ytPlayer.playVideo();
+      chatPointer = chatMessages.findIndex(m => m.offset >= seg.t);
+      if (chatPointer < 0) chatPointer = 0;
+      const box = document.getElementById('chatMessages');
+      if (box) box.innerHTML = '';
+      document.querySelectorAll('.segment-btn').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.origIdx ?? '-1') === origIdx);
+      });
+      document.querySelectorAll('.timeline-seg').forEach(el => {
+        el.style.filter = parseInt(el.dataset.origIdx ?? '-1') === origIdx ? 'brightness(1.4)' : '';
+      });
+    }
+  }, 200);
+  // Safety valve so a player that never initializes doesn't poll forever.
+  setTimeout(() => clearInterval(waitAndSeek), 15000);
 }
 
 // ─── CHAT ───────────────────────────────────────────────────────────────────
