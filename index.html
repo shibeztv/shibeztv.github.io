@@ -1155,57 +1155,58 @@
     justify-content: flex-start;
     gap: 8px;
     flex-wrap: wrap;
+    margin-top: 4px;
   }
   .grid-card-chapters-btn {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: linear-gradient(135deg, rgba(124,92,252,0.16), rgba(124,92,252,0.05));
-    border: 1px solid rgba(124,92,252,0.35);
-    border-radius: 999px;
-    padding: 4px 12px 4px 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 10px 4px 4px;
     cursor: pointer;
     font-family: var(--sans);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.2px;
-    color: var(--accent);
+    color: var(--text);
     white-space: nowrap;
     transition: all 0.18s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
   }
   .grid-card-chapters-icon {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 18px; height: 18px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: #fff;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
     flex-shrink: 0;
   }
   .grid-card-chapters-btn:hover {
-    border-color: var(--accent);
-    background: linear-gradient(135deg, rgba(124,92,252,0.28), rgba(124,92,252,0.1));
-    box-shadow: 0 3px 10px rgba(124,92,252,0.35);
+    border-color: rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.07);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.35);
     transform: translateY(-1px);
   }
   .grid-card-chapters-count {
     font-family: var(--mono);
     font-size: 9.5px;
     font-weight: 700;
-    color: var(--accent);
-    background: rgba(124,92,252,0.14);
+    color: #d8d8e2;
+    background: rgba(0,0,0,0.35);
     padding: 1px 6px;
-    border-radius: 8px;
+    border-radius: 3px;
   }
   .grid-card-chapters-btn:hover .grid-card-chapters-count {
-    background: rgba(124,92,252,0.24);
+    background: rgba(0,0,0,0.45);
   }
   .grid-card-chapters-btn.open {
-    border-color: var(--accent);
-    background: linear-gradient(135deg, rgba(124,92,252,0.3), rgba(124,92,252,0.12));
-    box-shadow: 0 3px 10px rgba(124,92,252,0.35);
+    border-color: rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.07);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.35);
   }
   .grid-card-chapters-wrap {
     position: relative;
@@ -1229,6 +1230,14 @@
     padding: 6px;
   }
   .grid-chap-dropdown.open { display: block; }
+  .chap-approx-note {
+    font-family: var(--sans);
+    font-size: 10px;
+    color: #9a9fae;
+    padding: 4px 8px 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
   .grid-card-games {
     display: flex; flex-wrap: wrap; gap: 3px;
   }
@@ -2311,6 +2320,27 @@
   const _wmDb   = firebase.firestore();
   const _wmAuth = firebase.auth();
 
+  // Shared, memoized anonymous sign-in. Every caller that needs an
+  // authenticated Firestore write should await this instead of calling
+  // _wmAuth.signInAnonymously() directly — if many writes fire in a tight
+  // loop (e.g. bulkImportSullyGnomeCSV importing hundreds of rows), calling
+  // signInAnonymously() from each one races: none of them see currentUser
+  // set yet, so each tries to create its own anonymous account, and
+  // Firebase's identitytoolkit endpoint rate-limits that hard
+  // (auth/too-many-requests). Caching the in-flight promise here means every
+  // concurrent caller awaits the SAME sign-in instead of starting a new one.
+  let _wmAuthPromise = null;
+  async function _ensureWmAuth() {
+    if (_wmAuth.currentUser) return _wmAuth.currentUser;
+    if (!_wmAuthPromise) {
+      _wmAuthPromise = _wmAuth.signInAnonymously().catch(e => {
+        _wmAuthPromise = null; // allow a retry on the next call instead of caching a rejection forever
+        throw e;
+      });
+    }
+    return _wmAuthPromise;
+  }
+
   // Small standalone hasher — kept for anything that still wants a password hash
   async function _wmSha256(str) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -3232,7 +3262,7 @@ async function lbCloudPull(key){
 async function lbCloudPush(key, arr){
   if (typeof _wmDb === 'undefined') return false;
   try {
-    if (typeof _wmAuth !== 'undefined' && !_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+    if (typeof _ensureWmAuth !== 'undefined') await _ensureWmAuth();
     await _wmDb.collection('leaderboards').doc(key).set({ entries: arr.slice(0,100) });
     return true;
   } catch(e) {
@@ -4648,23 +4678,51 @@ function toggleGridChapDropdown(evt, globalIdx) {
   const chapters = s ? getChapterList(s) : [];
   if (!chapters.length) return;
 
+  // SullyGnome-derived entries only carry the list of games played, not real
+  // per-game timestamps — the "t" values are just the stream's duration
+  // split evenly across however many games are listed. Offering those as
+  // clickable seek points would send people to a wrong, made-up moment in
+  // the video, so for these we just show which categories were played
+  // (deduped) with no fake timestamp and no seek-to-time on click.
+  const vodId = twitchVodMap[s.day] || s.day;
+  const isApprox = _chapterCache[vodId]?.source === 'manual-approx-sullygnome';
+
   const isMultiPart = s.vids.length > 1;
   let html = '';
-  let lastPart = -1;
-  chapters.forEach((g, i) => {
-    const color = colorFor(i);
-    const label = translateGameLabel(g.label);
-    const partI = g.partIdx ?? 0;
-    if (isMultiPart && partI !== lastPart) {
-      lastPart = partI;
-      html += `<div class="chap-part-header">Part ${partI + 1}</div>`;
-    }
-    html += `<button class="chapter-item" onclick="event.stopPropagation();selectGridChapter(${globalIdx},${g.t})">
-      <span class="chap-dot" style="background:${color}"></span>
-      <span class="chap-label">${escHtml(label)}</span>
-      <span class="chap-time">${formatDuration(g.t)}</span>
-    </button>`;
-  });
+
+  if (isApprox) {
+    html += `<div class="chap-approx-note">Categories played — exact timing unknown for this stream</div>`;
+    const seen = new Set();
+    const uniqueGames = chapters.filter(g => {
+      if (seen.has(g.label)) return false;
+      seen.add(g.label);
+      return true;
+    });
+    uniqueGames.forEach((g, i) => {
+      const color = colorFor(i);
+      const label = translateGameLabel(g.label);
+      html += `<button class="chapter-item" onclick="event.stopPropagation();selectGridChapter(${globalIdx},0)">
+        <span class="chap-dot" style="background:${color}"></span>
+        <span class="chap-label">${escHtml(label)}</span>
+      </button>`;
+    });
+  } else {
+    let lastPart = -1;
+    chapters.forEach((g, i) => {
+      const color = colorFor(i);
+      const label = translateGameLabel(g.label);
+      const partI = g.partIdx ?? 0;
+      if (isMultiPart && partI !== lastPart) {
+        lastPart = partI;
+        html += `<div class="chap-part-header">Part ${partI + 1}</div>`;
+      }
+      html += `<button class="chapter-item" onclick="event.stopPropagation();selectGridChapter(${globalIdx},${g.t})">
+        <span class="chap-dot" style="background:${color}"></span>
+        <span class="chap-label">${escHtml(label)}</span>
+        <span class="chap-time">${formatDuration(g.t)}</span>
+      </button>`;
+    });
+  }
   dd.innerHTML = html;
 
   // Mark this button active, clear any other open button's active state.
@@ -4832,7 +4890,7 @@ function _saveChapterCache() {
 async function _chapterCloudPush(vodId, entry) {
   if (typeof _wmDb === 'undefined') return false;
   try {
-    if (typeof _wmAuth !== 'undefined' && !_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+    if (typeof _ensureWmAuth !== 'undefined') await _ensureWmAuth();
     await _wmDb.collection(CHAPTER_CLOUD_COLLECTION).doc(vodId).set(entry);
     return true;
   } catch(e) {
@@ -4946,8 +5004,16 @@ window.addManualChapters = function(dayOrVodId, gamesInput) {
 //
 // Usage: fetch the converted JSON and run:
 //   fetch('sullygnome-import.json').then(r => r.json()).then(bulkImportSullyGnomeCSV);
-window.bulkImportSullyGnomeCSV = function(rows) {
-  let imported = 0, skippedExisting = 0, skippedNoGames = 0, byRealVodId = 0;
+window.bulkImportSullyGnomeCSV = async function(rows) {
+  let imported = 0, skippedExisting = 0, skippedNoGames = 0, byRealVodId = 0, cloudFailed = 0;
+
+  // Sign in once, up front, and let every push below share that session —
+  // avoids the auth/too-many-requests storm you'd get if hundreds of writes
+  // each raced to call signInAnonymously() independently.
+  try { await _ensureWmAuth(); } catch (e) {
+    console.warn('[bulkImport] anonymous sign-in failed, imports will still save locally:', e.code || e.message || e);
+  }
+
   for (const row of rows) {
     const vodId = row.vodId || twitchVodMap[row.day] || row.day;
     if (row.vodId) byRealVodId++;
@@ -4965,11 +5031,41 @@ window.bulkImportSullyGnomeCSV = function(rows) {
     const entry = { games: chapters, fetchedAt: Date.now(), source: 'manual-approx-sullygnome' };
     _chapterCache[vodId] = entry;
     _saveChapterCache();
-    _chapterCloudPush(vodId, entry);
+    // Awaited + throttled (not fire-and-forget) so this doesn't blast
+    // Firestore with hundreds of concurrent writes back to back.
+    const ok = await _chapterCloudPush(vodId, entry);
+    if (!ok) cloudFailed++;
     imported++;
+    await new Promise(r => setTimeout(r, 120));
   }
-  console.log(`SullyGnome import: ${imported} imported (${byRealVodId} keyed to a real VOD id), ${skippedExisting} skipped (already had real chapter data), ${skippedNoGames} skipped (no usable games).`);
+  console.log(`SullyGnome import: ${imported} imported (${byRealVodId} keyed to a real VOD id), ${skippedExisting} skipped (already had real chapter data), ${skippedNoGames} skipped (no usable games)${cloudFailed ? `, ${cloudFailed} failed to sync to Firestore (saved locally only — rerun bulkImportSullyGnomeCSV later to retry, existing local entries won't be reprocessed)` : ''}.`);
   if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
+};
+
+// Push every entry currently in the LOCAL chapter cache up to Firestore.
+// Use this after a bulkImportSullyGnomeCSV() run that logged cloud-push
+// failures (e.g. auth/too-many-requests) — those entries already saved to
+// localStorage, so a plain rerun of bulkImportSullyGnomeCSV would just skip
+// them as "already existing" and never retry the Firestore write. This
+// walks the local cache directly instead, so nothing gets missed.
+// Throttled the same way as the bulk import to avoid re-triggering the
+// same rate limit. Safe to run any time — re-pushing an already-synced
+// entry just overwrites it with identical data.
+window.resyncChapterCacheToCloud = async function() {
+  try { await _ensureWmAuth(); } catch (e) {
+    console.error('[resync] anonymous sign-in failed, cannot sync to Firestore:', e.code || e.message || e);
+    return { synced: 0, failed: 0 };
+  }
+  const vodIds = Object.keys(_chapterCache);
+  console.log(`Resyncing ${vodIds.length} locally-cached VOD(s) to Firestore…`);
+  let synced = 0, failed = 0;
+  for (const vodId of vodIds) {
+    const ok = await _chapterCloudPush(vodId, _chapterCache[vodId]);
+    if (ok) synced++; else failed++;
+    await new Promise(r => setTimeout(r, 120));
+  }
+  console.log(`Resync done. Synced: ${synced}, failed: ${failed}${failed ? ' (rerun resyncChapterCacheToCloud() again later to retry those)' : ''}.`);
+  return { synced, failed };
 };
 
 // Dump the full chapter cache as a downloadable JSON file. Not required for
@@ -5164,6 +5260,14 @@ function renderVideoMeta(stream) {
       else { segs.innerHTML = ''; document.querySelector('.segments-label').style.display = 'none'; }
     });
   } else {
+    // No live Twitch vodId (VOD's fallen off Twitch's retention window) —
+    // stream.games only has whatever parseGamesFromDescriptions found at
+    // build time, which is usually empty. Fall back to whatever's sitting
+    // in the chapter cache for this stream's day (manually added or
+    // SullyGnome-imported), same source the grid card already reads.
+    if ((!stream.games || !stream.games.length) && _chapterCache[stream.day]?.games?.length) {
+      stream.games = _chapterCache[stream.day].games;
+    }
     if (stream.games && stream.games.length) {
       renderSegments(stream);
     } else {
@@ -5288,25 +5392,51 @@ function renderSegments(stream) {
   // Same game list as the segment buttons above, but shown as a compact
   // clickable dropdown list under a "Chapters" button instead of a row of
   // pills — handy when there are a lot of categories in one stream.
+  //
+  // SullyGnome-derived entries only carry which games were played, not real
+  // per-game timestamps (the "t" values are the stream's duration split
+  // evenly across however many games are listed) — so for those we just
+  // list the categories played (deduped), no fake timestamp and no
+  // click-to-seek, instead of pretending we know exactly when each one
+  // started.
+  const vodIdForSource = twitchVodMap[stream.day] || stream.day;
+  const isApproxSource = _chapterCache[vodIdForSource]?.source === 'manual-approx-sullygnome';
+
   let chapHtml = '';
-  let lastChapPart = -1;
-  games.forEach((g) => {
-    const origIdx = raw.indexOf(g);
-    const color   = colorFor(origIdx);
-    const label   = translateGameLabel(g.label);
-    const partI   = g.partIdx ?? 0;
+  if (isApproxSource) {
+    chapHtml += `<div class="chap-approx-note">Categories played — exact timing unknown for this stream</div>`;
+    const seen = new Set();
+    games.forEach((g) => {
+      if (seen.has(g.label)) return;
+      seen.add(g.label);
+      const origIdx = raw.indexOf(g);
+      const color   = colorFor(origIdx);
+      const label   = translateGameLabel(g.label);
+      chapHtml += `<div class="chapter-item" style="cursor:default">
+        <span class="chap-dot" style="background:${color}"></span>
+        <span class="chap-label">${escHtml(label)}</span>
+      </div>`;
+    });
+  } else {
+    let lastChapPart = -1;
+    games.forEach((g) => {
+      const origIdx = raw.indexOf(g);
+      const color   = colorFor(origIdx);
+      const label   = translateGameLabel(g.label);
+      const partI   = g.partIdx ?? 0;
 
-    if (isMultiPart && partI !== lastChapPart) {
-      lastChapPart = partI;
-      chapHtml += `<div class="chap-part-header">Part ${partI + 1}</div>`;
-    }
+      if (isMultiPart && partI !== lastChapPart) {
+        lastChapPart = partI;
+        chapHtml += `<div class="chap-part-header">Part ${partI + 1}</div>`;
+      }
 
-    chapHtml += `<button class="chapter-item" data-orig-idx="${origIdx}" onclick="jumpToSegment(${origIdx});closeChaptersDropdown()">
-      <span class="chap-dot" style="background:${color}"></span>
-      <span class="chap-label">${escHtml(label)}</span>
-      <span class="chap-time">${formatDuration(g.t)}</span>
-    </button>`;
-  });
+      chapHtml += `<button class="chapter-item" data-orig-idx="${origIdx}" onclick="jumpToSegment(${origIdx});closeChaptersDropdown()">
+        <span class="chap-dot" style="background:${color}"></span>
+        <span class="chap-label">${escHtml(label)}</span>
+        <span class="chap-time">${formatDuration(g.t)}</span>
+      </button>`;
+    });
+  }
   document.getElementById('chaptersDropdown').innerHTML = chapHtml;
   document.getElementById('chaptersCount').textContent = games.length;
   chaptersWrap.style.display = 'inline-block';
@@ -15437,7 +15567,7 @@ function _wmAutoPinIfShibez() {
 async function _wmAutoPinNow() {
   try {
     localStorage.setItem(WM_PIN_KEY, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
-    if (!_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+    await _ensureWmAuth();
     await _wmDb.collection('wheels').doc('pinned').set({
       wheels: _wm.wheels, activeId: _wm.activeId,
       pinnedBy: _profUser?.login || 'shlbez', updatedAt: Date.now()
@@ -15477,7 +15607,7 @@ function _wmAutoBackupToCloud() {
 async function _wmDoCloudBackup() {
   if (typeof _wmDb === 'undefined') return;
   try {
-    if (!_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+    await _ensureWmAuth();
     const uid = _wmAuth.currentUser.uid;
     await _wmDb.collection('wheelBackups').doc(uid).set({
       wheels: _wm.wheels, activeId: _wm.activeId,
@@ -15494,7 +15624,7 @@ async function _wmDoCloudBackup() {
 window.recoverMyWheel = async function() {
   if (typeof _wmDb === 'undefined') { console.warn('Firestore not available.'); return null; }
   try {
-    if (!_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+    await _ensureWmAuth();
     const uid = _wmAuth.currentUser.uid;
     const snap = await _wmDb.collection('wheelBackups').doc(uid).get();
     if (!snap.exists) { console.log('No cloud backup found for this browser.'); return null; }
@@ -16828,7 +16958,7 @@ async function wmPinWheel() {
       localStorage.setItem(WM_PIN_KEY, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
 
       // Sign in anonymously so Firestore security rules allow the write
-      if (!_wmAuth.currentUser) await _wmAuth.signInAnonymously();
+      await _ensureWmAuth();
 
       await _wmDb.collection('wheels').doc('pinned').set({
         wheels: _wm.wheels, activeId: _wm.activeId,
