@@ -1169,14 +1169,14 @@
   .grid-card-chapters-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius: 5px;
-    padding: 4px 9px 4px 4px;
+    border-radius: 6px;
+    padding: 5px 12px 5px 5px;
     cursor: pointer;
     font-family: var(--sans);
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.2px;
     color: var(--text);
@@ -1188,8 +1188,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 17px; height: 17px;
-    border-radius: 3px;
+    width: 22px; height: 22px;
+    border-radius: 4px;
     background: rgba(255,255,255,0.1);
     color: var(--text);
     flex-shrink: 0;
@@ -1202,12 +1202,12 @@
   }
   .grid-card-chapters-count {
     font-family: var(--mono);
-    font-size: 9.5px;
+    font-size: 12.5px;
     font-weight: 700;
     color: #d8d8e2;
     background: rgba(0,0,0,0.35);
-    padding: 1px 6px;
-    border-radius: 3px;
+    padding: 1px 8px;
+    border-radius: 4px;
   }
   .grid-card-chapters-btn:hover .grid-card-chapters-count {
     background: rgba(0,0,0,0.45);
@@ -2971,7 +2971,7 @@
           </a>
           <div style="position:relative;display:flex;align-items:center">
             <input type="text" id="streamSearch" placeholder="Search title, category…" autocomplete="off"
-              style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 30px 10px 12px;border-radius:6px;width:220px"
+              style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 30px 10px 12px;border-radius:6px;width:280px"
               oninput="applyFilters()">
             <button onclick="clearSearch()" title="Clear search"
               style="background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:15px;cursor:pointer;display:none;position:absolute;right:8px;line-height:1;padding:2px" id="searchClear">✕</button>
@@ -4617,7 +4617,7 @@ function renderPage() {
     const gameIcon = dominantGame ? `<button type="button" class="grid-card-game-icon" title="${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>` : '';
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
-        <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
+        <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
         Chapters <span class="grid-card-chapters-count">${chapCount}</span>
       </button>
       </div>` : '';
