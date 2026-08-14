@@ -3126,7 +3126,7 @@
             <div class="timeline-bar" id="timelineBar"></div>
             <div class="timeline-labels" id="timelineLabels"></div>
           </div>
-          <div class="segments-label">Jump to game</div>
+          <div class="segments-label">game</div>
           <div class="segments" id="segmentBtns"></div>
         </div>
       </main>
@@ -4604,7 +4604,7 @@ function renderPage() {
     // to wherever THAT game's chapter starts (same lookup the game tags use)
     // rather than just opening the video from the default point.
     const dominantGameT = dominantGameRaw ? (chapTimeByLabel[dominantGameRaw] ?? 0) : 0;
-    const gameIcon = dominantGame ? `<button type="button" class="grid-card-game-icon" title="Jump to ${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>` : '';
+    const gameIcon = dominantGame ? `<button type="button" class="grid-card-game-icon" title="${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>` : '';
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
         <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
@@ -5509,7 +5509,7 @@ function renderSegments(stream) {
       btnHtml += `<div class="seg-part-header">Part ${partI + 1}</div>`;
     }
 
-    btnHtml += `<button class="segment-btn" data-orig-idx="${origIdx}" onclick="jumpToSegment(${origIdx})" title="Jump to ${escHtml(label)} at ${formatDuration(g.t)}" style="--seg-color:${color}">
+    btnHtml += `<button class="segment-btn" data-orig-idx="${origIdx}" onclick="jumpToSegment(${origIdx})" title="${escHtml(label)} at ${formatDuration(g.t)}" style="--seg-color:${color}">
       <span class="seg-dot" style="background:${color}"></span>
       <span class="seg-label">${escHtml(label)}</span>
       <span class="seg-time">${formatDuration(durSec)}</span>
