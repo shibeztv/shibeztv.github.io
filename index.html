@@ -1122,11 +1122,10 @@
   }
   .grid-card-game-icon {
     flex-shrink: 0;
-    /* Width is a % of the card body, not a fixed px, so it actually grows
-       as the card itself grows on wider windows (grid stays 5 fixed
-       columns, so more window width = wider cards). Height follows via
-       aspect-ratio. */
-    width: 22%;
+    /* clamp() instead of a flat % — grows a bit on wide desktop cards, but
+       stays capped so it doesn't blow up into a huge stretched portrait on
+       wide-but-short mobile/2-col cards. */
+    width: clamp(36px, 16%, 62px);
     aspect-ratio: 52 / 72;
     border-radius: 3px; overflow: hidden;
     box-shadow: 0 1px 5px rgba(0,0,0,0.65);
