@@ -1169,14 +1169,14 @@
   .grid-card-chapters-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 5px 12px 5px 5px;
+    border-radius: 5px;
+    padding: 4px 10px 4px 4px;
     cursor: pointer;
     font-family: var(--sans);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.2px;
     color: var(--text);
@@ -1188,8 +1188,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 22px; height: 22px;
-    border-radius: 4px;
+    width: 19px; height: 19px;
+    border-radius: 3px;
     background: rgba(255,255,255,0.1);
     color: var(--text);
     flex-shrink: 0;
@@ -1202,12 +1202,12 @@
   }
   .grid-card-chapters-count {
     font-family: var(--mono);
-    font-size: 12.5px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #d8d8e2;
     background: rgba(0,0,0,0.35);
-    padding: 1px 8px;
-    border-radius: 4px;
+    padding: 1px 7px;
+    border-radius: 3px;
   }
   .grid-card-chapters-btn:hover .grid-card-chapters-count {
     background: rgba(0,0,0,0.45);
@@ -4617,7 +4617,7 @@ function renderPage() {
     const gameIcon = dominantGame ? `<button type="button" class="grid-card-game-icon" title="${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>` : '';
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
-        <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
+        <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
         Chapters <span class="grid-card-chapters-count">${chapCount}</span>
       </button>
       </div>` : '';
