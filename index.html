@@ -1142,28 +1142,12 @@
   .grid-card-title-row {
     margin-bottom: 6px;
   }
-  /* Clearfix so the row's height accounts for the floated chapters button
-     even on titles short enough not to reach it. */
-  .grid-card-title-row::after {
-    content: "";
-    display: table;
-    clear: both;
-  }
   .grid-card-title {
     font-size: 13.5px; font-weight: 700;
     line-height: 1.35; color: var(--text);
-    max-height: calc(1.35em * 1.5);
+    white-space: nowrap;
     overflow: hidden;
-  }
-  /* Floated so it sits inside the title's own ~1.5-line box, anchored on
-     the right within the remaining half line, instead of pushing a whole
-     extra row below. The margin-top drops it down just enough that line 1
-     stays full width — only the trailing half-line wraps around it. */
-  .grid-card-chapters-wrap.title-floated {
-    float: right;
-    margin-top: 0.9em;
-    margin-left: 8px;
-    margin-bottom: 2px;
+    text-overflow: ellipsis;
   }
   .grid-card-actions {
     display: flex;
@@ -1187,7 +1171,6 @@
     color: var(--text);
     white-space: nowrap;
     transition: all 0.15s;
-    margin-left: auto;
   }
   .grid-card-chapters-btn:hover {
     border-color: var(--accent);
@@ -1210,7 +1193,6 @@
   .grid-card-chapters-wrap {
     position: relative;
     display: inline-flex;
-    margin-left: auto;
   }
   /* Shared floating dropdown for every grid card's Chapters button — a single
      element positioned with JS (position:fixed) rather than one per card, so
@@ -4412,7 +4394,7 @@ function renderPage() {
     const gameIcon = dominantGame ? `<div class="grid-card-game-icon" title="${escHtml(dominantGame)}"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : '';
     const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
     const chapCount = getChapterList(s).length;
-    const chapChip = chapCount ? `<div class="grid-card-chapters-wrap title-floated">
+    const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
         Chapters <span class="grid-card-chapters-count">${chapCount}</span>
@@ -4430,10 +4412,10 @@ function renderPage() {
         ${gameIcon}
         <div class="grid-card-info">
         <div class="grid-card-title-row">
-          ${chapChip}
           <div class="grid-card-title" title="${escHtml(s.title)}">${escHtml(s.title)}</div>
         </div>
         <div class="grid-card-actions">
+          ${chapChip}
           <div class="grid-card-games">${games}</div>
         </div>
         </div>
