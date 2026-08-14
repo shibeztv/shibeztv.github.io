@@ -1122,7 +1122,12 @@
   }
   .grid-card-game-icon {
     flex-shrink: 0;
-    width: 36px; height: 48px;
+    /* Width is a % of the card body, not a fixed px, so it actually grows
+       as the card itself grows on wider windows (grid stays 5 fixed
+       columns, so more window width = wider cards). Height follows via
+       aspect-ratio. */
+    width: 22%;
+    aspect-ratio: 52 / 72;
     border-radius: 3px; overflow: hidden;
     box-shadow: 0 1px 5px rgba(0,0,0,0.65);
     border: 1px solid rgba(255,255,255,0.15);
@@ -4405,7 +4410,7 @@ function renderPage() {
     const parts = s.vids.length > 1 ? `<span class="grid-card-parts">${s.vids.length} PARTS</span>` : '';
     const dominantGameRaw = getDominantGame(s);
     const dominantGame = dominantGameRaw ? translateGameLabel(dominantGameRaw) : null;
-    const gameIcon = dominantGame ? `<div class="grid-card-game-icon" title="${escHtml(dominantGame)}"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-52x72.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : '';
+    const gameIcon = dominantGame ? `<div class="grid-card-game-icon" title="${escHtml(dominantGame)}"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : '';
     const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
     const chapCount = getChapterList(s).length;
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap title-floated">
