@@ -1,0 +1,29 @@
+name: Backfill VOD chapters
+
+on:
+  schedule:
+    # Every 6 hours — frequent enough that a chapter almost never has a
+    # chance to fall off Twitch's retention window before it's captured.
+    - cron: '0 */6 * * *'
+  workflow_dispatch: {} # lets you trigger it manually from the Actions tab
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: automation
+        run: npm install
+
+      - name: Run backfill
+        working-directory: automation
+        env:
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+        run: npm run backfill
