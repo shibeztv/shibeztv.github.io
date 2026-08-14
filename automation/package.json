@@ -1,0 +1,13 @@
+{
+  "name": "shibez-chapter-backfill",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Scheduled job that auto-fetches Twitch VOD chapters and pushes them to Firestore, so the site's category data fills in without anyone running a console command.",
+  "scripts": {
+    "backfill": "node backfill-chapters.mjs"
+  },
+  "dependencies": {
+    "firebase": "^10.14.1"
+  }
+}
