@@ -1125,7 +1125,7 @@
     /* clamp() instead of a flat % — grows a bit on wide desktop cards, but
        stays capped so it doesn't blow up into a huge stretched portrait on
        wide-but-short mobile/2-col cards. */
-    width: clamp(32px, 14%, 54px);
+    width: clamp(38px, 16%, 74px);
     aspect-ratio: 52 / 72;
     border-radius: 3px; overflow: hidden;
     box-shadow: 0 1px 5px rgba(0,0,0,0.65);
@@ -1159,36 +1159,53 @@
   .grid-card-chapters-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 4px 10px 4px 9px;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(124,92,252,0.16), rgba(124,92,252,0.05));
+    border: 1px solid rgba(124,92,252,0.35);
+    border-radius: 999px;
+    padding: 4px 12px 4px 4px;
     cursor: pointer;
     font-family: var(--sans);
     font-size: 11px;
-    font-weight: 600;
-    color: var(--text);
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color: var(--accent);
     white-space: nowrap;
-    transition: all 0.15s;
+    transition: all 0.18s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .grid-card-chapters-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    flex-shrink: 0;
   }
   .grid-card-chapters-btn:hover {
     border-color: var(--accent);
-    background: rgba(124,92,252,0.12);
-    color: var(--accent);
+    background: linear-gradient(135deg, rgba(124,92,252,0.28), rgba(124,92,252,0.1));
+    box-shadow: 0 3px 10px rgba(124,92,252,0.35);
+    transform: translateY(-1px);
   }
   .grid-card-chapters-count {
     font-family: var(--mono);
     font-size: 9.5px;
-    color: #d8d8e2;
-    background: rgba(0,0,0,0.3);
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(124,92,252,0.14);
     padding: 1px 6px;
     border-radius: 8px;
   }
-  .grid-card-chapters-btn:hover .grid-card-chapters-count { color: var(--accent); }
+  .grid-card-chapters-btn:hover .grid-card-chapters-count {
+    background: rgba(124,92,252,0.24);
+  }
   .grid-card-chapters-btn.open {
     border-color: var(--accent);
-    color: var(--accent);
+    background: linear-gradient(135deg, rgba(124,92,252,0.3), rgba(124,92,252,0.12));
+    box-shadow: 0 3px 10px rgba(124,92,252,0.35);
   }
   .grid-card-chapters-wrap {
     position: relative;
@@ -4396,7 +4413,7 @@ function renderPage() {
     const chapCount = getChapterList(s).length;
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
-        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
+        <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
         Chapters <span class="grid-card-chapters-count">${chapCount}</span>
       </button>
       </div>` : '';
