@@ -3762,6 +3762,34 @@ const DEFAULTS = {
 let twitchVodMap = {};
 let twitchVodDetails = {}; // vodId → full VOD object (has created_at)
 
+// Static long-range backup: real Twitch VOD ids exported from StreamsCharts
+// (which keeps stream history far past Twitch's own retention window), keyed
+// by day. Only fills in days the live Twitch API fetch doesn't have —
+// never overwrites a live/fresher entry. This is what lets old streams
+// resolve to their real VOD id instead of falling back to a bare date string.
+let _twitchVodHistory = null;
+async function _loadTwitchVodHistorySeed() {
+  try {
+    const resp = await fetch('twitch-vod-history.json', { cache: 'no-store' });
+    if (!resp.ok) return;
+    _twitchVodHistory = await resp.json();
+    _mergeTwitchVodHistory(); // in case twitchVodMap is already populated
+  } catch (e) {
+    // File doesn't exist yet — not an error, just means no seed exported.
+  }
+}
+function _mergeTwitchVodHistory() {
+  if (!_twitchVodHistory) return 0;
+  let added = 0;
+  for (const vodId in _twitchVodHistory) {
+    const day = _twitchVodHistory[vodId].day;
+    if (day && !twitchVodMap[day]) { twitchVodMap[day] = vodId; added++; }
+  }
+  if (added) console.log(`Twitch VOD history seed: filled ${added} day(s) with real VOD ids`);
+  return added;
+}
+_loadTwitchVodHistorySeed();
+
 // ── Emote Engine ──────────────────────────────────────────────────────────
 // Map of emote name → image url, loaded once on startup
 let emoteMap = {}; // { 'KEKW': { url: '...', animated: false } }
@@ -4844,6 +4872,83 @@ _chapterCloudPull();
   }
 })();
 
+// Manually add chapters for a VOD that's no longer on Twitch (so the GQL
+// fetch above returns nothing) using data you looked up yourself on a
+// third-party tracker (e.g. SullyGnome, TwitchTracker). Run in the console:
+//   addManualChapters('2024-03-15', [
+//     ['0:00:00', 'Just Chatting'],
+//     ['0:42:10', 'Elden Ring'],
+//     ['2:15:30', 'Just Chatting']
+//   ]);
+// First arg is either a stream "day" (YYYY-MM-DD, matched via twitchVodMap)
+// or a raw Twitch VOD id directly. Second arg is a list of [timestamp, game]
+// pairs — timestamp can be "H:MM:SS", "MM:SS", or a plain number of seconds.
+// Saves locally and pushes to Firestore immediately, same as an auto-fetch.
+window.addManualChapters = function(dayOrVodId, gamesInput) {
+  const vodId = twitchVodMap[dayOrVodId] || dayOrVodId;
+  if (!vodId) { console.error('No VOD id resolved from', dayOrVodId); return; }
+  if (!Array.isArray(gamesInput) || !gamesInput.length) { console.error('gamesInput must be a non-empty array'); return; }
+
+  const toSeconds = (t) => {
+    if (typeof t === 'number') return t;
+    return String(t).split(':').map(Number).reduce((acc, n) => acc * 60 + n, 0);
+  };
+
+  const games = gamesInput
+    .map(g => Array.isArray(g) ? { t: toSeconds(g[0]), label: g[1] } : { t: toSeconds(g.t), label: g.label })
+    .sort((a, b) => a.t - b.t);
+
+  const entry = { games, fetchedAt: Date.now(), source: 'manual' };
+  _chapterCache[vodId] = entry;
+  _saveChapterCache();
+  _chapterCloudPush(vodId, entry);
+  console.log(`Saved ${games.length} manual chapter(s) for VOD ${vodId} — pushed to Firestore for every visitor.`);
+  if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
+  return entry;
+};
+
+// Bulk-import stream/game data exported as CSV from SullyGnome (or any
+// tracker with the same shape: day + total duration + ordered game list,
+// but NO per-game timestamps). Since there's no timing breakdown per game,
+// this SPLITS the stream's duration evenly across however many games are
+// listed, in the order given — good enough to get the right category badge/
+// icon and a rough "jump to game" list on old streams, but the jump points
+// won't be frame-accurate the way an auto-fetched or hand-timed VOD is.
+// Never overwrites a VOD that already has real chapter data.
+//
+// Each row may optionally carry a real `vodId` (matched against a
+// StreamsCharts history export by nearest start time) — when present this
+// is used directly instead of the twitchVodMap[day]-or-day fallback, so the
+// entry is keyed exactly the way a live-fetched VOD would be.
+//
+// Usage: fetch the converted JSON and run:
+//   fetch('sullygnome-import.json').then(r => r.json()).then(bulkImportSullyGnomeCSV);
+window.bulkImportSullyGnomeCSV = function(rows) {
+  let imported = 0, skippedExisting = 0, skippedNoGames = 0, byRealVodId = 0;
+  for (const row of rows) {
+    const vodId = row.vodId || twitchVodMap[row.day] || row.day;
+    if (row.vodId) byRealVodId++;
+    if (_chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length) {
+      skippedExisting++; continue; // don't clobber real (auto-fetched or already-imported) chapter data
+    }
+    // "Unlisted on Twitch" is SullyGnome's placeholder for a hidden category, not a real game
+    const games = row.games.filter(g => g !== 'Unlisted on Twitch');
+    if (!games.length) { skippedNoGames++; continue; }
+
+    const totalSec = row.durationMin * 60;
+    const share = totalSec / games.length;
+    const chapters = games.map((label, i) => ({ t: Math.round(i * share), label }));
+
+    const entry = { games: chapters, fetchedAt: Date.now(), source: 'manual-approx-sullygnome' };
+    _chapterCache[vodId] = entry;
+    _saveChapterCache();
+    _chapterCloudPush(vodId, entry);
+    imported++;
+  }
+  console.log(`SullyGnome import: ${imported} imported (${byRealVodId} keyed to a real VOD id), ${skippedExisting} skipped (already had real chapter data), ${skippedNoGames} skipped (no usable games).`);
+  if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
+};
+
 // Dump the full chapter cache as a downloadable JSON file. Not required for
 // day-to-day use anymore (Firestore handles that automatically), but handy
 // as an occasional offline backup — run in the console and save the result
@@ -5901,6 +6006,7 @@ async function loadStreams() {
       allStreams = cached.streams;
       twitchVodMap = cached.vodMap || {};
       twitchVodDetails = cached.vodDetails || {};
+      _mergeTwitchVodHistory();
       renderStreamList(allStreams);
       refreshStreams(false); // silent background refresh
       // VODs already cached — safe to load emotes now (won't compete)
@@ -5940,6 +6046,7 @@ async function refreshStreams(showErrors) {
     } catch(te) {
       console.warn('Twitch VOD fetch failed:', te.message);
     }
+    _mergeTwitchVodHistory(); // fill any days the live fetch doesn't cover (old, expired VODs)
 
     // Cache result
     try {
