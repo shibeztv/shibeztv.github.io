@@ -1125,7 +1125,7 @@
     /* clamp() instead of a flat % — grows a bit on wide desktop cards, but
        stays capped so it doesn't blow up into a huge stretched portrait on
        wide-but-short mobile/2-col cards. */
-    width: clamp(36px, 16%, 62px);
+    width: clamp(32px, 14%, 54px);
     aspect-ratio: 52 / 72;
     border-radius: 3px; overflow: hidden;
     box-shadow: 0 1px 5px rgba(0,0,0,0.65);
@@ -1152,16 +1152,16 @@
   .grid-card-title {
     font-size: 13.5px; font-weight: 700;
     line-height: 1.35; color: var(--text);
-    max-height: calc(1.35em * 2);
+    max-height: calc(1.35em * 1.5);
     overflow: hidden;
   }
-  /* Floated so it sits inside the title's own 2-line box, anchored at the
-     end of the 2nd line, instead of pushing a whole extra row below. The
-     margin-top drops it down so line 1 is never narrowed — only line 2
-     wraps around it. */
+  /* Floated so it sits inside the title's own ~1.5-line box, anchored on
+     the right within the remaining half line, instead of pushing a whole
+     extra row below. The margin-top drops it down just enough that line 1
+     stays full width — only the trailing half-line wraps around it. */
   .grid-card-chapters-wrap.title-floated {
     float: right;
-    margin-top: 1.35em;
+    margin-top: 0.9em;
     margin-left: 8px;
     margin-bottom: 2px;
   }
