@@ -4692,7 +4692,12 @@ function applyFilters() {
     if (q) {
       const titleMatch = (s.title || '').toLowerCase().includes(q);
       const dateMatch  = (s.day   || '').toLowerCase().includes(q);
-      const gameMatch  = (s.games || []).some(g => (g.label || '').toLowerCase().includes(q));
+      const chapters   = getChapterList(s); // same source as the grid card's game icon/chip
+      const gameMatch  = chapters.some(g => {
+        const raw = (g.label || '').toLowerCase();
+        const translated = translateGameLabel(g.label || '').toLowerCase();
+        return raw.includes(q) || translated.includes(q);
+      });
       if (!titleMatch && !dateMatch && !gameMatch) return false;
     }
     return true;
