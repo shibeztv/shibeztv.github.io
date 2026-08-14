@@ -1160,14 +1160,14 @@
   .grid-card-chapters-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius: 5px;
-    padding: 4px 10px 4px 4px;
+    border-radius: 6px;
+    padding: 5px 12px 5px 5px;
     cursor: pointer;
     font-family: var(--sans);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.2px;
     color: var(--text);
@@ -1179,7 +1179,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 18px; height: 18px;
+    width: 20px; height: 20px;
     border-radius: 3px;
     background: rgba(255,255,255,0.1);
     color: var(--text);
@@ -1230,14 +1230,6 @@
     padding: 6px;
   }
   .grid-chap-dropdown.open { display: block; }
-  .chap-approx-note {
-    font-family: var(--sans);
-    font-size: 10px;
-    color: #9a9fae;
-    padding: 4px 8px 8px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 4px;
-  }
   .grid-card-games {
     display: flex; flex-wrap: wrap; gap: 3px;
   }
@@ -1247,6 +1239,14 @@
     border: 1px solid rgba(145,70,255,0.25);
     color: rgba(145,70,255,0.9);
     padding: 1px 5px; border-radius: 2px;
+    cursor: pointer;
+    line-height: 1.6;
+    transition: all 0.15s ease;
+  }
+  .grid-game-tag:hover {
+    background: rgba(145,70,255,0.2);
+    border-color: rgba(145,70,255,0.45);
+    color: #fff;
   }
 
   .pagination {
@@ -4315,6 +4315,22 @@ function getDominantGame(stream) {
   });
 
   let best = null, bestDur = -1;
+
+  // Prefer a real game category over "Just Chatting" for the badge/icon,
+  // even when Just Chatting ate up more of the stream's runtime — e.g. a
+  // stream that opens with 40 minutes of chatting then plays a game for 20
+  // should still show that game's icon, not a Just Chatting badge that
+  // hides what was actually played. Handles localized Just Chatting labels
+  // too (durations is keyed by the raw, untranslated label).
+  const isJustChatting = (label) => translateGameLabel(label).toLowerCase() === 'just chatting';
+  for (const label in durations) {
+    if (isJustChatting(label)) continue;
+    if (durations[label] > bestDur) { bestDur = durations[label]; best = label; }
+  }
+  if (best) return best;
+
+  // No non-Just-Chatting category in this stream at all — fall back to
+  // whichever category had the most time (which will just be Just Chatting).
   for (const label in durations) {
     if (durations[label] > bestDur) { bestDur = durations[label]; best = label; }
   }
@@ -4410,6 +4426,107 @@ function translateGameLabel(label) {
   return _GAME_TRANSLATIONS[lower] || label;
 }
 
+// ── Real box art lookup ─────────────────────────────────────────────────────
+// The grid card's game icon first guesses a box art URL by URL-encoding the
+// category name directly into Twitch's static CDN path
+// (static-cdn.jtvnw.net/ttv-boxart/{name}-144x192.jpg). That guess works for
+// a lot of well-known games, but Twitch has been migrating box art to
+// numeric-game-ID-based paths, and it never worked for names containing
+// characters Twitch's CDN doesn't handle 1:1 the way encodeURIComponent
+// does (colons, apostrophes, etc). For anything the guess gets wrong, the
+// <img> just 404s and the onerror handler used to hide the icon entirely.
+// Instead: on error, look the game up for real via Twitch's Helix API
+// (GET /helix/games?name=...), which returns the actual box_art_url
+// template straight from Twitch — that's authoritative, unlike guessing.
+// Results (including "no box art exists for this name") are cached in
+// localStorage so we only ever look a given name up once, ever.
+const BOXART_CACHE_KEY = 'shibez_boxart_cache_v1';
+let _boxArtCache = {};
+try { _boxArtCache = JSON.parse(localStorage.getItem(BOXART_CACHE_KEY) || '{}'); } catch(e) { _boxArtCache = {}; }
+function _saveBoxArtCache() {
+  try { localStorage.setItem(BOXART_CACHE_KEY, JSON.stringify(_boxArtCache)); } catch(e) {
+    console.warn('Box art cache save failed (localStorage full?):', e.message);
+  }
+}
+
+// Memoized app access token, shared across every box art lookup this page
+// load makes — avoids re-requesting a fresh token per batch.
+let _boxArtTokenPromise = null;
+function _getBoxArtToken() {
+  if (!_boxArtTokenPromise) _boxArtTokenPromise = fetchTwitchToken().catch(e => { _boxArtTokenPromise = null; throw e; });
+  return _boxArtTokenPromise;
+}
+
+// Names queued for lookup + who's listening for the result, batched so many
+// icons erroring around the same time become ONE Helix request (the
+// endpoint accepts up to 100 `name=` params per call) instead of one each.
+let _pendingBoxArtNames = new Set();
+let _pendingBoxArtTimer = null;
+function requestBoxArt(gameName, onResolved) {
+  const key = gameName.toLowerCase().trim();
+  if (key in _boxArtCache) { onResolved(_boxArtCache[key]); return; }
+  if (!_pendingBoxArtListeners[key]) _pendingBoxArtListeners[key] = [];
+  _pendingBoxArtListeners[key].push(onResolved);
+  _pendingBoxArtNames.add(gameName);
+  if (_pendingBoxArtTimer) return;
+  _pendingBoxArtTimer = setTimeout(_flushBoxArtLookups, 150);
+}
+let _pendingBoxArtListeners = {};
+async function _flushBoxArtLookups() {
+  const names = [..._pendingBoxArtNames];
+  _pendingBoxArtNames = new Set();
+  _pendingBoxArtTimer = null;
+  if (!names.length) return;
+
+  try {
+    const token = await _getBoxArtToken();
+    // Helix allows up to 100 name= params per request
+    for (let i = 0; i < names.length; i += 100) {
+      const batch = names.slice(i, i + 100);
+      const qs = batch.map(n => 'name=' + encodeURIComponent(n)).join('&');
+      const r = await fetch(`https://api.twitch.tv/helix/games?${qs}`, {
+        headers: { 'Client-ID': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + token }
+      });
+      const d = await r.json();
+      const foundByLower = {};
+      (d.data || []).forEach(g => { foundByLower[g.name.toLowerCase().trim()] = g.box_art_url; });
+
+      batch.forEach(name => {
+        const key = name.toLowerCase().trim();
+        const template = foundByLower[key] || null;
+        const url = template ? template.replace('{width}', '144').replace('{height}', '192') : null;
+        _boxArtCache[key] = url; // cache the miss too (null) so we never re-ask Twitch about it
+        (_pendingBoxArtListeners[key] || []).forEach(cb => cb(url));
+        delete _pendingBoxArtListeners[key];
+      });
+    }
+    _saveBoxArtCache();
+  } catch (e) {
+    console.warn('[boxArt] Helix lookup failed, icons will stay hidden for this batch:', e.code || e.message || e);
+    // Don't cache on a network/token failure — worth retrying on a future page load.
+    names.forEach(name => {
+      const key = name.toLowerCase().trim();
+      (_pendingBoxArtListeners[key] || []).forEach(cb => cb(null));
+      delete _pendingBoxArtListeners[key];
+    });
+  }
+}
+
+// Wired up via onerror on the guessed-URL <img>. Swaps in the real box art
+// if Twitch has one under this name, otherwise hides the icon (same
+// fallback as before, just now only given up on after actually checking).
+function handleBoxArtError(imgEl, gameName) {
+  const wrap = imgEl.parentElement;
+  requestBoxArt(gameName, (url) => {
+    if (url) {
+      imgEl.onerror = () => { wrap.style.display = 'none'; }; // real URL still 404ing would be unexpected, but don't loop
+      imgEl.src = url;
+    } else if (wrap) {
+      wrap.style.display = 'none';
+    }
+  });
+}
+
 // ─── RENDER SIDEBAR ─────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 20;
@@ -4434,16 +4551,22 @@ function renderPage() {
     const titleDay = extractDateFromTitle(s.vids[0].title);
     const displayDay = titleDay || s.day;
     const date = new Date(displayDay+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    const games = [...new Set(s.games.map(g=>g.label))].slice(0,3).map(g=>`<span class="grid-game-tag">${escHtml(g)}</span>`).join('');
+    const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
+    const chapterList = getChapterList(s);
+    const chapCount = chapterList.length;
+    const chapTimeByLabel = {};
+    chapterList.forEach(g => { if (!(g.label in chapTimeByLabel)) chapTimeByLabel[g.label] = g.t; });
+    const games = [...new Set(s.games.map(g=>g.label))].slice(0,3).map(g => {
+      const t = chapTimeByLabel[g] ?? 0;
+      return `<button type="button" class="grid-game-tag" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${t})" title="Jump to ${escHtml(g)}">${escHtml(g)}</button>`;
+    }).join('');
     const parts = s.vids.length > 1 ? `<span class="grid-card-parts">${s.vids.length} PARTS</span>` : '';
     const dominantGameRaw = getDominantGame(s);
     const dominantGame = dominantGameRaw ? translateGameLabel(dominantGameRaw) : null;
-    const gameIcon = dominantGame ? `<div class="grid-card-game-icon" title="${escHtml(dominantGame)}"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : '';
-    const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
-    const chapCount = getChapterList(s).length;
+    const gameIcon = dominantGame ? `<div class="grid-card-game-icon" title="${escHtml(dominantGame)}"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></div>` : '';
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
-        <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
+        <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
         Chapters <span class="grid-card-chapters-count">${chapCount}</span>
       </button>
       </div>` : '';
@@ -4680,10 +4803,10 @@ function toggleGridChapDropdown(evt, globalIdx) {
 
   // SullyGnome-derived entries only carry the list of games played, not real
   // per-game timestamps — the "t" values are just the stream's duration
-  // split evenly across however many games are listed. Offering those as
-  // clickable seek points would send people to a wrong, made-up moment in
-  // the video, so for these we just show which categories were played
-  // (deduped) with no fake timestamp and no seek-to-time on click.
+  // split evenly across however many games are listed. That's not a precise
+  // seek point, but it's still a reasonable best-guess jump target, so
+  // these are clickable the same as exact chapters — just without a shown
+  // timestamp, since it isn't a real one.
   const vodId = twitchVodMap[s.day] || s.day;
   const isApprox = _chapterCache[vodId]?.source === 'manual-approx-sullygnome';
 
@@ -4691,7 +4814,6 @@ function toggleGridChapDropdown(evt, globalIdx) {
   let html = '';
 
   if (isApprox) {
-    html += `<div class="chap-approx-note">Categories played — exact timing unknown for this stream</div>`;
     const seen = new Set();
     const uniqueGames = chapters.filter(g => {
       if (seen.has(g.label)) return false;
@@ -4701,7 +4823,7 @@ function toggleGridChapDropdown(evt, globalIdx) {
     uniqueGames.forEach((g, i) => {
       const color = colorFor(i);
       const label = translateGameLabel(g.label);
-      html += `<button class="chapter-item" onclick="event.stopPropagation();selectGridChapter(${globalIdx},0)">
+      html += `<button class="chapter-item" onclick="event.stopPropagation();selectGridChapter(${globalIdx},${g.t})">
         <span class="chap-dot" style="background:${color}"></span>
         <span class="chap-label">${escHtml(label)}</span>
       </button>`;
@@ -5395,16 +5517,16 @@ function renderSegments(stream) {
   //
   // SullyGnome-derived entries only carry which games were played, not real
   // per-game timestamps (the "t" values are the stream's duration split
-  // evenly across however many games are listed) — so for those we just
-  // list the categories played (deduped), no fake timestamp and no
-  // click-to-seek, instead of pretending we know exactly when each one
-  // started.
+  // evenly across however many games are listed) — so for those we still
+  // dedupe the list (no repeated entries for a game played across the
+  // stream), but each one is clickable and jumps to its approximate split
+  // point, same mechanism as an exact chapter, just without a shown
+  // timestamp since it isn't a real one.
   const vodIdForSource = twitchVodMap[stream.day] || stream.day;
   const isApproxSource = _chapterCache[vodIdForSource]?.source === 'manual-approx-sullygnome';
 
   let chapHtml = '';
   if (isApproxSource) {
-    chapHtml += `<div class="chap-approx-note">Categories played — exact timing unknown for this stream</div>`;
     const seen = new Set();
     games.forEach((g) => {
       if (seen.has(g.label)) return;
@@ -5412,10 +5534,10 @@ function renderSegments(stream) {
       const origIdx = raw.indexOf(g);
       const color   = colorFor(origIdx);
       const label   = translateGameLabel(g.label);
-      chapHtml += `<div class="chapter-item" style="cursor:default">
+      chapHtml += `<button class="chapter-item" data-orig-idx="${origIdx}" onclick="jumpToSegment(${origIdx});closeChaptersDropdown()">
         <span class="chap-dot" style="background:${color}"></span>
         <span class="chap-label">${escHtml(label)}</span>
-      </div>`;
+      </button>`;
     });
   } else {
     let lastChapPart = -1;
