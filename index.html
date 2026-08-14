@@ -1135,21 +1135,36 @@
     flex: 1;
     min-width: 0;
   }
+  .grid-card-title-row {
+    margin-bottom: 6px;
+  }
+  /* Clearfix so the row's height accounts for the floated chapters button
+     even on titles short enough not to reach it. */
+  .grid-card-title-row::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
   .grid-card-title {
     font-size: 13.5px; font-weight: 700;
     line-height: 1.35; color: var(--text);
-    margin-bottom: 6px;
-    min-height: calc(1.35em * 2);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    max-height: calc(1.35em * 2);
     overflow: hidden;
-    text-overflow: ellipsis;
+  }
+  /* Floated so it sits inside the title's own 2-line box, anchored at the
+     end of the 2nd line, instead of pushing a whole extra row below. The
+     margin-top drops it down so line 1 is never narrowed — only line 2
+     wraps around it. */
+  .grid-card-chapters-wrap.title-floated {
+    float: right;
+    margin-top: 1.35em;
+    margin-left: 8px;
+    margin-bottom: 2px;
   }
   .grid-card-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 8px;
     flex-wrap: wrap;
   }
@@ -4393,7 +4408,7 @@ function renderPage() {
     const gameIcon = dominantGame ? `<div class="grid-card-game-icon" title="${escHtml(dominantGame)}"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-52x72.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : '';
     const globalIdx = allStreams.indexOf(displayedStreams[start + i]);
     const chapCount = getChapterList(s).length;
-    const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
+    const chapChip = chapCount ? `<div class="grid-card-chapters-wrap title-floated">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
         Chapters <span class="grid-card-chapters-count">${chapCount}</span>
@@ -4410,10 +4425,12 @@ function renderPage() {
       <div class="grid-card-body">
         ${gameIcon}
         <div class="grid-card-info">
-        <div class="grid-card-title" title="${escHtml(s.title)}">${escHtml(s.title)}</div>
+        <div class="grid-card-title-row">
+          ${chapChip}
+          <div class="grid-card-title" title="${escHtml(s.title)}">${escHtml(s.title)}</div>
+        </div>
         <div class="grid-card-actions">
           <div class="grid-card-games">${games}</div>
-          ${chapChip}
         </div>
         </div>
       </div>
