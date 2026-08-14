@@ -1,763 +1,2319 @@
 [
   {
-    "vodId": "318259533670",
-    "day": "2026-08-10",
+    "day": "2022-01-01",
+    "durationMin": 98,
+    "games": [
+      "Bro Falls: Ultimate Showdown",
+      "Bouncy Bunnies",
+      "Jackbox Party Packs"
+    ]
+  },
+  {
+    "day": "2022-01-04",
+    "durationMin": 279,
+    "games": [
+      "Barbie and the Magic of Pegasus",
+      "The Hidden Room",
+      "I MAED A GAM3 W1TH Z0MB1ES 1NIT!!!1",
+      "Barbie and the Magic of Pegasus",
+      "Jackbox Party Packs",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-01-06",
+    "durationMin": 127,
+    "games": [
+      "Just Chatting",
+      "Barbie and the Magic of Pegasus"
+    ]
+  },
+  {
+    "day": "2022-01-07",
+    "durationMin": 430,
+    "games": [
+      "Half-Life: Alyx",
+      "Just Chatting",
+      "Warframe",
+      "Crab Game",
+      "Ghost Exile"
+    ]
+  },
+  {
+    "day": "2022-01-08",
+    "durationMin": 332,
+    "games": [
+      "Internet Cafe Simulator 2"
+    ]
+  },
+  {
+    "day": "2022-01-10",
+    "durationMin": 230,
+    "games": [
+      "The Elder Scrolls V: Skyrim - Special Edition"
+    ]
+  },
+  {
+    "day": "2022-01-11",
+    "durationMin": 196,
+    "games": [
+      "Just Chatting",
+      "Neon Abyss",
+      "Barbie and the Magic of Pegasus"
+    ]
+  },
+  {
+    "day": "2022-01-13",
+    "durationMin": 253,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-01-14",
+    "durationMin": 398,
+    "games": [
+      "Artifact",
+      "Artifact",
+      "Just Chatting",
+      "DeadPoly",
+      "Sanctuary Island",
+      "Barbie and the Magic of Pegasus",
+      "Mental Hospital: Child of Evil"
+    ]
+  },
+  {
+    "day": "2022-01-15",
+    "durationMin": 276,
+    "games": [
+      "LUL inc.",
+      "Barbie and the Magic of Pegasus",
+      "Just Chatting",
+      "Crystal Clash",
+      "Jackbox Party Packs",
+      "Crab Game"
+    ]
+  },
+  {
+    "day": "2022-01-16",
+    "durationMin": 32,
+    "games": [
+      "Totally Accurate Battlegrounds"
+    ]
+  },
+  {
+    "day": "2022-01-17",
+    "durationMin": 203,
+    "games": [
+      "BattleBit Remastered",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-01-18",
+    "durationMin": 187,
+    "games": [
+      "Artifact",
+      "BattleBit Remastered"
+    ]
+  },
+  {
+    "day": "2022-01-19",
+    "durationMin": 194,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-01-20",
+    "durationMin": 405,
+    "games": [
+      "Artifact",
+      "Artifact",
+      "Unriddle",
+      "Windjammers 2",
+      "Guns N Stuff 2"
+    ]
+  },
+  {
+    "day": "2022-01-21",
+    "durationMin": 237,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-01-22",
+    "durationMin": 291,
+    "games": [
+      "Survive the Hill",
+      "Gravity Game",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-01-23",
+    "durationMin": 275,
+    "games": [
+      "Artifact",
+      "Totally Accurate Battlegrounds"
+    ]
+  },
+  {
+    "day": "2022-01-25",
+    "durationMin": 670,
+    "games": [
+      "Artifact",
+      "Space Quest: 2099",
+      "Wordish",
+      "Vampire Survivors"
+    ]
+  },
+  {
+    "day": "2022-01-26",
+    "durationMin": 571,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-01-27",
+    "durationMin": 446,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-01-28",
+    "durationMin": 513,
+    "games": [
+      "Artifact",
+      "Dread Hunger"
+    ]
+  },
+  {
+    "day": "2022-01-29",
+    "durationMin": 631,
+    "games": [
+      "Artifact",
+      "Dragon Saddle Melee",
+      "Barbie and the Magic of Pegasus",
+      "Space Betrayers",
+      "Vampire Survivors",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-01-30",
+    "durationMin": 235,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-02-01",
+    "durationMin": 335,
+    "games": [
+      "Artifact",
+      "League of Legends",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-02-02",
+    "durationMin": 514,
+    "games": [
+      "Artifact",
+      "RoboSquare",
+      "Afterinfection",
+      "Ghost",
+      "Warm Snow",
+      "Vampire Survivors"
+    ]
+  },
+  {
+    "day": "2022-02-03",
+    "durationMin": 341,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-02-04",
+    "durationMin": 572,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-02-05",
+    "durationMin": 236,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-02-06",
+    "durationMin": 403,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-02-07",
+    "durationMin": 308,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-02-08",
+    "durationMin": 293,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-02-10",
+    "durationMin": 428,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-02-11",
+    "durationMin": 376,
+    "games": [
+      "Artifact",
+      "Lost Ark"
+    ]
+  },
+  {
+    "day": "2022-02-12",
+    "durationMin": 754,
+    "games": [
+      "Artifact",
+      "Lost Ark"
+    ]
+  },
+  {
+    "day": "2022-02-13",
+    "durationMin": 605,
+    "games": [
+      "Lost Ark",
+      "C.O.D.E.R.E.D",
+      "Zeppelin: Escape Room",
+      "Diplomacy is Not an Option"
+    ]
+  },
+  {
+    "day": "2022-02-14",
+    "durationMin": 313,
+    "games": [
+      "Lost Ark"
+    ]
+  },
+  {
+    "day": "2022-02-15",
     "durationMin": 416,
     "games": [
-      "Just Chatting",
-      "Demon's Souls"
+      "Lost Ark",
+      "Drawize",
+      "Scribble It!"
     ]
   },
   {
-    "vodId": "318175964645",
-    "day": "2026-08-08",
-    "durationMin": 319,
+    "day": "2022-02-16",
+    "durationMin": 312,
     "games": [
-      "Just Chatting",
-      "Demon's Souls"
+      "Holy Purge",
+      "Whacky Golf",
+      "Lost Ark",
+      "Scribble It!"
     ]
   },
   {
-    "vodId": "318143867109",
-    "day": "2026-08-05",
-    "durationMin": 330,
+    "day": "2022-02-20",
+    "durationMin": 97,
     "games": [
-      "Just Chatting",
-      "Project Zomboid"
+      "Lost Ark",
+      "Artifact"
     ]
   },
   {
-    "vodId": "318188118502",
-    "day": "2026-08-03",
-    "durationMin": 351,
+    "day": "2022-02-24",
+    "durationMin": 359,
     "games": [
-      "Just Chatting",
-      "Metin2",
-      "ROBLOX"
+      "DARK SOULS III",
+      "ELDEN RING"
     ]
   },
   {
-    "vodId": "318165593318",
-    "day": "2026-08-01",
-    "durationMin": 522,
+    "day": "2022-02-25",
+    "durationMin": 627,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2022-02-26",
+    "durationMin": 536,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2022-02-27",
+    "durationMin": 612,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2022-02-28",
+    "durationMin": 563,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2022-03-03",
+    "durationMin": 642,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2022-03-04",
+    "durationMin": 381,
+    "games": [
+      "ELDEN RING",
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2022-03-26",
+    "durationMin": 212,
+    "games": [
+      "Fortnite",
+      "Risk of Rain 2"
+    ]
+  },
+  {
+    "day": "2022-03-27",
+    "durationMin": 127,
+    "games": [
+      "PUBG: BATTLEGROUNDS"
+    ]
+  },
+  {
+    "day": "2022-03-30",
+    "durationMin": 293,
+    "games": [
+      "PUBG: BATTLEGROUNDS"
+    ]
+  },
+  {
+    "day": "2022-03-31",
+    "durationMin": 139,
+    "games": [
+      "Midnight Ghost Hunt"
+    ]
+  },
+  {
+    "day": "2022-04-08",
+    "durationMin": 209,
     "games": [
       "Just Chatting",
-      "Sword Hero",
-      "Welcome to the Game III",
+      "LEGO Star Wars: The Skywalker Saga"
+    ]
+  },
+  {
+    "day": "2022-04-09",
+    "durationMin": 254,
+    "games": [
+      "LEGO Star Wars: The Skywalker Saga",
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2022-04-11",
+    "durationMin": 177,
+    "games": [
+      "Just Chatting",
+      "LEGO Star Wars: The Skywalker Saga"
+    ]
+  },
+  {
+    "day": "2022-04-14",
+    "durationMin": 175,
+    "games": [
+      "LEGO Star Wars: The Skywalker Saga",
+      "Just Chatting",
+      "Just Chatting",
+      "LEGO Star Wars: The Skywalker Saga"
+    ]
+  },
+  {
+    "day": "2022-04-18",
+    "durationMin": 203,
+    "games": [
+      "League of Legends",
+      "Quern: Undying Thoughts"
+    ]
+  },
+  {
+    "day": "2022-04-19",
+    "durationMin": 263,
+    "games": [
+      "Last Farewell",
+      "Barbie and the Magic of Pegasus",
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2022-04-21",
+    "durationMin": 201,
+    "games": [
+      "Just Chatting",
+      "Postal 4: No Regerts"
+    ]
+  },
+  {
+    "day": "2022-04-22",
+    "durationMin": 348,
+    "games": [
+      "Just Chatting",
+      "Stumble Guys",
+      "ELDEN RING",
+      "Just Chatting",
       "League of Legends"
     ]
   },
   {
-    "vodId": "318157344230",
-    "day": "2026-07-31",
-    "durationMin": 283,
+    "day": "2022-04-23",
+    "durationMin": 488,
     "games": [
       "Just Chatting",
-      "League of Legends"
+      "Green Hell",
+      "Green Hell",
+      "Trolley Problem",
+      "Inc."
     ]
   },
   {
-    "vodId": "318080670181",
-    "day": "2026-07-30",
-    "durationMin": 301,
-    "games": [
-      "Just Chatting",
-      "League of Legends"
-    ]
-  },
-  {
-    "vodId": "318059226213",
-    "day": "2026-07-28",
+    "day": "2022-04-26",
     "durationMin": 350,
     "games": [
       "Just Chatting",
-      "Welcome to the Game III"
+      "DogeFight",
+      "LOONY",
+      "Overwatch",
+      "Overwatch"
     ]
   },
   {
-    "vodId": "317895024743",
-    "day": "2026-07-26",
-    "durationMin": 439,
+    "day": "2022-04-27",
+    "durationMin": 433,
+    "games": [
+      "Overwatch",
+      "Overwatch"
+    ]
+  },
+  {
+    "day": "2022-04-28",
+    "durationMin": 445,
     "games": [
       "Just Chatting",
-      "Welcome to the Game III"
+      "The Stanley Parable: Ultra Deluxe",
+      "The Stanley Parable: Ultra Deluxe"
     ]
   },
   {
-    "vodId": "318085590374",
-    "day": "2026-07-24",
-    "durationMin": 283,
-    "games": [
-      "Just Chatting",
-      "Welcome to the Game III"
-    ]
-  },
-  {
-    "vodId": "318064570598",
-    "day": "2026-07-22",
-    "durationMin": 293,
-    "games": [
-      "Just Chatting",
-      "Welcome to the Game III"
-    ]
-  },
-  {
-    "vodId": "317823626599",
-    "day": "2026-07-19",
-    "durationMin": 290,
+    "day": "2022-04-29",
+    "durationMin": 368,
     "games": [
       "Just Chatting",
       "Artifact"
     ]
   },
   {
-    "vodId": "317802058087",
-    "day": "2026-07-17",
-    "durationMin": 349,
+    "day": "2022-05-04",
+    "durationMin": 365,
     "games": [
       "Just Chatting",
-      "League of Legends"
+      "Hearts of Iron IV"
     ]
   },
   {
-    "vodId": "317781962087",
-    "day": "2026-07-15",
-    "durationMin": 176,
+    "day": "2022-05-05",
+    "durationMin": 476,
     "games": [
       "Just Chatting"
     ]
   },
   {
-    "vodId": "317771164647",
-    "day": "2026-07-14",
-    "durationMin": 171,
+    "day": "2022-05-09",
+    "durationMin": 338,
+    "games": [
+      "Just Chatting",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-05-11",
+    "durationMin": 389,
+    "games": [
+      "Just Chatting",
+      "Raid: Shadow Legends",
+      "Mario Kart 8 Deluxe",
+      "What the Dub?!"
+    ]
+  },
+  {
+    "day": "2022-05-13",
+    "durationMin": 342,
+    "games": [
+      "Just Chatting",
+      "Super Mario Maker 2"
+    ]
+  },
+  {
+    "day": "2022-05-14",
+    "durationMin": 215,
     "games": [
       "Just Chatting"
     ]
   },
   {
-    "vodId": "317973620326",
-    "day": "2026-07-13",
-    "durationMin": 189,
-    "games": [
-      "Just Chatting"
-    ]
-  },
-  {
-    "vodId": "317747353447",
-    "day": "2026-07-12",
-    "durationMin": 307,
+    "day": "2022-05-15",
+    "durationMin": 443,
     "games": [
       "Just Chatting",
-      "Minecraft",
-      "Unlisted on Twitch"
+      "Super Mario Maker 2",
+      "Mario Kart 8 Deluxe",
+      "PUBG: BATTLEGROUNDS"
     ]
   },
   {
-    "vodId": "317728082663",
-    "day": "2026-07-10",
-    "durationMin": 223,
+    "day": "2022-05-16",
+    "durationMin": 363,
     "games": [
       "Just Chatting",
-      "Minecraft"
+      "PUBG: BATTLEGROUNDS",
+      "Artifact"
     ]
   },
   {
-    "vodId": "317687065319",
-    "day": "2026-07-06",
-    "durationMin": 145,
-    "games": [
-      "Just Chatting"
-    ]
-  },
-  {
-    "vodId": "317676398695",
-    "day": "2026-07-05",
-    "durationMin": 236,
+    "day": "2022-05-17",
+    "durationMin": 648,
     "games": [
       "Just Chatting",
-      "Minecraft"
+      "Super Mario Maker 2"
     ]
   },
   {
-    "vodId": "317801806437",
-    "day": "2026-07-03",
-    "durationMin": 221,
-    "games": [
-      "Minecraft"
-    ]
-  },
-  {
-    "vodId": "317614698983",
-    "day": "2026-06-29",
-    "durationMin": 208,
+    "day": "2022-05-18",
+    "durationMin": 667,
     "games": [
       "Just Chatting",
-      "MECCHA CHAMELEON"
+      "Super Mario Maker 2",
+      "V Rising",
+      "Be Funny Now!"
     ]
   },
   {
-    "vodId": "317603221863",
-    "day": "2026-06-28",
-    "durationMin": 293,
+    "day": "2022-05-19",
+    "durationMin": 511,
     "games": [
       "Just Chatting",
-      "Counter-Strike",
-      "Unlisted on Twitch"
+      "The Backroom Project",
+      "Golf Gang",
+      "Artifact"
     ]
   },
   {
-    "vodId": "317802092134",
-    "day": "2026-06-26",
+    "day": "2022-05-20",
+    "durationMin": 348,
+    "games": [
+      "Just Chatting",
+      "Jackbox Party Packs",
+      "What the Dub?!",
+      "Artifact",
+      "Retail Royale",
+      "Dank Subs"
+    ]
+  },
+  {
+    "day": "2022-05-21",
+    "durationMin": 391,
+    "games": [
+      "Just Chatting",
+      "Jackbox Party Packs",
+      "Artifact",
+      "The Stanley Parable: Ultra Deluxe",
+      "Pokémon: Let's Go",
+      "Pikachu!"
+    ]
+  },
+  {
+    "day": "2022-05-23",
+    "durationMin": 309,
+    "games": [
+      "Just Chatting",
+      "What the Dub?!",
+      "Witching Hour"
+    ]
+  },
+  {
+    "day": "2022-05-24",
+    "durationMin": 306,
+    "games": [
+      "Just Chatting",
+      "What the Dub?!",
+      "Jackbox Party Packs"
+    ]
+  },
+  {
+    "day": "2022-05-25",
+    "durationMin": 309,
+    "games": [
+      "Just Chatting",
+      "What the Dub?!",
+      "Jackbox Party Packs"
+    ]
+  },
+  {
+    "day": "2022-05-26",
+    "durationMin": 277,
+    "games": [
+      "Just Chatting",
+      "Pokémon: Let's Go",
+      "Pikachu!"
+    ]
+  },
+  {
+    "day": "2022-05-27",
+    "durationMin": 286,
+    "games": [
+      "Pro Soccer Online",
+      "The Backrooms 1998",
+      "PUBG: BATTLEGROUNDS"
+    ]
+  },
+  {
+    "day": "2022-05-28",
+    "durationMin": 444,
+    "games": [
+      "Just Chatting",
+      "Façade",
+      "Pro Soccer Online",
+      "Hearts of Iron IV"
+    ]
+  },
+  {
+    "day": "2022-05-29",
+    "durationMin": 517,
+    "games": [
+      "Just Chatting",
+      "Pro Soccer Online",
+      "Hearts of Iron IV",
+      "PUBG: BATTLEGROUNDS"
+    ]
+  },
+  {
+    "day": "2022-05-30",
+    "durationMin": 323,
+    "games": [
+      "Just Chatting",
+      "PUBG: BATTLEGROUNDS"
+    ]
+  },
+  {
+    "day": "2022-05-31",
+    "durationMin": 321,
+    "games": [
+      "Just Chatting",
+      "Pro Soccer Online",
+      "PUBG: BATTLEGROUNDS"
+    ]
+  },
+  {
+    "day": "2022-06-01",
+    "durationMin": 490,
+    "games": [
+      "Just Chatting",
+      "Pro Soccer Online",
+      "What the Dub?!",
+      "LEAP"
+    ]
+  },
+  {
+    "day": "2022-06-02",
+    "durationMin": 557,
+    "games": [
+      "Just Chatting",
+      "Pro Soccer Online",
+      "Slots"
+    ]
+  },
+  {
+    "day": "2022-06-06",
+    "durationMin": 369,
+    "games": [
+      "Just Chatting",
+      "Marbles on Stream",
+      "Pro Soccer Online"
+    ]
+  },
+  {
+    "day": "2022-06-07",
+    "durationMin": 729,
+    "games": [
+      "Just Chatting",
+      "Hearts of Iron IV",
+      "Pro Soccer Online",
+      "Realm Royale Reforged",
+      "PUBG: BATTLEGROUNDS"
+    ]
+  },
+  {
+    "day": "2022-06-08",
+    "durationMin": 373,
+    "games": [
+      "Just Chatting",
+      "What the Dub?!",
+      "Pro Soccer Online"
+    ]
+  },
+  {
+    "day": "2022-06-09",
+    "durationMin": 267,
+    "games": [
+      "Just Chatting",
+      "Pro Soccer Online",
+      "Jackbox Party Packs",
+      "Goose Goose Duck"
+    ]
+  },
+  {
+    "day": "2022-06-10",
     "durationMin": 357,
     "games": [
       "Just Chatting",
-      "Minecraft"
+      "Pro Soccer Online",
+      "PUBG: BATTLEGROUNDS",
+      "Gartic"
     ]
   },
   {
-    "vodId": "317709178469",
-    "day": "2026-06-24",
-    "durationMin": 244,
+    "day": "2022-06-11",
+    "durationMin": 499,
     "games": [
-      "Minecraft"
-    ]
-  },
-  {
-    "vodId": "317688826981",
-    "day": "2026-06-22",
-    "durationMin": 218,
-    "games": [
-      "Minecraft",
-      "Just Chatting"
-    ]
-  },
-  {
-    "vodId": "317676763493",
-    "day": "2026-06-21",
-    "durationMin": 435,
-    "games": [
-      "Counter-Strike",
-      "Minecraft"
-    ]
-  },
-  {
-    "vodId": "317495138791",
-    "day": "2026-06-17",
-    "durationMin": 202,
-    "games": [
-      "Minecraft"
-    ]
-  },
-  {
-    "vodId": "317670215142",
-    "day": "2026-06-13",
-    "durationMin": 320,
-    "games": [
-      "Counter-Strike"
-    ]
-  },
-  {
-    "vodId": "317575345125",
-    "day": "2026-06-11",
-    "durationMin": 191,
-    "games": [
-      "Counter-Strike"
-    ]
-  },
-  {
-    "vodId": "317607986406",
-    "day": "2026-06-07",
-    "durationMin": 223,
-    "games": [
+      "Just Chatting",
+      "Disney Speedstorm",
+      "Mario Kart 8 Deluxe",
       "Special Events",
-      "Counter-Strike"
+      "PUBG: BATTLEGROUNDS",
+      "What the Dub?!",
+      "Gartic Phone"
     ]
   },
   {
-    "vodId": "317585916774",
-    "day": "2026-06-05",
-    "durationMin": 336,
-    "games": [
-      "Counter-Strike",
-      "Just Chatting",
-      "Summer Game Fest"
-    ]
-  },
-  {
-    "vodId": "317442907877",
-    "day": "2026-05-29",
-    "durationMin": 227,
+    "day": "2022-06-12",
+    "durationMin": 649,
     "games": [
       "Just Chatting",
-      "Subnautica 2"
+      "Gartic",
+      "Gartic Phone",
+      "What the Dub?!",
+      "Jackbox Party Packs",
+      "Kukoro: Stream Chat Games",
+      "ROBLOX"
     ]
   },
   {
-    "vodId": "317279249255",
-    "day": "2026-05-27",
-    "durationMin": 190,
+    "day": "2022-06-13",
+    "durationMin": 298,
     "games": [
       "Just Chatting",
-      "Subnautica 2"
+      "What the Dub?!",
+      "Gartic Phone",
+      "Pro Soccer Online",
+      "Slapshot: Rebound"
     ]
   },
   {
-    "vodId": "317461775590",
-    "day": "2026-05-24",
-    "durationMin": 421,
-    "games": [
-      "Minecraft",
-      "Subnautica 2"
-    ]
-  },
-  {
-    "vodId": "317372652901",
-    "day": "2026-05-22",
-    "durationMin": 209,
-    "games": [
-      "Just Chatting",
-      "Counter-Strike",
-      "Subnautica 2"
-    ]
-  },
-  {
-    "vodId": "317206309095",
-    "day": "2026-05-20",
-    "durationMin": 227,
-    "games": [
-      "Subnautica 2"
-    ]
-  },
-  {
-    "vodId": "317333165541",
-    "day": "2026-05-18",
-    "durationMin": 208,
-    "games": [
-      "Subnautica 2"
-    ]
-  },
-  {
-    "vodId": "317322885477",
-    "day": "2026-05-17",
-    "durationMin": 260,
-    "games": [
-      "Subnautica 2"
-    ]
-  },
-  {
-    "vodId": "317357057126",
-    "day": "2026-05-14",
-    "durationMin": 239,
-    "games": [
-      "Just Chatting",
-      "Subnautica 2"
-    ]
-  },
-  {
-    "vodId": "316995111015",
-    "day": "2026-05-01",
-    "durationMin": 320,
-    "games": [
-      "Just Chatting",
-      "Counter-Strike"
-    ]
-  },
-  {
-    "vodId": "317156980454",
-    "day": "2026-04-26",
-    "durationMin": 122,
-    "games": [
-      "Just Chatting",
-      "Counter-Strike"
-    ]
-  },
-  {
-    "vodId": "316905486055",
-    "day": "2026-04-23",
-    "durationMin": 217,
-    "games": [
-      "Just Chatting",
-      "Counter-Strike"
-    ]
-  },
-  {
-    "vodId": "316894925287",
-    "day": "2026-04-22",
-    "durationMin": 210,
-    "games": [
-      "Just Chatting",
-      "Counter-Strike"
-    ]
-  },
-  {
-    "vodId": "317006103398",
-    "day": "2026-04-12",
-    "durationMin": 329,
-    "games": [
-      "Project Zomboid",
-      "Counter-Strike"
-    ]
-  },
-  {
-    "vodId": "316932711269",
-    "day": "2026-04-11",
-    "durationMin": 262,
-    "games": [
-      "Just Chatting",
-      "Project Zomboid"
-    ]
-  },
-  {
-    "vodId": "316877586149",
-    "day": "2026-04-06",
-    "durationMin": 262,
-    "games": [
-      "Project Zomboid"
-    ]
-  },
-  {
-    "vodId": "316708539239",
-    "day": "2026-04-05",
-    "durationMin": 203,
-    "games": [
-      "Project Zomboid"
-    ]
-  },
-  {
-    "vodId": "316917757670",
-    "day": "2026-04-04",
-    "durationMin": 393,
-    "games": [
-      "Just Chatting",
-      "Project Zomboid"
-    ]
-  },
-  {
-    "vodId": "316685013735",
-    "day": "2026-04-03",
-    "durationMin": 533,
-    "games": [
-      "Project Zomboid"
-    ]
-  },
-  {
-    "vodId": "316888377318",
-    "day": "2026-04-01",
-    "durationMin": 65,
-    "games": [
-      "Just Chatting"
-    ]
-  },
-  {
-    "vodId": "316864288486",
-    "day": "2026-03-30",
-    "durationMin": 216,
-    "games": [
-      "Just Chatting",
-      "Project Zomboid"
-    ]
-  },
-  {
-    "vodId": "316785853157",
-    "day": "2026-03-29",
+    "day": "2022-06-14",
     "durationMin": 302,
     "games": [
-      "Project Zomboid"
+      "Just Chatting",
+      "Jackbox Party Packs"
     ]
   },
   {
-    "vodId": "316607543271",
-    "day": "2026-03-27",
-    "durationMin": 359,
+    "day": "2022-06-15",
+    "durationMin": 330,
     "games": [
       "Just Chatting",
-      "Project Zomboid"
+      "Gartic",
+      "Pro Soccer Online",
+      "Gartic Phone"
     ]
   },
   {
-    "vodId": "316083119462",
-    "day": "2026-01-19",
-    "durationMin": 230,
+    "day": "2022-06-16",
+    "durationMin": 425,
     "games": [
       "Just Chatting",
-      "League of Legends",
-      "Agreeee"
+      "Gartic Phone",
+      "What the Dub?!",
+      "Nemesis: Distress",
+      "Nemesis: Distress",
+      "Teenage Mutant Ninja Turtles: Shredder's Revenge"
     ]
   },
   {
-    "vodId": "315981827430",
-    "day": "2026-01-10",
-    "durationMin": 316,
+    "day": "2022-06-17",
+    "durationMin": 383,
     "games": [
+      "Just Chatting",
+      "Pro Soccer Online",
+      "Gartic Phone",
+      "Jackbox Party Packs",
+      "What the Dub?!",
+      "Masks of Deception",
+      "Redout 2"
+    ]
+  },
+  {
+    "day": "2022-06-18",
+    "durationMin": 245,
+    "games": [
+      "Masks of Deception",
       "Just Chatting"
     ]
   },
   {
-    "vodId": "315869627749",
-    "day": "2026-01-07",
-    "durationMin": 225,
+    "day": "2022-06-19",
+    "durationMin": 298,
     "games": [
       "Just Chatting",
-      "Project Zomboid"
+      "Banana Shooter",
+      "Kebab Chefs!: Restaurant Simulator",
+      "Stalzone"
     ]
   },
   {
-    "vodId": "315902775398",
-    "day": "2026-01-03",
-    "durationMin": 427,
+    "day": "2022-06-20",
+    "durationMin": 578,
     "games": [
-      "Bloodborne"
+      "Just Chatting",
+      "Pro Soccer Online",
+      "Metal: Hellsinger",
+      "The Backrooms World",
+      "Android Simulator",
+      "Cult of the Lamb",
+      "Sinister Night",
+      "Pro Soccer Online",
+      "Just Chatting",
+      "Inside the Backrooms"
     ]
   },
   {
-    "vodId": "315788568933",
-    "day": "2025-12-31",
+    "day": "2022-06-21",
+    "durationMin": 145,
+    "games": [
+      "Just Chatting",
+      "Fall Guys",
+      "Stumble Guys"
+    ]
+  },
+  {
+    "day": "2022-06-22",
+    "durationMin": 360,
+    "games": [
+      "Just Chatting",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-06-23",
+    "durationMin": 378,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-06-24",
+    "durationMin": 659,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-06-27",
+    "durationMin": 626,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-06-28",
+    "durationMin": 502,
+    "games": [
+      "Artifact",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-06-29",
+    "durationMin": 320,
+    "games": [
+      "Artifact",
+      "Banana Shooter",
+      "Mad Adventures"
+    ]
+  },
+  {
+    "day": "2022-06-30",
+    "durationMin": 329,
+    "games": [
+      "Artifact",
+      "Sea of Thieves"
+    ]
+  },
+  {
+    "day": "2022-07-01",
+    "durationMin": 389,
+    "games": [
+      "Just Chatting",
+      "Marbles on Stream",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-07-05",
+    "durationMin": 662,
+    "games": [
+      "Artifact",
+      "Artifact",
+      "Sea of Thieves"
+    ]
+  },
+  {
+    "day": "2022-07-06",
+    "durationMin": 374,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-07-08",
+    "durationMin": 499,
+    "games": [
+      "Artifact",
+      "Fall Guys",
+      "Rumbleverse"
+    ]
+  },
+  {
+    "day": "2022-07-09",
+    "durationMin": 190,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-07-10",
+    "durationMin": 342,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-07-12",
+    "durationMin": 488,
+    "games": [
+      "Artifact",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-07-16",
+    "durationMin": 252,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-07-18",
+    "durationMin": 313,
+    "games": [
+      "Peepo Island",
+      "PUBG: BATTLEGROUNDS",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-07-23",
+    "durationMin": 302,
+    "games": [
+      "Artifact",
+      "Team Fortress 2"
+    ]
+  },
+  {
+    "day": "2022-07-24",
+    "durationMin": 357,
+    "games": [
+      "Artifact",
+      "Team Fortress 2",
+      "Counter-Strike"
+    ]
+  },
+  {
+    "day": "2022-08-09",
+    "durationMin": 241,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-08-10",
+    "durationMin": 276,
+    "games": [
+      "Artifact",
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2022-08-13",
+    "durationMin": 195,
+    "games": [
+      "Artifact",
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2022-09-13",
+    "durationMin": 294,
+    "games": [
+      "Just Chatting",
+      "Far Cry 6"
+    ]
+  },
+  {
+    "day": "2022-09-16",
+    "durationMin": 312,
+    "games": [
+      "Far Cry 6",
+      "Fall Guys"
+    ]
+  },
+  {
+    "day": "2022-12-17",
+    "durationMin": 360,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-12-18",
+    "durationMin": 712,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-12-19",
+    "durationMin": 599,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-12-20",
     "durationMin": 333,
     "games": [
-      "Bloodborne",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-12-21",
+    "durationMin": 299,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-12-23",
+    "durationMin": 317,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2022-12-31",
+    "durationMin": 329,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-05",
+    "durationMin": 454,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-06",
+    "durationMin": 503,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-07",
+    "durationMin": 159,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-09",
+    "durationMin": 439,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-12",
+    "durationMin": 459,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-13",
+    "durationMin": 512,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-15",
+    "durationMin": 434,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-16",
+    "durationMin": 436,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-17",
+    "durationMin": 491,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-18",
+    "durationMin": 673,
+    "games": [
+      "Just Chatting",
+      "SongTrivia 2: Guess the song",
+      "Are You Smarter Than a 5th Grader?",
+      "Artifact",
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2023-01-19",
+    "durationMin": 372,
+    "games": [
       "Just Chatting"
     ]
   },
   {
-    "vodId": "315608893799",
-    "day": "2025-12-29",
-    "durationMin": 485,
+    "day": "2023-01-20",
+    "durationMin": 299,
     "games": [
-      "Bloodborne"
+      "Just Chatting",
+      "VRChat"
     ]
   },
   {
-    "vodId": "315602639335",
-    "day": "2025-12-28",
+    "day": "2023-01-21",
+    "durationMin": 469,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-23",
+    "durationMin": 612,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-25",
+    "durationMin": 456,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-26",
+    "durationMin": 102,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-27",
+    "durationMin": 576,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-28",
+    "durationMin": 436,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-29",
+    "durationMin": 262,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-30",
+    "durationMin": 687,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-01-31",
+    "durationMin": 419,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-02-01",
+    "durationMin": 549,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-02-04",
+    "durationMin": 545,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-02-08",
+    "durationMin": 346,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-02-09",
+    "durationMin": 95,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-02-16",
+    "durationMin": 124,
+    "games": [
+      "Warlander"
+    ]
+  },
+  {
+    "day": "2023-02-24",
+    "durationMin": 295,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-02-25",
+    "durationMin": 166,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-03-03",
+    "durationMin": 463,
+    "games": [
+      "Artifact",
+      "Sons of the Forest"
+    ]
+  },
+  {
+    "day": "2023-03-04",
+    "durationMin": 543,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-03-06",
+    "durationMin": 419,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-04-21",
+    "durationMin": 326,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-05-18",
+    "durationMin": 328,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-05-25",
+    "durationMin": 434,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-05-26",
+    "durationMin": 113,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-05-30",
+    "durationMin": 187,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-06-06",
+    "durationMin": 306,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-06-18",
+    "durationMin": 94,
+    "games": [
+      "Dark Souls",
+      "Diablo IV"
+    ]
+  },
+  {
+    "day": "2023-06-21",
+    "durationMin": 295,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-06-24",
+    "durationMin": 466,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-07-01",
+    "durationMin": 725,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-07-04",
+    "durationMin": 439,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-07-05",
+    "durationMin": 236,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2023-07-24",
+    "durationMin": 347,
+    "games": [
+      "Artifact",
+      "BattleBit Remastered"
+    ]
+  },
+  {
+    "day": "2023-07-26",
+    "durationMin": 317,
+    "games": [
+      "Just Chatting",
+      "BattleBit Remastered"
+    ]
+  },
+  {
+    "day": "2023-08-08",
+    "durationMin": 637,
+    "games": [
+      "Just Chatting",
+      "BattleBit Remastered"
+    ]
+  },
+  {
+    "day": "2023-08-11",
+    "durationMin": 441,
+    "games": [
+      "Just Chatting",
+      "Metin2"
+    ]
+  },
+  {
+    "day": "2023-08-12",
+    "durationMin": 212,
+    "games": [
+      "Metin2"
+    ]
+  },
+  {
+    "day": "2023-09-03",
+    "durationMin": 240,
+    "games": [
+      "Starfield"
+    ]
+  },
+  {
+    "day": "2023-09-07",
+    "durationMin": 798,
+    "games": [
+      "Starfield"
+    ]
+  },
+  {
+    "day": "2023-09-08",
+    "durationMin": 383,
+    "games": [
+      "Starfield"
+    ]
+  },
+  {
+    "day": "2023-09-11",
+    "durationMin": 587,
+    "games": [
+      "Starfield"
+    ]
+  },
+  {
+    "day": "2023-09-29",
+    "durationMin": 219,
+    "games": [
+      "Cyberpunk 2077"
+    ]
+  },
+  {
+    "day": "2023-11-10",
+    "durationMin": 213,
+    "games": [
+      "Counter-Strike",
+      "Risk of Rain Returns"
+    ]
+  },
+  {
+    "day": "2023-12-31",
+    "durationMin": 341,
+    "games": [
+      "Just Chatting",
+      "Deep Rock Galactic",
+      "Portal 2"
+    ]
+  },
+  {
+    "day": "2024-01-03",
+    "durationMin": 160,
+    "games": [
+      "Just Chatting",
+      "Vampire Survivors"
+    ]
+  },
+  {
+    "day": "2024-01-08",
     "durationMin": 314,
     "games": [
       "Just Chatting",
-      "Bloodborne"
+      "Portal 2"
     ]
   },
   {
-    "vodId": "315743482341",
-    "day": "2025-12-27",
-    "durationMin": 384,
+    "day": "2024-01-09",
+    "durationMin": 173,
+    "games": [
+      "Portal 2"
+    ]
+  },
+  {
+    "day": "2024-01-12",
+    "durationMin": 391,
     "games": [
       "Just Chatting",
-      "League of Legends",
-      "Bloodborne"
-    ]
-  },
-  {
-    "vodId": "315764991846",
-    "day": "2025-12-21",
-    "durationMin": 416,
-    "games": [
-      "ELDEN RING NIGHTREIGN",
-      "Just Chatting"
-    ]
-  },
-  {
-    "vodId": "315477331431",
-    "day": "2025-12-16",
-    "durationMin": 217,
-    "games": [
-      "Just Chatting",
-      "ARC Raiders",
-      "League of Legends"
-    ]
-  },
-  {
-    "vodId": "315709120358",
-    "day": "2025-12-15",
-    "durationMin": 236,
-    "games": [
-      "Just Chatting",
-      "League of Legends"
-    ]
-  },
-  {
-    "vodId": "315695843174",
-    "day": "2025-12-14",
-    "durationMin": 466,
-    "games": [
-      "Just Chatting",
-      "Counter-Strike"
-    ]
-  },
-  {
-    "vodId": "315349504231",
-    "day": "2025-12-04",
-    "durationMin": 290,
-    "games": [
-      "ELDEN RING NIGHTREIGN",
-      "Just Chatting"
-    ]
-  },
-  {
-    "vodId": "315571768422",
-    "day": "2025-12-01",
-    "durationMin": 187,
-    "games": [
-      "Just Chatting",
+      "Lethal Company",
       "Risk of Rain 2"
     ]
   },
   {
-    "vodId": "314890756305",
-    "day": "2025-11-21",
+    "day": "2024-01-13",
+    "durationMin": 234,
+    "games": [
+      "Just Chatting",
+      "Lethal Company"
+    ]
+  },
+  {
+    "day": "2024-01-16",
+    "durationMin": 409,
+    "games": [
+      "Just Chatting",
+      "Pwnk",
+      "Lethal Company"
+    ]
+  },
+  {
+    "day": "2024-01-18",
+    "durationMin": 255,
+    "games": [
+      "Artifact",
+      "Lethal Company"
+    ]
+  },
+  {
+    "day": "2024-01-19",
+    "durationMin": 318,
+    "games": [
+      "Lethal Company"
+    ]
+  },
+  {
+    "day": "2024-01-21",
+    "durationMin": 353,
+    "games": [
+      "Lethal Company"
+    ]
+  },
+  {
+    "day": "2024-01-24",
+    "durationMin": 502,
+    "games": [
+      "Just Chatting",
+      "Lethal Company"
+    ]
+  },
+  {
+    "day": "2024-01-26",
+    "durationMin": 343,
+    "games": [
+      "Just Chatting",
+      "Lethal Company"
+    ]
+  },
+  {
+    "day": "2024-01-31",
+    "durationMin": 285,
+    "games": [
+      "Lethal Company",
+      "Barbie",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-02-04",
+    "durationMin": 312,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-02-07",
+    "durationMin": 407,
+    "games": [
+      "Lethal Company"
+    ]
+  },
+  {
+    "day": "2024-02-09",
     "durationMin": 282,
     "games": [
-      "ARC Raiders"
+      "ELDEN RING"
     ]
   },
   {
-    "vodId": "315204782567",
-    "day": "2025-11-20",
-    "durationMin": 196,
+    "day": "2024-02-23",
+    "durationMin": 316,
     "games": [
-      "ARC Raiders"
+      "Artifact"
     ]
   },
   {
-    "vodId": "315153139810",
-    "day": "2025-11-17",
-    "durationMin": 247,
+    "day": "2024-02-25",
+    "durationMin": 390,
     "games": [
-      "ARC Raiders",
-      "Counter-Strike",
-      "Just Chatting"
+      "Artifact"
     ]
   },
   {
-    "vodId": "315169985635",
-    "day": "2025-11-12",
+    "day": "2024-02-27",
+    "durationMin": 368,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-03-01",
+    "durationMin": 429,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-03-04",
+    "durationMin": 100,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-03-06",
+    "durationMin": 283,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-03-08",
+    "durationMin": 121,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-03-09",
+    "durationMin": 446,
+    "games": [
+      "Artifact",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-03-13",
+    "durationMin": 199,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-03-14",
+    "durationMin": 51,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-03-15",
+    "durationMin": 169,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-03-17",
+    "durationMin": 246,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2024-04-26",
+    "durationMin": 370,
+    "games": [
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2024-04-27",
+    "durationMin": 174,
+    "games": [
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2024-05-20",
+    "durationMin": 423,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-05-21",
+    "durationMin": 390,
+    "games": [
+      "ELDEN RING",
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-05-22",
+    "durationMin": 281,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-05-24",
+    "durationMin": 611,
+    "games": [
+      "Just Chatting",
+      "ELDEN RING",
+      "ELDEN RING",
+      "Shakes and Fidget"
+    ]
+  },
+  {
+    "day": "2024-05-25",
+    "durationMin": 288,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-06-14",
+    "durationMin": 356,
+    "games": [
+      "Just Chatting",
+      "DARK SOULS II: Scholar of the First Sin"
+    ]
+  },
+  {
+    "day": "2024-06-15",
+    "durationMin": 501,
+    "games": [
+      "DARK SOULS II: Scholar of the First Sin"
+    ]
+  },
+  {
+    "day": "2024-06-20",
+    "durationMin": 193,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-06-21",
+    "durationMin": 931,
+    "games": [
+      "ELDEN RING",
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-06-22",
+    "durationMin": 791,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-06-23",
+    "durationMin": 531,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-06-24",
+    "durationMin": 327,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-06-26",
+    "durationMin": 656,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-06-28",
+    "durationMin": 791,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-06-29",
+    "durationMin": 455,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-07-13",
+    "durationMin": 263,
+    "games": [
+      "ELDEN RING"
+    ]
+  },
+  {
+    "day": "2024-07-18",
+    "durationMin": 225,
+    "games": [
+      "DARK SOULS II: Scholar of the First Sin"
+    ]
+  },
+  {
+    "day": "2024-07-20",
+    "durationMin": 306,
+    "games": [
+      "Portal",
+      "Portal"
+    ]
+  },
+  {
+    "day": "2024-07-21",
+    "durationMin": 241,
+    "games": [
+      "Portal",
+      "Portal"
+    ]
+  },
+  {
+    "day": "2024-07-22",
+    "durationMin": 292,
+    "games": [
+      "DARK SOULS II: Scholar of the First Sin"
+    ]
+  },
+  {
+    "day": "2024-07-23",
+    "durationMin": 325,
+    "games": [
+      "DARK SOULS II: Scholar of the First Sin"
+    ]
+  },
+  {
+    "day": "2025-04-18",
+    "durationMin": 218,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-04-19",
+    "durationMin": 346,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-04-20",
+    "durationMin": 305,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-04-22",
+    "durationMin": 191,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-04-24",
+    "durationMin": 265,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-04-25",
+    "durationMin": 263,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-04-26",
+    "durationMin": 351,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-04-29",
+    "durationMin": 258,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-01",
+    "durationMin": 358,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-02",
+    "durationMin": 352,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-04",
+    "durationMin": 309,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-07",
+    "durationMin": 240,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-09",
+    "durationMin": 265,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-10",
+    "durationMin": 354,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-12",
+    "durationMin": 284,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-14",
+    "durationMin": 317,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-16",
+    "durationMin": 305,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-18",
+    "durationMin": 258,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-20",
+    "durationMin": 288,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-05-22",
+    "durationMin": 257,
+    "games": [
+      "Artifact",
+      "Streamer University"
+    ]
+  },
+  {
+    "day": "2025-05-24",
+    "durationMin": 390,
+    "games": [
+      "Artifact",
+      "ELDEN RING",
+      "Streamer University"
+    ]
+  },
+  {
+    "day": "2025-05-25",
+    "durationMin": 288,
+    "games": [
+      "ELDEN RING NIGHTREIGN"
+    ]
+  },
+  {
+    "day": "2025-05-27",
+    "durationMin": 188,
+    "games": [
+      "ELDEN RING NIGHTREIGN"
+    ]
+  },
+  {
+    "day": "2025-05-30",
+    "durationMin": 730,
+    "games": [
+      "ELDEN RING NIGHTREIGN",
+      "ELDEN RING NIGHTREIGN"
+    ]
+  },
+  {
+    "day": "2025-05-31",
+    "durationMin": 687,
+    "games": [
+      "ELDEN RING NIGHTREIGN"
+    ]
+  },
+  {
+    "day": "2025-06-01",
+    "durationMin": 307,
+    "games": [
+      "ELDEN RING NIGHTREIGN"
+    ]
+  },
+  {
+    "day": "2025-06-04",
+    "durationMin": 210,
+    "games": [
+      "ELDEN RING NIGHTREIGN"
+    ]
+  },
+  {
+    "day": "2025-06-06",
+    "durationMin": 193,
+    "games": [
+      "Artifact",
+      "Unlisted on Twitch"
+    ]
+  },
+  {
+    "day": "2025-06-09",
+    "durationMin": 339,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-06-11",
+    "durationMin": 243,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-06-13",
+    "durationMin": 314,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-06-14",
+    "durationMin": 481,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-06-18",
+    "durationMin": 195,
+    "games": [
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2025-06-20",
+    "durationMin": 342,
+    "games": [
+      "Just Chatting",
+      "ELDEN RING NIGHTREIGN"
+    ]
+  },
+  {
+    "day": "2025-07-09",
+    "durationMin": 240,
+    "games": [
+      "League of Legends",
+      "Just Chatting",
+      "Project Silverfish"
+    ]
+  },
+  {
+    "day": "2025-07-11",
+    "durationMin": 281,
+    "games": [
+      "Project Silverfish"
+    ]
+  },
+  {
+    "day": "2025-07-14",
+    "durationMin": 224,
+    "games": [
+      "Just Chatting",
+      "Project Silverfish"
+    ]
+  },
+  {
+    "day": "2025-07-17",
     "durationMin": 260,
     "games": [
       "Just Chatting",
-      "Counter-Strike",
-      "ARC Raiders"
+      "ROBLOX"
     ]
   },
   {
-    "vodId": "315110379618",
-    "day": "2025-11-11",
-    "durationMin": 236,
-    "games": [
-      "ARC Raiders"
-    ]
-  },
-  {
-    "vodId": "315139711203",
-    "day": "2025-11-08",
-    "durationMin": 352,
+    "day": "2025-07-19",
+    "durationMin": 313,
     "games": [
       "Just Chatting",
-      "Counter-Strike",
-      "ARC Raiders"
+      "Mycopunk"
     ]
   },
   {
-    "vodId": "314991151459",
-    "day": "2025-10-21",
-    "durationMin": 270,
+    "day": "2025-07-21",
+    "durationMin": 293,
     "games": [
-      "Just Chatting"
+      "Forest Asylum 2",
+      "GAY Nation - a Gay Game for Gays [GAYS ONLY]",
+      "Twisted Jam",
+      "Just Chatting",
+      "ROBLOX"
     ]
   },
   {
-    "vodId": "314837151716",
-    "day": "2025-10-04",
-    "durationMin": 347,
-    "games": [
-      "Just Chatting"
-    ]
-  },
-  {
-    "vodId": "314828357604",
-    "day": "2025-10-03",
-    "durationMin": 298,
+    "day": "2025-07-28",
+    "durationMin": 465,
     "games": [
       "Just Chatting",
-      "Megabonk"
+      "WUCHANG: Fallen Feathers"
     ]
   },
   {
-    "vodId": null,
-    "day": "2025-10-02",
-    "durationMin": 270,
+    "day": "2025-07-29",
+    "durationMin": 539,
     "games": [
-      "Ghost of Y\u014dtei",
+      "WUCHANG: Fallen Feathers"
+    ]
+  },
+  {
+    "day": "2025-07-30",
+    "durationMin": 557,
+    "games": [
+      "WUCHANG: Fallen Feathers"
+    ]
+  },
+  {
+    "day": "2025-08-01",
+    "durationMin": 484,
+    "games": [
+      "TEKKEN 8"
+    ]
+  },
+  {
+    "day": "2025-08-02",
+    "durationMin": 68,
+    "games": [
+      "TEKKEN 8"
+    ]
+  },
+  {
+    "day": "2025-08-03",
+    "durationMin": 313,
+    "games": [
+      "TEKKEN 8"
+    ]
+  },
+  {
+    "day": "2025-08-06",
+    "durationMin": 289,
+    "games": [
       "Just Chatting",
-      "Megabonk"
+      "Counter-Strike"
     ]
   },
   {
-    "vodId": "314759958243",
-    "day": "2025-09-22",
-    "durationMin": 357,
+    "day": "2025-08-08",
+    "durationMin": 304,
     "games": [
-      "Minecraft"
+      "Battlefield 6",
+      "The First Descendant"
     ]
   },
   {
-    "vodId": "314753791842",
-    "day": "2025-09-20",
-    "durationMin": 517,
-    "games": [
-      "Minecraft"
-    ]
-  },
-  {
-    "vodId": "314753375970",
-    "day": "2025-09-20",
-    "durationMin": 57,
+    "day": "2025-08-10",
+    "durationMin": 269,
     "games": [
       "Just Chatting",
-      "Minecraft"
+      "Wplace"
     ]
   },
   {
-    "vodId": "314806908774",
-    "day": "2025-09-08",
-    "durationMin": 186,
+    "day": "2025-08-11",
+    "durationMin": 150,
     "games": [
-      "Path of Exile 2"
+      "Wplace"
     ]
   },
   {
-    "vodId": "314773303782",
-    "day": "2025-09-05",
-    "durationMin": 281,
+    "day": "2025-08-13",
+    "durationMin": 279,
     "games": [
-      "Path of Exile 2"
+      "Wplace"
     ]
   },
   {
-    "vodId": "314746281190",
-    "day": "2025-09-02",
-    "durationMin": 222,
+    "day": "2025-08-16",
+    "durationMin": 200,
     "games": [
-      "Path of Exile 2"
+      "Wplace"
     ]
   },
   {
-    "vodId": null,
-    "day": "2025-08-30",
-    "durationMin": 257,
-    "games": [
-      "Path of Exile 2",
-      "GeoGuessr"
-    ]
-  },
-  {
-    "vodId": "314456968935",
-    "day": "2025-08-29",
-    "durationMin": 229,
-    "games": [
-      "Just Chatting"
-    ]
-  },
-  {
-    "vodId": "314654867557",
     "day": "2025-08-20",
     "durationMin": 439,
     "games": [
@@ -768,11 +2324,668 @@
     ]
   },
   {
-    "vodId": "314630008421",
-    "day": "2025-08-16",
-    "durationMin": 200,
+    "day": "2025-08-29",
+    "durationMin": 229,
     "games": [
-      "Wplace"
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2025-08-30",
+    "durationMin": 257,
+    "games": [
+      "Path of Exile 2",
+      "GeoGuessr"
+    ]
+  },
+  {
+    "day": "2025-09-02",
+    "durationMin": 222,
+    "games": [
+      "Path of Exile 2"
+    ]
+  },
+  {
+    "day": "2025-09-05",
+    "durationMin": 281,
+    "games": [
+      "Path of Exile 2"
+    ]
+  },
+  {
+    "day": "2025-09-08",
+    "durationMin": 186,
+    "games": [
+      "Path of Exile 2"
+    ]
+  },
+  {
+    "day": "2025-09-20",
+    "durationMin": 574,
+    "games": [
+      "Just Chatting",
+      "Minecraft",
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2025-09-22",
+    "durationMin": 357,
+    "games": [
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2025-10-02",
+    "durationMin": 270,
+    "games": [
+      "Ghost of Yōtei",
+      "Just Chatting",
+      "Megabonk"
+    ]
+  },
+  {
+    "day": "2025-10-03",
+    "durationMin": 298,
+    "games": [
+      "Just Chatting",
+      "Megabonk"
+    ]
+  },
+  {
+    "day": "2025-10-04",
+    "durationMin": 347,
+    "games": [
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2025-10-21",
+    "durationMin": 270,
+    "games": [
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2025-11-08",
+    "durationMin": 352,
+    "games": [
+      "Just Chatting",
+      "Counter-Strike",
+      "ARC Raiders"
+    ]
+  },
+  {
+    "day": "2025-11-11",
+    "durationMin": 236,
+    "games": [
+      "ARC Raiders"
+    ]
+  },
+  {
+    "day": "2025-11-12",
+    "durationMin": 260,
+    "games": [
+      "Just Chatting",
+      "Counter-Strike",
+      "ARC Raiders"
+    ]
+  },
+  {
+    "day": "2025-11-17",
+    "durationMin": 247,
+    "games": [
+      "ARC Raiders",
+      "Counter-Strike",
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2025-11-20",
+    "durationMin": 196,
+    "games": [
+      "ARC Raiders"
+    ]
+  },
+  {
+    "day": "2025-11-21",
+    "durationMin": 282,
+    "games": [
+      "ARC Raiders"
+    ]
+  },
+  {
+    "day": "2025-12-01",
+    "durationMin": 187,
+    "games": [
+      "Just Chatting",
+      "Risk of Rain 2"
+    ]
+  },
+  {
+    "day": "2025-12-04",
+    "durationMin": 290,
+    "games": [
+      "ELDEN RING NIGHTREIGN",
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2025-12-14",
+    "durationMin": 466,
+    "games": [
+      "Just Chatting",
+      "Counter-Strike"
+    ]
+  },
+  {
+    "day": "2025-12-15",
+    "durationMin": 236,
+    "games": [
+      "Just Chatting",
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2025-12-16",
+    "durationMin": 217,
+    "games": [
+      "Just Chatting",
+      "ARC Raiders",
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2025-12-21",
+    "durationMin": 416,
+    "games": [
+      "ELDEN RING NIGHTREIGN",
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2025-12-27",
+    "durationMin": 384,
+    "games": [
+      "Just Chatting",
+      "League of Legends",
+      "Bloodborne"
+    ]
+  },
+  {
+    "day": "2025-12-28",
+    "durationMin": 314,
+    "games": [
+      "Just Chatting",
+      "Bloodborne"
+    ]
+  },
+  {
+    "day": "2025-12-29",
+    "durationMin": 485,
+    "games": [
+      "Bloodborne"
+    ]
+  },
+  {
+    "day": "2025-12-31",
+    "durationMin": 333,
+    "games": [
+      "Bloodborne",
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-01-03",
+    "durationMin": 427,
+    "games": [
+      "Bloodborne"
+    ]
+  },
+  {
+    "day": "2026-01-07",
+    "durationMin": 225,
+    "games": [
+      "Just Chatting",
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-01-10",
+    "durationMin": 316,
+    "games": [
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-01-19",
+    "durationMin": 230,
+    "games": [
+      "Just Chatting",
+      "League of Legends",
+      "Agreeee"
+    ]
+  },
+  {
+    "day": "2026-03-27",
+    "durationMin": 359,
+    "games": [
+      "Just Chatting",
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-03-29",
+    "durationMin": 302,
+    "games": [
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-03-30",
+    "durationMin": 216,
+    "games": [
+      "Just Chatting",
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-04-01",
+    "durationMin": 65,
+    "games": [
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-04-03",
+    "durationMin": 533,
+    "games": [
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-04-04",
+    "durationMin": 393,
+    "games": [
+      "Just Chatting",
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-04-05",
+    "durationMin": 203,
+    "games": [
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-04-06",
+    "durationMin": 262,
+    "games": [
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-04-11",
+    "durationMin": 262,
+    "games": [
+      "Just Chatting",
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-04-12",
+    "durationMin": 329,
+    "games": [
+      "Counter-Strike",
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-04-22",
+    "durationMin": 210,
+    "games": [
+      "Counter-Strike",
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-04-23",
+    "durationMin": 217,
+    "games": [
+      "Just Chatting",
+      "Counter-Strike"
+    ]
+  },
+  {
+    "day": "2026-04-26",
+    "durationMin": 122,
+    "games": [
+      "Just Chatting",
+      "Counter-Strike"
+    ]
+  },
+  {
+    "day": "2026-05-01",
+    "durationMin": 320,
+    "games": [
+      "Just Chatting",
+      "Counter-Strike"
+    ]
+  },
+  {
+    "day": "2026-05-14",
+    "durationMin": 239,
+    "games": [
+      "Just Chatting",
+      "Subnautica 2"
+    ]
+  },
+  {
+    "day": "2026-05-17",
+    "durationMin": 260,
+    "games": [
+      "Subnautica 2"
+    ]
+  },
+  {
+    "day": "2026-05-18",
+    "durationMin": 208,
+    "games": [
+      "Subnautica 2"
+    ]
+  },
+  {
+    "day": "2026-05-20",
+    "durationMin": 227,
+    "games": [
+      "Subnautica 2"
+    ]
+  },
+  {
+    "day": "2026-05-22",
+    "durationMin": 209,
+    "games": [
+      "Just Chatting",
+      "Counter-Strike",
+      "Subnautica 2"
+    ]
+  },
+  {
+    "day": "2026-05-24",
+    "durationMin": 421,
+    "games": [
+      "Minecraft",
+      "Subnautica 2"
+    ]
+  },
+  {
+    "day": "2026-05-27",
+    "durationMin": 190,
+    "games": [
+      "Just Chatting",
+      "Subnautica 2"
+    ]
+  },
+  {
+    "day": "2026-05-29",
+    "durationMin": 227,
+    "games": [
+      "Just Chatting",
+      "Subnautica 2"
+    ]
+  },
+  {
+    "day": "2026-06-05",
+    "durationMin": 336,
+    "games": [
+      "Counter-Strike",
+      "Just Chatting",
+      "Summer Game Fest"
+    ]
+  },
+  {
+    "day": "2026-06-07",
+    "durationMin": 223,
+    "games": [
+      "Special Events",
+      "Counter-Strike"
+    ]
+  },
+  {
+    "day": "2026-06-11",
+    "durationMin": 191,
+    "games": [
+      "Counter-Strike"
+    ]
+  },
+  {
+    "day": "2026-06-13",
+    "durationMin": 320,
+    "games": [
+      "Counter-Strike"
+    ]
+  },
+  {
+    "day": "2026-06-17",
+    "durationMin": 202,
+    "games": [
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2026-06-21",
+    "durationMin": 435,
+    "games": [
+      "Counter-Strike",
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2026-06-22",
+    "durationMin": 218,
+    "games": [
+      "Minecraft",
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-06-24",
+    "durationMin": 244,
+    "games": [
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2026-06-26",
+    "durationMin": 357,
+    "games": [
+      "Just Chatting",
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2026-06-28",
+    "durationMin": 293,
+    "games": [
+      "Just Chatting",
+      "Counter-Strike",
+      "Unlisted on Twitch"
+    ]
+  },
+  {
+    "day": "2026-06-29",
+    "durationMin": 208,
+    "games": [
+      "MECCHA CHAMELEON",
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-07-03",
+    "durationMin": 221,
+    "games": [
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2026-07-05",
+    "durationMin": 236,
+    "games": [
+      "Just Chatting",
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2026-07-06",
+    "durationMin": 145,
+    "games": [
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-07-10",
+    "durationMin": 223,
+    "games": [
+      "Just Chatting",
+      "Minecraft"
+    ]
+  },
+  {
+    "day": "2026-07-12",
+    "durationMin": 307,
+    "games": [
+      "Just Chatting",
+      "Minecraft",
+      "Unlisted on Twitch"
+    ]
+  },
+  {
+    "day": "2026-07-13",
+    "durationMin": 189,
+    "games": [
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-07-14",
+    "durationMin": 171,
+    "games": [
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-07-15",
+    "durationMin": 176,
+    "games": [
+      "Just Chatting"
+    ]
+  },
+  {
+    "day": "2026-07-17",
+    "durationMin": 349,
+    "games": [
+      "Just Chatting",
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2026-07-19",
+    "durationMin": 290,
+    "games": [
+      "Just Chatting",
+      "Artifact"
+    ]
+  },
+  {
+    "day": "2026-07-22",
+    "durationMin": 293,
+    "games": [
+      "Just Chatting",
+      "Welcome to the Game III"
+    ]
+  },
+  {
+    "day": "2026-07-24",
+    "durationMin": 283,
+    "games": [
+      "Just Chatting",
+      "Welcome to the Game III"
+    ]
+  },
+  {
+    "day": "2026-07-26",
+    "durationMin": 439,
+    "games": [
+      "Just Chatting",
+      "Welcome to the Game III"
+    ]
+  },
+  {
+    "day": "2026-07-28",
+    "durationMin": 350,
+    "games": [
+      "Just Chatting",
+      "Welcome to the Game III"
+    ]
+  },
+  {
+    "day": "2026-07-30",
+    "durationMin": 301,
+    "games": [
+      "Just Chatting",
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2026-07-31",
+    "durationMin": 283,
+    "games": [
+      "Just Chatting",
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2026-08-01",
+    "durationMin": 522,
+    "games": [
+      "Just Chatting",
+      "Sword Hero",
+      "Welcome to the Game III",
+      "League of Legends"
+    ]
+  },
+  {
+    "day": "2026-08-03",
+    "durationMin": 351,
+    "games": [
+      "Just Chatting",
+      "Metin2",
+      "ROBLOX"
+    ]
+  },
+  {
+    "day": "2026-08-05",
+    "durationMin": 330,
+    "games": [
+      "Just Chatting",
+      "Project Zomboid"
+    ]
+  },
+  {
+    "day": "2026-08-08",
+    "durationMin": 319,
+    "games": [
+      "Just Chatting",
+      "Demon's Souls"
+    ]
+  },
+  {
+    "day": "2026-08-10",
+    "durationMin": 416,
+    "games": [
+      "Just Chatting",
+      "Demon's Souls"
     ]
   }
 ]
