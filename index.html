@@ -1131,6 +1131,14 @@
     box-shadow: 0 1px 5px rgba(0,0,0,0.65);
     border: 1px solid rgba(255,255,255,0.15);
     background: #111;
+    /* it's a <button> now (clickable jump-to-game target) — strip the
+       native button chrome so it still looks like the plain box art tile */
+    padding: 0; cursor: pointer; display: block; font: inherit;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .grid-card-game-icon:hover {
+    box-shadow: 0 1px 8px rgba(0,0,0,0.8);
+    border-color: rgba(255,255,255,0.35);
   }
   .grid-card-game-icon img {
     width: 100%; height: 100%; object-fit: cover; display: block;
@@ -4491,6 +4499,35 @@ async function _flushBoxArtLookups() {
       const foundByLower = {};
       (d.data || []).forEach(g => { foundByLower[g.name.toLowerCase().trim()] = g.box_art_url; });
 
+      // Second-pass fallback: GET /helix/games?name= is a strict lookup —
+      // a name that's mis-cased in an unusual way, mis-spelled, or just
+      // phrased slightly differently than Twitch's official category name
+      // comes back with nothing. /helix/search/categories does fuzzy /
+      // prefix matching instead, so for anything the exact pass missed,
+      // retry it there before giving up. The search endpoint only takes a
+      // single `query=` per call (no batching), so this only runs for the
+      // leftovers, not the whole batch.
+      const missing = batch.filter(n => !(n.toLowerCase().trim() in foundByLower));
+      for (const name of missing) {
+        try {
+          const sr = await fetch(`https://api.twitch.tv/helix/search/categories?query=${encodeURIComponent(name)}&first=5`, {
+            headers: { 'Client-ID': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + token }
+          });
+          const sd = await sr.json();
+          const results = sd.data || [];
+          if (results.length) {
+            const key = name.toLowerCase().trim();
+            // Prefer an exact case-insensitive match among the fuzzy
+            // results (search can return several); fall back to Twitch's
+            // top-ranked hit as the best approximate match otherwise.
+            const match = results.find(g => g.name.toLowerCase().trim() === key) || results[0];
+            foundByLower[key] = match.box_art_url;
+          }
+        } catch (e) {
+          console.warn('[boxArt] fuzzy search fallback failed for', name, e.code || e.message || e);
+        }
+      }
+
       batch.forEach(name => {
         const key = name.toLowerCase().trim();
         const template = foundByLower[key] || null;
@@ -4563,7 +4600,11 @@ function renderPage() {
     const parts = s.vids.length > 1 ? `<span class="grid-card-parts">${s.vids.length} PARTS</span>` : '';
     const dominantGameRaw = getDominantGame(s);
     const dominantGame = dominantGameRaw ? translateGameLabel(dominantGameRaw) : null;
-    const gameIcon = dominantGame ? `<div class="grid-card-game-icon" title="${escHtml(dominantGame)}"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></div>` : '';
+    // Box art is the dominant game for the whole stream, so clicking it jumps
+    // to wherever THAT game's chapter starts (same lookup the game tags use)
+    // rather than just opening the video from the default point.
+    const dominantGameT = dominantGameRaw ? (chapTimeByLabel[dominantGameRaw] ?? 0) : 0;
+    const gameIcon = dominantGame ? `<button type="button" class="grid-card-game-icon" title="Jump to ${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>` : '';
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
         <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
