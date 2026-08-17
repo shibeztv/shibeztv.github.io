@@ -4410,6 +4410,42 @@ async function enrichVisiblePageChapters() {
   if (myToken === _enrichToken && gotAny) renderPage();
 }
 
+// Run in the console to see exactly which streams are missing categories
+// and why, instead of guessing. Two distinct causes look identical in the
+// UI but need different fixes:
+//  - "no VOD match"   → the stream's day never matched a Twitch VOD id, so
+//                       no live chapter fetch is even attempted. Usually
+//                       means the YouTube title's date (or the fallback
+//                       publishedAt-1-day guess) doesn't line up with
+//                       Twitch's created_at for that broadcast. Check the
+//                       video title against the real Twitch VOD date.
+//  - "VOD matched, no chapters cached yet" → a fetch will be retried
+//                       automatically on future page loads. For a stream
+//                       within the last day or two this is usually just
+//                       Twitch still processing the VOD's chapter data —
+//                       give it time. For anything older, the VOD has
+//                       likely aged out of Twitch's retention window and
+//                       needs a manual backfill via addManualChapters(...)
+//                       or bulkImportSullyGnomeCSV(...).
+window.debugChapterCoverage = function() {
+  if (!allStreams.length) { console.warn('allStreams is empty — streams may not have loaded yet'); return; }
+  const rows = allStreams.map(s => {
+    const matchedVodId = twitchVodMap[s.day] || null;
+    const cacheKey = matchedVodId || s.day;
+    const cached = _chapterCache[cacheKey];
+    const hasChapters = !!(cached && cached.games && cached.games.length);
+    let status;
+    if (hasChapters) status = `ok (${cached.games.length} chapter(s), source: ${cached.source || 'auto-fetch'})`;
+    else if (!matchedVodId) status = 'no VOD match';
+    else status = 'VOD matched, no chapters cached yet';
+    return { day: s.day, title: s.vids[0].title.slice(0, 60), matchedVodId: matchedVodId || '—', status };
+  });
+  const missing = rows.filter(r => r.status !== 'ok' && !r.status.startsWith('ok'));
+  console.table(rows);
+  console.log(`${missing.length} of ${rows.length} streams missing categories.`);
+  return rows;
+};
+
 // Translate non-English Twitch category names to English
 const _GAME_TRANSLATIONS = {
   // Hungarian
@@ -4475,6 +4511,28 @@ function _getBoxArtToken() {
   return _boxArtTokenPromise;
 }
 
+// ── Manual box art overrides ────────────────────────────────────────────
+// Some Twitch categories just don't have real box art uploaded yet (very
+// new releases, or games that have been out a while but Twitch never got
+// around to it — Subnautica 2 and Welcome to the Game III are both
+// examples as of 2026-08). When that happens the CDN doesn't 404 — it
+// silently 200s with Twitch's own generic placeholder image — so the
+// normal onerror fallback never catches it and the placeholder just sits
+// there looking like a real icon. There's no reliable way to detect that
+// client-side (the placeholder is a normal successful image load), so this
+// is a manual escape hatch: drop a direct image URL here (SteamGridDB,
+// IGDB, or the game's own Steam/press-kit art all work) keyed by the exact
+// game/category name, lowercased, and it's used instead of asking Twitch.
+const _BOXART_OVERRIDES = {
+  // 'subnautica 2': 'https://.../subnautica2-cover.jpg',
+  // 'welcome to the game iii': 'https://.../wttg3-cover.jpg',
+};
+window.setBoxArtOverride = function(gameName, url) {
+  _BOXART_OVERRIDES[gameName.toLowerCase().trim()] = url;
+  console.log(`Box art override set for "${gameName}" — reloading page to see it.`);
+  if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
+};
+
 // Names queued for lookup + who's listening for the result, batched so many
 // icons erroring around the same time become ONE Helix request (the
 // endpoint accepts up to 100 `name=` params per call) instead of one each.
@@ -4482,6 +4540,7 @@ let _pendingBoxArtNames = new Set();
 let _pendingBoxArtTimer = null;
 function requestBoxArt(gameName, onResolved) {
   const key = gameName.toLowerCase().trim();
+  if (key in _BOXART_OVERRIDES) { onResolved(_BOXART_OVERRIDES[key]); return; }
   if (key in _boxArtCache) { onResolved(_boxArtCache[key]); return; }
   if (!_pendingBoxArtListeners[key]) _pendingBoxArtListeners[key] = [];
   _pendingBoxArtListeners[key].push(onResolved);
@@ -4614,7 +4673,9 @@ function renderPage() {
     // to wherever THAT game's chapter starts (same lookup the game tags use)
     // rather than just opening the video from the default point.
     const dominantGameT = dominantGameRaw ? (chapTimeByLabel[dominantGameRaw] ?? 0) : 0;
-    const gameIcon = dominantGame ? `<button type="button" class="grid-card-game-icon" title="${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>` : '';
+    const boxArtOverride = dominantGame ? _BOXART_OVERRIDES[dominantGame.toLowerCase().trim()] : null;
+    const boxArtSrc = boxArtOverride || (dominantGame ? `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg` : '');
+    const gameIcon = dominantGame ? `<button type="button" class="grid-card-game-icon" title="${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="${boxArtSrc}" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>` : '';
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
         <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
