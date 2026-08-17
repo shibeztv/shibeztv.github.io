@@ -4554,7 +4554,17 @@ window.clearBoxArtCache = function() {
 // resolves — exact Helix match, fuzzy-search fallback (and what it landed
 // on), or nothing found — without having to eyeball icons and guess.
 window.debugBoxArt = async function() {
-  const names = [...new Set(allStreams.flatMap(s => (s.games||[]).map(g => translateGameLabel(g.label))))];
+  // stream.games (parsed from YouTube descriptions) is usually sparse/empty —
+  // the real per-stream game data lives in _chapterCache, same source
+  // getDominantGame()/getChapterList() read from. Pull names from there.
+  const nameSet = new Set();
+  allStreams.forEach(s => {
+    const vodId = twitchVodMap[s.day] || s.day;
+    const entry = _chapterCache[vodId];
+    if (entry && entry.games) entry.games.forEach(g => nameSet.add(translateGameLabel(g.label)));
+  });
+  const names = [...nameSet];
+  if (!names.length) { console.warn('No cached game names found — run debugChapterCoverage() first and make sure chapters are loaded.'); return []; }
   const token = await _getBoxArtToken();
   const rows = [];
   for (const rawName of names) {
