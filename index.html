@@ -4527,6 +4527,13 @@ function translateGameLabel(label) {
 const BOXART_CACHE_KEY = 'shibez_boxart_cache_v1';
 let _boxArtCache = {};
 try { _boxArtCache = JSON.parse(localStorage.getItem(BOXART_CACHE_KEY) || '{}'); } catch(e) { _boxArtCache = {}; }
+// Twitch has TWO categories that both display as literally "Demon's Souls"
+// (the 2009 PS3 original: twitch.tv/directory/category/demons-souls, and
+// the 2020 Bluepoint remake: .../demons-souls-2020) — same name, different
+// game IDs, different box art. A name-based Helix lookup can't tell them
+// apart, so it's pinned here by the remake's real Twitch game ID (988100999)
+// instead of trusting whichever one the name search happens to return.
+_boxArtCache["demon's souls"] = 'https://static-cdn.jtvnw.net/ttv-boxart/988100999_IGDB-144x192.jpg';
 function _saveBoxArtCache() {
   try { localStorage.setItem(BOXART_CACHE_KEY, JSON.stringify(_boxArtCache)); } catch(e) {
     console.warn('Box art cache save failed (localStorage full?):', e.message);
