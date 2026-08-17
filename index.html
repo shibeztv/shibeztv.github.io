@@ -4410,6 +4410,36 @@ async function enrichVisiblePageChapters() {
   if (myToken === _enrichToken && gotAny) renderPage();
 }
 
+// Proactively resolve REAL box art (via requestBoxArt → Helix) for every
+// dominant game on the currently visible page, instead of waiting to see
+// whether the name-guessed <img> happens to throw onerror. Twitch doesn't
+// reliably error on a wrong/guessed name — for ID-migrated games it just
+// 200s with a generic placeholder — so onerror alone can't be trusted to
+// catch every case. This runs every render, but requestBoxArt short-circuits
+// instantly for anything already in _boxArtCache, so it's a no-op after the
+// first successful resolution.
+let _boxArtEnrichToken = 0;
+function enrichVisiblePageBoxArt() {
+  const myToken = ++_boxArtEnrichToken;
+  const start = currentPage * PAGE_SIZE;
+  const pageStreams = displayedStreams.slice(start, start + PAGE_SIZE);
+  const names = new Set();
+  pageStreams.forEach(s => {
+    const raw = getDominantGame(s);
+    if (!raw) return;
+    const name = translateGameLabel(raw);
+    if (!(name.toLowerCase().trim() in _boxArtCache)) names.add(name);
+  });
+  if (!names.length && !names.size) return;
+  let pending = names.size, resolvedAny = false;
+  names.forEach(name => {
+    requestBoxArt(name, () => {
+      resolvedAny = true;
+      if (--pending === 0 && myToken === _boxArtEnrichToken && resolvedAny) renderPage();
+    });
+  });
+}
+
 // Run in the console to see exactly which streams are missing categories
 // and why, instead of guessing. Two distinct causes look identical in the
 // UI but need different fixes:
@@ -4751,8 +4781,23 @@ function renderPage() {
     // to wherever THAT game's chapter starts (same lookup the game tags use)
     // rather than just opening the video from the default point.
     const dominantGameT = dominantGameRaw ? (chapTimeByLabel[dominantGameRaw] ?? 0) : 0;
-    const boxArtSrc = dominantGame ? `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(boxArtQueryName(dominantGame))}-144x192.jpg` : '';
-    const gameIcon = dominantGame ? `<button type="button" class="grid-card-game-icon" title="${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="${boxArtSrc}" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>` : '';
+    const boxArtCacheKey = dominantGame ? dominantGame.toLowerCase().trim() : null;
+    // If we've already resolved this game's real box art via Helix (either
+    // from a previous visit or from enrichVisiblePageBoxArt below), use it
+    // directly — skip the name-guess entirely. Twitch has been migrating
+    // box art to numeric/IGDB-ID-based paths, so for a lot of games the
+    // guessed name-based URL doesn't error, it just silently loads Twitch's
+    // generic placeholder (a normal 200), which means onerror never fires
+    // and the wrong image sticks around even though the real one is known.
+    const cachedBoxArt = boxArtCacheKey && (boxArtCacheKey in _boxArtCache) ? _boxArtCache[boxArtCacheKey] : undefined;
+    const boxArtSrc = cachedBoxArt !== undefined
+      ? cachedBoxArt
+      : (dominantGame ? `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(boxArtQueryName(dominantGame))}-144x192.jpg` : '');
+    const gameIcon = dominantGame
+      ? (boxArtSrc
+          ? `<button type="button" class="grid-card-game-icon" title="${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="${boxArtSrc}" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>`
+          : '') // cached as null (confirmed no box art) — don't even render a broken <img>
+      : '';
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
         <span class="grid-card-chapters-icon"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
@@ -4783,6 +4828,7 @@ function renderPage() {
   }).join('');
 
   enrichVisiblePageChapters();
+  enrichVisiblePageBoxArt();
 
   const pg = document.getElementById('pagination');
   totalPages = Math.ceil(displayedStreams.length / PAGE_SIZE);
