@@ -4511,26 +4511,79 @@ function _getBoxArtToken() {
   return _boxArtTokenPromise;
 }
 
-// ── Manual box art overrides ────────────────────────────────────────────
-// Some Twitch categories just don't have real box art uploaded yet (very
-// new releases, or games that have been out a while but Twitch never got
-// around to it — Subnautica 2 and Welcome to the Game III are both
-// examples as of 2026-08). When that happens the CDN doesn't 404 — it
-// silently 200s with Twitch's own generic placeholder image — so the
-// normal onerror fallback never catches it and the placeholder just sits
-// there looking like a real icon. There's no reliable way to detect that
-// client-side (the placeholder is a normal successful image load), so this
-// is a manual escape hatch: drop a direct image URL here (SteamGridDB,
-// IGDB, or the game's own Steam/press-kit art all work) keyed by the exact
-// game/category name, lowercased, and it's used instead of asking Twitch.
-const _BOXART_OVERRIDES = {
-  // 'subnautica 2': 'https://.../subnautica2-cover.jpg',
-  // 'welcome to the game iii': 'https://.../wttg3-cover.jpg',
+// ── Box art name aliases ────────────────────────────────────────────────
+// Fixes for game/category labels that don't exactly match Twitch's official
+// category name, so the EXACT Helix lookup succeeds instead of falling
+// through to the fuzzy search (which can land on a wrong-but-real category
+// and show ITS box art — see the similarity guard below for that case).
+// Common source: roman numerals ("Welcome to the Game 3" vs Twitch's
+// official "Welcome to the Game III"), abbreviations, or punctuation drift
+// between however the label got stored (manual import, GQL, etc.) and
+// Twitch's canonical name. Add an entry any time debugBoxArt() below shows
+// a game resolving via fuzzy search when it shouldn't need to.
+const _BOXART_NAME_ALIASES = {
+  'welcome to the game 3': 'Welcome to the Game III',
 };
-window.setBoxArtOverride = function(gameName, url) {
-  _BOXART_OVERRIDES[gameName.toLowerCase().trim()] = url;
-  console.log(`Box art override set for "${gameName}" — reloading page to see it.`);
-  if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
+function boxArtQueryName(gameName) {
+  return _BOXART_NAME_ALIASES[gameName.toLowerCase().trim()] || gameName;
+}
+
+// Loose "same game" check for the fuzzy-search fallback: strips everything
+// but letters/digits and requires one name to contain the other. Catches
+// harmless drift (extra spacing, "&" vs "and", a missing colon) while
+// rejecting a fuzzy top-hit that's just a different, unrelated category —
+// which is what actually causes the wrong box art to appear.
+function boxArtNamesAreClose(a, b) {
+  const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const na = norm(a), nb = norm(b);
+  if (!na || !nb) return false;
+  return na === nb || na.includes(nb) || nb.includes(na);
+}
+
+// Clear the locally-cached box art lookups (including cached misses/wrong
+// matches from before a fix like the alias table above, or from before
+// Twitch had uploaded real art for a game). Run in the console, then
+// reload — every icon re-resolves against Twitch fresh.
+window.clearBoxArtCache = function() {
+  _boxArtCache = {};
+  try { localStorage.removeItem(BOXART_CACHE_KEY); } catch(e) {}
+  console.log('Box art cache cleared — reload the page to re-fetch everything.');
+};
+
+// Run in the console to see exactly how each on-screen game's box art
+// resolves — exact Helix match, fuzzy-search fallback (and what it landed
+// on), or nothing found — without having to eyeball icons and guess.
+window.debugBoxArt = async function() {
+  const names = [...new Set(allStreams.flatMap(s => (s.games||[]).map(g => translateGameLabel(g.label))))];
+  const token = await _getBoxArtToken();
+  const rows = [];
+  for (const rawName of names) {
+    const name = boxArtQueryName(rawName);
+    try {
+      const r = await fetch(`https://api.twitch.tv/helix/games?name=${encodeURIComponent(name)}`, {
+        headers: { 'Client-ID': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + token }
+      });
+      const d = await r.json();
+      const exact = (d.data || [])[0];
+      if (exact) {
+        rows.push({ game: rawName, queried: name, method: 'exact', matchedName: exact.name, boxArt: exact.box_art_url });
+        continue;
+      }
+      const sr = await fetch(`https://api.twitch.tv/helix/search/categories?query=${encodeURIComponent(name)}&first=5`, {
+        headers: { 'Client-ID': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + token }
+      });
+      const sd = await sr.json();
+      const top = (sd.data || [])[0];
+      rows.push({ game: rawName, queried: name, method: top ? 'FUZZY (check this)' : 'not found', matchedName: top ? top.name : '—', boxArt: top ? top.box_art_url : '—' });
+    } catch(e) {
+      rows.push({ game: rawName, queried: name, method: 'error', matchedName: e.message, boxArt: '—' });
+    }
+    await new Promise(res => setTimeout(res, 80));
+  }
+  console.table(rows);
+  const fuzzy = rows.filter(r => r.method.startsWith('FUZZY'));
+  if (fuzzy.length) console.warn(`${fuzzy.length} game(s) only matched via fuzzy search — verify "matchedName" is actually the right game, then add a _BOXART_NAME_ALIASES entry if not.`);
+  return rows;
 };
 
 // Names queued for lookup + who's listening for the result, batched so many
@@ -4540,7 +4593,6 @@ let _pendingBoxArtNames = new Set();
 let _pendingBoxArtTimer = null;
 function requestBoxArt(gameName, onResolved) {
   const key = gameName.toLowerCase().trim();
-  if (key in _BOXART_OVERRIDES) { onResolved(_BOXART_OVERRIDES[key]); return; }
   if (key in _boxArtCache) { onResolved(_boxArtCache[key]); return; }
   if (!_pendingBoxArtListeners[key]) _pendingBoxArtListeners[key] = [];
   _pendingBoxArtListeners[key].push(onResolved);
@@ -4560,13 +4612,24 @@ async function _flushBoxArtLookups() {
     // Helix allows up to 100 name= params per request
     for (let i = 0; i < names.length; i += 100) {
       const batch = names.slice(i, i + 100);
-      const qs = batch.map(n => 'name=' + encodeURIComponent(n)).join('&');
+      const qs = batch.map(n => 'name=' + encodeURIComponent(boxArtQueryName(n))).join('&');
       const r = await fetch(`https://api.twitch.tv/helix/games?${qs}`, {
         headers: { 'Client-ID': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + token }
       });
       const d = await r.json();
       const foundByLower = {};
       (d.data || []).forEach(g => { foundByLower[g.name.toLowerCase().trim()] = g.box_art_url; });
+      // The batch was queried using aliased names, but foundByLower above is
+      // keyed by whatever Twitch echoes back as the canonical name — also
+      // index each result under the ORIGINAL (pre-alias) name so the lookup
+      // below (keyed by original names) finds it.
+      batch.forEach(n => {
+        const aliased = boxArtQueryName(n);
+        if (aliased !== n) {
+          const hit = (d.data || []).find(g => g.name.toLowerCase().trim() === aliased.toLowerCase().trim());
+          if (hit) foundByLower[n.toLowerCase().trim()] = hit.box_art_url;
+        }
+      });
 
       // Second-pass fallback: GET /helix/games?name= is a strict lookup —
       // a name that's mis-cased in an unusual way, mis-spelled, or just
@@ -4577,7 +4640,8 @@ async function _flushBoxArtLookups() {
       // single `query=` per call (no batching), so this only runs for the
       // leftovers, not the whole batch.
       const missing = batch.filter(n => !(n.toLowerCase().trim() in foundByLower));
-      for (const name of missing) {
+      for (const rawName of missing) {
+        const name = boxArtQueryName(rawName);
         try {
           const sr = await fetch(`https://api.twitch.tv/helix/search/categories?query=${encodeURIComponent(name)}&first=5`, {
             headers: { 'Client-ID': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + token }
@@ -4585,15 +4649,19 @@ async function _flushBoxArtLookups() {
           const sd = await sr.json();
           const results = sd.data || [];
           if (results.length) {
-            const key = name.toLowerCase().trim();
+            const key = rawName.toLowerCase().trim();
             // Prefer an exact case-insensitive match among the fuzzy
-            // results (search can return several); fall back to Twitch's
-            // top-ranked hit as the best approximate match otherwise.
-            const match = results.find(g => g.name.toLowerCase().trim() === key) || results[0];
-            foundByLower[key] = match.box_art_url;
+            // results (search can return several). Otherwise only accept
+            // the top-ranked hit if it's a genuinely close match — Twitch's
+            // fuzzy search will happily return a real-but-unrelated
+            // category as its #1 result for an odd query, and showing that
+            // game's real box art is worse than showing no icon at all.
+            const match = results.find(g => g.name.toLowerCase().trim() === key)
+              || (boxArtNamesAreClose(name, results[0].name) ? results[0] : null);
+            if (match) foundByLower[key] = match.box_art_url;
           }
         } catch (e) {
-          console.warn('[boxArt] fuzzy search fallback failed for', name, e.code || e.message || e);
+          console.warn('[boxArt] fuzzy search fallback failed for', rawName, e.code || e.message || e);
         }
       }
 
@@ -4673,8 +4741,7 @@ function renderPage() {
     // to wherever THAT game's chapter starts (same lookup the game tags use)
     // rather than just opening the video from the default point.
     const dominantGameT = dominantGameRaw ? (chapTimeByLabel[dominantGameRaw] ?? 0) : 0;
-    const boxArtOverride = dominantGame ? _BOXART_OVERRIDES[dominantGame.toLowerCase().trim()] : null;
-    const boxArtSrc = boxArtOverride || (dominantGame ? `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(dominantGame)}-144x192.jpg` : '');
+    const boxArtSrc = dominantGame ? `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(boxArtQueryName(dominantGame))}-144x192.jpg` : '';
     const gameIcon = dominantGame ? `<button type="button" class="grid-card-game-icon" title="${escHtml(dominantGame)}" onclick="event.preventDefault();event.stopPropagation();selectGridChapter(${globalIdx},${dominantGameT})"><img src="${boxArtSrc}" alt="${escHtml(dominantGame)}" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(dominantGame).replace(/'/g,"\\'")}')"></button>` : '';
     const chapChip = chapCount ? `<div class="grid-card-chapters-wrap">
       <button class="grid-card-chapters-btn" onclick="toggleGridChapDropdown(event,${globalIdx})" title="Browse ${chapCount} chapter${chapCount===1?'':'s'}">
