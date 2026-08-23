@@ -4892,10 +4892,25 @@ function renderPage() {
   }
 }
 
+// Normalizes text for search matching: lowercases and strips apostrophes,
+// hyphens, and other punctuation down to plain letters/numbers/spaces. This
+// is what lets typing "demons" match "Demon's Souls" — a plain .includes()
+// on the raw strings fails because of the apostrophe, even though it's
+// obviously the same search intent. Also collapses repeated whitespace so
+// stray double-spaces don't break a match either.
+function _normalizeSearchText(str) {
+  return (str || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function applyFilters() {
   const from = document.getElementById('dateFrom').value; // YYYY-MM-DD or ''
   const to   = document.getElementById('dateTo').value;
-  const q    = (document.getElementById('streamSearch').value || '').trim().toLowerCase();
+  const qRaw = (document.getElementById('streamSearch').value || '').trim();
+  const q    = _normalizeSearchText(qRaw);
   const dateClearBtn   = document.getElementById('dateFilterClear');
   const searchClearBtn = document.getElementById('searchClear');
 
@@ -4903,12 +4918,12 @@ function applyFilters() {
     if (from && s.day < from) return false;
     if (to   && s.day > to)   return false;
     if (q) {
-      const titleMatch = (s.title || '').toLowerCase().includes(q);
-      const dateMatch  = (s.day   || '').toLowerCase().includes(q);
+      const titleMatch = _normalizeSearchText(s.title).includes(q);
+      const dateMatch  = _normalizeSearchText(s.day).includes(q);
       const chapters   = getChapterList(s); // same source as the grid card's game icon/chip
       const gameMatch  = chapters.some(g => {
-        const raw = (g.label || '').toLowerCase();
-        const translated = translateGameLabel(g.label || '').toLowerCase();
+        const raw = _normalizeSearchText(g.label);
+        const translated = _normalizeSearchText(translateGameLabel(g.label || ''));
         return raw.includes(q) || translated.includes(q);
       });
       if (!titleMatch && !dateMatch && !gameMatch) return false;
@@ -4917,7 +4932,7 @@ function applyFilters() {
   });
 
   if (dateClearBtn)   dateClearBtn.style.display   = (from || to) ? 'block' : 'none';
-  if (searchClearBtn) searchClearBtn.style.display = q ? 'block' : 'none';
+  if (searchClearBtn) searchClearBtn.style.display = qRaw ? 'block' : 'none';
   renderStreamList(filtered);
 }
 
