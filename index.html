@@ -4320,6 +4320,13 @@ function colorFor(i) { return PALETTE[i % PALETTE.length]; }
 // covers both auto-fetched (keyed by real vodId) and manually-backfilled
 // (keyed by day string) entries.
 function _lookupChapterEntry(stream) {
+  // Live-tracked entries (captured in real time during the stream itself,
+  // with exact per-change timestamps straight from Twitch) are the most
+  // trustworthy source there is — always prefer them over anything
+  // reconstructed after the fact (Twitch's own post-hoc chapter API, or a
+  // manual/SullyGnome approximation), even if one of those also exists.
+  const dayEntry = _chapterCache[stream.day];
+  if (dayEntry && dayEntry.games && dayEntry.games.length && dayEntry.source === 'live-tracked') return dayEntry;
   const liveVodId = twitchVodMap[stream.day];
   const candidates = liveVodId ? [liveVodId, stream.day] : [stream.day];
   for (const key of candidates) {
@@ -6720,7 +6727,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Don't wipe hash on init — we read it after streams load to restore state
   loadStreams();
   demoLiveAsBadgeInsider();
-  setInterval(demoLiveAsBadgeInsider, 120000);
+  setInterval(demoLiveAsBadgeInsider, 30000); // 30s, not 120s — finer granularity for live category-change timestamps
 });
 
 window.addEventListener('popstate', (e) => {
@@ -6967,6 +6974,71 @@ function secretLiveToggle() {
   }
 }
 
+// ─── LIVE CATEGORY TRACKER ──────────────────────────────────────────────────
+// The permanent chapter cache has relied on two after-the-fact sources so
+// far: Twitch's own GQL chapter endpoint (only serves data within its own
+// retention window) and manual/SullyGnome entry (real games, but only an
+// even time-split, not real timestamps). Neither is as good as just
+// recording the truth AS IT HAPPENS. Since this page already polls
+// helix/streams every interval for the live banner, piggyback on that same
+// poll: whenever stream.game_name differs from the last poll, that's a real
+// category change — log it with the real elapsed time since stream.started_at
+// and push it straight to Firestore immediately, incrementally, as it
+// happens. By the time the VOD shows up on YouTube/gets grouped into
+// allStreams, its exact chapters are already sitting in the cache forever,
+// completely independent of Twitch's retention window or any later
+// reconstruction. Only runs while a browser tab with this page open is
+// polling during the stream — same limitation the existing live-banner
+// polling already has.
+let _liveSession = null; // { day, startedAt, lastGame, games } while a stream is in progress
+
+// Best-effort guess at the "day" key this live stream will eventually be
+// grouped under once its VOD is uploaded and grouped by groupIntoStreams().
+// Uses the UTC calendar date Twitch reports the stream as having started,
+// which is what a title-embedded date (extractDateFromTitle) will normally
+// match. If the eventual YouTube-side grouping lands on a different day
+// (e.g. a very-late-night stream that title-dates itself the "morning
+// after"), the entry is never lost either way — it's just filed under
+// today's date until confirmed, and can be recopied to the right day with
+// addManualChapters if it ever lands off by one.
+function _liveDayFromStartedAt(startedAt) {
+  return new Date(startedAt).toISOString().slice(0, 10);
+}
+
+function _trackLiveCategory(stream) {
+  const day = _liveDayFromStartedAt(stream.started_at);
+  const game = stream.game_name || 'Just Chatting';
+
+  if (!_liveSession || _liveSession.day !== day) {
+    // New stream (or first poll after a page reload) — start a fresh
+    // session. Seed from whatever's already cached for today (in case the
+    // page was reloaded mid-stream and lost its in-memory session) so a
+    // reload never truncates the log back down to just one entry.
+    const existing = _chapterCache[day];
+    const seedGames = (existing && existing.source === 'live-tracked' && existing.games) ? existing.games.slice() : [];
+    _liveSession = {
+      day,
+      startedAt: stream.started_at,
+      lastGame: seedGames.length ? seedGames[seedGames.length - 1].label : null,
+      games: seedGames,
+    };
+  }
+
+  if (game !== _liveSession.lastGame) {
+    const elapsedSec = Math.max(0, Math.round((Date.now() - new Date(_liveSession.startedAt).getTime()) / 1000));
+    _liveSession.games.push({ t: elapsedSec, label: game });
+    _liveSession.lastGame = game;
+
+    const entry = { games: _liveSession.games.slice(), fetchedAt: Date.now(), source: 'live-tracked' };
+    _chapterCache[day] = entry;
+    _saveChapterCache();
+    _chapterCloudPush(day, entry); // saved permanently the instant it happens, not just at stream end
+    console.log(`[live-tracker] Category change → "${game}" at ${elapsedSec}s into the stream (day ${day}), saved.`);
+
+    if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
+  }
+}
+
 async function demoLiveAsBadgeInsider() {
   const banner      = document.getElementById('liveBanner');
   const bannerGame  = document.getElementById('liveBannerGame');
@@ -6985,6 +7057,7 @@ async function demoLiveAsBadgeInsider() {
     if (d.data && d.data.length > 0) {
       const stream = d.data[0];
       const game = escHtml(stream.game_name || 'streaming');
+      _trackLiveCategory(stream); // record any category change with a real timestamp, saved forever
 
       // Topbar dot + status
       if (dot) dot.classList.add('live');
@@ -7013,6 +7086,7 @@ async function demoLiveAsBadgeInsider() {
       }
     } else {
       // offline
+      _liveSession = null; // clear session so the next stream starts fresh
       if (dot) dot.classList.remove('live');
       if (banner) banner.style.display = 'none';
       const metaOff = document.getElementById('liveBannerMeta');
