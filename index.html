@@ -4409,7 +4409,8 @@ async function enrichVisiblePageChapters() {
   const pageStreams = displayedStreams.slice(start, start + PAGE_SIZE);
   const targets = pageStreams.filter(s => {
     const vodId = twitchVodMap[s.day];
-    return vodId && !(_chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length);
+    if (!vodId) return false;
+    return !_lookupChapterEntry(s); // skip if already have it under either key (day or vodId)
   });
   if (!targets.length) return;
 
@@ -4418,7 +4419,7 @@ async function enrichVisiblePageChapters() {
     if (myToken !== _enrichToken) return; // page changed — abandon
     const vodId = twitchVodMap[s.day];
     try {
-      const games = await getChaptersForVod(vodId); // saves to _chapterCache internally
+      const games = await getChaptersForVod(vodId, s.day); // saves to _chapterCache internally
       if (games.length) gotAny = true;
     } catch(e) { /* ignore — best effort */ }
     await new Promise(r => setTimeout(r, 120));
@@ -5489,25 +5490,25 @@ window.exportChapterCache = function() {
 // so as soon as this finishes, every visitor's browser has that data too —
 // no export/upload step needed.
 window.backfillAllChapters = async function() {
-  const allVodIds = new Set();
+  const vodDayMap = new Map(); // vodId -> stream day (for mirroring to the day key)
   (allStreams || []).forEach(stream => {
     const vodId = twitchVodMap[stream.day];
-    if (vodId) allVodIds.add(vodId);
+    if (vodId && !vodDayMap.has(vodId)) vodDayMap.set(vodId, stream.day);
     (stream.vids || []).forEach((v, pi) => {
       if (pi === 0) return;
       const pubDay = v.publishedAt ? v.publishedAt.slice(0, 10) : null;
       const partVod = pubDay ? twitchVodMap[pubDay] : null;
-      if (partVod) allVodIds.add(partVod);
+      if (partVod && !vodDayMap.has(partVod)) vodDayMap.set(partVod, stream.day);
     });
   });
-  const ids = [...allVodIds];
+  const ids = [...vodDayMap.keys()];
   console.log(`Backfilling chapters for ${ids.length} VOD(s)…`);
   let fetched = 0, alreadyCached = 0, empty = 0;
   for (const vodId of ids) {
     if (_chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length) {
       alreadyCached++; continue;
     }
-    const games = await getChaptersForVod(vodId); // saves to cache internally
+    const games = await getChaptersForVod(vodId, vodDayMap.get(vodId)); // saves to cache internally
     if (games.length) fetched++; else empty++;
     await new Promise(r => setTimeout(r, 150)); // be gentle with Twitch's API
   }
@@ -5518,8 +5519,9 @@ window.backfillAllChapters = async function() {
 
 // Cached wrapper around the raw GQL fetch below — this is what the rest of
 // the app should call.
-async function getChaptersForVod(vodId) {
+async function getChaptersForVod(vodId, day) {
   if (_chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length) {
+    _mirrorChapterEntryToDay(vodId, day);
     return _chapterCache[vodId].games;
   }
   const games = await fetchTwitchChapters(vodId);
@@ -5528,9 +5530,83 @@ async function getChaptersForVod(vodId) {
     _chapterCache[vodId] = entry;
     _saveChapterCache();
     _chapterCloudPush(vodId, entry); // fire-and-forget — saves it for every visitor, permanently
+    // ALSO save this same entry under the stream's DAY string, not just the
+    // numeric Twitch vodId. This is the fix for categories vanishing once a
+    // VOD ages out of Twitch's retention window: twitchVodMap[day] only
+    // resolves to a numeric vodId while Twitch is still serving that VOD (or
+    // while a static history-seed file happens to cover it). Once neither is
+    // true, there is no way to EVER recompute this vodId from the day again —
+    // the vodId-keyed entry becomes permanently unreachable, even though the
+    // data is still sitting right there in Firestore. Storing a day-keyed
+    // copy at the moment of fetch means the category survives forever,
+    // completely independent of whether Twitch (or our own vodMap) still
+    // remembers the numeric id later.
+    _mirrorChapterEntryToDay(vodId, day, entry);
   }
   return games;
 }
+
+// Copies a vodId-keyed chapter entry over to the day-string key, if we know
+// the day and it doesn't already have its own (real) data. Used both right
+// after a fresh fetch and opportunistically any time we happen to have both
+// pieces of information in hand (see getChaptersForVod and healChapterCacheKeys).
+function _mirrorChapterEntryToDay(vodId, day, entryOverride) {
+  if (!day || day === vodId) return;
+  if (_chapterCache[day] && _chapterCache[day].games && _chapterCache[day].games.length) return; // already fine
+  const entry = entryOverride || _chapterCache[vodId];
+  if (!entry || !entry.games || !entry.games.length) return;
+  _chapterCache[day] = entry;
+  _saveChapterCache();
+  _chapterCloudPush(day, entry);
+}
+
+// ── ONE-TIME MIGRATION ──────────────────────────────────────────────────────
+// Run this once in the console: window.healChapterCacheKeys()
+// Rescues every stream whose real Twitch vodId is STILL currently resolvable
+// (either because it's within Twitch's live retention window right now, or
+// because twitch-vod-history.json has it) but whose chapter data is only
+// reachable under that numeric-vodId key, not the day key. Copies each one
+// over to the day key permanently, so it survives from here on even after
+// the vodId itself later becomes unresolvable. This is the fix for streams
+// that "used to show a category" and then silently stopped — the data was
+// never gone, just stuck under a key nothing could compute anymore.
+// NOTE: this can only heal streams whose vodId mapping is resolvable RIGHT
+// NOW. If a stream's vodId already fell out of BOTH Twitch's live list AND
+// twitch-vod-history.json, there is no way left to know what its old vodId
+// was — for those, check twitch-vod-history.json coverage for that day, or
+// re-add the category by hand with addManualChapters(day, [...]).
+window.healChapterCacheKeys = function() {
+  if (!allStreams || !allStreams.length) { console.warn('allStreams is empty — streams may not have loaded yet'); return; }
+  let healed = 0, alreadyFine = 0, noVodId = 0, noData = 0;
+  const healedDays = [];
+  for (const s of allStreams) {
+    const vodId = twitchVodMap[s.day];
+    if (!vodId) { noVodId++; continue; }
+    if (_chapterCache[s.day] && _chapterCache[s.day].games && _chapterCache[s.day].games.length) { alreadyFine++; continue; }
+    const entry = _chapterCache[vodId];
+    if (!entry || !entry.games || !entry.games.length) { noData++; continue; }
+    _chapterCache[s.day] = entry;
+    healed++;
+    healedDays.push(s.day);
+  }
+  if (healed) _saveChapterCache();
+  console.log(`Healed ${healed} stream(s): ${healedDays.join(', ') || '—'}`);
+  console.log(`Already fine: ${alreadyFine}, no resolvable vodId right now: ${noVodId}, vodId resolved but no cached chapters: ${noData}`);
+  if (healed) {
+    console.log('Pushing healed entries to Firestore so every visitor gets them too…');
+    (async () => {
+      let pushed = 0;
+      for (const day of healedDays) {
+        const ok = await _chapterCloudPush(day, _chapterCache[day]);
+        if (ok) pushed++;
+        await new Promise(r => setTimeout(r, 120));
+      }
+      console.log(`Pushed ${pushed}/${healed} healed entries to Firestore.`);
+      if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
+    })();
+  }
+  return { healed, alreadyFine, noVodId, noData, healedDays };
+};
 
 // Fetch Twitch VOD chapters via GQL (game categories with timestamps)
 async function fetchTwitchChapters(vodId) {
@@ -5624,7 +5700,7 @@ function renderVideoMeta(stream) {
 
     // Fetch chapters for all parts in parallel
     Promise.all(partVodIds.map((vid, pi) =>
-      vid ? getChaptersForVod(vid).then(chs => ({ pi, chs, vid })) : Promise.resolve({ pi, chs: [], vid: null })
+      vid ? getChaptersForVod(vid, stream.day).then(chs => ({ pi, chs, vid })) : Promise.resolve({ pi, chs: [], vid: null })
     )).then(results => {
       if (myToken !== _vmToken) return; // stale — a newer VOD was opened, discard
       // Merge chapters from all parts into stream.games with correct cumulative offsets
