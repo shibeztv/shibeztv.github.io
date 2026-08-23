@@ -4306,6 +4306,29 @@ function parseTimestamp(s) {
 const PALETTE = ['#7c5cfc','#fc5c7d','#5cf0fc','#fcb55c','#5cfc8a','#c05cfc','#fc5c5c','#5c8afc'];
 function colorFor(i) { return PALETTE[i % PALETTE.length]; }
 
+// Look up a stream's cached chapters, checking EVERY plausible cache key —
+// not just whichever one twitchVodMap currently resolves to. This matters
+// because twitchVodMap only reflects Twitch's CURRENT VOD list: once a VOD
+// ages out of Twitch's retention window, twitchVodMap[day] stops resolving
+// to that VOD's numeric id, even though the permanent chapter cache still
+// has a durable entry saved under that numeric id from when it was
+// auto-fetched while the VOD was still fresh. Without checking both keys,
+// a stream that had a working category silently "loses" it the moment
+// Twitch drops the VOD from its own list — looks identical to "never
+// fetched" in the UI, but the data was there the whole time under the old
+// key. Checking the live-mapped id first (if any) then the day string
+// covers both auto-fetched (keyed by real vodId) and manually-backfilled
+// (keyed by day string) entries.
+function _lookupChapterEntry(stream) {
+  const liveVodId = twitchVodMap[stream.day];
+  const candidates = liveVodId ? [liveVodId, stream.day] : [stream.day];
+  for (const key of candidates) {
+    const entry = _chapterCache[key];
+    if (entry && entry.games && entry.games.length) return entry;
+  }
+  return null;
+}
+
 // Figure out which category a stream spent the most TIME in (not just which
 // appears first/most often) — used for the grid thumbnail badge. Prefers the
 // permanent chapter cache (real Twitch category data with real timestamps)
@@ -4313,13 +4336,8 @@ function colorFor(i) { return PALETTE[i % PALETTE.length]; }
 // synchronously the moment twitchVodMap + _chapterCache are populated —
 // no need to open the stream first.
 function getDominantGame(stream) {
-  // twitchVodMap only covers VODs still inside Twitch's retention window.
-  // Older streams fall back to their date string as the chapter-cache key —
-  // matches the key merge-backfill.js writes for streams with no live VOD id.
-  const vodId = twitchVodMap[stream.day] || stream.day;
-  let chapters = (vodId && _chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length)
-    ? _chapterCache[vodId].games
-    : null;
+  const cachedEntry = _lookupChapterEntry(stream);
+  let chapters = cachedEntry ? cachedEntry.games : null;
   if (!chapters) chapters = (stream.games && stream.games.length) ? stream.games : null;
   if (!chapters || !chapters.length) return null;
 
@@ -4362,10 +4380,8 @@ function getDominantGame(stream) {
 // player's segment bar uses, so the count shown on the grid card always
 // matches what you'll see once you open the stream.
 function getChapterList(stream) {
-  const vodId = twitchVodMap[stream.day] || stream.day;
-  let chapters = (vodId && _chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length)
-    ? _chapterCache[vodId].games
-    : null;
+  const cachedEntry = _lookupChapterEntry(stream);
+  let chapters = cachedEntry ? cachedEntry.games : null;
   if (!chapters) chapters = (stream.games && stream.games.length) ? stream.games : null;
   if (!chapters || !chapters.length) return [];
 
@@ -4461,8 +4477,7 @@ window.debugChapterCoverage = function() {
   if (!allStreams.length) { console.warn('allStreams is empty — streams may not have loaded yet'); return; }
   const rows = allStreams.map(s => {
     const matchedVodId = twitchVodMap[s.day] || null;
-    const cacheKey = matchedVodId || s.day;
-    const cached = _chapterCache[cacheKey];
+    const cached = _lookupChapterEntry(s);
     const hasChapters = !!(cached && cached.games && cached.games.length);
     let status;
     if (hasChapters) status = `ok (${cached.games.length} chapter(s), source: ${cached.source || 'auto-fetch'})`;
@@ -4596,8 +4611,7 @@ window.debugBoxArt = async function() {
   // getDominantGame()/getChapterList() read from. Pull names from there.
   const nameSet = new Set();
   allStreams.forEach(s => {
-    const vodId = twitchVodMap[s.day] || s.day;
-    const entry = _chapterCache[vodId];
+    const entry = _lookupChapterEntry(s);
     if (entry && entry.games) entry.games.forEach(g => nameSet.add(translateGameLabel(g.label)));
   });
   const names = [...nameSet];
@@ -5069,8 +5083,7 @@ function toggleGridChapDropdown(evt, globalIdx) {
   // seek point, but it's still a reasonable best-guess jump target, so
   // these are clickable the same as exact chapters — just without a shown
   // timestamp, since it isn't a real one.
-  const vodId = twitchVodMap[s.day] || s.day;
-  const isApprox = _chapterCache[vodId]?.source === 'manual-approx-sullygnome';
+  const isApprox = _lookupChapterEntry(s)?.source === 'manual-approx-sullygnome';
 
   const isMultiPart = s.vids.length > 1;
   let html = '';
@@ -5784,8 +5797,7 @@ function renderSegments(stream) {
   // stream), but each one is clickable and jumps to its approximate split
   // point, same mechanism as an exact chapter, just without a shown
   // timestamp since it isn't a real one.
-  const vodIdForSource = twitchVodMap[stream.day] || stream.day;
-  const isApproxSource = _chapterCache[vodIdForSource]?.source === 'manual-approx-sullygnome';
+  const isApproxSource = _lookupChapterEntry(stream)?.source === 'manual-approx-sullygnome';
 
   let chapHtml = '';
   if (isApproxSource) {
