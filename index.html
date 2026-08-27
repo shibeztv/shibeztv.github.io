@@ -453,12 +453,12 @@
   .chapter-item {
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 10px;
     width: 100%;
     background: none;
     border: none;
     border-radius: 4px;
-    padding: 7px 8px;
+    padding: 6px 8px;
     cursor: pointer;
     text-align: left;
     font-family: var(--sans);
@@ -466,22 +466,35 @@
     color: var(--text);
   }
   .chapter-item:hover { background: rgba(124,92,252,0.12); }
-  .chapter-item .chap-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
+  .chapter-item .chap-thumb {
+    width: 32px; height: 43px;
+    border-radius: 3px;
+    overflow: hidden;
     flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+  }
+  .chapter-item .chap-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .chapter-item .chap-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
   .chapter-item .chap-label {
-    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 600;
   }
   .chapter-item .chap-time {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    color: #c8c8d4;
-    flex-shrink: 0;
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--muted);
   }
 
   /* TIMELINE BAR */
@@ -4136,6 +4149,17 @@ function formatDuration(secs) {
   return `${m}:${String(s).padStart(2,'0')}`;
 }
 
+// Twitch's own chapter-select shows each chapter's SPAN ("2 hours 6 minutes"),
+// not a start timestamp — used by the chapter dropdown to match that look.
+function formatDurationLong(secs) {
+  const h = Math.floor(secs/3600);
+  const m = Math.round((secs%3600)/60);
+  const parts = [];
+  if (h) parts.push(`${h} hour${h===1?'':'s'}`);
+  parts.push(`${m} minute${m===1?'':'s'}`);
+  return parts.join(' ');
+}
+
 // ─── GROUP VIDEOS INTO STREAMS ─────────────────────────────────────────────
 // A "stream" = same calendar day. Multiple videos on same day = parts of same stream.
 // Try to extract stream date from video title
@@ -4586,6 +4610,18 @@ const _BOXART_NAME_ALIASES = {
 };
 function boxArtQueryName(gameName) {
   return _BOXART_NAME_ALIASES[gameName.toLowerCase().trim()] || gameName;
+}
+
+// Same cached-first, guess-second resolution the grid card's box art icon
+// uses, factored out so the chapter dropdown (Twitch-style thumbnails) can
+// share it instead of re-guessing. Returns null if a Helix lookup already
+// confirmed this game has no box art — caller should skip the <img> then,
+// same as the grid card does.
+function chapterBoxArtSrc(gameName) {
+  const key = gameName.toLowerCase().trim();
+  const cached = key in _boxArtCache ? _boxArtCache[key] : undefined;
+  if (cached !== undefined) return cached;
+  return `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(boxArtQueryName(gameName))}-144x192.jpg`;
 }
 
 // Loose "same game" check for the fuzzy-search fallback: strips everything
@@ -5118,28 +5154,34 @@ function toggleGridChapDropdown(evt, globalIdx) {
       seen.add(g.label);
       return true;
     });
-    uniqueGames.forEach((g, i) => {
-      const color = colorFor(i);
+    uniqueGames.forEach((g) => {
       const label = translateGameLabel(g.label);
+      const boxArtSrc = chapterBoxArtSrc(label);
+      const thumb = boxArtSrc ? `<img src="${boxArtSrc}" alt="" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(label).replace(/'/g,"\\'")}')">` : '';
       html += `<button class="chapter-item" onclick="event.stopPropagation();selectGridChapter(${globalIdx},${g.t})">
-        <span class="chap-dot" style="background:${color}"></span>
-        <span class="chap-label">${escHtml(label)}</span>
+        <span class="chap-thumb">${thumb}</span>
+        <span class="chap-info"><span class="chap-label">${escHtml(label)}</span></span>
       </button>`;
     });
   } else {
     let lastPart = -1;
     chapters.forEach((g, i) => {
-      const color = colorFor(i);
       const label = translateGameLabel(g.label);
       const partI = g.partIdx ?? 0;
       if (isMultiPart && partI !== lastPart) {
         lastPart = partI;
         html += `<div class="chap-part-header">Part ${partI + 1}</div>`;
       }
+      const end = chapters[i + 1]?.t ?? (s.totalDuration || g.t);
+      const dur = Math.max(0, end - g.t);
+      const boxArtSrc = chapterBoxArtSrc(label);
+      const thumb = boxArtSrc ? `<img src="${boxArtSrc}" alt="" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(label).replace(/'/g,"\\'")}')">` : '';
       html += `<button class="chapter-item" onclick="event.stopPropagation();selectGridChapter(${globalIdx},${g.t})">
-        <span class="chap-dot" style="background:${color}"></span>
-        <span class="chap-label">${escHtml(label)}</span>
-        <span class="chap-time">${formatDuration(g.t)}</span>
+        <span class="chap-thumb">${thumb}</span>
+        <span class="chap-info">
+          <span class="chap-label">${escHtml(label)}</span>
+          <span class="chap-time">${formatDurationLong(dur)}</span>
+        </span>
       </button>`;
     });
   }
@@ -5904,30 +5946,37 @@ function renderSegments(stream) {
       if (seen.has(g.label)) return;
       seen.add(g.label);
       const origIdx = raw.indexOf(g);
-      const color   = colorFor(origIdx);
       const label   = translateGameLabel(g.label);
+      const boxArtSrc = chapterBoxArtSrc(label);
+      const thumb = boxArtSrc ? `<img src="${boxArtSrc}" alt="" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(label).replace(/'/g,"\\'")}')">` : '';
       chapHtml += `<button class="chapter-item" data-orig-idx="${origIdx}" onclick="jumpToSegment(${origIdx});closeChaptersDropdown()">
-        <span class="chap-dot" style="background:${color}"></span>
-        <span class="chap-label">${escHtml(label)}</span>
+        <span class="chap-thumb">${thumb}</span>
+        <span class="chap-info"><span class="chap-label">${escHtml(label)}</span></span>
       </button>`;
     });
   } else {
     let lastChapPart = -1;
     games.forEach((g) => {
       const origIdx = raw.indexOf(g);
-      const color   = colorFor(origIdx);
       const label   = translateGameLabel(g.label);
       const partI   = g.partIdx ?? 0;
+      const gIdx    = games.indexOf(g);
+      const end     = games[gIdx + 1]?.t ?? total;
+      const dur     = Math.max(0, end - g.t);
 
       if (isMultiPart && partI !== lastChapPart) {
         lastChapPart = partI;
         chapHtml += `<div class="chap-part-header">Part ${partI + 1}</div>`;
       }
 
+      const boxArtSrc = chapterBoxArtSrc(label);
+      const thumb = boxArtSrc ? `<img src="${boxArtSrc}" alt="" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(label).replace(/'/g,"\\'")}')">` : '';
       chapHtml += `<button class="chapter-item" data-orig-idx="${origIdx}" onclick="jumpToSegment(${origIdx});closeChaptersDropdown()">
-        <span class="chap-dot" style="background:${color}"></span>
-        <span class="chap-label">${escHtml(label)}</span>
-        <span class="chap-time">${formatDuration(g.t)}</span>
+        <span class="chap-thumb">${thumb}</span>
+        <span class="chap-info">
+          <span class="chap-label">${escHtml(label)}</span>
+          <span class="chap-time">${formatDurationLong(dur)}</span>
+        </span>
       </button>`;
     });
   }
