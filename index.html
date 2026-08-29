@@ -494,7 +494,7 @@
   .chapter-item .chap-time {
     font-family: var(--sans);
     font-size: 11px;
-    color: var(--muted);
+    color: #c8c8d4;
   }
 
   /* TIMELINE BAR */
@@ -4444,6 +4444,7 @@ async function enrichVisiblePageChapters() {
     if (!vodId) return false;
     const entry = _lookupChapterEntry(s);
     if (!entry) return true; // no data yet — always worth a fetch
+    if (_recheckedThisSession.has(vodId)) return false; // already rechecked once this page load — don't loop forever
     const dayAgeMs = Date.now() - new Date(s.day + 'T00:00:00Z').getTime();
     return dayAgeMs < RECHECK_WINDOW_MS; // recent stream — recheck even though cache isn't empty, in case the first fetch caught Twitch mid-processing
   });
@@ -4453,6 +4454,7 @@ async function enrichVisiblePageChapters() {
   for (const s of targets) {
     if (myToken !== _enrichToken) return; // page changed — abandon
     const vodId = twitchVodMap[s.day];
+    _recheckedThisSession.add(vodId);
     try {
       const games = await getChaptersForVod(vodId, s.day); // saves to _chapterCache internally
       if (games.length) gotAny = true;
@@ -5343,6 +5345,11 @@ function onYouTubeIframeAPIReady() {
 const CHAPTER_CACHE_KEY = 'shibez_chapter_cache_v1';
 const CHAPTER_CLOUD_COLLECTION = 'chapterCache';
 let _chapterCache = {};
+// VODs already given one recency-recheck attempt this page load — prevents
+// enrichVisiblePageChapters from re-triggering itself forever via its own
+// renderPage() call after a successful fetch (a recent VOD would otherwise
+// keep re-qualifying for "recheck" every single time the grid re-renders).
+const _recheckedThisSession = new Set();
 try { _chapterCache = JSON.parse(localStorage.getItem(CHAPTER_CACHE_KEY) || '{}'); } catch(e) { _chapterCache = {}; }
 
 function _saveChapterCache() {
