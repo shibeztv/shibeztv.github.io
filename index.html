@@ -5456,7 +5456,22 @@ window.addManualChapters = function(dayOrVodId, gamesInput) {
   _chapterCache[vodId] = entry;
   _saveChapterCache();
   _chapterCloudPush(vodId, entry);
-  console.log(`Saved ${games.length} manual chapter(s) for VOD ${vodId} — pushed to Firestore for every visitor.`);
+
+  // Also overwrite the day-string key directly, not just the vodId key.
+  // _lookupChapterEntry gives an existing day-keyed 'live-tracked' entry
+  // unconditional priority over everything else — if the live tracker only
+  // ever saw one category that day (e.g. you never switched Twitch's live
+  // category away from Just Chatting even while playing something else),
+  // that bad record would silently block this manual fix forever. A
+  // deliberate manual correction should always win.
+  const dayKey = /^\d{4}-\d{2}-\d{2}$/.test(dayOrVodId) ? dayOrVodId : null;
+  if (dayKey && dayKey !== vodId) {
+    _chapterCache[dayKey] = entry;
+    _saveChapterCache();
+    _chapterCloudPush(dayKey, entry);
+  }
+
+  console.log(`Saved ${games.length} manual chapter(s) for VOD ${vodId}${dayKey ? ` (and day key ${dayKey})` : ''} — pushed to Firestore for every visitor.`);
   if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
   return entry;
 };
