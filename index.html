@@ -4438,10 +4438,14 @@ async function enrichVisiblePageChapters() {
   const myToken = ++_enrichToken;
   const start = currentPage * PAGE_SIZE;
   const pageStreams = displayedStreams.slice(start, start + PAGE_SIZE);
+  const RECHECK_WINDOW_MS = 4 * 24 * 60 * 60 * 1000; // keep in sync with getChaptersForVod
   const targets = pageStreams.filter(s => {
     const vodId = twitchVodMap[s.day];
     if (!vodId) return false;
-    return !_lookupChapterEntry(s); // skip if already have it under either key (day or vodId)
+    const entry = _lookupChapterEntry(s);
+    if (!entry) return true; // no data yet — always worth a fetch
+    const dayAgeMs = Date.now() - new Date(s.day + 'T00:00:00Z').getTime();
+    return dayAgeMs < RECHECK_WINDOW_MS; // recent stream — recheck even though cache isn't empty, in case the first fetch caught Twitch mid-processing
   });
   if (!targets.length) return;
 
@@ -5584,12 +5588,33 @@ window.backfillAllChapters = async function() {
 // Cached wrapper around the raw GQL fetch below — this is what the rest of
 // the app should call.
 async function getChaptersForVod(vodId, day) {
-  if (_chapterCache[vodId] && _chapterCache[vodId].games && _chapterCache[vodId].games.length) {
-    _mirrorChapterEntryToDay(vodId, day);
-    return _chapterCache[vodId].games;
+  const cached = _chapterCache[vodId];
+  const RECHECK_WINDOW_MS = 4 * 24 * 60 * 60 * 1000; // Twitch usually finishes processing VOD chapters well within this
+  const dayAgeMs = day ? (Date.now() - new Date(day + 'T00:00:00Z').getTime()) : Infinity;
+  const isRecentStream = dayAgeMs < RECHECK_WINDOW_MS;
+
+  if (cached && cached.games && cached.games.length) {
+    // Trust the cache as final once the stream is old enough that Twitch's
+    // chapter processing has definitely settled. For recent streams, keep
+    // re-checking on each visit instead of locking in a possibly-incomplete
+    // first fetch — this is what used to cause a stream to get permanently
+    // stuck showing just "Just Chatting" if someone loaded the page before
+    // Twitch finished generating the real chapter moments.
+    if (!isRecentStream) {
+      _mirrorChapterEntryToDay(vodId, day);
+      return cached.games;
+    }
   }
+
   const games = await fetchTwitchChapters(vodId);
   if (games.length) {
+    // Never regress: if a recheck on a recent stream comes back with FEWER
+    // chapters than what's already cached (e.g. a flaky/partial response),
+    // keep the better one instead of overwriting good data with worse data.
+    if (cached && cached.games && cached.games.length > games.length) {
+      _mirrorChapterEntryToDay(vodId, day);
+      return cached.games;
+    }
     const entry = { games, fetchedAt: Date.now() };
     _chapterCache[vodId] = entry;
     _saveChapterCache();
@@ -5606,6 +5631,9 @@ async function getChaptersForVod(vodId, day) {
     // completely independent of whether Twitch (or our own vodMap) still
     // remembers the numeric id later.
     _mirrorChapterEntryToDay(vodId, day, entry);
+  } else if (cached && cached.games && cached.games.length) {
+    _mirrorChapterEntryToDay(vodId, day);
+    return cached.games; // this fetch came back empty — fall back to what we had rather than losing it
   }
   return games;
 }
