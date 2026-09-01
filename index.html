@@ -5477,6 +5477,40 @@ window.addManualChapters = function(dayOrVodId, gamesInput) {
   return entry;
 };
 
+// Wipe a bad locally-cached chapter entry and re-fetch it fresh from Twitch.
+// WHY THIS EXISTS: the chapter cache has no TTL/expiry (a VOD's categories
+// never change once the stream is over), and enrichVisiblePageChapters()
+// only ever rechecks a VOD within RECHECK_WINDOW_MS (4 days) of the stream
+// date. So if a fetch ever ran while Twitch was still mid-processing that
+// VOD's chapter data (or returned a partial/wrong result) and got saved to
+// localStorage, that bad snapshot sits there permanently on THAT browser —
+// it's past the recheck window, so nothing ever re-fetches it again. The
+// Firestore cloud pull won't fix it either: it only fills in VODs missing
+// from local cache, never overwrites an existing (bad) local entry. That's
+// why a brand-new browser/PC can show the correct chapters (empty local
+// cache → pulls the good data from Firestore) while an old browser keeps
+// showing the bad ones forever until that one entry is cleared.
+// Run in console: clearChapterCache('2024-03-15')  (day string or VOD id)
+window.clearChapterCache = async function(dayOrVodId){
+  const vodId = twitchVodMap[dayOrVodId] || dayOrVodId;
+  const keysToDelete = [dayOrVodId, vodId].filter((k, i, arr) => k && arr.indexOf(k) === i);
+  let removed = 0;
+  keysToDelete.forEach(k => { if (_chapterCache[k]) { delete _chapterCache[k]; removed++; } });
+  if (removed) _saveChapterCache();
+  console.log(`Cleared ${removed} local cache entr${removed === 1 ? 'y' : 'ies'} for key(s): ${keysToDelete.join(', ')}`);
+
+  if (!vodId) { console.warn('No VOD id resolved — cache cleared but nothing to re-fetch.'); return; }
+  try {
+    const games = await getChaptersForVod(vodId, dayOrVodId); // re-fetches live + saves + pushes to Firestore
+    console.log(games.length
+      ? `Re-fetched ${games.length} chapter(s) for VOD ${vodId} — saved locally and pushed to Firestore for every visitor.`
+      : `Re-fetch for VOD ${vodId} returned nothing (Twitch may still be processing, or the VOD aged out — use addManualChapters() instead).`);
+  } catch(e) {
+    console.error('Re-fetch failed:', e.message || e);
+  }
+  if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
+};
+
 // Bulk-import stream/game data exported as CSV from SullyGnome (or any
 // tracker with the same shape: day + total duration + ordered game list,
 // but NO per-game timestamps). Since there's no timing breakdown per game,
