@@ -2448,12 +2448,6 @@
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     🐦 FLAPPY SHIBEZ
   </button>
-  <button onclick="openSongGuessr()" id="songGuessrBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
-    onmouseover="this.style.borderColor='#1db954';this.style.color='#1db954'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
-    🎵 SONG GUESSR
-  </button>
   <button onclick="openSpacebez()" id="spaceBtn"
     style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
@@ -2824,23 +2818,6 @@
           </div>
           <div id="aionLbRows" style="width:100%;max-width:340px;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:2px"></div>
           <button onclick="aionRestart()" style="font-family:var(--mono);font-size:16px;font-weight:900;background:rgba(244,114,182,0.15);border:2px solid #f472b6;color:#f472b6;padding:14px 40px;border-radius:8px;cursor:pointer">PLAY AGAIN</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- SONG GUESSR MODAL (embeds songspot.net — remove/replace src if it ever
-         starts refusing to frame; see openSongGuessr() note below) -->
-    <div id="songGuessrModal" style="display:none;position:fixed;top:var(--bars-h);left:0;right:0;bottom:0;z-index:9002;background:rgba(5,7,14,0.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:10px;box-sizing:border-box" onclick="if(event.target===this)closeSongGuessr()">
-      <div style="background:#0a0a14;border:1px solid #2a2a4a;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;width:100%;max-width:900px;height:calc(100vh - var(--bars-h) - 20px);max-height:calc(100vh - var(--bars-h) - 20px)">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a1a3a;width:100%;box-sizing:border-box;flex-shrink:0">
-          <span style="font-family:var(--mono);font-size:14px;font-weight:900;color:#1db954;letter-spacing:2px">🎵 SONG GUESSR</span>
-          <div style="display:flex;align-items:center;gap:14px">
-            <a href="https://songspot.net" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:10px;font-weight:700;color:#888;text-decoration:none">not loading? open directly ↗</a>
-            <button onclick="closeSongGuessr()" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:20px;line-height:1;padding:2px 6px">✕</button>
-          </div>
-        </div>
-        <div id="songGuessrFrameWrap" style="flex:1;min-height:0;width:100%;position:relative;background:#000">
-          <iframe id="songGuessrIframe" title="Songspot" style="width:100%;height:100%;border:0;display:block" allow="autoplay"></iframe>
         </div>
       </div>
     </div>
@@ -5068,7 +5045,6 @@ function closeAllGameModals() {
     ['aionModal',    'closeAiOrNot'],
     ['profileModal', 'shibezProfileClose'],
     ['wmModal',      'closeWheelSpin'],
-    ['songGuessrModal', 'closeSongGuessr'],
   ];
   registry.forEach(([modalId, closeFnName]) => {
     const m = document.getElementById(modalId);
@@ -5091,7 +5067,6 @@ document.addEventListener('keydown', e => {
     ['flappyModal',  'closeFlappy'],
     ['wmModal',      'closeWheelSpin'],
     ['profileModal', 'shibezProfileClose'],
-    ['songGuessrModal', 'closeSongGuessr'],
   ];
   for (const [modalId, closeFnName] of fallbackRegistry) {
     const m = document.getElementById(modalId);
@@ -5500,40 +5475,6 @@ window.addManualChapters = function(dayOrVodId, gamesInput) {
   console.log(`Saved ${games.length} manual chapter(s) for VOD ${vodId}${dayKey ? ` (and day key ${dayKey})` : ''} — pushed to Firestore for every visitor.`);
   if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
   return entry;
-};
-
-// Wipe a bad locally-cached chapter entry and re-fetch it fresh from Twitch.
-// WHY THIS EXISTS: the chapter cache has no TTL/expiry (a VOD's categories
-// never change once the stream is over), and enrichVisiblePageChapters()
-// only ever rechecks a VOD within RECHECK_WINDOW_MS (4 days) of the stream
-// date. So if a fetch ever ran while Twitch was still mid-processing that
-// VOD's chapter data (or returned a partial/wrong result) and got saved to
-// localStorage, that bad snapshot sits there permanently on THAT browser —
-// it's past the recheck window, so nothing ever re-fetches it again. The
-// Firestore cloud pull won't fix it either: it only fills in VODs missing
-// from local cache, never overwrites an existing (bad) local entry. That's
-// why a brand-new browser/PC can show the correct chapters (empty local
-// cache → pulls the good data from Firestore) while an old browser keeps
-// showing the bad ones forever until that one entry is cleared.
-// Run in console: clearChapterCache('2024-03-15')  (day string or VOD id)
-window.clearChapterCache = async function(dayOrVodId){
-  const vodId = twitchVodMap[dayOrVodId] || dayOrVodId;
-  const keysToDelete = [dayOrVodId, vodId].filter((k, i, arr) => k && arr.indexOf(k) === i);
-  let removed = 0;
-  keysToDelete.forEach(k => { if (_chapterCache[k]) { delete _chapterCache[k]; removed++; } });
-  if (removed) _saveChapterCache();
-  console.log(`Cleared ${removed} local cache entr${removed === 1 ? 'y' : 'ies'} for key(s): ${keysToDelete.join(', ')}`);
-
-  if (!vodId) { console.warn('No VOD id resolved — cache cleared but nothing to re-fetch.'); return; }
-  try {
-    const games = await getChaptersForVod(vodId, dayOrVodId); // re-fetches live + saves + pushes to Firestore
-    console.log(games.length
-      ? `Re-fetched ${games.length} chapter(s) for VOD ${vodId} — saved locally and pushed to Firestore for every visitor.`
-      : `Re-fetch for VOD ${vodId} returned nothing (Twitch may still be processing, or the VOD aged out — use addManualChapters() instead).`);
-  } catch(e) {
-    console.error('Re-fetch failed:', e.message || e);
-  }
-  if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
 };
 
 // Bulk-import stream/game data exported as CSV from SullyGnome (or any
@@ -14081,25 +14022,6 @@ function closeAiOrNot(){
   document.getElementById('aionModal').style.display='none';
   document.removeEventListener('keydown',_aionKey);
   _clearHash();
-}
-
-// ─── SONG GUESSR (embeds songspot.net in an iframe) ────────────────────────
-// This is a third-party site, not something we host — the iframe only works
-// as long as songspot.net keeps allowing itself to be framed (no
-// X-Frame-Options/CSP frame-ancestors block on their end). If they ever add
-// one, browsers show a blank frame with no JS-catchable error (onerror
-// doesn't fire for that), which is why there's a permanent "open directly"
-// link in the header instead of trying to auto-detect the failure.
-// Sets the iframe src lazily on first open, not on page load, so it's not
-// pulling songspot.net in the background for every visitor.
-function openSongGuessr(){
-  closeAllGameModals();
-  const iframe = document.getElementById('songGuessrIframe');
-  if (!iframe.src) iframe.src = 'https://songspot.net';
-  document.getElementById('songGuessrModal').style.display = 'flex';
-}
-function closeSongGuessr(){
-  document.getElementById('songGuessrModal').style.display = 'none';
 }
 function _aionKey(e){
   if(document.getElementById('aionModal').style.display==='none') return;
