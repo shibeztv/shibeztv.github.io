@@ -4446,6 +4446,7 @@ async function enrichVisiblePageChapters() {
     const entry = _lookupChapterEntry(s);
     if (!entry) return true; // no data yet — always worth a fetch
     if (_recheckedThisSession.has(vodId)) return false; // already rechecked once this page load — don't loop forever
+    if (entry.source === 'live-tracked') return true; // live-tracked timestamps are only a guess — always worth reconciling against Twitch's real chapter data, however old
     const dayAgeMs = Date.now() - new Date(s.day + 'T00:00:00Z').getTime();
     return dayAgeMs < RECHECK_WINDOW_MS; // recent stream — recheck even though cache isn't empty, in case the first fetch caught Twitch mid-processing
   });
@@ -5699,9 +5700,23 @@ async function getChaptersForVod(vodId, day) {
 // the day and it doesn't already have its own (real) data. Used both right
 // after a fresh fetch and opportunistically any time we happen to have both
 // pieces of information in hand (see getChaptersForVod and healChapterCacheKeys).
+//
+// IMPORTANT: a day-keyed 'live-tracked' entry does NOT count as "already
+// fine" here. Live-tracked timestamps are only as good as how often the
+// polling tab was actually open at the moment a category changed — if the
+// tab wasn't watching when the switch happened, the change gets logged late
+// (whenever polling next happens to notice), which can make a game look
+// like it was only played for a minute at the very end when it was really
+// played for hours. Twitch's own chapter data (fetched here) has real,
+// authoritative timestamps, so it must always be allowed to overwrite an
+// unreconciled live-tracked guess — otherwise the bad guess is permanent,
+// since getChaptersForVod's recheck would keep fetching the correct data
+// but never be able to land it in the key the UI actually reads from.
 function _mirrorChapterEntryToDay(vodId, day, entryOverride) {
   if (!day || day === vodId) return;
-  if (_chapterCache[day] && _chapterCache[day].games && _chapterCache[day].games.length) return; // already fine
+  const existingDay = _chapterCache[day];
+  const dayIsReal = existingDay && existingDay.games && existingDay.games.length && existingDay.source !== 'live-tracked';
+  if (dayIsReal) return; // already has real (non-live-tracked) data — don't clobber it
   const entry = entryOverride || _chapterCache[vodId];
   if (!entry || !entry.games || !entry.games.length) return;
   _chapterCache[day] = entry;
