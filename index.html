@@ -1042,6 +1042,7 @@
   .grid-view {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 24px clamp(20px, 5vw, 72px);
     background: var(--bg);
   }
@@ -1412,7 +1413,9 @@
     .grid-header-title { font-size: 9px; letter-spacing: 0.3px; }
     .grid-header-count { font-size: 9px; }
     .live-banner-embed { width: 80%; }
-    #mainBtnRow button { font-size: 10px !important; padding: 7px 12px !important; }
+    #mainBtnRow { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; justify-content: flex-start; }
+    #mainBtnRow button { font-size: 10px !important; padding: 7px 12px !important; flex-shrink: 0; }
+    #mainBtnRow .navbar-spacer { display: none; }
     #dateFilterWrap { width: 100%; margin-left: 0 !important; }
     /* SpaceBez: fill screen, compress HUD on mobile */
     #spaceModal { padding: 0 !important; }
@@ -1420,6 +1423,18 @@
     #spaceMusicVol, #spaceSfxVol { width: 60px !important; }
     #spaceScore, #spaceTimer, #spaceCoins { font-size: 12px !important; }
     #spaceHeartsDisplay { font-size: 13px !important; }
+
+    /* Latest video + shorts: stack video above shorts, kill the fixed 600px
+       width that was pushing the section off-screen and forcing sideways
+       scroll on the whole page. */
+    .yt-latest-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .yt-col-header, .yt-col-header-shorts { width: 100%; padding-left: 0; }
+    .yt-latest-title { font-size: 12px; }
+    .yt-latest-row { flex-direction: column; gap: 10px; }
+    #ytMainCardWrap { width: 100%; }
+    .yt-short-arrow { display: none; }
+    .yt-shorts-list { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+    .yt-short-card { flex: 0 0 44%; }
   }
 
   /* Theater mode — mobile: video top, chat below */
