@@ -1417,6 +1417,13 @@
     #mainBtnRow button { font-size: 10px !important; padding: 7px 12px !important; flex-shrink: 0; }
     #mainBtnRow .navbar-spacer { display: none; }
     #dateFilterWrap { width: 100%; margin-left: 0 !important; }
+
+    /* Shorts button + search bar: was a fixed 280px input sitting next to
+       the shorts button, wider than the screen. Wrap and go full width. */
+    .grid-controls-row { flex-wrap: wrap; width: 100%; gap: 8px !important; }
+    #shortsBtn { padding: 6px 14px !important; font-size: 11px !important; gap: 5px !important; }
+    .grid-search-wrap { flex: 1 1 100%; }
+    #streamSearch { width: 100% !important; box-sizing: border-box; padding: 8px 30px 8px 10px !important; font-size: 12px !important; }
     /* SpaceBez: fill screen, compress HUD on mobile */
     #spaceModal { padding: 0 !important; }
     #spaceModal > div { border-radius: 0 !important; width: 100% !important; height: 100% !important; max-height: 100% !important; }
@@ -1430,10 +1437,13 @@
     .yt-latest-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     .yt-col-header, .yt-col-header-shorts { width: 100%; padding-left: 0; }
     .yt-latest-title { font-size: 12px; }
-    .yt-latest-row { flex-direction: column; gap: 10px; }
-    #ytMainCardWrap { width: 100%; }
+    .yt-latest-row { flex-direction: column; gap: 10px; align-items: center; }
+    #ytMainCardWrap { width: 100%; max-width: 420px; }
+    .yt-main-info { padding: 7px 10px 9px; min-height: 0; }
+    .yt-main-label { font-size: 11px; margin-bottom: 2px; }
+    .yt-main-title { font-size: 12px; }
     .yt-short-arrow { display: none; }
-    .yt-shorts-list { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+    .yt-shorts-list { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
     .yt-short-card { flex: 0 0 44%; }
   }
 
@@ -2991,14 +3001,14 @@
     <div class="grid-header">
       <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
         <span class="grid-header-title">ARCHIVED STREAMS <span class="grid-header-count" id="gridCount"></span></span>
-        <div style="display:flex;align-items:center;gap:10px">
+        <div class="grid-controls-row" style="display:flex;align-items:center;gap:10px">
           <a href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" rel="noopener" onclick="if(typeof closeAllGameModals==='function')closeAllGameModals();openRandomShort();return false;" id="shortsBtn"
             style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(255,68,68,0.1);border:1.5px solid rgba(255,68,68,0.45);color:#ff7070;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;box-shadow:0 0 10px rgba(255,68,68,0.08);text-decoration:none"
             onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444';this.style.background='rgba(255,68,68,0.18)';this.style.boxShadow='0 0 14px rgba(255,68,68,0.2)'"
             onmouseout="this.style.borderColor='rgba(255,68,68,0.45)';this.style.color='#ff7070';this.style.background='rgba(255,68,68,0.1)';this.style.boxShadow='0 0 10px rgba(255,68,68,0.08)'">
             😭 SHORTS
           </a>
-          <div style="position:relative;display:flex;align-items:center">
+          <div class="grid-search-wrap" style="position:relative;display:flex;align-items:center">
             <input type="text" id="streamSearch" placeholder="Search title, category…" autocomplete="off"
               style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 30px 10px 12px;border-radius:6px;width:280px"
               oninput="applyFilters()">
@@ -15075,6 +15085,48 @@ window.addEventListener('hashchange', _routeFromHash);
 /* Remove old confetti */
 .wm-confetti{display:none;}
 .wm-cp{display:none;}
+
+/* ── Wheel Spin / Case Opener — mobile ── */
+@media (max-width: 768px) {
+  .wm-topbar{flex-wrap:wrap;gap:8px;padding:8px 10px;}
+  .wm-case-name-inp{width:110px;font-size:12px;}
+  .wm-mode-toggle{margin-left:4px;}
+  .wm-mode-btn{padding:6px 10px;font-size:11px;}
+  .wm-topbar-right{gap:5px;}
+  #wmVolSlider{width:50px;}
+  .wm-vol-label{display:none;}
+  .wm-closebtn{padding:6px 9px;font-size:15px;}
+
+  /* stack contents / wheel / history instead of 3 side-by-side columns */
+  .wm-body{flex-direction:column;overflow-y:auto;overflow-x:hidden;}
+  .wm-contents{width:100%;order:2;border-right:none;border-top:1px solid #1e2028;max-height:160px;flex-shrink:0;}
+  .wm-left{order:1;width:100%;flex:none;min-height:340px;}
+  .wm-right{order:3;width:100%;border-left:none;border-top:1px solid #1e2028;max-height:260px;flex-shrink:0;}
+
+  .wm-subtitle{font-size:16px;letter-spacing:2px;padding:10px 0 14px;}
+  /* the wheel canvas already auto-fits its container via _wmFitWheel() on
+     resize — no manual sizing needed here now that .wm-left is full width */
+
+  /* shrink reel items and reel height so it doesn't dominate the screen */
+  .wm-reel-outer{height:160px;margin:14px 0;}
+  .wm-reel-outer::before,.wm-reel-outer::after{width:50px;}
+  .wm-item{width:130px;height:150px;}
+  .wm-item-icon{font-size:44px;}
+  .wm-item-label{font-size:12px;}
+
+  .wm-wheel-row{padding:8px 10px;gap:5px;}
+  .wm-wtab{padding:6px 12px;font-size:11px;}
+  .wm-newbtn{padding:6px 10px;font-size:11px;}
+  .wm-spinrow{padding:0 10px 8px;}
+  .wm-spinbtn{min-width:0;flex:1;height:42px;font-size:13px;}
+
+  .wm-win-icon-area{height:150px;}
+  .wm-win-big-icon{font-size:80px;}
+  .wm-win-big-icon img{width:80px;height:80px;}
+  .wm-win-text{padding:20px 20px 18px;}
+  .wm-win-name{font-size:26px;}
+  .wm-win-desc{font-size:12px;}
+}
 </style>
 
 <!-- CS2 Case Opener Modal -->
