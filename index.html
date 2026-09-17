@@ -2373,7 +2373,7 @@
   .rc-head { position:relative; z-index:1; flex-shrink:0; display:flex; align-items:center; gap:14px;
              padding:16px 24px; border-bottom:1px solid var(--rc-card-border);
              background:rgba(18,20,30,0.88); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
-  .rc-head-title { font-family:var(--mono); font-size:12px; font-weight:900; letter-spacing:2px;
+  .rc-head-title { font-family:var(--mono); font-size:13px; font-weight:900; letter-spacing:2px;
                    text-transform:uppercase; color:#4ee6ac; white-space:nowrap; }
   .rc-head-title span { color:var(--rc-sub); }
 
@@ -2404,16 +2404,16 @@
   .rc-ring::after { content:''; position:absolute; inset:8px; border-radius:50%; background:#161822; }
   .rc-ring-inner { position:relative; z-index:1; text-align:center; font-family:var(--mono); }
   .rc-ring-num { font-size:32px; font-weight:900; line-height:1; color:#4ee6ac; }
-  .rc-ring-den { font-size:11px; color:var(--rc-sub); margin-top:2px; }
+  .rc-ring-den { font-size:12.5px; color:var(--rc-sub); margin-top:2px; }
   .rc-hero-main { min-width:0; }
   .rc-hero-h { font-family:var(--mono); font-size:26px; font-weight:900; letter-spacing:-0.5px; color:var(--rc-text); line-height:1.15; }
-  .rc-hero-sub { font-family:var(--mono); font-size:11px; color:var(--rc-sub); margin-top:7px; line-height:1.7; }
+  .rc-hero-sub { font-family:var(--mono); font-size:12.5px; color:var(--rc-sub); margin-top:7px; line-height:1.7; }
   .rc-hero-pills { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
-  .rc-pill { font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.5px;
+  .rc-pill { font-family:var(--mono); font-size:11.5px; font-weight:700; letter-spacing:0.5px;
              padding:5px 11px; border-radius:999px; border:1px solid var(--rc-card-border);
              background:var(--rc-card); color:#e4e7ef; }
 
-  .rc-section-title { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:10px;
+  .rc-section-title { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:11.5px;
                       font-weight:900; letter-spacing:1.8px; color:var(--rc-lbl); text-transform:uppercase;
                       margin:26px 0 12px; }
   .rc-section-title::after { content:''; flex:1; height:1px; background:var(--rc-card-border); }
@@ -2424,7 +2424,7 @@
   .rc-stat:hover { border-color:rgba(78,230,172,0.55); transform:translateY(-2px); }
   .rc-stat-val { font-family:var(--mono); font-size:23px; font-weight:900; color:var(--rc-text); line-height:1.1;
                  letter-spacing:-0.5px; word-break:break-word; }
-  .rc-stat-lbl { font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1px; color:var(--rc-lbl);
+  .rc-stat-lbl { font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:1px; color:var(--rc-lbl);
                  text-transform:uppercase; margin-top:7px; }
   /* Values still loading, or that will never exist for this month. */
   .rc-stat.rc-dim .rc-stat-val { color:var(--rc-sub); font-size:15px; }
@@ -2432,19 +2432,19 @@
 
   .rc-cats { display:flex; flex-direction:column; gap:11px; }
   .rc-cat-row { display:grid; grid-template-columns:168px 1fr 78px; align-items:center; gap:14px; }
-  .rc-cat-name { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--rc-text);
+  .rc-cat-name { font-family:var(--mono); font-size:13px; font-weight:700; color:var(--rc-text);
                  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .rc-cat-bar-track { height:9px; background:rgba(255,255,255,0.10); border-radius:999px; overflow:hidden; }
   .rc-cat-bar-fill { height:100%; border-radius:999px; min-width:3px; }
-  .rc-cat-time { font-family:var(--mono); font-size:11px; font-weight:700; color:var(--rc-sub); text-align:right; white-space:nowrap; }
+  .rc-cat-time { font-family:var(--mono); font-size:12.5px; font-weight:700; color:var(--rc-sub); text-align:right; white-space:nowrap; }
 
-  .rc-empty { font-family:var(--mono); font-size:12px; color:var(--rc-sub); text-align:center; line-height:1.7;
+  .rc-empty { font-family:var(--mono); font-size:13px; color:var(--rc-sub); text-align:center; line-height:1.7;
               padding:44px 16px; border:1px dashed var(--rc-card-border); border-radius:12px; }
-  .rc-connect-btn { font-family:var(--mono); font-size:11px; font-weight:800; letter-spacing:0.5px;
+  .rc-connect-btn { font-family:var(--mono); font-size:12.5px; font-weight:800; letter-spacing:0.5px;
                     background:rgba(167,139,250,0.18); border:1px solid rgba(167,139,250,0.6); color:#cfc2ff;
                     padding:9px 18px; border-radius:8px; cursor:pointer; transition:all .15s; }
   .rc-connect-btn:hover { border-color:#cfc2ff; background:rgba(167,139,250,0.3); }
-  .rc-note { font-family:var(--mono); font-size:10px; color:var(--rc-sub); line-height:1.8; margin-top:26px;
+  .rc-note { font-family:var(--mono); font-size:11.5px; color:var(--rc-sub); line-height:1.8; margin-top:26px;
              padding:15px 17px; border-left:2px solid rgba(78,230,172,0.55); background:rgba(255,255,255,0.045);
              border-radius:0 8px 8px 0; }
 
@@ -2456,20 +2456,20 @@
   .rc-highlight-card:hover { border-color:rgba(78,230,172,0.55); transform:translateY(-2px); }
   .rc-highlight-emoji { font-size:28px; flex-shrink:0; }
   .rc-highlight-body { flex:1; min-width:0; }
-  .rc-highlight-lbl { font-family:var(--mono); font-size:9px; font-weight:800; letter-spacing:1px;
+  .rc-highlight-lbl { font-family:var(--mono); font-size:10.5px; font-weight:800; letter-spacing:1px;
                        text-transform:uppercase; color:var(--rc-lbl); }
   .rc-highlight-date { font-family:var(--mono); font-size:15px; font-weight:800; color:var(--rc-text); margin-top:2px; }
   .rc-highlight-stats { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;
-                         font-family:var(--mono); font-size:10px; color:var(--rc-sub); }
+                         font-family:var(--mono); font-size:11.5px; color:var(--rc-sub); }
   .rc-highlight-pts { font-family:var(--mono); font-weight:900; font-size:20px; color:#4ee6ac;
                        text-align:right; flex-shrink:0; }
-  .rc-highlight-pts span { display:block; font-size:8px; font-weight:700; color:var(--rc-lbl);
+  .rc-highlight-pts span { display:block; font-size:9.5px; font-weight:700; color:var(--rc-lbl);
                             letter-spacing:1px; text-transform:uppercase; }
 
   /* Daily breakdown: month calendar, colored by that stream's score */
   .rc-cal-wrap { background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:12px; padding:16px; }
   .rc-cal-wds { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:6px; }
-  .rc-cal-wds span { font-family:var(--mono); font-size:9px; font-weight:800; letter-spacing:1px;
+  .rc-cal-wds span { font-family:var(--mono); font-size:10.5px; font-weight:800; letter-spacing:1px;
                       text-transform:uppercase; color:var(--rc-lbl); text-align:center; }
   .rc-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
   .rc-cal-cell { position:relative; aspect-ratio:1; border-radius:7px; background:rgba(255,255,255,0.03);
@@ -2479,10 +2479,10 @@
   .rc-cal-cell.rc-cal-active { cursor:pointer; border-color:rgba(255,255,255,0.06); }
   .rc-cal-cell.rc-cal-active:hover { transform:scale(1.08); border-color:#4ee6ac; z-index:2; }
   .rc-cal-cell.rc-cal-today { box-shadow:0 0 0 2px #4ee6ac inset; }
-  .rc-cal-daynum { font-family:var(--mono); font-size:10px; font-weight:700; color:var(--rc-sub); }
+  .rc-cal-daynum { font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--rc-sub); }
   .rc-cal-active .rc-cal-daynum { color:#0c1410; font-weight:800; }
   .rc-cal-legend { display:flex; align-items:center; gap:6px; margin-top:14px;
-                    font-family:var(--mono); font-size:9px; color:var(--rc-lbl);
+                    font-family:var(--mono); font-size:10.5px; color:var(--rc-lbl);
                     text-transform:uppercase; letter-spacing:0.6px; }
   .rc-cal-swatch { width:13px; height:13px; border-radius:4px; border:1px solid var(--rc-card-border); }
 
@@ -2491,15 +2491,15 @@
   .rc-compare-row { display:grid; grid-template-columns:130px 1fr 74px; align-items:center; gap:16px;
                      background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:11px;
                      padding:14px 16px; }
-  .rc-compare-lbl { font-family:var(--mono); font-size:11px; font-weight:800; color:var(--rc-text); }
+  .rc-compare-lbl { font-family:var(--mono); font-size:12.5px; font-weight:800; color:var(--rc-text); }
   .rc-compare-bars { display:flex; flex-direction:column; gap:6px; }
   .rc-compare-bar-line { display:grid; grid-template-columns:70px 1fr 60px; align-items:center; gap:8px; }
-  .rc-compare-bar-tag { font-family:var(--mono); font-size:9px; color:var(--rc-lbl); }
+  .rc-compare-bar-tag { font-family:var(--mono); font-size:10.5px; color:var(--rc-lbl); }
   .rc-compare-bar-track { height:7px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden; }
   .rc-compare-bar-fill { height:100%; border-radius:999px; min-width:2px; }
   .rc-compare-cur { background:#4ee6ac; }
   .rc-compare-prev { background:#5c8afc; }
-  .rc-compare-bar-val { font-family:var(--mono); font-size:10px; font-weight:700; color:var(--rc-sub); text-align:right; }
+  .rc-compare-bar-val { font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--rc-sub); text-align:right; }
   .rc-delta { font-family:var(--mono); font-size:13px; font-weight:900; text-align:right; white-space:nowrap; }
   .rc-delta.rc-up { color:#4ee6ac; }
   .rc-delta.rc-down { color:#ff6b6b; }
@@ -2512,14 +2512,14 @@
   @media (max-width:640px) {
     .rc-head { padding:12px 14px; gap:8px; }
     .rc-head-title span { display:none; }
-    .rc-month-label { min-width:0; font-size:11px; }
+    .rc-month-label { min-width:0; font-size:12.5px; }
     .rc-body { padding:20px 14px 48px; }
     .rc-stats-grid { grid-template-columns:repeat(2,1fr); gap:9px; }
     .rc-stat { padding:13px 11px; }
     .rc-stat-val { font-size:19px; }
     .rc-cat-row { grid-template-columns:96px 1fr 62px; gap:9px; }
     .rc-highlight-cards { grid-template-columns:1fr; }
-    .rc-cal-daynum { font-size:9px; }
+    .rc-cal-daynum { font-size:10.5px; }
     .rc-compare-row { grid-template-columns:1fr; gap:10px; }
     .rc-delta { text-align:left; }
   }
