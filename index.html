@@ -18592,6 +18592,31 @@ async function _rcFetchViewerStats(monthStr) {
   } catch(e) { return null; }
 }
 
+// Reads the bot's daily chatStats docs (messageCount + chatters[] per day,
+// written by commands.js while live) and rolls them up for the month.
+// Messages sum cleanly across days; unique chatters need a real union of
+// the per-day chatter lists (summing counts would double-count regulars
+// who chat on multiple days), so the day docs each carry their chatter
+// list specifically to make that union possible here.
+async function _rcFetchChatStats(monthStr) {
+  try {
+    await _ensureWmAuth();
+    const snap = await _wmDb.collection('chatStats')
+      .where('day', '>=', monthStr + '-01')
+      .where('day', '<=', monthStr + '-31')
+      .get();
+    if (snap.empty) return null;
+    let messageCount = 0;
+    const chatterSet = new Set();
+    snap.docs.forEach(d => {
+      const v = d.data();
+      messageCount += v.messageCount || 0;
+      (v.chatters || []).forEach(c => chatterSet.add(c));
+    });
+    return { messageCount, uniqueChatters: chatterSet.size };
+  } catch(e) { return null; }
+}
+
 function _rcRating({ hours, streamCount, daysInMonth, categoryCount }) {
   if (!streamCount) return 0;
   const consistency = Math.min(1, streamCount / (daysInMonth / 2));
@@ -18656,6 +18681,8 @@ async function renderStreamSummary() {
       <div class="rc-stat" id="rcSubStat"><div class="rc-stat-val">${token ? '…' : '—'}</div><div class="rc-stat-lbl">Subs</div></div>
       <div class="rc-stat rc-dim" id="rcAvgViewStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Avg viewers</div></div>
       <div class="rc-stat rc-dim" id="rcPeakViewStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Peak viewers</div></div>
+      <div class="rc-stat rc-dim" id="rcMsgStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Chat messages</div></div>
+      <div class="rc-stat rc-dim" id="rcChattersStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Unique chatters</div></div>
     </div>
 
     <div class="rc-section-title">Categories played</div>
@@ -18677,7 +18704,7 @@ async function renderStreamSummary() {
     ` : ''}
 
     <div class="rc-note">
-      Chat messages &amp; unique chatters aren't tracked yet — that needs the bot logging them live, not something Twitch exposes after the fact. Avg/peak viewers only exist from whenever this page starts logging snapshots while you're live, so past months may show nothing.
+      Viewers, chat messages &amp; unique chatters all come from the bot logging live while you stream — none of this exists in Twitch's API after the fact, so it only builds up from whenever that tracking started. Past months (and any month before the bot's analytics were set up) will show n/a for these.
       ${token ? '<br><br><button class="rc-connect-btn" onclick="_rcFetchFollowers(true).then(()=>renderStreamSummary())" style="background:var(--surface2);border-color:var(--border);color:var(--muted)">↻ Refresh follower/sub data</button>' : ''}
     </div>
   `;
@@ -18694,6 +18721,20 @@ async function renderStreamSummary() {
     } else {
       a.querySelector('.rc-stat-val').textContent = 'n/a';
       p.querySelector('.rc-stat-val').textContent = 'n/a';
+    }
+  });
+
+  _rcFetchChatStats(monthStr).then(stats => {
+    const m = document.getElementById('rcMsgStat');
+    const c = document.getElementById('rcChattersStat');
+    if (!m || !c) return;
+    if (stats) {
+      m.querySelector('.rc-stat-val').textContent = stats.messageCount.toLocaleString();
+      c.querySelector('.rc-stat-val').textContent = stats.uniqueChatters.toLocaleString();
+      m.classList.remove('rc-dim'); c.classList.remove('rc-dim');
+    } else {
+      m.querySelector('.rc-stat-val').textContent = 'n/a';
+      c.querySelector('.rc-stat-val').textContent = 'n/a';
     }
   });
 
