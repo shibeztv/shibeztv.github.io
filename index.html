@@ -2445,6 +2445,21 @@
   .rc-stat.rc-dim .rc-stat-val { color:var(--rc-sub); font-size:var(--rc-t-md); }
   .rc-stat.rc-dim:hover { transform:none; border-color:var(--rc-card-border); }
 
+  /* Month-over-month trend badge next to a stat's value. Green/red only
+     where a direction is actually better or worse (more hours = good);
+     metrics where neither direction is a win (average length, category
+     count) get the muted style so the color never implies a judgement the
+     number doesn't support. */
+  .rc-trend { font-family:var(--mono); font-size:10px; font-weight:800; letter-spacing:0.2px;
+              margin-left:6px; vertical-align:middle; white-space:nowrap; padding:2px 6px;
+              border-radius:999px; border:1px solid transparent; }
+  .rc-trend.rc-up      { color:#4ee6ac; background:rgba(78,230,172,0.12); border-color:rgba(78,230,172,0.30); }
+  .rc-trend.rc-down    { color:#ff6b6b; background:rgba(255,107,107,0.12); border-color:rgba(255,107,107,0.30); }
+  .rc-trend.rc-neutral { color:#d7dae4; background:rgba(255,255,255,0.06); border-color:var(--rc-card-border); }
+  .rc-trend.rc-flat    { color:var(--rc-lbl); background:rgba(255,255,255,0.04); border-color:var(--rc-card-border); }
+  /* Keep a value + its badge clear of the info dot in the card's corner. */
+  .rc-stat[data-rctip] .rc-stat-val { padding-right:15px; }
+
   /* Any stat card carrying a data-rctip gets a "hover me" affordance so it
      doesn't just look like a plain number — dotted underline on the label,
      small info dot in the corner. */
@@ -18610,6 +18625,7 @@ function ytSecOpenShort(videoId) {
 
 const _RC_TWITCH_SCOPE = 'moderator:read:followers channel:read:subscriptions';
 const _RC_BCAST_KEY = 'shibez_bcast_token';
+const _RC_BCAST_ID = '96140858'; // shlbez — the only account these scopes are useful for
 const _RC_FOLLOWERS_CACHE_KEY = 'shibez_bcast_followers_cache';
 let _rcMonth = new Date(); _rcMonth.setDate(1); _rcMonth.setHours(0,0,0,0);
 let _rcFollowers = null; // cached array of {followed_at} once fetched
@@ -18652,9 +18668,20 @@ function _rcBroadcasterToken() {
   } catch(e) { return null; }
 }
 
+// force_verify=true is what makes the account switchable. Without it,
+// Twitch sees that this browser already has a session and that the app was
+// already authorized, and redirects straight back with a token for
+// WHICHEVER account happens to be logged in — no screen, no choice, which
+// is exactly how you end up connected as a mod/alt account without ever
+// being asked. With it, the consent screen always renders, showing the
+// account it's about to use and letting you switch from there.
 function connectBroadcaster() {
   const redirect = location.origin + location.pathname;
-  const url = `https://id.twitch.tv/oauth2/authorize?client_id=${_PROF_TWITCH_CLIENT}&redirect_uri=${encodeURIComponent(redirect)}&response_type=token&scope=${encodeURIComponent(_RC_TWITCH_SCOPE)}`;
+  const url = `https://id.twitch.tv/oauth2/authorize?client_id=${_PROF_TWITCH_CLIENT}`
+    + `&redirect_uri=${encodeURIComponent(redirect)}`
+    + `&response_type=token`
+    + `&scope=${encodeURIComponent(_RC_TWITCH_SCOPE)}`
+    + `&force_verify=true`;
   sessionStorage.setItem('shibez_bcast_login_pending', '1');
   location.href = url;
 }
@@ -18665,15 +18692,20 @@ async function _rcHandleOAuthCallback(token) {
   try {
     const vr = await fetch('https://id.twitch.tv/oauth2/validate', { headers: { 'Authorization': 'Bearer ' + token } });
     const vd = await vr.json();
-    if (!vd.user_id || vd.user_id !== '96140858') {
-      // Twitch's authorize screen silently reuses whichever Twitch account
-      // is already logged into this browser — it does NOT prompt you to
-      // pick an account unless you're logged out. So this almost always
-      // means the browser had a different Twitch session active (a mod
-      // account, a personal account, etc), not that the ID here is wrong.
-      // Naming the account it actually authenticated as makes that obvious
-      // instead of just saying "wrong account" with no way to tell why.
-      alert(`That was ${vd.login ? '"' + vd.login + '"' : 'a different account'} (id ${vd.user_id}), not shlbez (96140858).\n\nTwitch reuses whatever account is already logged into this browser — it won't ask you to pick one. Log out of Twitch on twitch.tv first (or use an incognito window), then reconnect while logged in as shlbez.`);
+    if (!vd.user_id || vd.user_id !== _RC_BCAST_ID) {
+      // Almost always means the browser had a different Twitch session
+      // active (a mod account, an alt), not that the ID here is wrong —
+      // so name the account it actually authenticated as, and offer the
+      // one-click way out rather than a paragraph of instructions.
+      const who = vd.login ? '"' + vd.login + '"' : 'a different account';
+      const retry = confirm(
+        `Connected as ${who} (id ${vd.user_id || '?'}), not shlbez.\n\n` +
+        `Twitch signs you in with whatever account this browser is already logged into. ` +
+        `Click OK to try again — on the Twitch screen, use the avatar in the top-right to switch to shlbez before approving.\n\n` +
+        `If it keeps coming back as ${who}, log out at twitch.tv (or use a private window) and reconnect.`
+      );
+      if (retry) { connectBroadcaster(); return; }
+      openStreamSummary();
       return;
     }
     const expiresAt = Date.now() + (vd.expires_in || 3600) * 1000;
@@ -18880,7 +18912,11 @@ async function _rcFetchChatStats(monthStr) {
       const v = d.data();
       messageCount += v.messageCount || 0;
       (v.chatters || []).forEach(c => chatterSet.add(c));
-      perDay[v.day] = { messageCount: v.messageCount || 0, uniqueChatters: (v.chatters || []).length };
+      // The chatter LIST (not just its length) is kept per day so a
+      // partial-month comparison can union days 1..N of last month —
+      // summing per-day counts would double-count anyone who chats on
+      // more than one day.
+      perDay[v.day] = { messageCount: v.messageCount || 0, uniqueChatters: (v.chatters || []).length, chatters: v.chatters || [] };
     });
     return { messageCount, uniqueChatters: chatterSet.size, perDay };
   } catch(e) { return null; }
@@ -19146,6 +19182,53 @@ function _rcInitTooltipDelegation() {
   });
 }
 
+// ── Month-over-month trend badges on the stat cards ───────────────────
+// The "compared to last month" section further down already does a full
+// side-by-side; these are the at-a-glance version, sitting right next to
+// the number they describe.
+//
+// `better` says which direction earns the green: 'up' for metrics where
+// more is plainly better (hours, viewers, follows), 'neutral' for ones
+// where it genuinely depends (average stream length, how many categories
+// got played) — those still show the arrow, just without a color claiming
+// it's good or bad news.
+//
+// Anything inside 1% is rendered flat rather than as a change, so a
+// rounding wobble doesn't show up as a red arrow.
+function _rcTrend(cur, prev, better) {
+  if (cur == null || prev == null) return '';
+  if (!isFinite(cur) || !isFinite(prev)) return '';
+  if (!prev && !cur) return '';
+  if (!prev) return `<span class="rc-trend rc-up">\u2191 new</span>`;
+  const diff = cur - prev;
+  const pct = Math.abs(diff) / prev * 100;
+  if (!diff || pct < 1) return `<span class="rc-trend rc-flat">\u2192 0%</span>`;
+  const up = diff > 0;
+  const cls = better === 'neutral' ? 'rc-neutral' : ((better === 'down' ? !up : up) ? 'rc-up' : 'rc-down');
+  return `<span class="rc-trend ${cls}">${up ? '\u2191' : '\u2193'} ${Math.round(pct)}%</span>`;
+}
+
+// Append/replace a trend badge on an already-rendered stat card, and put
+// the number it was compared against into that card's hover tooltip so the
+// arrow is never an unexplained claim. Used by the async (Firestore /
+// Twitch-backed) cards that only get their value after the first paint.
+function _rcSetTrend(el, cur, prev, better, fmt, cmpLabel) {
+  if (!el) return;
+  const val = el.querySelector('.rc-stat-val');
+  if (!val) return;
+  const old = val.querySelector('.rc-trend');
+  if (old) old.remove();
+  const html = _rcTrend(cur, prev, better);
+  if (!html) return;
+  val.insertAdjacentHTML('beforeend', html);
+  const line = `${cmpLabel}: ${prev == null ? 'n/a' : (fmt ? fmt(prev) : prev)}`;
+  let data = {};
+  if (el.dataset.rctip) { try { data = JSON.parse(decodeURIComponent(el.dataset.rctip)); } catch(e) { data = {}; } }
+  data.lines = (data.lines || []).filter(l => l.indexOf(cmpLabel + ':') !== 0).concat(line);
+  el.dataset.rctip = encodeURIComponent(JSON.stringify(data));
+  delete el._rcTipCache; // force the delegated tooltip to re-read it
+}
+
 // One "this month vs last month" row: paired bars sized relative to each
 // other, plus a percentage-change arrow. Handles either side being
 // unavailable (no data yet, or a metric that failed to load) as "n/a"
@@ -19258,6 +19341,30 @@ async function renderStreamSummary() {
   const prevTotalSeconds = prevStreams.reduce((s,v) => s + (v.totalDuration||0), 0);
   const prevHours = prevTotalSeconds / 3600;
 
+  // Trend arrows on the stat cards compare like with like. A month that's
+  // only 9 days old would lose against a full 31-day month on every total
+  // no matter how well it's going, so for the CURRENT month last month is
+  // cut to its first `daysElapsed` days too — day 1-9 vs day 1-9. For a
+  // month that's already finished, this is the whole of last month.
+  const _rcDayNum = s => parseInt(s.day.slice(8,10), 10);
+  const _rcInPeriod = day => !isCurrentMonth || parseInt(day.slice(8,10), 10) <= daysElapsed;
+  const cmpStreams = isCurrentMonth ? prevStreams.filter(s => _rcDayNum(s) <= daysElapsed) : prevStreams;
+  const cmpLabel = isCurrentMonth ? 'Same period last month' : 'Last month';
+  const cmpSeconds = cmpStreams.reduce((a,v) => a + (v.totalDuration||0), 0);
+  const cmp = cmpStreams.length ? {
+    hours: cmpSeconds / 3600,
+    days: cmpStreams.length,
+    longest: Math.max(...cmpStreams.map(s => s.totalDuration||0)),
+    shortest: Math.min(...cmpStreams.map(s => s.totalDuration||0)),
+    avgLen: cmpSeconds / cmpStreams.length,
+    cats: (() => { const t = {}; cmpStreams.forEach(s => { const d = getCategoryDurations(s); for (const l in d) t[l] = 1; }); return Object.keys(t).length; })()
+  } : null;
+  // No data to compare against (first month on the site, or a gap) → no
+  // badge at all, rather than an arrow implying everything is up from zero.
+  const _t = (cur, prevKey, better) => cmp ? _rcTrend(cur, cmp[prevKey], better) : '';
+  const _tipCmp = (val, fmt) => cmp ? [`${cmpLabel}: ${fmt ? fmt(val) : val}`] : [];
+  const _statTip = lines => lines.length ? ` data-rctip="${encodeURIComponent(JSON.stringify({ lines }))}"` : '';
+
   // Kick off async broadcaster/viewer data — render sync stats first, then
   // patch in the async pieces once they resolve so the modal isn't blank
   // while waiting on network requests.
@@ -19290,18 +19397,24 @@ async function renderStreamSummary() {
 
     <div class="rc-section-title">Stream</div>
     <div class="rc-stats-grid">
-      <div class="rc-stat"><div class="rc-stat-val">${hours.toFixed(1)}h</div><div class="rc-stat-lbl">Hours streamed</div></div>
-      <div class="rc-stat"><div class="rc-stat-val">${streams.length}</div><div class="rc-stat-lbl">Days streamed</div></div>
-      <div class="rc-stat" data-rctip="${encodeURIComponent(JSON.stringify({ lines: catList.map(([label,secs]) => `${label} — ${_rcDur(secs)} (${Math.round(secs/totalSeconds*100)}%)`) }))}">
-        <div class="rc-stat-val">${catList.length}</div><div class="rc-stat-lbl">Categories</div>
+      <div class="rc-stat"${_statTip(_tipCmp(cmp && cmp.hours, v => v.toFixed(1) + 'h'))}>
+        <div class="rc-stat-val">${hours.toFixed(1)}h${_t(hours, 'hours', 'up')}</div><div class="rc-stat-lbl">Hours streamed</div>
       </div>
-      <div class="rc-stat" data-rctip="${_rcStreamTip(longestStream, [`${_rcDur(longestStream.totalDuration)} long`])}">
-        <div class="rc-stat-val">${_rcDur(longest)}</div><div class="rc-stat-lbl">Longest stream</div>
+      <div class="rc-stat"${_statTip(_tipCmp(cmp && cmp.days, v => v + (v === 1 ? ' day' : ' days')))}>
+        <div class="rc-stat-val">${streams.length}${_t(streams.length, 'days', 'up')}</div><div class="rc-stat-lbl">Days streamed</div>
       </div>
-      <div class="rc-stat" data-rctip="${_rcStreamTip(shortestStream, [`${_rcDur(shortestStream.totalDuration)} long`])}">
-        <div class="rc-stat-val">${_rcDur(shortestStream.totalDuration)}</div><div class="rc-stat-lbl">Shortest stream</div>
+      <div class="rc-stat" data-rctip="${encodeURIComponent(JSON.stringify({ lines: catList.map(([label,secs]) => `${label} — ${_rcDur(secs)} (${Math.round(secs/totalSeconds*100)}%)`).concat(_tipCmp(cmp && cmp.cats, v => v + (v === 1 ? ' category' : ' categories'))) }))}">
+        <div class="rc-stat-val">${catList.length}${_t(catList.length, 'cats', 'neutral')}</div><div class="rc-stat-lbl">Categories</div>
       </div>
-      <div class="rc-stat"><div class="rc-stat-val">${_rcDur(avgLen)}</div><div class="rc-stat-lbl">Average length</div></div>
+      <div class="rc-stat" data-rctip="${_rcStreamTip(longestStream, [`${_rcDur(longestStream.totalDuration)} long`].concat(_tipCmp(cmp && cmp.longest, _rcDur)))}">
+        <div class="rc-stat-val">${_rcDur(longest)}${_t(longest, 'longest', 'up')}</div><div class="rc-stat-lbl">Longest stream</div>
+      </div>
+      <div class="rc-stat" data-rctip="${_rcStreamTip(shortestStream, [`${_rcDur(shortestStream.totalDuration)} long`].concat(_tipCmp(cmp && cmp.shortest, _rcDur)))}">
+        <div class="rc-stat-val">${_rcDur(shortestStream.totalDuration)}${_t(shortestStream.totalDuration, 'shortest', 'neutral')}</div><div class="rc-stat-lbl">Shortest stream</div>
+      </div>
+      <div class="rc-stat"${_statTip(_tipCmp(cmp && cmp.avgLen, _rcDur))}>
+        <div class="rc-stat-val">${_rcDur(avgLen)}${_t(avgLen, 'avgLen', 'neutral')}</div><div class="rc-stat-lbl">Average length</div>
+      </div>
       ${mostCatStream ? `
       <div class="rc-stat" data-rctip="${_rcStreamTip(mostCatStream, [`${mostCatCount} categories in one stream`])}">
         <div class="rc-stat-val">${mostCatCount}</div><div class="rc-stat-lbl">Most categories</div>
@@ -19374,7 +19487,36 @@ async function renderStreamSummary() {
   const prevViewerPromise = _rcFetchViewerStats(prevMonthStr).catch(() => null);
   const prevChatPromise   = _rcFetchChatStats(prevMonthStr).catch(() => null);
 
-  viewerPromise.then(stats => {
+  // Last month cut to the same stretch of days as this one (see cmpStreams
+  // above) — averages are already period-independent, but peak and the
+  // totals below are not, so they get recomputed from the per-day rows.
+  const _rcViewerPeriod = stats => {
+    if (!stats) return null;
+    if (!isCurrentMonth || !stats.perDay) return stats;
+    const days = Object.keys(stats.perDay).filter(_rcInPeriod);
+    if (!days.length) return null;
+    const avgs = days.map(d => stats.perDay[d].avg);
+    return { avg: Math.round(avgs.reduce((a,b) => a+b, 0) / avgs.length),
+             peak: Math.max(...days.map(d => stats.perDay[d].peak)) };
+  };
+  // Unique chatters needs a real union of the per-day chatter lists, not a
+  // sum of per-day counts — regulars chat on more than one day.
+  const _rcChatPeriod = stats => {
+    if (!stats) return null;
+    if (!isCurrentMonth || !stats.perDay) return stats;
+    const days = Object.keys(stats.perDay).filter(_rcInPeriod);
+    if (!days.length) return null;
+    const set = new Set();
+    let msgs = 0, haveLists = true;
+    days.forEach(d => {
+      msgs += stats.perDay[d].messageCount || 0;
+      const list = stats.perDay[d].chatters;
+      if (list) list.forEach(c => set.add(c)); else haveLists = false;
+    });
+    return { messageCount: msgs, uniqueChatters: haveLists ? set.size : null };
+  };
+
+  Promise.all([viewerPromise, prevViewerPromise]).then(([stats, prevStats]) => {
     const a = document.getElementById('rcAvgViewStat');
     const p = document.getElementById('rcPeakViewStat');
     if (!a || !p) return; // modal moved on to a different month/closed
@@ -19382,13 +19524,17 @@ async function renderStreamSummary() {
       a.querySelector('.rc-stat-val').textContent = stats.avg;
       p.querySelector('.rc-stat-val').textContent = stats.peak;
       a.classList.remove('rc-dim'); p.classList.remove('rc-dim');
+      const prev = _rcViewerPeriod(prevStats);
+      const num = v => Math.round(v).toLocaleString();
+      _rcSetTrend(a, stats.avg, prev && prev.avg, 'up', num, cmpLabel);
+      _rcSetTrend(p, stats.peak, prev && prev.peak, 'up', num, cmpLabel);
     } else {
       a.querySelector('.rc-stat-val').textContent = 'n/a';
       p.querySelector('.rc-stat-val').textContent = 'n/a';
     }
   });
 
-  chatPromise.then(stats => {
+  Promise.all([chatPromise, prevChatPromise]).then(([stats, prevStats]) => {
     const mEl = document.getElementById('rcMsgStat');
     const cEl = document.getElementById('rcChattersStat');
     if (!mEl || !cEl) return;
@@ -19396,6 +19542,10 @@ async function renderStreamSummary() {
       mEl.querySelector('.rc-stat-val').textContent = stats.messageCount.toLocaleString();
       cEl.querySelector('.rc-stat-val').textContent = stats.uniqueChatters.toLocaleString();
       mEl.classList.remove('rc-dim'); cEl.classList.remove('rc-dim');
+      const prev = _rcChatPeriod(prevStats);
+      const num = v => Math.round(v).toLocaleString();
+      _rcSetTrend(mEl, stats.messageCount, prev && prev.messageCount, 'up', num, cmpLabel);
+      _rcSetTrend(cEl, stats.uniqueChatters, prev && prev.uniqueChatters, 'up', num, cmpLabel);
     } else {
       mEl.querySelector('.rc-stat-val').textContent = 'n/a';
       cEl.querySelector('.rc-stat-val').textContent = 'n/a';
@@ -19458,6 +19608,10 @@ async function renderStreamSummary() {
       const count = list.filter(ts => ts && ts.startsWith(monthStr)).length;
       el.querySelector('.rc-stat-val').textContent = count;
       el.classList.remove('rc-dim');
+      // Same-stretch-of-days comparison as the stream cards: each follow
+      // carries its own followed_at, so last month can be cut to day 1..N.
+      const prevCount = list.filter(ts => ts && ts.startsWith(prevMonthStr) && _rcInPeriod(ts.slice(0,10))).length;
+      _rcSetTrend(el, count, prevCount, 'up', v => v, cmpLabel);
       _rcPushSharedCache(monthStr, list, null);
     });
     _rcFetchOwnerMonthDelta(monthStr).then(delta => {
