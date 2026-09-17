@@ -2348,34 +2348,112 @@
   }
   .yte-close:hover { background: rgba(255,40,40,0.5); }
 
-  /* ── Monthly Recap ── */
-  .rc-modal { width: 720px; max-width: 95vw; max-height: 88vh; display: flex; flex-direction: column; }
-  .rc-nav { display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:18px; }
-  .rc-nav button { background:var(--surface2); border:1px solid var(--border); color:var(--text); font-size:16px; width:32px; height:32px; border-radius:5px; cursor:pointer; transition:all .15s; }
-  .rc-nav button:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
-  .rc-nav button:disabled { opacity:.3; cursor:default; }
-  .rc-month-label { font-family:var(--mono); font-weight:800; font-size:15px; letter-spacing:1px; min-width:150px; text-align:center; }
-  .rc-rating { display:flex; flex-direction:column; align-items:center; gap:4px; padding:18px 0 22px; }
-  .rc-rating-num { font-family:var(--mono); font-size:44px; font-weight:900; line-height:1; color:var(--accent); text-shadow:0 0 20px rgba(255,68,68,0.25); }
-  .rc-rating-sub { font-family:var(--mono); font-size:10px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; }
-  .rc-stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
-  .rc-stat { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:12px; text-align:center; }
-  .rc-stat-val { font-family:var(--mono); font-size:18px; font-weight:800; color:var(--text); }
-  .rc-stat-lbl { font-family:var(--mono); font-size:9px; letter-spacing:0.8px; color:var(--muted); text-transform:uppercase; margin-top:4px; }
-  .rc-stat.rc-dim .rc-stat-val { color:var(--muted); font-size:12px; }
-  .rc-section-title { font-family:var(--mono); font-size:11px; font-weight:800; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin:18px 0 10px; }
-  .rc-cat-row { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
-  .rc-cat-name { font-family:var(--mono); font-size:12px; color:var(--text); width:150px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .rc-cat-bar-track { flex:1; height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
-  .rc-cat-bar-fill { height:100%; border-radius:4px; }
-  .rc-cat-time { font-family:var(--mono); font-size:11px; color:var(--muted); width:80px; text-align:right; flex-shrink:0; }
-  .rc-empty { font-family:var(--mono); font-size:12px; color:var(--muted); text-align:center; padding:30px 10px; }
-  .rc-connect-btn { font-family:var(--mono); font-size:11px; font-weight:700; background:rgba(145,70,255,0.12); border:1px solid rgba(145,70,255,0.5); color:#a78bfa; padding:8px 16px; border-radius:5px; cursor:pointer; transition:all .15s; }
+  /* ── Monthly Recap ──────────────────────────────────────────────────────
+     Full-screen panel that sits under the two bars, same pattern the games
+     use (spaceModal etc.): fixed, top:var(--bars-h), and the page's nav stays
+     visible and clickable above it. Content is a centred column so it reads
+     well on ultrawide without stretching the cards to nonsense widths. */
+  .rc-shell { display:none; position:fixed; top:var(--bars-h); left:0; right:0; bottom:0; z-index:9002;
+              background:var(--bg, #05070e); flex-direction:column; overflow:hidden; }
+  .rc-shell.open { display:flex; }
+
+  /* Ambient wash so the panel doesn't read as a flat black rectangle. */
+  .rc-shell::before { content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(900px 420px at 15% -10%, rgba(52,211,153,0.10), transparent 70%),
+      radial-gradient(760px 380px at 92% 8%, rgba(96,165,250,0.08), transparent 72%); }
+
+  .rc-head { position:relative; z-index:1; flex-shrink:0; display:flex; align-items:center; gap:14px;
+             padding:16px 24px; border-bottom:1px solid var(--border);
+             background:rgba(8,10,20,0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  .rc-head-title { font-family:var(--mono); font-size:12px; font-weight:900; letter-spacing:2px;
+                   text-transform:uppercase; color:#34d399; white-space:nowrap; }
+  .rc-head-title span { color:var(--muted); }
+
+  /* Month stepper lives in the header so it stays put while the body scrolls. */
+  .rc-nav { display:flex; align-items:center; gap:6px; margin:0 auto; }
+  .rc-nav button { background:transparent; border:1px solid var(--border); color:var(--text);
+                   font-size:15px; width:30px; height:30px; border-radius:8px; cursor:pointer;
+                   display:flex; align-items:center; justify-content:center; transition:all .15s; }
+  .rc-nav button:hover:not(:disabled) { border-color:#34d399; color:#34d399; background:rgba(52,211,153,0.1); }
+  .rc-nav button:disabled { opacity:.25; cursor:default; }
+  .rc-month-label { font-family:var(--mono); font-weight:800; font-size:13px; letter-spacing:1px;
+                    min-width:190px; text-align:center; color:var(--text); }
+  .rc-close { background:transparent; border:1px solid var(--border); color:var(--muted); cursor:pointer;
+              width:30px; height:30px; border-radius:8px; font-size:14px; line-height:1; transition:all .15s;
+              display:flex; align-items:center; justify-content:center; }
+  .rc-close:hover { border-color:#ff6b6b; color:#ff6b6b; background:rgba(255,68,68,0.1); }
+
+  .rc-body { position:relative; z-index:1; flex:1; overflow-y:auto; overscroll-behavior:contain; padding:28px 24px 60px; }
+  .rc-inner { max-width:1040px; margin:0 auto; }
+
+  /* Hero: rating ring + headline numbers. */
+  .rc-hero { display:flex; align-items:center; gap:28px; padding:22px 26px; margin-bottom:26px;
+             border:1px solid var(--border); border-radius:14px;
+             background:linear-gradient(135deg, rgba(52,211,153,0.07), rgba(255,255,255,0.015) 55%); }
+  .rc-ring { --pct:0; position:relative; width:104px; height:104px; flex-shrink:0; border-radius:50%;
+             background:conic-gradient(#34d399 calc(var(--pct)*1%), rgba(255,255,255,0.07) 0);
+             display:flex; align-items:center; justify-content:center; }
+  .rc-ring::after { content:''; position:absolute; inset:8px; border-radius:50%; background:#0a0d16; }
+  .rc-ring-inner { position:relative; z-index:1; text-align:center; font-family:var(--mono); }
+  .rc-ring-num { font-size:32px; font-weight:900; line-height:1; color:#34d399; }
+  .rc-ring-den { font-size:11px; color:var(--muted); margin-top:2px; }
+  .rc-hero-main { min-width:0; }
+  .rc-hero-h { font-family:var(--mono); font-size:26px; font-weight:900; letter-spacing:-0.5px; color:var(--text); line-height:1.15; }
+  .rc-hero-sub { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:7px; line-height:1.6; }
+  .rc-hero-pills { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+  .rc-pill { font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.5px;
+             padding:5px 11px; border-radius:999px; border:1px solid var(--border);
+             background:var(--surface2); color:#c9cdd8; }
+
+  .rc-section-title { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:10px;
+                      font-weight:900; letter-spacing:1.8px; color:var(--muted); text-transform:uppercase;
+                      margin:26px 0 12px; }
+  .rc-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  .rc-stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; }
+  .rc-stat { position:relative; background:var(--surface2); border:1px solid var(--border); border-radius:11px;
+             padding:16px 14px; transition:border-color .15s, transform .15s, background .15s; }
+  .rc-stat:hover { border-color:rgba(52,211,153,0.4); transform:translateY(-2px); }
+  .rc-stat-val { font-family:var(--mono); font-size:23px; font-weight:900; color:var(--text); line-height:1.1;
+                 letter-spacing:-0.5px; word-break:break-word; }
+  .rc-stat-lbl { font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1px; color:var(--muted);
+                 text-transform:uppercase; margin-top:7px; }
+  /* Values still loading, or that will never exist for this month. */
+  .rc-stat.rc-dim .rc-stat-val { color:var(--muted); font-size:15px; }
+  .rc-stat.rc-dim:hover { transform:none; border-color:var(--border); }
+
+  .rc-cats { display:flex; flex-direction:column; gap:11px; }
+  .rc-cat-row { display:grid; grid-template-columns:168px 1fr 78px; align-items:center; gap:14px; }
+  .rc-cat-name { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text);
+                 overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rc-cat-bar-track { height:9px; background:rgba(255,255,255,0.05); border-radius:999px; overflow:hidden; }
+  .rc-cat-bar-fill { height:100%; border-radius:999px; min-width:3px; }
+  .rc-cat-time { font-family:var(--mono); font-size:11px; font-weight:700; color:var(--muted); text-align:right; white-space:nowrap; }
+
+  .rc-empty { font-family:var(--mono); font-size:12px; color:var(--muted); text-align:center; line-height:1.7;
+              padding:44px 16px; border:1px dashed var(--border); border-radius:12px; }
+  .rc-connect-btn { font-family:var(--mono); font-size:11px; font-weight:800; letter-spacing:0.5px;
+                    background:rgba(145,70,255,0.12); border:1px solid rgba(145,70,255,0.5); color:#a78bfa;
+                    padding:9px 18px; border-radius:8px; cursor:pointer; transition:all .15s; }
   .rc-connect-btn:hover { border-color:#a78bfa; background:rgba(145,70,255,0.22); }
-  .rc-note { font-family:var(--mono); font-size:10px; color:var(--muted); line-height:1.6; margin-top:4px; }
+  .rc-note { font-family:var(--mono); font-size:10px; color:var(--muted); line-height:1.75; margin-top:26px;
+             padding:15px 17px; border-left:2px solid var(--border); background:rgba(255,255,255,0.015);
+             border-radius:0 8px 8px 0; }
+
+  @media (max-width:820px) {
+    .rc-hero { flex-direction:column; align-items:flex-start; gap:18px; padding:20px; }
+    .rc-hero-h { font-size:21px; }
+  }
   @media (max-width:640px) {
-    .rc-stats-grid { grid-template-columns:repeat(2,1fr); }
-    .rc-cat-name { width:90px; }
+    .rc-head { padding:12px 14px; gap:8px; }
+    .rc-head-title span { display:none; }
+    .rc-month-label { min-width:0; font-size:11px; }
+    .rc-body { padding:20px 14px 48px; }
+    .rc-stats-grid { grid-template-columns:repeat(2,1fr); gap:9px; }
+    .rc-stat { padding:13px 11px; }
+    .rc-stat-val { font-size:19px; }
+    .rc-cat-row { grid-template-columns:96px 1fr 62px; gap:9px; }
   }
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
@@ -2509,12 +2587,7 @@
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     🚀 SPACEBEZ
   </button>
-  <button onclick="openStreamSummary()" id="recapBtn"
-    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
-    onmouseover="this.style.borderColor='#34d399';this.style.color='#34d399'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
-    📊 RECAP
-  </button>
+  <!-- RECAP button moved down to the grid controls row, left of SHORTS -->
   <div class="navbar-spacer"></div>
   <button onclick="openWheelSpin()" id="wheelSpinBtn"
     style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:900;letter-spacing:0.5px;background:rgba(228,184,77,0.12);border:1.5px solid rgba(228,184,77,0.5);color:#e4b84d;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap;box-shadow:0 0 10px rgba(228,184,77,0.1)"
@@ -3034,21 +3107,19 @@
       </div>
     </div>
 
-    <!-- Monthly Recap -->
-    <div class="modal-overlay" id="summaryModalOverlay" onclick="if(event.target===this)closeStreamSummary()">
-      <div class="modal rc-modal">
-        <div class="modal-header">
-          <span class="modal-title">📊 MONTHLY RECAP</span>
-          <button class="modal-close" onclick="closeStreamSummary()">✕</button>
+    <!-- Monthly Recap — full-screen panel under the bars, same as the games -->
+    <div class="rc-shell" id="summaryModalOverlay">
+      <div class="rc-head">
+        <span class="rc-head-title">📊 Recap <span>· shlbez</span></span>
+        <div class="rc-nav">
+          <button onclick="summaryShiftMonth(-1)" id="rcPrevBtn" title="Previous month">‹</button>
+          <div class="rc-month-label" id="rcMonthLabel">—</div>
+          <button onclick="summaryShiftMonth(1)" id="rcNextBtn" title="Next month">›</button>
         </div>
-        <div class="modal-body" style="overflow-y:auto;flex:1">
-          <div class="rc-nav">
-            <button onclick="summaryShiftMonth(-1)" id="rcPrevBtn">‹</button>
-            <div class="rc-month-label" id="rcMonthLabel">—</div>
-            <button onclick="summaryShiftMonth(1)" id="rcNextBtn">›</button>
-          </div>
-          <div id="rcContent"></div>
-        </div>
+        <button class="rc-close" onclick="closeStreamSummary()" title="Close (Esc)">✕</button>
+      </div>
+      <div class="rc-body">
+        <div class="rc-inner" id="rcContent"></div>
       </div>
     </div>
 
@@ -3056,6 +3127,12 @@
       <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
         <span class="grid-header-title">ARCHIVED STREAMS <span class="grid-header-count" id="gridCount"></span></span>
         <div class="grid-controls-row" style="display:flex;align-items:center;gap:10px">
+          <button onclick="openStreamSummary()" id="recapBtn"
+            style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(52,211,153,0.1);border:1.5px solid rgba(52,211,153,0.45);color:#34d399;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;box-shadow:0 0 10px rgba(52,211,153,0.08);white-space:nowrap"
+            onmouseover="this.style.borderColor='#34d399';this.style.color='#6ee7b7';this.style.background='rgba(52,211,153,0.18)';this.style.boxShadow='0 0 14px rgba(52,211,153,0.2)'"
+            onmouseout="this.style.borderColor='rgba(52,211,153,0.45)';this.style.color='#34d399';this.style.background='rgba(52,211,153,0.1)';this.style.boxShadow='0 0 10px rgba(52,211,153,0.08)'">
+            📊 RECAP
+          </button>
           <a href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" rel="noopener" onclick="if(typeof closeAllGameModals==='function')closeAllGameModals();openRandomShort();return false;" id="shortsBtn"
             style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(255,68,68,0.1);border:1.5px solid rgba(255,68,68,0.45);color:#ff7070;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;box-shadow:0 0 10px rgba(255,68,68,0.08);text-decoration:none"
             onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444';this.style.background='rgba(255,68,68,0.18)';this.style.boxShadow='0 0 14px rgba(255,68,68,0.2)'"
@@ -5188,6 +5265,7 @@ function closeAllGameModals() {
     ['aionModal',    'closeAiOrNot'],
     ['profileModal', 'shibezProfileClose'],
     ['wmModal',      'closeWheelSpin'],
+    ['summaryModalOverlay', 'closeStreamSummary'],
   ];
   registry.forEach(([modalId, closeFnName]) => {
     const m = document.getElementById(modalId);
@@ -5210,6 +5288,7 @@ document.addEventListener('keydown', e => {
     ['flappyModal',  'closeFlappy'],
     ['wmModal',      'closeWheelSpin'],
     ['profileModal', 'shibezProfileClose'],
+    ['summaryModalOverlay', 'closeStreamSummary'],
   ];
   for (const [modalId, closeFnName] of fallbackRegistry) {
     const m = document.getElementById(modalId);
@@ -18431,12 +18510,16 @@ function openStreamSummary() {
   // Always land on the current month when opening fresh, even if a
   // previous session (or earlier this session) had paged back in time.
   _rcMonth = new Date(); _rcMonth.setDate(1); _rcMonth.setHours(0,0,0,0);
-  document.getElementById('summaryModalOverlay').classList.add('open');
+  // Inline display (not a class) so closeAllGameModals / the global Escape
+  // handler — both of which test m.style.display — can see and close this.
+  const shell = document.getElementById('summaryModalOverlay');
+  shell.style.display = 'flex';
+  shell.querySelector('.rc-body').scrollTop = 0;
   renderStreamSummary();
   _rcMaybeLogSnapshot();
 }
 function closeStreamSummary() {
-  document.getElementById('summaryModalOverlay').classList.remove('open');
+  document.getElementById('summaryModalOverlay').style.display = 'none';
 }
 
 function summaryShiftMonth(delta) {
@@ -18638,6 +18721,17 @@ async function _rcFetchChatStats(monthStr) {
   } catch(e) { return null; }
 }
 
+// formatDurationLong() gives "9 hours 24 minutes", which wraps onto two lines
+// inside a stat card and blows out the category time column. Same value, tight:
+// "9h 24m".
+function _rcDur(secs) {
+  secs = Math.max(0, Math.round(secs || 0));
+  const h = Math.floor(secs / 3600), m = Math.round((secs % 3600) / 60);
+  if (h && m) return `${h}h ${m}m`;
+  if (h) return `${h}h`;
+  return `${m}m`;
+}
+
 function _rcRating({ hours, streamCount, daysInMonth, categoryCount }) {
   if (!streamCount) return 0;
   const consistency = Math.min(1, streamCount / (daysInMonth / 2));
@@ -18687,19 +18781,45 @@ async function renderStreamSummary() {
   // while waiting on network requests.
   const token = _rcBroadcasterToken();
 
+  const monthName = _rcMonth.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+  const topCat = catList.length ? catList[0][0] : null;
+  const activeRate = Math.round(streams.length / daysInMonth * 100);
+
   content.innerHTML = `
-    <div class="rc-rating">
-      <div class="rc-rating-num">${rating || '–'}<span style="font-size:20px;color:var(--muted)">/10</span></div>
-      <div class="rc-rating-sub">Month rating · rough &amp; just for fun</div>
+    <div class="rc-hero">
+      <div class="rc-ring" style="--pct:${(rating || 0) * 10}">
+        <div class="rc-ring-inner">
+          <div class="rc-ring-num">${rating || '–'}</div>
+          <div class="rc-ring-den">/ 10</div>
+        </div>
+      </div>
+      <div class="rc-hero-main">
+        <div class="rc-hero-h">${monthName}</div>
+        <div class="rc-hero-sub">
+          ${hours.toFixed(1)} hours live across ${streams.length} ${streams.length === 1 ? 'day' : 'days'}${topCat ? ` · mostly ${topCat}` : ''}.
+          <br>Rating is a rough consistency + hours + variety score, just for fun.
+        </div>
+        <div class="rc-hero-pills">
+          <span class="rc-pill">${activeRate}% of days live</span>
+          <span class="rc-pill">${catList.length} ${catList.length === 1 ? 'category' : 'categories'}</span>
+          <span class="rc-pill">Longest ${_rcDur(longest)}</span>
+        </div>
+      </div>
     </div>
+
+    <div class="rc-section-title">Stream</div>
     <div class="rc-stats-grid">
       <div class="rc-stat"><div class="rc-stat-val">${hours.toFixed(1)}h</div><div class="rc-stat-lbl">Hours streamed</div></div>
       <div class="rc-stat"><div class="rc-stat-val">${streams.length}</div><div class="rc-stat-lbl">Days streamed</div></div>
       <div class="rc-stat"><div class="rc-stat-val">${catList.length}</div><div class="rc-stat-lbl">Categories</div></div>
-      <div class="rc-stat"><div class="rc-stat-val">${formatDurationLong(longest)}</div><div class="rc-stat-lbl">Longest stream</div></div>
-      <div class="rc-stat"><div class="rc-stat-val">${formatDurationLong(avgLen)}</div><div class="rc-stat-lbl">Average length</div></div>
-      <div class="rc-stat" id="rcFollowStat"><div class="rc-stat-val">${token ? '…' : '—'}</div><div class="rc-stat-lbl">Follows gained</div></div>
-      <div class="rc-stat" id="rcSubStat"><div class="rc-stat-val">${token ? '…' : '—'}</div><div class="rc-stat-lbl">Subs</div></div>
+      <div class="rc-stat"><div class="rc-stat-val">${_rcDur(longest)}</div><div class="rc-stat-lbl">Longest stream</div></div>
+      <div class="rc-stat"><div class="rc-stat-val">${_rcDur(avgLen)}</div><div class="rc-stat-lbl">Average length</div></div>
+    </div>
+
+    <div class="rc-section-title">Audience</div>
+    <div class="rc-stats-grid">
+      <div class="rc-stat${token ? '' : ' rc-dim'}" id="rcFollowStat"><div class="rc-stat-val">${token ? '…' : '—'}</div><div class="rc-stat-lbl">Follows gained</div></div>
+      <div class="rc-stat${token ? '' : ' rc-dim'}" id="rcSubStat"><div class="rc-stat-val">${token ? '…' : '—'}</div><div class="rc-stat-lbl">Subs</div></div>
       <div class="rc-stat rc-dim" id="rcAvgViewStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Avg viewers</div></div>
       <div class="rc-stat rc-dim" id="rcPeakViewStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Peak viewers</div></div>
       <div class="rc-stat rc-dim" id="rcMsgStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Chat messages</div></div>
@@ -18707,25 +18827,27 @@ async function renderStreamSummary() {
     </div>
 
     <div class="rc-section-title">Categories played</div>
-    ${catList.map(([label,secs],i) => `
-      <div class="rc-cat-row">
-        <span class="rc-cat-name" title="${label}">${label}</span>
-        <div class="rc-cat-bar-track"><div class="rc-cat-bar-fill" style="width:${Math.round(secs/totalSeconds*100)}%;background:${colorFor(i)}"></div></div>
-        <span class="rc-cat-time">${formatDurationLong(secs)}</span>
-      </div>
-    `).join('')}
+    <div class="rc-cats">
+      ${catList.map(([label,secs],i) => `
+        <div class="rc-cat-row">
+          <span class="rc-cat-name" title="${label}">${label}</span>
+          <div class="rc-cat-bar-track"><div class="rc-cat-bar-fill" style="width:${Math.round(secs/totalSeconds*100)}%;background:${colorFor(i)}"></div></div>
+          <span class="rc-cat-time">${_rcDur(secs)}</span>
+        </div>
+      `).join('')}
+    </div>
 
     ${!token ? `
       <div class="rc-section-title">Broadcaster stats</div>
-      <div class="rc-empty" style="padding:16px 10px">
-        Follows-gained and sub count need Twitch to know you're the broadcaster.
+      <div class="rc-empty">
+        Follows gained and sub count need Twitch to know you're the broadcaster.
         <br><br>
         <button class="rc-connect-btn" onclick="connectBroadcaster()">Connect Twitch (broadcaster)</button>
       </div>
     ` : ''}
 
     <div class="rc-note">
-      Viewers, chat messages &amp; unique chatters all come from the bot logging live while you stream — none of this exists in Twitch's API after the fact, so it only builds up from whenever that tracking started. Past months (and any month before the bot's analytics were set up) will show n/a for these.
+      Viewers, chat messages and unique chatters come from the bot logging live while you stream — none of it exists in Twitch's API after the fact, so it only builds up from whenever that tracking started. Months before that show n/a.
       ${token ? '<br><br><button class="rc-connect-btn" onclick="_rcFetchFollowers(true).then(()=>renderStreamSummary())" style="background:var(--surface2);border-color:var(--border);color:var(--muted)">↻ Refresh follower/sub data</button>' : ''}
     </div>
   `;
