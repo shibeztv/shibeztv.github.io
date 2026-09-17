@@ -7555,6 +7555,28 @@ function _trackLiveCategory(stream) {
   }
 }
 
+// Writes one viewer_count sample for the CURRENT minute, keyed so every
+// browser that happens to be polling at the same moment lands on the same
+// document (see the big comment above MONTHLY RECAP for why that's safe).
+// `_rcLastViewerBucket` just stops one tab from re-writing the identical
+// value twice inside the same minute — it's not a lock, so it doesn't need
+// to be perfect, only cheap.
+let _rcLastViewerBucket = null;
+let _rcIsLiveNow = false; // lets the chat-counter's reconnect timer know whether to bother
+async function _rcLogViewerSample(viewerCount) {
+  try {
+    const now = new Date();
+    const day = now.toISOString().slice(0,10);
+    const bucket = day + '_' + String(now.getUTCHours()).padStart(2,'0') + '-' + String(now.getUTCMinutes()).padStart(2,'0');
+    if (bucket === _rcLastViewerBucket) return;
+    _rcLastViewerBucket = bucket;
+    await _ensureWmAuth();
+    await _wmDb.collection('viewerSnapshots').doc(bucket).set({
+      date: day, viewer_count: viewerCount, ts: Date.now()
+    });
+  } catch(e) { /* non-critical — recap just stays n/a for this stretch */ }
+}
+
 async function demoLiveAsBadgeInsider() {
   const banner      = document.getElementById('liveBanner');
   const bannerGame  = document.getElementById('liveBannerGame');
@@ -7574,6 +7596,9 @@ async function demoLiveAsBadgeInsider() {
       const stream = d.data[0];
       const game = escHtml(stream.game_name || 'streaming');
       _trackLiveCategory(stream); // record any category change with a real timestamp, saved forever
+      _rcIsLiveNow = true;
+      _rcLogViewerSample(stream.viewer_count || 0); // feeds the recap's avg/peak viewer stats
+      _rcChatCounterConnect(); // make sure the message/chatter counter is running too
 
       // Topbar dot + status
       if (dot) dot.classList.add('live');
@@ -7602,6 +7627,9 @@ async function demoLiveAsBadgeInsider() {
       }
     } else {
       // offline
+      _rcIsLiveNow = false;
+      _rcLastViewerBucket = null; // so the first sample of the next stream always writes
+      _rcChatFlush(); // save whatever's left in the buffer rather than losing the last partial minute
       _liveSession = null; // clear session so the next stream starts fresh
       if (dot) dot.classList.remove('live');
       if (banner) banner.style.display = 'none';
@@ -18623,11 +18651,17 @@ function ytSecOpenShort(videoId) {
 //
 // Average/peak viewers and chat message/chatter counts are NOT available
 // retroactively from Twitch at all, for anyone, even the broadcaster —
-// Twitch simply doesn't store historical viewer/chat data. The only way
-// to get those is to log them ourselves going forward, which is what the
-// Firestore snapshot logging below starts doing (opportunistically, when
-// this page happens to be open while live). Past months will stay empty
-// for those two.
+// Twitch simply doesn't store historical viewer/chat data, and there's no
+// bot writing this anywhere else, so the only way to get it is to sample
+// it ourselves, live, from the page. Two independent samplers do that
+// below (_rcLogViewerSample, _rcChatCounter*) and both write to a doc ID
+// that's deterministic per minute-bucket, e.g. viewerSnapshots/2026-09-17_14-05
+// — every visitor's browser computes basically the SAME value for that
+// same minute (same Twitch viewer_count, same chat messages over IRC), so
+// concurrent visitors overwriting the same doc is a harmless no-op rather
+// than multiplying the count by however many tabs are open. This starts
+// collecting data from whenever the site is next live after this ships;
+// there is no way to backfill months that already happened.
 
 const _RC_TWITCH_SCOPE = 'moderator:read:followers channel:read:subscriptions';
 const _RC_BCAST_KEY = 'shibez_bcast_token';
@@ -18903,33 +18937,101 @@ async function _rcFetchViewerStats(monthStr) {
   } catch(e) { return null; }
 }
 
-// Reads the bot's daily chatStats docs (messageCount + chatters[] per day,
-// written by commands.js while live) and rolls them up for the month.
-// Messages sum cleanly across days; unique chatters need a real union of
-// the per-day chatter lists (summing counts would double-count regulars
-// who chat on multiple days), so the day docs each carry their chatter
-// list specifically to make that union possible here.
+// ── Live chat counter (anonymous IRC, same trick as the space-game one at
+// connectTwitchChat() but decoupled from any game — this one runs whenever
+// the site is loaded and the channel is live, whether or not anyone opens
+// a game or the recap). Every visitor's tab sees the exact same PRIVMSGs
+// over IRC, so — just like the viewer sampler above — each one-minute
+// bucket is written to a deterministic doc ID and later writers to that
+// same bucket just overwrite it with the same (or near-same) tally,
+// instead of ten open tabs each adding their own count of the same
+// messages.
+let _rcChatWs = null;
+let _rcChatBucket = null;     // 'YYYY-MM-DD_HH-MM' the buffer below belongs to
+let _rcChatBufCount = 0;
+let _rcChatBufUsers = new Set();
+
+function _rcChatCounterConnect() {
+  if (_rcChatWs && _rcChatWs.readyState < 2) return; // already connecting/open
+  try {
+    _rcChatWs = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+    _rcChatWs.onopen = () => {
+      _rcChatWs.send('PASS oauth:justinfan12345');
+      _rcChatWs.send('NICK justinfan12345');
+      _rcChatWs.send(`JOIN #${SHLBEZ_TWITCH_LOGIN}`);
+    };
+    _rcChatWs.onmessage = (ev) => {
+      const raw = ev.data;
+      if (raw.startsWith('PING')) { _rcChatWs.send('PONG :tmi.twitch.tv'); return; }
+      const match = raw.match(/^:([^!]+)![^ ]+ PRIVMSG #[^ ]+ :/);
+      if (!match) return;
+      _rcChatBump(match[1].toLowerCase());
+    };
+    // Reconnect quietly on drop — checkLiveStatus's 30s poll will also
+    // call _rcChatCounterConnect() again while live, this is just the
+    // faster path so a mid-stream disconnect doesn't sit idle for 30s.
+    _rcChatWs.onclose = () => { setTimeout(() => { if (_rcIsLiveNow) _rcChatCounterConnect(); }, 5000); };
+    _rcChatWs.onerror = () => {};
+  } catch(e) { /* non-critical */ }
+}
+
+function _rcChatBump(user) {
+  const now = new Date();
+  const bucket = now.toISOString().slice(0,10) + '_' + String(now.getUTCHours()).padStart(2,'0') + '-' + String(now.getUTCMinutes()).padStart(2,'0');
+  if (_rcChatBucket && bucket !== _rcChatBucket) _rcChatFlush();
+  _rcChatBucket = bucket;
+  _rcChatBufCount++;
+  _rcChatBufUsers.add(user);
+}
+
+async function _rcChatFlush() {
+  if (!_rcChatBucket || !_rcChatBufCount) return;
+  const bucket = _rcChatBucket, count = _rcChatBufCount, users = Array.from(_rcChatBufUsers);
+  _rcChatBucket = null; _rcChatBufCount = 0; _rcChatBufUsers = new Set();
+  try {
+    await _ensureWmAuth();
+    await _wmDb.collection('chatStats').doc(bucket.slice(0,10))
+      .collection('minutes').doc(bucket.slice(11)).set({
+        day: bucket.slice(0,10), messageCount: count, chatters: users
+      });
+  } catch(e) { /* non-critical — that minute just goes unrecorded */ }
+}
+// Flush on a timer (catches a bucket that's gone quiet) and on tab close
+// (best-effort — sendBeacon can't hit Firestore's SDK, so this is a normal
+// async write racing the unload; it often loses that race, which is fine,
+// it's one minute of approximate stats either way).
+setInterval(_rcChatFlush, 20000);
+window.addEventListener('beforeunload', _rcChatFlush);
+
+// Reads the minute-bucket docs written above and rolls them up for the
+// month. Messages sum cleanly across minutes; unique chatters need a real
+// union of the per-minute chatter lists (summing counts would double-count
+// anyone who chats more than once), so each minute doc carries its actual
+// chatter list rather than just a length, to make that union possible here.
 async function _rcFetchChatStats(monthStr) {
   try {
     await _ensureWmAuth();
-    const snap = await _wmDb.collection('chatStats')
-      .where('day', '>=', monthStr + '-01')
-      .where('day', '<=', monthStr + '-31')
+    const dayDocs = await _wmDb.collection('chatStats')
+      .where(firebase.firestore.FieldPath.documentId(), '>=', monthStr + '-01')
+      .where(firebase.firestore.FieldPath.documentId(), '<=', monthStr + '-31')
       .get();
-    if (snap.empty) return null;
+    if (dayDocs.empty) return null;
     let messageCount = 0;
     const chatterSet = new Set();
     const perDay = {};
-    snap.docs.forEach(d => {
-      const v = d.data();
-      messageCount += v.messageCount || 0;
-      (v.chatters || []).forEach(c => chatterSet.add(c));
-      // The chatter LIST (not just its length) is kept per day so a
-      // partial-month comparison can union days 1..N of last month —
-      // summing per-day counts would double-count anyone who chats on
-      // more than one day.
-      perDay[v.day] = { messageCount: v.messageCount || 0, uniqueChatters: (v.chatters || []).length, chatters: v.chatters || [] };
-    });
+    await Promise.all(dayDocs.docs.map(async dayDoc => {
+      const day = dayDoc.id;
+      const minutes = await dayDoc.ref.collection('minutes').get();
+      let dayCount = 0;
+      const dayChatters = new Set();
+      minutes.forEach(m => {
+        const v = m.data();
+        dayCount += v.messageCount || 0;
+        (v.chatters || []).forEach(c => { dayChatters.add(c); chatterSet.add(c); });
+      });
+      messageCount += dayCount;
+      perDay[day] = { messageCount: dayCount, uniqueChatters: dayChatters.size, chatters: Array.from(dayChatters) };
+    }));
     return { messageCount, uniqueChatters: chatterSet.size, perDay };
   } catch(e) { return null; }
 }
@@ -19541,8 +19643,13 @@ async function renderStreamSummary() {
       _rcSetTrend(a, stats.avg, prev && prev.avg, 'up', num, cmpLabel);
       _rcSetTrend(p, stats.peak, prev && prev.peak, 'up', num, cmpLabel);
     } else {
+      // Nothing sampled yet for this month — not broken, just means the
+      // site wasn't open+live at all this month since the sampler shipped.
+      const why = { lines: ['No viewer samples yet this month — this fills in the next time the stream is live with the site open somewhere.'] };
       a.querySelector('.rc-stat-val').textContent = 'n/a';
       p.querySelector('.rc-stat-val').textContent = 'n/a';
+      a.dataset.rctip = encodeURIComponent(JSON.stringify(why));
+      p.dataset.rctip = encodeURIComponent(JSON.stringify(why));
     }
   });
 
@@ -19559,8 +19666,11 @@ async function renderStreamSummary() {
       _rcSetTrend(mEl, stats.messageCount, prev && prev.messageCount, 'up', num, cmpLabel);
       _rcSetTrend(cEl, stats.uniqueChatters, prev && prev.uniqueChatters, 'up', num, cmpLabel);
     } else {
+      const why = { lines: ['No chat activity logged yet this month — this fills in the next time the stream is live with the site open somewhere.'] };
       mEl.querySelector('.rc-stat-val').textContent = 'n/a';
       cEl.querySelector('.rc-stat-val').textContent = 'n/a';
+      mEl.dataset.rctip = encodeURIComponent(JSON.stringify(why));
+      cEl.dataset.rctip = encodeURIComponent(JSON.stringify(why));
     }
   });
 
