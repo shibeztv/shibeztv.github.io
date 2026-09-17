@@ -2368,7 +2368,10 @@
   .rc-shell { display:none; position:fixed; top:var(--bars-h); left:0; right:0; bottom:0; z-index:9002;
               background:var(--bg, #05070e); flex-direction:column; overflow:hidden;
               --rc-card: #21222b; --rc-card-border: rgba(255,255,255,0.10);
-              --rc-sub: #b3b8c4; --rc-lbl: #888fa0; --rc-text: #f4f5f9;
+              /* Brightened from the original #b3b8c4 / #888fa0 — those read too
+                 dark against this panel, especially --rc-lbl which every
+                 uppercase label/subtext in the recap uses. */
+              --rc-sub: #d7dae4; --rc-lbl: #aeb3c6; --rc-text: #f4f5f9;
               --rc-t-xs:10px; --rc-t-sm:11px; --rc-t-base:12px; --rc-t-md:13px;
               --rc-t-lg:15px; --rc-t-xl:19px; --rc-t-2xl:24px;
               --rc-sp-1:4px; --rc-sp-2:8px; --rc-sp-3:12px; --rc-sp-4:16px; --rc-sp-5:20px; --rc-sp-6:28px; }
@@ -2442,6 +2445,28 @@
   .rc-stat.rc-dim .rc-stat-val { color:var(--rc-sub); font-size:var(--rc-t-md); }
   .rc-stat.rc-dim:hover { transform:none; border-color:var(--rc-card-border); }
 
+  /* Any stat card carrying a data-rctip gets a "hover me" affordance so it
+     doesn't just look like a plain number — dotted underline on the label,
+     small info dot in the corner. */
+  .rc-stat[data-rctip] { cursor:help; }
+  .rc-stat[data-rctip] .rc-stat-lbl { border-bottom:1px dotted var(--rc-lbl); display:inline-block; }
+  .rc-stat[data-rctip]::after { content:'i'; position:absolute; top:6px; right:8px; width:13px; height:13px;
+    border-radius:50%; border:1px solid var(--rc-card-border); color:var(--rc-lbl); font-family:var(--mono);
+    font-size:9px; font-weight:800; font-style:normal; display:flex; align-items:center; justify-content:center; }
+
+  /* Rich tooltip (used by the calendar cells, highlight cards and the stat
+     cards above) — a shared floating element populated from each hovered
+     item's data-rctip JSON so every hover surface (thumbnail + title +
+     date + explanation bullets) looks the same. */
+  #_rcTip { position:fixed; z-index:999999; pointer-events:none; background:#0a0c14; border:1px solid rgba(78,230,172,0.5);
+            border-radius:8px; padding:9px 12px; font-family:var(--mono); font-size:11px; color:#eef0f6; line-height:1.65;
+            box-shadow:0 8px 26px rgba(0,0,0,0.6); display:none; max-width:260px; }
+  #_rcTip img { width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:6px; display:block; margin-bottom:6px; background:#1a1a1e; }
+  #_rcTip .rc-tip-date { color:#4ee6ac; font-weight:800; margin-bottom:2px; white-space:normal; }
+  #_rcTip .rc-tip-title { color:#f4f5f9; font-weight:700; margin-bottom:4px; white-space:normal; }
+  #_rcTip ul { margin:0; padding-left:15px; }
+  #_rcTip ul li { color:var(--rc-sub, #d7dae4); }
+
   .rc-cats { display:flex; flex-direction:column; gap:var(--rc-sp-2); }
   .rc-cat-row { display:grid; grid-template-columns:140px 1fr 68px; align-items:center; gap:var(--rc-sp-3); }
   .rc-cat-name { font-family:var(--mono); font-size:var(--rc-t-md); font-weight:700; color:var(--rc-text);
@@ -2478,25 +2503,29 @@
   .rc-highlight-pts span { display:block; font-size:var(--rc-t-xs); font-weight:700; color:var(--rc-lbl);
                             letter-spacing:0.6px; text-transform:uppercase; margin-top:3px; }
 
-  /* Daily breakdown: month calendar, colored by that stream's score */
-  .rc-cal-wrap { background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:10px; padding:var(--rc-sp-4); }
-  .rc-cal-wds { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:5px; }
-  .rc-cal-wds span { font-family:var(--mono); font-size:var(--rc-t-xs); font-weight:800; letter-spacing:0.6px;
+  /* Daily breakdown: month calendar, colored by that stream's score.
+     Capped to ~360px and centered so it takes up roughly half the width it
+     used to (it was stretching full-width on the panel, way bigger than a
+     calendar needs to be) — everything inside scales down a notch with it. */
+  .rc-cal-wrap { background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:10px; padding:var(--rc-sp-3); }
+  .rc-cal-inner { max-width:360px; margin:0 auto; }
+  .rc-cal-wds { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:4px; }
+  .rc-cal-wds span { font-family:var(--mono); font-size:9px; font-weight:800; letter-spacing:0.4px;
                       text-transform:uppercase; color:var(--rc-lbl); text-align:center; }
-  .rc-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
-  .rc-cal-cell { position:relative; aspect-ratio:1; border-radius:6px; background:rgba(255,255,255,0.03);
-                 border:1px solid var(--rc-card-border); display:flex; align-items:flex-start; padding:4px;
+  .rc-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .rc-cal-cell { position:relative; aspect-ratio:1; border-radius:5px; background:rgba(255,255,255,0.03);
+                 border:1px solid var(--rc-card-border); display:flex; align-items:flex-start; padding:3px;
                  transition:transform .1s, border-color .1s; }
   .rc-cal-cell.rc-cal-empty { border:none; background:transparent; }
   .rc-cal-cell.rc-cal-active { cursor:pointer; border-color:rgba(255,255,255,0.06); }
-  .rc-cal-cell.rc-cal-active:hover { transform:scale(1.08); border-color:#4ee6ac; z-index:2; }
+  .rc-cal-cell.rc-cal-active:hover { transform:scale(1.12); border-color:#4ee6ac; z-index:2; }
   .rc-cal-cell.rc-cal-today { box-shadow:0 0 0 2px #4ee6ac inset; }
-  .rc-cal-daynum { font-family:var(--mono); font-size:var(--rc-t-sm); font-weight:700; color:var(--rc-sub); }
+  .rc-cal-daynum { font-family:var(--mono); font-size:9px; font-weight:700; color:var(--rc-sub); }
   .rc-cal-active .rc-cal-daynum { color:#0c1410; font-weight:800; }
-  .rc-cal-legend { display:flex; align-items:center; gap:5px; margin-top:var(--rc-sp-3);
-                    font-family:var(--mono); font-size:var(--rc-t-xs); color:var(--rc-lbl);
+  .rc-cal-legend { display:flex; align-items:center; justify-content:center; gap:5px; margin-top:var(--rc-sp-2);
+                    font-family:var(--mono); font-size:9px; color:var(--rc-lbl);
                     text-transform:uppercase; letter-spacing:0.5px; }
-  .rc-cal-swatch { width:12px; height:12px; border-radius:3px; border:1px solid var(--rc-card-border); }
+  .rc-cal-swatch { width:10px; height:10px; border-radius:3px; border:1px solid var(--rc-card-border); }
 
   /* Compared to last month: paired bars + delta arrow */
   .rc-compare-wrap { display:flex; flex-direction:column; gap:var(--rc-sp-2); }
@@ -18596,6 +18625,7 @@ function openStreamSummary() {
   const shell = document.getElementById('summaryModalOverlay');
   shell.style.display = 'flex';
   shell.querySelector('.rc-body').scrollTop = 0;
+  _rcInitTooltipDelegation();
   renderStreamSummary();
   _rcMaybeLogSnapshot();
 }
@@ -18636,7 +18666,14 @@ async function _rcHandleOAuthCallback(token) {
     const vr = await fetch('https://id.twitch.tv/oauth2/validate', { headers: { 'Authorization': 'Bearer ' + token } });
     const vd = await vr.json();
     if (!vd.user_id || vd.user_id !== '96140858') {
-      alert('That Twitch login isn\'t the broadcaster account (96140858), so it can\'t read follower/sub data.');
+      // Twitch's authorize screen silently reuses whichever Twitch account
+      // is already logged into this browser — it does NOT prompt you to
+      // pick an account unless you're logged out. So this almost always
+      // means the browser had a different Twitch session active (a mod
+      // account, a personal account, etc), not that the ID here is wrong.
+      // Naming the account it actually authenticated as makes that obvious
+      // instead of just saying "wrong account" with no way to tell why.
+      alert(`That was ${vd.login ? '"' + vd.login + '"' : 'a different account'} (id ${vd.user_id}), not shlbez (96140858).\n\nTwitch reuses whatever account is already logged into this browser — it won't ask you to pick one. Log out of Twitch on twitch.tv first (or use an incognito window), then reconnect while logged in as shlbez.`);
       return;
     }
     const expiresAt = Date.now() + (vd.expires_in || 3600) * 1000;
@@ -18762,6 +18799,39 @@ async function _rcFetchOwnerMonthDelta(monthStr) {
 // (_rcAppToken removed — it minted a token from the client secret. Anything
 // here that needs an app token should call fetchTwitchToken() instead.)
 
+// ── Shared broadcaster cache ────────────────────────────────────────────
+// Follows/subs only exist behind the broadcaster's own Twitch login, which
+// used to mean every single visitor had to click "Connect Twitch" and log
+// in as shlbez themselves to see those two stat cards (impossible for
+// anyone but the broadcaster anyway — Twitch checks the token's user_id).
+// Instead: whenever the broadcaster DOES have the recap open and connected,
+// this writes what it fetched into one shared Firestore doc that anyone
+// (anonymous auth, read-only in practice) can read. So the broadcaster
+// connects once, from their own browser, and everyone else's recap just
+// reads the cache — no login for them at all. It goes stale between
+// broadcaster visits (a Twitch user token only lasts a few hours), so it's
+// stamped with updatedAt and rendered with a "as of" note rather than
+// pretending it's live.
+async function _rcPushSharedCache(monthStr, followersList, subInfo) {
+  try {
+    await _ensureWmAuth();
+    const payload = { updatedAt: Date.now() };
+    if (followersList) payload.followersTotal = followersList.length;
+    if (followersList) payload.followersThisMonth = followersList.filter(ts => ts && ts.startsWith(monthStr)).length;
+    if (followersList) payload.followersMonthStamp = monthStr;
+    if (subInfo) { payload.subsTotal = subInfo.total; payload.subsByTier = subInfo.byTier; }
+    await _wmDb.collection('broadcasterCache').doc('latest').set(payload, { merge: true });
+  } catch(e) { /* non-critical */ }
+}
+
+async function _rcFetchSharedCache() {
+  try {
+    await _ensureWmAuth();
+    const doc = await _wmDb.collection('broadcasterCache').doc('latest').get();
+    return doc.exists ? doc.data() : null;
+  } catch(e) { return null; }
+}
+
 async function _rcFetchViewerStats(monthStr) {
   try {
     await _ensureWmAuth();
@@ -18859,13 +18929,24 @@ function _rcMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).pa
 // Viewer data only exists from whenever the bot's analytics started, so when
 // nothing in the month has it yet, score on hours alone rather than treating
 // missing viewer data as zero (which would make every day look equally bad).
-function _rcBuildDayScores(streams, viewerPerDay, chatPerDay) {
+//
+// Graded against the channel's ALL-TIME best (allTimeMaxPeak, passed in;
+// all-time max hours computed here from allStreams), not just this month's
+// own max. Grading against the month alone meant the best stream in a
+// dead month automatically scored 100/100 just for being the least-bad
+// stream that happened to exist that month — which reads as an obviously
+// wrong score. Now 100 only happens for a stream that's genuinely your
+// best ever, so a slow month's "best" stream gets a realistically low
+// number instead of a hollow perfect score.
+function _rcBuildDayScores(streams, viewerPerDay, chatPerDay, allTimeMaxPeak) {
   const rows = streams.map(s => {
     const v = viewerPerDay && viewerPerDay[s.day];
     const c = chatPerDay && chatPerDay[s.day];
     return {
       day: s.day,
       streamIdx: allStreams.indexOf(s),
+      title: s.title || 'Stream',
+      thumb: s.thumb || '',
       hours: (s.totalDuration || 0) / 3600,
       peak: v ? v.peak : null,
       avgViewers: v ? v.avg : null,
@@ -18873,8 +18954,11 @@ function _rcBuildDayScores(streams, viewerPerDay, chatPerDay) {
       chatters: c ? c.uniqueChatters : null,
     };
   });
-  const maxHours = Math.max(1, ...rows.map(r => r.hours));
-  const maxPeak = Math.max(1, ...rows.map(r => r.peak || 0));
+  const monthMaxHours = Math.max(1, ...rows.map(r => r.hours));
+  const monthMaxPeak = Math.max(1, ...rows.map(r => r.peak || 0));
+  const allTimeMaxHours = Math.max(1, ...allStreams.map(s => (s.totalDuration||0) / 3600));
+  const maxHours = Math.max(monthMaxHours, allTimeMaxHours);
+  const maxPeak = Math.max(monthMaxPeak, allTimeMaxPeak || 0);
   const havePeakData = rows.some(r => r.peak != null);
   rows.forEach(r => {
     const hoursNorm = r.hours / maxHours;
@@ -18887,17 +18971,61 @@ function _rcBuildDayScores(streams, viewerPerDay, chatPerDay) {
     if (r.scoreNorm > best.scoreNorm) best = r;
     if (r.scoreNorm < worst.scoreNorm) worst = r;
   });
-  return { rows, best, worst };
+  return { rows, best, worst, havePeakData };
 }
 
-function _rcHighlightCard(label, emoji, row) {
+// All-time peak viewers across every logged snapshot, ever — used purely as
+// the denominator above. A single indexed orderBy+limit(1) query, so this
+// stays cheap even once viewerSnapshots has years of data in it (no full
+// collection scan). Cached in-memory + sessionStorage for 30 minutes since
+// it barely changes and every recap open would otherwise re-run it.
+let _rcAllTimePeakCache = null;
+async function _rcFetchAllTimePeak() {
+  if (_rcAllTimePeakCache !== null) return _rcAllTimePeakCache;
+  try {
+    const cached = JSON.parse(sessionStorage.getItem('shibez_rc_alltime_peak') || 'null');
+    if (cached && Date.now() - cached.ts < 30 * 60 * 1000) { _rcAllTimePeakCache = cached.peak; return cached.peak; }
+  } catch(e) {}
+  try {
+    await _ensureWmAuth();
+    const snap = await _wmDb.collection('viewerSnapshots').orderBy('viewer_count', 'desc').limit(1).get();
+    const peak = snap.empty ? null : (snap.docs[0].data().viewer_count || null);
+    _rcAllTimePeakCache = peak;
+    try { sessionStorage.setItem('shibez_rc_alltime_peak', JSON.stringify({ peak, ts: Date.now() })); } catch(e) {}
+    return peak;
+  } catch(e) { return null; }
+}
+
+// Plain-English "why this one" bullets for the best/quietest highlight
+// cards. The score itself is just peak viewers (65%) + hours (35%), or
+// hours alone for months before viewer tracking existed — this spells that
+// out in points instead of leaving the number unexplained.
+function _rcExplainRow(row, isBest, havePeakData) {
+  const lines = [];
+  if (havePeakData) {
+    lines.push(row.peak != null
+      ? `${isBest ? 'Highest' : 'Lowest'} peak viewers this month (${row.peak.toLocaleString()})`
+      : 'No viewer data logged for this specific stream');
+    if (row.chatters != null) lines.push(`${row.chatters.toLocaleString()} unique chatters`);
+    lines.push(`Score = 65% peak viewers + 35% hours, graded against your all-time best`);
+  } else {
+    lines.push(`${isBest ? 'Longest' : 'Shortest'} stream this month — no viewer data logged yet, so hours decide the score`);
+  }
+  lines.push(`${row.hours.toFixed(1)}h streamed`);
+  if (row.messages != null) lines.push(`${row.messages.toLocaleString()} chat messages`);
+  return lines;
+}
+
+function _rcHighlightCard(label, emoji, row, isBest, havePeakData) {
   const bits = [
     row.peak != null ? `${row.peak.toLocaleString()} peak viewers` : null,
     `${row.hours.toFixed(1)}h streamed`,
     row.messages != null ? `${row.messages.toLocaleString()} messages` : null,
   ].filter(Boolean);
+  const tip = { thumb: row.thumb, date: formatDay(row.day), title: row.title,
+                lines: _rcExplainRow(row, isBest, havePeakData), idx: row.streamIdx };
   return `
-    <div class="rc-highlight-card" onclick="closeStreamSummary();selectStream(${row.streamIdx})">
+    <div class="rc-highlight-card" data-rctip="${encodeURIComponent(JSON.stringify(tip))}" onclick="closeStreamSummary();selectStream(${row.streamIdx})">
       <div class="rc-highlight-emoji">${emoji}</div>
       <div class="rc-highlight-body">
         <div class="rc-highlight-lbl">${label}</div>
@@ -18928,55 +19056,91 @@ function _rcRenderCalendar(y, m, daysInMonth, byDate) {
       return `<div class="rc-cal-cell${todayCls}"><span class="rc-cal-daynum">${d}</span></div>`;
     }
     const alpha = (0.18 + info.scoreNorm * 0.72).toFixed(2); // visible floor even for the lowest-scoring day
-    const tip = [
-      formatDay(dateStr),
+    const lines = [
       `${info.points} pts`,
       `${info.hours.toFixed(1)}h streamed`,
       info.peak != null ? `${info.peak.toLocaleString()} peak viewers` : null,
       info.messages != null ? `${info.messages.toLocaleString()} chat messages` : null,
-    ].filter(Boolean).join('|');
-    return `<div class="rc-cal-cell rc-cal-active${todayCls}" style="background:rgba(78,230,172,${alpha})" data-tip="${tip}" data-idx="${info.streamIdx}"><span class="rc-cal-daynum">${d}</span></div>`;
+      info.chatters != null ? `${info.chatters.toLocaleString()} unique chatters` : null,
+    ].filter(Boolean);
+    const tip = { thumb: info.thumb, date: formatDay(dateStr), title: info.title, lines, idx: info.streamIdx };
+    return `<div class="rc-cal-cell rc-cal-active${todayCls}" style="background:rgba(78,230,172,${alpha})" data-rctip="${encodeURIComponent(JSON.stringify(tip))}"><span class="rc-cal-daynum">${d}</span></div>`;
   }).join('');
 
   return `
-    <div class="rc-cal-wds">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(w => `<span>${w}</span>`).join('')}</div>
-    <div class="rc-cal-grid">${cellsHtml}</div>
-    <div class="rc-cal-legend">
-      <span>Less</span>
-      <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.18)"></span>
-      <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.40)"></span>
-      <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.62)"></span>
-      <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.90)"></span>
-      <span>More</span>
+    <div class="rc-cal-inner">
+      <div class="rc-cal-wds">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(w => `<span>${w}</span>`).join('')}</div>
+      <div class="rc-cal-grid">${cellsHtml}</div>
+      <div class="rc-cal-legend">
+        <span>Less</span>
+        <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.18)"></span>
+        <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.40)"></span>
+        <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.62)"></span>
+        <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.90)"></span>
+        <span>More</span>
+      </div>
     </div>`;
 }
 
-// Hover tooltip + click-to-open for calendar cells, delegated on the wrap so
-// it survives the innerHTML swap that happens every time the month changes.
-function _rcSetupCalendarInteractions(container) {
+// Kept as a no-op shim so any stray old callers don't error — tooltip
+// delegation now lives on the whole recap body (see _rcInitTooltipDelegation)
+// so it works for calendar cells, highlight cards AND stat cards from one
+// place, instead of being re-wired separately every time the calendar re-renders.
+function _rcSetupCalendarInteractions() {}
+
+// One delegated hover/click handler for every element in the recap that
+// carries a data-rctip="<url-encoded JSON>" attribute — calendar cells,
+// best/quietest-stream cards, and the stat cards (longest/shortest/most
+// categories/etc). Attached once to .rc-body, which is never replaced
+// (only rcContent's innerHTML changes on month switch/re-render), so this
+// survives every re-render without needing to be reattached.
+let _rcTooltipDelegationInit = false;
+function _rcInitTooltipDelegation() {
+  if (_rcTooltipDelegationInit) return;
+  _rcTooltipDelegationInit = true;
+
   let tip = document.getElementById('_rcTip');
   if (!tip) {
     tip = document.createElement('div');
     tip.id = '_rcTip';
-    tip.style.cssText = 'position:fixed;z-index:999999;pointer-events:none;background:rgba(10,12,20,0.97);border:1px solid rgba(78,230,172,0.5);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:11px;color:#eef0f6;line-height:1.7;box-shadow:0 8px 26px rgba(0,0,0,0.6);display:none;white-space:nowrap';
     document.body.appendChild(tip);
   }
-  container.addEventListener('mousemove', e => {
-    const cell = e.target.closest('.rc-cal-active');
-    if (!cell) { tip.style.display = 'none'; return; }
-    const parts = cell.dataset.tip.split('|');
-    tip.innerHTML = parts.map((p,i) => i===0
-      ? `<div style="color:#4ee6ac;font-weight:800;margin-bottom:3px">${p}</div>`
-      : `<div>${p}</div>`).join('');
+
+  const body = document.querySelector('#summaryModalOverlay .rc-body');
+  if (!body) return;
+
+  body.addEventListener('mousemove', e => {
+    const el = e.target.closest('[data-rctip]');
+    if (!el) { tip.style.display = 'none'; return; }
+    if (el._rcTipCache === undefined) {
+      try { el._rcTipCache = JSON.parse(decodeURIComponent(el.dataset.rctip)); }
+      catch(err) { el._rcTipCache = null; }
+    }
+    const d = el._rcTipCache;
+    if (!d) { tip.style.display = 'none'; return; }
+    let html = '';
+    if (d.thumb) html += `<img src="${d.thumb}" alt="" loading="lazy">`;
+    if (d.date) html += `<div class="rc-tip-date">${d.date}</div>`;
+    if (d.title) html += `<div class="rc-tip-title">${escHtml(d.title)}</div>`;
+    if (d.lines && d.lines.length) html += `<ul>${d.lines.map(l => `<li>${l}</li>`).join('')}</ul>`;
+    tip.innerHTML = html;
     tip.style.display = 'block';
-    tip.style.left = (e.clientX + 16) + 'px';
-    tip.style.top  = (e.clientY + 16) + 'px';
+    // Keep it on-screen near the cursor, flipping to the left/above the
+    // cursor once it would otherwise overflow the viewport edge.
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const tw = tip.offsetWidth || 260, th = tip.offsetHeight || 120;
+    let left = e.clientX + 16, top = e.clientY + 16;
+    if (left + tw > vw - 8) left = e.clientX - tw - 16;
+    if (top + th > vh - 8) top = e.clientY - th - 16;
+    tip.style.left = Math.max(8, left) + 'px';
+    tip.style.top  = Math.max(8, top) + 'px';
   });
-  container.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
-  container.addEventListener('click', e => {
-    const cell = e.target.closest('.rc-cal-active');
-    const idx = cell ? parseInt(cell.dataset.idx, 10) : NaN;
-    if (Number.isNaN(idx) || idx < 0) return;
+  body.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  body.addEventListener('click', e => {
+    const el = e.target.closest('[data-rctip]');
+    if (!el || el._rcTipCache === undefined) return;
+    const idx = el._rcTipCache && el._rcTipCache.idx;
+    if (idx === undefined || idx === null || idx < 0) return;
     closeStreamSummary();
     selectStream(idx);
   });
@@ -19056,6 +19220,33 @@ async function renderStreamSummary() {
   });
   const catList = Object.entries(catTotals).sort((a,b) => b[1]-a[1]);
 
+  // Per-stream extremes for the new stat cards: longest/shortest by
+  // duration, whichever stream touched the most distinct categories, and
+  // whichever stream spent the most time in Just Chatting specifically
+  // (the "stalling stream" one) — all computed from the same
+  // getCategoryDurations() the category list above already uses, so a
+  // stream's own chapter data decides it, not just its total length.
+  let longestStream = streams[0], shortestStream = streams[0];
+  let mostCatStream = null, mostCatCount = -1;
+  let jcStream = null, jcSecs = -1;
+  streams.forEach(s => {
+    if ((s.totalDuration||0) > (longestStream.totalDuration||0)) longestStream = s;
+    if ((s.totalDuration||0) < (shortestStream.totalDuration||0)) shortestStream = s;
+    const d = getCategoryDurations(s);
+    const catCount = Object.keys(d).length;
+    if (catCount > mostCatCount) { mostCatCount = catCount; mostCatStream = s; }
+    for (const label in d) {
+      if (label.toLowerCase() === 'just chatting' && d[label] > jcSecs) { jcSecs = d[label]; jcStream = s; }
+    }
+  });
+  // Small helper: build a data-rctip payload (thumbnail + title + date +
+  // bullets) for a stream-backed stat card, so hovering "Longest stream"
+  // etc. shows the same rich preview the calendar/highlight cards do.
+  const _rcStreamTip = (s, lines) => encodeURIComponent(JSON.stringify({
+    thumb: s.thumb, date: formatDay(s.day), title: s.title || 'Stream',
+    lines, idx: allStreams.indexOf(s)
+  }));
+
   const rating = _rcRating({ hours, streamCount: streams.length, daysInMonth, daysElapsed, categoryCount: catList.length });
 
   // Previous calendar month, for the "compared to last month" section —
@@ -19087,8 +19278,7 @@ async function renderStreamSummary() {
       <div class="rc-hero-main">
         <div class="rc-hero-h">${monthName}</div>
         <div class="rc-hero-sub">
-          ${hours.toFixed(1)} hours live across ${streams.length} ${streams.length === 1 ? 'day' : 'days'}${topCat ? ` · mostly ${topCat}` : ''}.
-          <br>Rating is a rough consistency + hours + variety score, just for fun.${isCurrentMonth ? ' Scaled to how far the month has gotten so far, so it won\'t judge you against days that haven\'t happened yet.' : ''}
+          ${hours.toFixed(1)} hours live across ${streams.length} ${streams.length === 1 ? 'day' : 'days'}${topCat ? ` · mostly ${topCat}` : ''}
         </div>
         <div class="rc-hero-pills">
           <span class="rc-pill">${activeRate}% of days live${isCurrentMonth ? ' so far' : ''}</span>
@@ -19102,15 +19292,30 @@ async function renderStreamSummary() {
     <div class="rc-stats-grid">
       <div class="rc-stat"><div class="rc-stat-val">${hours.toFixed(1)}h</div><div class="rc-stat-lbl">Hours streamed</div></div>
       <div class="rc-stat"><div class="rc-stat-val">${streams.length}</div><div class="rc-stat-lbl">Days streamed</div></div>
-      <div class="rc-stat"><div class="rc-stat-val">${catList.length}</div><div class="rc-stat-lbl">Categories</div></div>
-      <div class="rc-stat"><div class="rc-stat-val">${_rcDur(longest)}</div><div class="rc-stat-lbl">Longest stream</div></div>
+      <div class="rc-stat" data-rctip="${encodeURIComponent(JSON.stringify({ lines: catList.map(([label,secs]) => `${label} — ${_rcDur(secs)} (${Math.round(secs/totalSeconds*100)}%)`) }))}">
+        <div class="rc-stat-val">${catList.length}</div><div class="rc-stat-lbl">Categories</div>
+      </div>
+      <div class="rc-stat" data-rctip="${_rcStreamTip(longestStream, [`${_rcDur(longestStream.totalDuration)} long`])}">
+        <div class="rc-stat-val">${_rcDur(longest)}</div><div class="rc-stat-lbl">Longest stream</div>
+      </div>
+      <div class="rc-stat" data-rctip="${_rcStreamTip(shortestStream, [`${_rcDur(shortestStream.totalDuration)} long`])}">
+        <div class="rc-stat-val">${_rcDur(shortestStream.totalDuration)}</div><div class="rc-stat-lbl">Shortest stream</div>
+      </div>
       <div class="rc-stat"><div class="rc-stat-val">${_rcDur(avgLen)}</div><div class="rc-stat-lbl">Average length</div></div>
+      ${mostCatStream ? `
+      <div class="rc-stat" data-rctip="${_rcStreamTip(mostCatStream, [`${mostCatCount} categories in one stream`])}">
+        <div class="rc-stat-val">${mostCatCount}</div><div class="rc-stat-lbl">Most categories</div>
+      </div>` : ''}
+      ${jcStream ? `
+      <div class="rc-stat" data-rctip="${_rcStreamTip(jcStream, [`${_rcDur(jcSecs)} of Just Chatting`])}">
+        <div class="rc-stat-val">${_rcDur(jcSecs)}</div><div class="rc-stat-lbl">Longest Just Chatting</div>
+      </div>` : ''}
     </div>
 
     <div class="rc-section-title">Audience</div>
     <div class="rc-stats-grid">
-      <div class="rc-stat${token ? '' : ' rc-dim'}" id="rcFollowStat"><div class="rc-stat-val">${token ? '…' : '—'}</div><div class="rc-stat-lbl">Follows gained</div></div>
-      <div class="rc-stat${token ? '' : ' rc-dim'}" id="rcSubStat"><div class="rc-stat-val">${token ? '…' : '—'}</div><div class="rc-stat-lbl">Subs</div></div>
+      <div class="rc-stat rc-dim" id="rcFollowStat"><div class="rc-stat-val">${token ? '…' : '…'}</div><div class="rc-stat-lbl">Follows gained</div></div>
+      <div class="rc-stat rc-dim" id="rcSubStat"><div class="rc-stat-val">${token ? '…' : '…'}</div><div class="rc-stat-lbl">Subs</div></div>
       <div class="rc-stat rc-dim" id="rcAvgViewStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Avg viewers</div></div>
       <div class="rc-stat rc-dim" id="rcPeakViewStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Peak viewers</div></div>
       <div class="rc-stat rc-dim" id="rcMsgStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Chat messages</div></div>
@@ -19145,8 +19350,8 @@ async function renderStreamSummary() {
 
     ${!token ? `
       <div class="rc-section-title">Broadcaster stats</div>
-      <div class="rc-empty">
-        Follows gained and sub count need Twitch to know you're the broadcaster.
+      <div class="rc-empty" id="rcBcastCta">
+        Follows gained and sub count need Twitch to know you're the broadcaster — checking if shlbez has already shared that data…
         <br><br>
         <button class="rc-connect-btn" onclick="connectBroadcaster()">Connect Twitch (broadcaster)</button>
       </div>
@@ -19199,24 +19404,26 @@ async function renderStreamSummary() {
 
   // Highlights (best/quietest stream) + the daily calendar both need the
   // same per-day viewer/chat breakdown, so build it once both current-month
-  // fetches are in.
-  Promise.all([viewerPromise, chatPromise]).then(([curV, curC]) => {
+  // fetches are in — plus the all-time peak, which is what grades them
+  // realistically instead of against just this one month (see
+  // _rcBuildDayScores for why that matters).
+  const allTimePeakPromise = _rcFetchAllTimePeak().catch(() => null);
+  Promise.all([viewerPromise, chatPromise, allTimePeakPromise]).then(([curV, curC, allTimePeak]) => {
     const hlWrap = document.getElementById('rcHighlightsWrap');
     const calWrap = document.getElementById('rcCalendarWrap');
     if (!hlWrap && !calWrap) return; // moved on to a different month/closed
 
-    const { rows, best, worst } = _rcBuildDayScores(streams, curV && curV.perDay, curC && curC.perDay);
+    const { rows, best, worst, havePeakData } = _rcBuildDayScores(streams, curV && curV.perDay, curC && curC.perDay, allTimePeak);
 
     if (hlWrap) {
       hlWrap.innerHTML = rows.length > 1
-        ? _rcHighlightCard('Best stream', '🏆', best) + _rcHighlightCard('Quietest stream', '🌙', worst)
-        : _rcHighlightCard("This month's stream", '🎬', best);
+        ? _rcHighlightCard('Best stream', '🏆', best, true, havePeakData) + _rcHighlightCard('Quietest stream', '🌙', worst, false, havePeakData)
+        : _rcHighlightCard("This month's stream", '🎬', best, true, havePeakData);
     }
     if (calWrap) {
       const byDate = {};
       rows.forEach(r => { byDate[r.day] = r; });
       calWrap.innerHTML = _rcRenderCalendar(y, m, daysInMonth, byDate);
-      _rcSetupCalendarInteractions(calWrap);
     }
   });
 
@@ -19239,17 +19446,24 @@ async function renderStreamSummary() {
     ].join('');
   });
 
-  // Async: broadcaster-only follows/subs
+  // Async: broadcaster-only follows/subs. If THIS browser is logged in as
+  // the broadcaster, fetch live from Twitch and also push it to the shared
+  // Firestore cache so everyone else's recap can read it without logging
+  // in. If not, read that shared cache instead — only falling back to
+  // "please connect" if nobody has ever populated it.
   if (token) {
     _rcFetchFollowers(false).then(list => {
       const el = document.getElementById('rcFollowStat');
       if (!el || !list) return;
       const count = list.filter(ts => ts && ts.startsWith(monthStr)).length;
       el.querySelector('.rc-stat-val').textContent = count;
+      el.classList.remove('rc-dim');
+      _rcPushSharedCache(monthStr, list, null);
     });
     _rcFetchOwnerMonthDelta(monthStr).then(delta => {
       const el = document.getElementById('rcSubStat');
       if (!el) return;
+      el.classList.remove('rc-dim');
       if (delta && delta.subsDelta !== null) {
         el.querySelector('.rc-stat-val').textContent = (delta.subsDelta > 0 ? '+' : '') + delta.subsDelta;
         el.querySelector('.rc-stat-lbl').textContent = 'Subs change';
@@ -19258,11 +19472,44 @@ async function renderStreamSummary() {
           if (!info) return;
           el.querySelector('.rc-stat-val').textContent = info.total;
           el.querySelector('.rc-stat-lbl').textContent = 'Current subs';
+          _rcPushSharedCache(monthStr, null, info);
         });
       } else {
         el.querySelector('.rc-stat-val').textContent = 'n/a';
         el.querySelector('.rc-stat-lbl').textContent = 'Subs change';
       }
+    });
+  } else {
+    _rcFetchSharedCache().then(cache => {
+      const fEl = document.getElementById('rcFollowStat');
+      const sEl = document.getElementById('rcSubStat');
+      const cta = document.getElementById('rcBcastCta');
+      if (!cache) {
+        if (fEl) fEl.querySelector('.rc-stat-val').textContent = '—';
+        if (sEl) sEl.querySelector('.rc-stat-val').textContent = '—';
+        if (cta) cta.innerHTML = `Follows gained and sub count need Twitch to know you're the broadcaster.<br><br><button class="rc-connect-btn" onclick="connectBroadcaster()">Connect Twitch (broadcaster)</button>`;
+        return;
+      }
+      const ageMins = Math.round((Date.now() - (cache.updatedAt||0)) / 60000);
+      const ageStr = ageMins < 60 ? `${ageMins}m ago` : `${Math.round(ageMins/60)}h ago`;
+      if (fEl) {
+        if (cache.followersMonthStamp === monthStr && cache.followersThisMonth != null) {
+          fEl.querySelector('.rc-stat-val').textContent = cache.followersThisMonth;
+        } else {
+          fEl.querySelector('.rc-stat-val').textContent = 'n/a';
+        }
+        fEl.classList.remove('rc-dim');
+      }
+      if (sEl) {
+        if (cache.subsTotal != null) {
+          sEl.querySelector('.rc-stat-val').textContent = cache.subsTotal;
+          sEl.querySelector('.rc-stat-lbl').textContent = isCurrentMonth ? 'Current subs' : 'Subs (as of last sync)';
+        } else {
+          sEl.querySelector('.rc-stat-val').textContent = 'n/a';
+        }
+        sEl.classList.remove('rc-dim');
+      }
+      if (cta) cta.innerHTML = `Shared by shlbez's last broadcaster login, ${ageStr}. <br><br><button class="rc-connect-btn" onclick="connectBroadcaster()">Connect Twitch (broadcaster)</button>`;
     });
   }
 }
