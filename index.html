@@ -3655,6 +3655,12 @@ function _lbRerenderAll(key){
 // ─── USER PROFILE SYSTEM ────────────────────────────────────────────────────
 const _PROF_KEY = 'shibez_user_profile';
 const _PROF_TWITCH_CLIENT = '61x4q55vai9w0lwsc1enqw9vktqzee';
+// The channel this whole site is about. Every Helix call that takes a
+// broadcaster_id uses this, so it lives in exactly one place — a wrong or
+// stale value here silently breaks follower/sub lookups everywhere at once
+// (which is precisely what happened with the old hardcoded 96140858).
+const SHLBEZ_TWITCH_LOGIN = 'shlbez';
+const SHLBEZ_TWITCH_ID    = '241530558';
 let _profUser = null; // {id, login, displayName, avatar, followedAt, subMonths, subTier}
 
 function _profLoad() {
@@ -3801,7 +3807,7 @@ async function _profHandleOAuthCallback(token) {
     // Get follow info
     let followedAt = null;
     try {
-      const fr = await fetch(`https://api.twitch.tv/helix/channels/followed?user_id=${user.id}&broadcaster_id=96140858`, {
+      const fr = await fetch(`https://api.twitch.tv/helix/channels/followed?user_id=${user.id}&broadcaster_id=${SHLBEZ_TWITCH_ID}`, {
         headers:{'Authorization':`Bearer ${token}`,'Client-Id':_PROF_TWITCH_CLIENT}
       });
       const fd = await fr.json();
@@ -3811,7 +3817,7 @@ async function _profHandleOAuthCallback(token) {
     // Get sub info
     let subMonths = 0, subTier = null;
     try {
-      const sr = await fetch(`https://api.twitch.tv/helix/subscriptions/user?broadcaster_id=96140858&user_id=${user.id}`, {
+      const sr = await fetch(`https://api.twitch.tv/helix/subscriptions/user?broadcaster_id=${SHLBEZ_TWITCH_ID}&user_id=${user.id}`, {
         headers:{'Authorization':`Bearer ${token}`,'Client-Id':_PROF_TWITCH_CLIENT}
       });
       const sd = await sr.json();
@@ -8793,7 +8799,7 @@ const EG_CHANNELS = [
   {name:'velcuz',    id:'131949094'},
   {name:'nymn',      id:'62300805'},
   {name:'zackrawrr', id:'50338810'},
-  {name:'shlbez',    id:'96140858'},
+  {name:SHLBEZ_TWITCH_LOGIN, id:SHLBEZ_TWITCH_ID},
   {name:'erobb221',  id:'116683030'},
 ];
 
@@ -18625,7 +18631,7 @@ function ytSecOpenShort(videoId) {
 
 const _RC_TWITCH_SCOPE = 'moderator:read:followers channel:read:subscriptions';
 const _RC_BCAST_KEY = 'shibez_bcast_token';
-const _RC_BCAST_ID = '96140858'; // shlbez — the only account these scopes are useful for
+const _RC_BCAST_ID = SHLBEZ_TWITCH_ID; // the only account these scopes are useful for
 const _RC_FOLLOWERS_CACHE_KEY = 'shibez_bcast_followers_cache';
 let _rcMonth = new Date(); _rcMonth.setDate(1); _rcMonth.setHours(0,0,0,0);
 let _rcFollowers = null; // cached array of {followed_at} once fetched
@@ -18692,7 +18698,13 @@ async function _rcHandleOAuthCallback(token) {
   try {
     const vr = await fetch('https://id.twitch.tv/oauth2/validate', { headers: { 'Authorization': 'Bearer ' + token } });
     const vd = await vr.json();
-    if (!vd.user_id || vd.user_id !== _RC_BCAST_ID) {
+    const loginOk = (vd.login || '').toLowerCase() === SHLBEZ_TWITCH_LOGIN;
+    if (loginOk && vd.user_id !== _RC_BCAST_ID) {
+      // Right account, ID constant out of date — say so loudly in the
+      // console rather than rejecting the actual broadcaster.
+      console.warn(`SHLBEZ_TWITCH_ID is ${_RC_BCAST_ID} but ${SHLBEZ_TWITCH_LOGIN} is really ${vd.user_id} — update the constant.`);
+    }
+    if (!vd.user_id || (!loginOk && vd.user_id !== _RC_BCAST_ID)) {
       // Almost always means the browser had a different Twitch session
       // active (a mod account, an alt), not that the ID here is wrong —
       // so name the account it actually authenticated as, and offer the
@@ -18731,7 +18743,7 @@ async function _rcFetchFollowers(force) {
   let cursor = null, pages = 0;
   try {
     do {
-      const url = `https://api.twitch.tv/helix/channels/followers?broadcaster_id=96140858&first=100${cursor ? '&after=' + cursor : ''}`;
+      const url = `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${SHLBEZ_TWITCH_ID}&first=100${cursor ? '&after=' + cursor : ''}`;
       const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'Client-Id': _PROF_TWITCH_CLIENT } });
       const d = await r.json();
       if (!r.ok) break;
@@ -18749,7 +18761,7 @@ async function _rcFetchSubInfo() {
   const token = _rcBroadcasterToken();
   if (!token) return null;
   try {
-    const r = await fetch('https://api.twitch.tv/helix/subscriptions?broadcaster_id=96140858&first=100', {
+    const r = await fetch(`https://api.twitch.tv/helix/subscriptions?broadcaster_id=${SHLBEZ_TWITCH_ID}&first=100`, {
       headers: { 'Authorization': 'Bearer ' + token, 'Client-Id': _PROF_TWITCH_CLIENT }
     });
     const d = await r.json();
@@ -18787,10 +18799,10 @@ async function _rcMaybeLogOwnerSnapshot() {
   if (localStorage.getItem(dedupeKey)) return;
   try {
     const [fr, sr] = await Promise.all([
-      fetch('https://api.twitch.tv/helix/channels/followers?broadcaster_id=96140858&first=1', {
+      fetch(`https://api.twitch.tv/helix/channels/followers?broadcaster_id=${SHLBEZ_TWITCH_ID}&first=1`, {
         headers: { 'Authorization': 'Bearer ' + token, 'Client-Id': _PROF_TWITCH_CLIENT }
       }),
-      fetch('https://api.twitch.tv/helix/subscriptions?broadcaster_id=96140858&first=1', {
+      fetch(`https://api.twitch.tv/helix/subscriptions?broadcaster_id=${SHLBEZ_TWITCH_ID}&first=1`, {
         headers: { 'Authorization': 'Bearer ' + token, 'Client-Id': _PROF_TWITCH_CLIENT }
       })
     ]);
