@@ -2428,8 +2428,8 @@
              padding:4px 10px; border-radius:999px; border:1px solid var(--rc-card-border);
              background:var(--rc-card); color:#e4e7ef; white-space:nowrap; }
 
-  .rc-section-title { display:flex; align-items:center; gap:var(--rc-sp-2); font-family:var(--mono); font-size:var(--rc-t-sm);
-                      font-weight:900; letter-spacing:1.4px; color:var(--rc-lbl); text-transform:uppercase;
+  .rc-section-title { display:flex; align-items:center; gap:var(--rc-sp-2); font-family:var(--mono); font-size:14px;
+                      font-weight:900; letter-spacing:1.6px; color:#4ee6ac; text-transform:uppercase;
                       margin:var(--rc-sp-5) 0 var(--rc-sp-3); }
   .rc-section-title::after { content:''; flex:1; height:1px; background:var(--rc-card-border); }
 
@@ -2507,25 +2507,25 @@
      Capped to ~360px and centered so it takes up roughly half the width it
      used to (it was stretching full-width on the panel, way bigger than a
      calendar needs to be) — everything inside scales down a notch with it. */
-  .rc-cal-wrap { background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:10px; padding:var(--rc-sp-3); }
-  .rc-cal-inner { max-width:360px; margin:0 auto; }
-  .rc-cal-wds { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:4px; }
-  .rc-cal-wds span { font-family:var(--mono); font-size:9px; font-weight:800; letter-spacing:0.4px;
+  .rc-cal-wrap { background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:10px; padding:var(--rc-sp-2); }
+  .rc-cal-inner { max-width:220px; margin:0 auto; }
+  .rc-cal-wds { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:3px; }
+  .rc-cal-wds span { font-family:var(--mono); font-size:7px; font-weight:800; letter-spacing:0.3px;
                       text-transform:uppercase; color:var(--rc-lbl); text-align:center; }
-  .rc-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
-  .rc-cal-cell { position:relative; aspect-ratio:1; border-radius:5px; background:rgba(255,255,255,0.03);
-                 border:1px solid var(--rc-card-border); display:flex; align-items:flex-start; padding:3px;
+  .rc-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .rc-cal-cell { position:relative; aspect-ratio:1; border-radius:4px; background:rgba(255,255,255,0.03);
+                 border:1px solid var(--rc-card-border); display:flex; align-items:flex-start; padding:2px;
                  transition:transform .1s, border-color .1s; }
   .rc-cal-cell.rc-cal-empty { border:none; background:transparent; }
   .rc-cal-cell.rc-cal-active { cursor:pointer; border-color:rgba(255,255,255,0.06); }
   .rc-cal-cell.rc-cal-active:hover { transform:scale(1.12); border-color:#4ee6ac; z-index:2; }
   .rc-cal-cell.rc-cal-today { box-shadow:0 0 0 2px #4ee6ac inset; }
-  .rc-cal-daynum { font-family:var(--mono); font-size:9px; font-weight:700; color:var(--rc-sub); }
+  .rc-cal-daynum { font-family:var(--mono); font-size:7px; font-weight:700; color:var(--rc-sub); }
   .rc-cal-active .rc-cal-daynum { color:#0c1410; font-weight:800; }
-  .rc-cal-legend { display:flex; align-items:center; justify-content:center; gap:5px; margin-top:var(--rc-sp-2);
-                    font-family:var(--mono); font-size:9px; color:var(--rc-lbl);
-                    text-transform:uppercase; letter-spacing:0.5px; }
-  .rc-cal-swatch { width:10px; height:10px; border-radius:3px; border:1px solid var(--rc-card-border); }
+  .rc-cal-legend { display:flex; align-items:center; justify-content:center; gap:4px; margin-top:var(--rc-sp-2);
+                    font-family:var(--mono); font-size:8px; color:var(--rc-lbl);
+                    text-transform:uppercase; letter-spacing:0.4px; }
+  .rc-cal-swatch { width:8px; height:8px; border-radius:2px; border:1px solid var(--rc-card-border); }
 
   /* Compared to last month: paired bars + delta arrow */
   .rc-compare-wrap { display:flex; flex-direction:column; gap:var(--rc-sp-2); }
