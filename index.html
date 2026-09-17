@@ -3916,7 +3916,10 @@ const DEFAULTS = {
   twitch: 'shlbez',
   siteName: 'Shibez VOD Archive',
   twitchClientId: '61x4q55vai9w0lwsc1enqw9vktqzee',
-  twitchClientSecret: '4okb43u66gkj27to2vxqw6wewb4ohd',
+  // NOTE: no twitchClientSecret here, deliberately. A secret in a static page
+  // is readable by anyone who opens devtools. The bot (commands.js) mints the
+  // app access token instead and publishes it to Firestore; fetchTwitchToken()
+  // below reads it from there. Client IDs are public by design — secrets aren't.
 };
 
 // ── Twitch VOD matching ────────────────────────────────────────────────────
@@ -4059,14 +4062,49 @@ function parseMessageText(text) {
 }
 
 
+// Twitch app access token, minted by the bot and relayed through Firestore
+// (config/twitchAppToken). See the note in DEFAULTS: the client secret used
+// to live in this file, which meant every visitor could read it and mint
+// tokens as our Twitch app. An app token is public read-only access and
+// expires on its own, so it's safe to hand to a browser; the secret was not.
+//
+// Cached in-memory for the page's lifetime, and in sessionStorage so tab
+// reloads don't re-hit Firestore. The token is good for ~60 days and the bot
+// renews it with 3 days to spare, so a stale cache is only a risk if a tab
+// sits open across the renewal — hence the expiry check on the cached copy.
+let _twitchTokenPromise = null;
+const _TWITCH_TOKEN_CACHE_KEY = 'shibez_twitch_app_token';
+
 async function fetchTwitchToken() {
-  const r = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${DEFAULTS.twitchClientId}&client_secret=${DEFAULTS.twitchClientSecret}&grant_type=client_credentials`,
-    { method: 'POST' }
-  );
-  const d = await r.json();
-  if (!d.access_token) throw new Error('Twitch token failed');
-  return d.access_token;
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(_TWITCH_TOKEN_CACHE_KEY) || 'null');
+    if (cached && cached.access_token && cached.expires_at - Date.now() > 60 * 60 * 1000) {
+      return cached.access_token;
+    }
+  } catch (e) { /* unparseable cache, fall through and refetch */ }
+
+  // Memoized so a burst of parallel callers share one Firestore read.
+  if (!_twitchTokenPromise) {
+    _twitchTokenPromise = (async () => {
+      if (typeof _wmDb === 'undefined') throw new Error('Twitch token unavailable: Firestore not loaded');
+      await _ensureWmAuth();
+      const doc = await _wmDb.collection('config').doc('twitchAppToken').get();
+      if (!doc.exists) {
+        throw new Error('Twitch token unavailable: the bot has not published one yet (check TWITCH_CLIENT_ID / TWITCH_CLIENT_SECRET are set where the bot runs)');
+      }
+      const d = doc.data() || {};
+      if (!d.access_token) throw new Error('Twitch token unavailable: stored token is empty');
+      if (d.expires_at && d.expires_at < Date.now()) {
+        throw new Error('Twitch token expired — the bot has not refreshed it (is it running?)');
+      }
+      try { sessionStorage.setItem(_TWITCH_TOKEN_CACHE_KEY, JSON.stringify(d)); } catch (e) {}
+      return d.access_token;
+    })().catch(e => {
+      _twitchTokenPromise = null; // don't cache a rejection forever — allow retry
+      throw e;
+    });
+  }
+  return _twitchTokenPromise;
 }
 
 async function fetchTwitchVods(token) {
@@ -18490,28 +18528,17 @@ async function _rcFetchSubInfo() {
   } catch(e) { console.error('Subs fetch error', e); return null; }
 }
 
-// Best-effort viewer logging: every time the recap is opened while the
-// channel happens to be live, drop a snapshot of the current viewer count
-// into Firestore. Over weeks/months this builds up real avg/peak viewer
-// data for future recaps — it just can't retroactively fill in the past.
+// Viewer snapshots used to be logged from here — one sample per recap open,
+// only if the page happened to be open while live. The bot now polls every
+// 3 minutes for the whole stream (see ANALYTICS in commands.js), which is
+// strictly better data, so this no longer logs viewers at all. Logging from
+// both would skew the monthly average toward whatever minutes someone had
+// the page open.
+//
+// Follower/sub totals still come from here: they need the broadcaster's own
+// OAuth token, which only exists in this browser when shlbez is signed in.
 async function _rcMaybeLogSnapshot() {
-  try {
-    const r = await fetch('https://api.twitch.tv/helix/streams?user_login=shlbez', {
-      headers: { 'Client-Id': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + (await _rcAppToken()) }
-    });
-    const d = await r.json();
-    const live = d.data && d.data[0];
-    if (live) {
-      await _ensureWmAuth();
-      const now = new Date();
-      await _wmDb.collection('viewerSnapshots').add({
-        date: now.toISOString().slice(0,10),
-        viewer_count: live.viewer_count || 0,
-        ts: now.getTime()
-      });
-    }
-  } catch(e) { /* non-critical, ignore */ }
-  _rcMaybeLogOwnerSnapshot(); // separate try/catch inside — don't let one failure block the other
+  _rcMaybeLogOwnerSnapshot();
 }
 
 // Twitch's subscriptions endpoint has no join-date field at all (unlike
@@ -18568,14 +18595,8 @@ async function _rcFetchOwnerMonthDelta(monthStr) {
   } catch(e) { return null; }
 }
 
-let _rcAppTokenCache = null;
-async function _rcAppToken() {
-  if (_rcAppTokenCache) return _rcAppTokenCache;
-  const r = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${DEFAULTS.twitchClientId}&client_secret=${DEFAULTS.twitchClientSecret}&grant_type=client_credentials`, { method: 'POST' });
-  const d = await r.json();
-  _rcAppTokenCache = d.access_token;
-  return _rcAppTokenCache;
-}
+// (_rcAppToken removed — it minted a token from the client secret. Anything
+// here that needs an app token should call fetchTwitchToken() instead.)
 
 async function _rcFetchViewerStats(monthStr) {
   try {
