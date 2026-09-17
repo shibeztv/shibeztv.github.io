@@ -2347,6 +2347,36 @@
     transition: background 0.15s;
   }
   .yte-close:hover { background: rgba(255,40,40,0.5); }
+
+  /* ── Monthly Recap ── */
+  .rc-modal { width: 720px; max-width: 95vw; max-height: 88vh; display: flex; flex-direction: column; }
+  .rc-nav { display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:18px; }
+  .rc-nav button { background:var(--surface2); border:1px solid var(--border); color:var(--text); font-size:16px; width:32px; height:32px; border-radius:5px; cursor:pointer; transition:all .15s; }
+  .rc-nav button:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+  .rc-nav button:disabled { opacity:.3; cursor:default; }
+  .rc-month-label { font-family:var(--mono); font-weight:800; font-size:15px; letter-spacing:1px; min-width:150px; text-align:center; }
+  .rc-rating { display:flex; flex-direction:column; align-items:center; gap:4px; padding:18px 0 22px; }
+  .rc-rating-num { font-family:var(--mono); font-size:44px; font-weight:900; line-height:1; color:var(--accent); text-shadow:0 0 20px rgba(255,68,68,0.25); }
+  .rc-rating-sub { font-family:var(--mono); font-size:10px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; }
+  .rc-stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+  .rc-stat { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:12px; text-align:center; }
+  .rc-stat-val { font-family:var(--mono); font-size:18px; font-weight:800; color:var(--text); }
+  .rc-stat-lbl { font-family:var(--mono); font-size:9px; letter-spacing:0.8px; color:var(--muted); text-transform:uppercase; margin-top:4px; }
+  .rc-stat.rc-dim .rc-stat-val { color:var(--muted); font-size:12px; }
+  .rc-section-title { font-family:var(--mono); font-size:11px; font-weight:800; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin:18px 0 10px; }
+  .rc-cat-row { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+  .rc-cat-name { font-family:var(--mono); font-size:12px; color:var(--text); width:150px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rc-cat-bar-track { flex:1; height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+  .rc-cat-bar-fill { height:100%; border-radius:4px; }
+  .rc-cat-time { font-family:var(--mono); font-size:11px; color:var(--muted); width:80px; text-align:right; flex-shrink:0; }
+  .rc-empty { font-family:var(--mono); font-size:12px; color:var(--muted); text-align:center; padding:30px 10px; }
+  .rc-connect-btn { font-family:var(--mono); font-size:11px; font-weight:700; background:rgba(145,70,255,0.12); border:1px solid rgba(145,70,255,0.5); color:#a78bfa; padding:8px 16px; border-radius:5px; cursor:pointer; transition:all .15s; }
+  .rc-connect-btn:hover { border-color:#a78bfa; background:rgba(145,70,255,0.22); }
+  .rc-note { font-family:var(--mono); font-size:10px; color:var(--muted); line-height:1.6; margin-top:4px; }
+  @media (max-width:640px) {
+    .rc-stats-grid { grid-template-columns:repeat(2,1fr); }
+    .rc-cat-name { width:90px; }
+  }
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
 
@@ -2478,6 +2508,12 @@
     onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
     🚀 SPACEBEZ
+  </button>
+  <button onclick="openStreamSummary()" id="recapBtn"
+    style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
+    onmouseover="this.style.borderColor='#34d399';this.style.color='#34d399'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
+    📊 RECAP
   </button>
   <div class="navbar-spacer"></div>
   <button onclick="openWheelSpin()" id="wheelSpinBtn"
@@ -2995,6 +3031,24 @@
         </div>
         <div style="width:100%;aspect-ratio:16/9;background:#000;position:relative" id="clipEmbed"></div>
         <div style="padding:8px 14px;font-family:var(--mono);font-size:13px;color:#eee;font-weight:700;display:flex;gap:12px;flex-shrink:0" id="clipMeta"></div>
+      </div>
+    </div>
+
+    <!-- Monthly Recap -->
+    <div class="modal-overlay" id="summaryModalOverlay" onclick="if(event.target===this)closeStreamSummary()">
+      <div class="modal rc-modal">
+        <div class="modal-header">
+          <span class="modal-title">📊 MONTHLY RECAP</span>
+          <button class="modal-close" onclick="closeStreamSummary()">✕</button>
+        </div>
+        <div class="modal-body" style="overflow-y:auto;flex:1">
+          <div class="rc-nav">
+            <button onclick="summaryShiftMonth(-1)" id="rcPrevBtn">‹</button>
+            <div class="rc-month-label" id="rcMonthLabel">—</div>
+            <button onclick="summaryShiftMonth(1)" id="rcNextBtn">›</button>
+          </div>
+          <div id="rcContent"></div>
+        </div>
       </div>
     </div>
 
@@ -4428,6 +4482,31 @@ function getDominantGame(stream) {
     if (durations[label] > bestDur) { bestDur = durations[label]; best = label; }
   }
   return best;
+}
+
+// Same chapter-duration math as getDominantGame, but returns the FULL
+// breakdown ({translatedLabel: seconds}) instead of just the top one —
+// used by the monthly recap to show category hours/percentages, not just
+// a single badge. Falls back to a single "Unknown" bucket spanning the
+// whole stream when no chapter data exists at all, so callers summing
+// across many streams still get an accurate total.
+function getCategoryDurations(stream) {
+  const cachedEntry = _lookupChapterEntry(stream);
+  let chapters = cachedEntry ? cachedEntry.games : null;
+  if (!chapters) chapters = (stream.games && stream.games.length) ? stream.games : null;
+  const totalDur = stream.totalDuration || 0;
+  if (!chapters || !chapters.length) return totalDur ? { 'Unknown': totalDur } : {};
+
+  const sorted = [...chapters].sort((a, b) => a.t - b.t);
+  const end0 = totalDur || (sorted[sorted.length - 1].t + 1);
+  const durations = {};
+  sorted.forEach((g, i) => {
+    const end = i < sorted.length - 1 ? sorted[i + 1].t : end0;
+    const dur = Math.max(0, end - g.t);
+    const label = translateGameLabel(g.label) || g.label;
+    durations[label] = (durations[label] || 0) + dur;
+  });
+  return durations;
 }
 
 // Same source data as getDominantGame (chapter cache first, description-parsed
@@ -18282,6 +18361,382 @@ function ytSecOpenShort(videoId) {
   }
   openRandomShort(videoId);
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// MONTHLY RECAP
+// ═══════════════════════════════════════════════════════════════════════
+// What's computable from data the site already has (VOD list + chapter
+// cache): hours streamed, stream count, category breakdown, longest/avg
+// stream, and a rough 1-10 rating from those.
+//
+// Followers-gained-this-month and current sub count need a broadcaster
+// login (Twitch doesn't let a random visitor token read that) — see
+// _RC_TWITCH_SCOPE below.
+//
+// Average/peak viewers and chat message/chatter counts are NOT available
+// retroactively from Twitch at all, for anyone, even the broadcaster —
+// Twitch simply doesn't store historical viewer/chat data. The only way
+// to get those is to log them ourselves going forward, which is what the
+// Firestore snapshot logging below starts doing (opportunistically, when
+// this page happens to be open while live). Past months will stay empty
+// for those two.
+
+const _RC_TWITCH_SCOPE = 'moderator:read:followers channel:read:subscriptions';
+const _RC_BCAST_KEY = 'shibez_bcast_token';
+const _RC_FOLLOWERS_CACHE_KEY = 'shibez_bcast_followers_cache';
+let _rcMonth = new Date(); _rcMonth.setDate(1); _rcMonth.setHours(0,0,0,0);
+let _rcFollowers = null; // cached array of {followed_at} once fetched
+let _rcSubInfo = null;   // {total, byTier}
+
+function openStreamSummary() {
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
+  // Always land on the current month when opening fresh, even if a
+  // previous session (or earlier this session) had paged back in time.
+  _rcMonth = new Date(); _rcMonth.setDate(1); _rcMonth.setHours(0,0,0,0);
+  document.getElementById('summaryModalOverlay').classList.add('open');
+  renderStreamSummary();
+  _rcMaybeLogSnapshot();
+}
+function closeStreamSummary() {
+  document.getElementById('summaryModalOverlay').classList.remove('open');
+}
+
+function summaryShiftMonth(delta) {
+  const next = new Date(_rcMonth);
+  next.setMonth(next.getMonth() + delta);
+  const now = new Date(); now.setDate(1); now.setHours(0,0,0,0);
+  if (next > now) return; // no future months
+  _rcMonth = next;
+  renderStreamSummary();
+}
+
+function _rcBroadcasterToken() {
+  try {
+    const raw = localStorage.getItem(_RC_BCAST_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d.token || !d.expiresAt || Date.now() > d.expiresAt) return null;
+    return d.token;
+  } catch(e) { return null; }
+}
+
+function connectBroadcaster() {
+  const redirect = location.origin + location.pathname;
+  const url = `https://id.twitch.tv/oauth2/authorize?client_id=${_PROF_TWITCH_CLIENT}&redirect_uri=${encodeURIComponent(redirect)}&response_type=token&scope=${encodeURIComponent(_RC_TWITCH_SCOPE)}`;
+  sessionStorage.setItem('shibez_bcast_login_pending', '1');
+  location.href = url;
+}
+
+async function _rcHandleOAuthCallback(token) {
+  history.replaceState(null, '', location.pathname);
+  sessionStorage.removeItem('shibez_bcast_login_pending');
+  try {
+    const vr = await fetch('https://id.twitch.tv/oauth2/validate', { headers: { 'Authorization': 'Bearer ' + token } });
+    const vd = await vr.json();
+    if (!vd.user_id || vd.user_id !== '96140858') {
+      alert('That Twitch login isn\'t the broadcaster account (96140858), so it can\'t read follower/sub data.');
+      return;
+    }
+    const expiresAt = Date.now() + (vd.expires_in || 3600) * 1000;
+    localStorage.setItem(_RC_BCAST_KEY, JSON.stringify({ token, expiresAt }));
+  } catch(e) { console.error('Broadcaster OAuth error', e); }
+  openStreamSummary();
+}
+
+// Pull the FULL followers list (paginated) so we can count follows per
+// month from each entry's followed_at. Capped at 50 pages (~5000
+// followers) per fetch so a very large channel can't loop forever — cached
+// in localStorage afterward so this expensive pull only happens on demand.
+async function _rcFetchFollowers(force) {
+  const token = _rcBroadcasterToken();
+  if (!token) return null;
+  if (!force) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(_RC_FOLLOWERS_CACHE_KEY) || 'null');
+      if (cached && cached.list) { _rcFollowers = cached.list; return cached.list; }
+    } catch(e) {}
+  }
+  const list = [];
+  let cursor = null, pages = 0;
+  try {
+    do {
+      const url = `https://api.twitch.tv/helix/channels/followers?broadcaster_id=96140858&first=100${cursor ? '&after=' + cursor : ''}`;
+      const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'Client-Id': _PROF_TWITCH_CLIENT } });
+      const d = await r.json();
+      if (!r.ok) break;
+      (d.data || []).forEach(f => list.push(f.followed_at));
+      cursor = d.pagination && d.pagination.cursor;
+      pages++;
+    } while (cursor && pages < 50);
+  } catch(e) { console.error('Followers fetch error', e); }
+  _rcFollowers = list;
+  try { localStorage.setItem(_RC_FOLLOWERS_CACHE_KEY, JSON.stringify({ list, ts: Date.now() })); } catch(e) {}
+  return list;
+}
+
+async function _rcFetchSubInfo() {
+  const token = _rcBroadcasterToken();
+  if (!token) return null;
+  try {
+    const r = await fetch('https://api.twitch.tv/helix/subscriptions?broadcaster_id=96140858&first=100', {
+      headers: { 'Authorization': 'Bearer ' + token, 'Client-Id': _PROF_TWITCH_CLIENT }
+    });
+    const d = await r.json();
+    if (!r.ok) return null;
+    const byTier = {};
+    (d.data || []).forEach(s => { byTier[s.tier] = (byTier[s.tier] || 0) + 1; });
+    _rcSubInfo = { total: d.total || (d.data || []).length, byTier };
+    return _rcSubInfo;
+  } catch(e) { console.error('Subs fetch error', e); return null; }
+}
+
+// Best-effort viewer logging: every time the recap is opened while the
+// channel happens to be live, drop a snapshot of the current viewer count
+// into Firestore. Over weeks/months this builds up real avg/peak viewer
+// data for future recaps — it just can't retroactively fill in the past.
+async function _rcMaybeLogSnapshot() {
+  try {
+    const r = await fetch('https://api.twitch.tv/helix/streams?user_login=shlbez', {
+      headers: { 'Client-Id': DEFAULTS.twitchClientId, 'Authorization': 'Bearer ' + (await _rcAppToken()) }
+    });
+    const d = await r.json();
+    const live = d.data && d.data[0];
+    if (live) {
+      await _ensureWmAuth();
+      const now = new Date();
+      await _wmDb.collection('viewerSnapshots').add({
+        date: now.toISOString().slice(0,10),
+        viewer_count: live.viewer_count || 0,
+        ts: now.getTime()
+      });
+    }
+  } catch(e) { /* non-critical, ignore */ }
+  _rcMaybeLogOwnerSnapshot(); // separate try/catch inside — don't let one failure block the other
+}
+
+// Twitch's subscriptions endpoint has no join-date field at all (unlike
+// followers), so a per-sub "gained this month" is impossible from the API
+// even with broadcaster access — the only way to approximate it is our own
+// daily total snapshot, diffed month to month. Follower + sub totals here,
+// once a day, whenever the broadcaster has the recap open.
+async function _rcMaybeLogOwnerSnapshot() {
+  const token = _rcBroadcasterToken();
+  if (!token) return;
+  const today = new Date().toISOString().slice(0,10);
+  const dedupeKey = 'shibez_rc_owner_snap_' + today;
+  if (localStorage.getItem(dedupeKey)) return;
+  try {
+    const [fr, sr] = await Promise.all([
+      fetch('https://api.twitch.tv/helix/channels/followers?broadcaster_id=96140858&first=1', {
+        headers: { 'Authorization': 'Bearer ' + token, 'Client-Id': _PROF_TWITCH_CLIENT }
+      }),
+      fetch('https://api.twitch.tv/helix/subscriptions?broadcaster_id=96140858&first=1', {
+        headers: { 'Authorization': 'Bearer ' + token, 'Client-Id': _PROF_TWITCH_CLIENT }
+      })
+    ]);
+    const fd = await fr.json(), sd = await sr.json();
+    if (!fr.ok || !sr.ok) return;
+    await _ensureWmAuth();
+    await _wmDb.collection('channelSnapshots').doc(today).set({
+      date: today,
+      followers_total: fd.total ?? null,
+      subs_total: sd.total ?? null,
+      ts: Date.now()
+    });
+    localStorage.setItem(dedupeKey, '1');
+  } catch(e) { /* non-critical, ignore */ }
+}
+
+// Looks for the earliest and latest owner snapshot inside a given month to
+// approximate sub/follower change over that month. Returns null when there
+// isn't enough logged data yet (e.g. any month before tracking started).
+async function _rcFetchOwnerMonthDelta(monthStr) {
+  try {
+    await _ensureWmAuth();
+    const snap = await _wmDb.collection('channelSnapshots')
+      .where('date', '>=', monthStr + '-01')
+      .where('date', '<=', monthStr + '-31')
+      .orderBy('date', 'asc')
+      .get();
+    if (snap.size < 2) return null;
+    const docs = snap.docs.map(d => d.data());
+    const first = docs[0], last = docs[docs.length - 1];
+    return {
+      subsDelta: (last.subs_total ?? null) !== null && (first.subs_total ?? null) !== null ? last.subs_total - first.subs_total : null,
+      followersDelta: (last.followers_total ?? null) !== null && (first.followers_total ?? null) !== null ? last.followers_total - first.followers_total : null
+    };
+  } catch(e) { return null; }
+}
+
+let _rcAppTokenCache = null;
+async function _rcAppToken() {
+  if (_rcAppTokenCache) return _rcAppTokenCache;
+  const r = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${DEFAULTS.twitchClientId}&client_secret=${DEFAULTS.twitchClientSecret}&grant_type=client_credentials`, { method: 'POST' });
+  const d = await r.json();
+  _rcAppTokenCache = d.access_token;
+  return _rcAppTokenCache;
+}
+
+async function _rcFetchViewerStats(monthStr) {
+  try {
+    await _ensureWmAuth();
+    const snap = await _wmDb.collection('viewerSnapshots')
+      .where('date', '>=', monthStr + '-01')
+      .where('date', '<=', monthStr + '-31')
+      .get();
+    if (snap.empty) return null;
+    const vals = snap.docs.map(d => d.data().viewer_count || 0);
+    const avg = vals.reduce((a,b) => a+b, 0) / vals.length;
+    const peak = Math.max(...vals);
+    return { avg: Math.round(avg), peak, samples: vals.length };
+  } catch(e) { return null; }
+}
+
+function _rcRating({ hours, streamCount, daysInMonth, categoryCount }) {
+  if (!streamCount) return 0;
+  const consistency = Math.min(1, streamCount / (daysInMonth / 2));
+  const hoursScore = Math.min(1, hours / 60);
+  const varietyScore = Math.min(1, categoryCount / 5);
+  const raw = consistency * 4 + hoursScore * 4 + varietyScore * 2;
+  return Math.max(1, Math.min(10, Math.round(raw)));
+}
+
+async function renderStreamSummary() {
+  const y = _rcMonth.getFullYear(), m = _rcMonth.getMonth();
+  const monthStr = `${y}-${String(m+1).padStart(2,'0')}`;
+  document.getElementById('rcMonthLabel').textContent = _rcMonth.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+  const now = new Date(); now.setDate(1); now.setHours(0,0,0,0);
+  document.getElementById('rcNextBtn').disabled = _rcMonth >= now;
+
+  const content = document.getElementById('rcContent');
+  if (!allStreams || !allStreams.length) {
+    content.innerHTML = '<div class="rc-empty">Streams haven\'t loaded yet — try again in a moment.</div>';
+    return;
+  }
+
+  const streams = allStreams.filter(s => s.day.startsWith(monthStr));
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+
+  if (!streams.length) {
+    content.innerHTML = `<div class="rc-empty">No streams found for ${_rcMonth.toLocaleDateString('en-US',{month:'long',year:'numeric'})}.</div>`;
+    return;
+  }
+
+  const totalSeconds = streams.reduce((s,v) => s + (v.totalDuration||0), 0);
+  const hours = totalSeconds / 3600;
+  const longest = Math.max(...streams.map(s => s.totalDuration||0));
+  const avgLen = totalSeconds / streams.length;
+
+  const catTotals = {};
+  streams.forEach(s => {
+    const d = getCategoryDurations(s);
+    for (const label in d) catTotals[label] = (catTotals[label]||0) + d[label];
+  });
+  const catList = Object.entries(catTotals).sort((a,b) => b[1]-a[1]);
+
+  const rating = _rcRating({ hours, streamCount: streams.length, daysInMonth, categoryCount: catList.length });
+
+  // Kick off async broadcaster/viewer data — render sync stats first, then
+  // patch in the async pieces once they resolve so the modal isn't blank
+  // while waiting on network requests.
+  const token = _rcBroadcasterToken();
+
+  content.innerHTML = `
+    <div class="rc-rating">
+      <div class="rc-rating-num">${rating || '–'}<span style="font-size:20px;color:var(--muted)">/10</span></div>
+      <div class="rc-rating-sub">Month rating · rough &amp; just for fun</div>
+    </div>
+    <div class="rc-stats-grid">
+      <div class="rc-stat"><div class="rc-stat-val">${hours.toFixed(1)}h</div><div class="rc-stat-lbl">Hours streamed</div></div>
+      <div class="rc-stat"><div class="rc-stat-val">${streams.length}</div><div class="rc-stat-lbl">Days streamed</div></div>
+      <div class="rc-stat"><div class="rc-stat-val">${catList.length}</div><div class="rc-stat-lbl">Categories</div></div>
+      <div class="rc-stat"><div class="rc-stat-val">${formatDurationLong(longest)}</div><div class="rc-stat-lbl">Longest stream</div></div>
+      <div class="rc-stat"><div class="rc-stat-val">${formatDurationLong(avgLen)}</div><div class="rc-stat-lbl">Average length</div></div>
+      <div class="rc-stat" id="rcFollowStat"><div class="rc-stat-val">${token ? '…' : '—'}</div><div class="rc-stat-lbl">Follows gained</div></div>
+      <div class="rc-stat" id="rcSubStat"><div class="rc-stat-val">${token ? '…' : '—'}</div><div class="rc-stat-lbl">Subs</div></div>
+      <div class="rc-stat rc-dim" id="rcAvgViewStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Avg viewers</div></div>
+      <div class="rc-stat rc-dim" id="rcPeakViewStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Peak viewers</div></div>
+    </div>
+
+    <div class="rc-section-title">Categories played</div>
+    ${catList.map(([label,secs],i) => `
+      <div class="rc-cat-row">
+        <span class="rc-cat-name" title="${label}">${label}</span>
+        <div class="rc-cat-bar-track"><div class="rc-cat-bar-fill" style="width:${Math.round(secs/totalSeconds*100)}%;background:${colorFor(i)}"></div></div>
+        <span class="rc-cat-time">${formatDurationLong(secs)}</span>
+      </div>
+    `).join('')}
+
+    ${!token ? `
+      <div class="rc-section-title">Broadcaster stats</div>
+      <div class="rc-empty" style="padding:16px 10px">
+        Follows-gained and sub count need Twitch to know you're the broadcaster.
+        <br><br>
+        <button class="rc-connect-btn" onclick="connectBroadcaster()">Connect Twitch (broadcaster)</button>
+      </div>
+    ` : ''}
+
+    <div class="rc-note">
+      Chat messages &amp; unique chatters aren't tracked yet — that needs the bot logging them live, not something Twitch exposes after the fact. Avg/peak viewers only exist from whenever this page starts logging snapshots while you're live, so past months may show nothing.
+      ${token ? '<br><br><button class="rc-connect-btn" onclick="_rcFetchFollowers(true).then(()=>renderStreamSummary())" style="background:var(--surface2);border-color:var(--border);color:var(--muted)">↻ Refresh follower/sub data</button>' : ''}
+    </div>
+  `;
+
+  // Async: viewer snapshot stats (always attempt — no login needed to read)
+  _rcFetchViewerStats(monthStr).then(stats => {
+    const a = document.getElementById('rcAvgViewStat');
+    const p = document.getElementById('rcPeakViewStat');
+    if (!a || !p) return; // modal moved on to a different month/closed
+    if (stats) {
+      a.querySelector('.rc-stat-val').textContent = stats.avg;
+      p.querySelector('.rc-stat-val').textContent = stats.peak;
+      a.classList.remove('rc-dim'); p.classList.remove('rc-dim');
+    } else {
+      a.querySelector('.rc-stat-val').textContent = 'n/a';
+      p.querySelector('.rc-stat-val').textContent = 'n/a';
+    }
+  });
+
+  // Async: broadcaster-only follows/subs
+  if (token) {
+    _rcFetchFollowers(false).then(list => {
+      const el = document.getElementById('rcFollowStat');
+      if (!el || !list) return;
+      const count = list.filter(ts => ts && ts.startsWith(monthStr)).length;
+      el.querySelector('.rc-stat-val').textContent = count;
+    });
+    const isCurrentMonth = monthStr === `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    _rcFetchOwnerMonthDelta(monthStr).then(delta => {
+      const el = document.getElementById('rcSubStat');
+      if (!el) return;
+      if (delta && delta.subsDelta !== null) {
+        el.querySelector('.rc-stat-val').textContent = (delta.subsDelta > 0 ? '+' : '') + delta.subsDelta;
+        el.querySelector('.rc-stat-lbl').textContent = 'Subs change';
+      } else if (isCurrentMonth) {
+        _rcFetchSubInfo().then(info => {
+          if (!info) return;
+          el.querySelector('.rc-stat-val').textContent = info.total;
+          el.querySelector('.rc-stat-lbl').textContent = 'Current subs';
+        });
+      } else {
+        el.querySelector('.rc-stat-val').textContent = 'n/a';
+        el.querySelector('.rc-stat-lbl').textContent = 'Subs change';
+      }
+    });
+  }
+}
+
+// Handle the broadcaster-login OAuth redirect. Deliberately checked down
+// here (rather than in the earlier page-load IIFE) since _rcHandleOAuthCallback
+// needs everything above it defined first, and this still runs before the
+// user can interact with anything.
+(function(){
+  if (!sessionStorage.getItem('shibez_bcast_login_pending')) return;
+  const hash = new URLSearchParams(location.hash.replace('#',''));
+  const token = hash.get('access_token');
+  if (token) _rcHandleOAuthCallback(token);
+  else sessionStorage.removeItem('shibez_bcast_login_pending');
+})();
 </script>
 
 </body>
