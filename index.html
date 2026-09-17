@@ -2433,7 +2433,7 @@
                       margin:var(--rc-sp-5) 0 var(--rc-sp-3); }
   .rc-section-title::after { content:''; flex:1; height:1px; background:var(--rc-card-border); }
 
-  .rc-stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:var(--rc-sp-2); }
+  .rc-stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(152px, 1fr)); gap:var(--rc-sp-2); }
   .rc-stat { position:relative; background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:10px;
              padding:var(--rc-sp-3); transition:border-color .15s, transform .15s; }
   .rc-stat:hover { border-color:rgba(78,230,172,0.5); transform:translateY(-1px); }
@@ -2522,25 +2522,25 @@
      Capped to ~360px and centered so it takes up roughly half the width it
      used to (it was stretching full-width on the panel, way bigger than a
      calendar needs to be) — everything inside scales down a notch with it. */
-  .rc-cal-wrap { background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:10px; padding:var(--rc-sp-2); }
-  .rc-cal-inner { max-width:220px; margin:0 auto; }
-  .rc-cal-wds { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:3px; }
-  .rc-cal-wds span { font-family:var(--mono); font-size:7px; font-weight:800; letter-spacing:0.3px;
+  .rc-cal-wrap { background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:10px; padding:var(--rc-sp-3); }
+  .rc-cal-inner { max-width:440px; margin:0 auto; }
+  .rc-cal-wds { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:6px; }
+  .rc-cal-wds span { font-family:var(--mono); font-size:11px; font-weight:800; letter-spacing:0.5px;
                       text-transform:uppercase; color:var(--rc-lbl); text-align:center; }
-  .rc-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-  .rc-cal-cell { position:relative; aspect-ratio:1; border-radius:4px; background:rgba(255,255,255,0.03);
-                 border:1px solid var(--rc-card-border); display:flex; align-items:flex-start; padding:2px;
+  .rc-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .rc-cal-cell { position:relative; aspect-ratio:1; border-radius:7px; background:rgba(255,255,255,0.03);
+                 border:1px solid var(--rc-card-border); display:flex; align-items:flex-start; padding:5px;
                  transition:transform .1s, border-color .1s; }
   .rc-cal-cell.rc-cal-empty { border:none; background:transparent; }
   .rc-cal-cell.rc-cal-active { cursor:pointer; border-color:rgba(255,255,255,0.06); }
-  .rc-cal-cell.rc-cal-active:hover { transform:scale(1.12); border-color:#4ee6ac; z-index:2; }
+  .rc-cal-cell.rc-cal-active:hover { transform:scale(1.10); border-color:#4ee6ac; z-index:2; }
   .rc-cal-cell.rc-cal-today { box-shadow:0 0 0 2px #4ee6ac inset; }
-  .rc-cal-daynum { font-family:var(--mono); font-size:7px; font-weight:700; color:var(--rc-sub); }
+  .rc-cal-daynum { font-family:var(--mono); font-size:13px; font-weight:700; color:var(--rc-sub); line-height:1; }
   .rc-cal-active .rc-cal-daynum { color:#0c1410; font-weight:800; }
-  .rc-cal-legend { display:flex; align-items:center; justify-content:center; gap:4px; margin-top:var(--rc-sp-2);
-                    font-family:var(--mono); font-size:8px; color:var(--rc-lbl);
+  .rc-cal-legend { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:var(--rc-sp-3);
+                    font-family:var(--mono); font-size:10px; color:var(--rc-lbl);
                     text-transform:uppercase; letter-spacing:0.4px; }
-  .rc-cal-swatch { width:8px; height:8px; border-radius:2px; border:1px solid var(--rc-card-border); }
+  .rc-cal-swatch { width:12px; height:12px; border-radius:3px; border:1px solid var(--rc-card-border); }
 
   /* Compared to last month: paired bars + delta arrow */
   .rc-compare-wrap { display:flex; flex-direction:column; gap:var(--rc-sp-2); }
@@ -19199,11 +19199,11 @@ function _rcInitTooltipDelegation() {
 // side-by-side; these are the at-a-glance version, sitting right next to
 // the number they describe.
 //
-// `better` says which direction earns the green: 'up' for metrics where
-// more is plainly better (hours, viewers, follows), 'neutral' for ones
-// where it genuinely depends (average stream length, how many categories
-// got played) — those still show the arrow, just without a color claiming
-// it's good or bad news.
+// `better` says which direction earns the green — 'up' for the metrics
+// where more is better (hours, viewers, follows, stream length, category
+// variety), 'down' for anything where less would be. Every badge is one or
+// the other: a grey arrow reads as broken rather than as "this one's
+// ambiguous", so there's no neutral state.
 //
 // Anything inside 1% is rendered flat rather than as a change, so a
 // rounding wobble doesn't show up as a red arrow.
@@ -19416,16 +19416,16 @@ async function renderStreamSummary() {
         <div class="rc-stat-val">${streams.length}${_t(streams.length, 'days', 'up')}</div><div class="rc-stat-lbl">Days streamed</div>
       </div>
       <div class="rc-stat" data-rctip="${encodeURIComponent(JSON.stringify({ lines: catList.map(([label,secs]) => `${label} — ${_rcDur(secs)} (${Math.round(secs/totalSeconds*100)}%)`).concat(_tipCmp(cmp && cmp.cats, v => v + (v === 1 ? ' category' : ' categories'))) }))}">
-        <div class="rc-stat-val">${catList.length}${_t(catList.length, 'cats', 'neutral')}</div><div class="rc-stat-lbl">Categories</div>
+        <div class="rc-stat-val">${catList.length}${_t(catList.length, 'cats', 'up')}</div><div class="rc-stat-lbl">Categories</div>
       </div>
       <div class="rc-stat" data-rctip="${_rcStreamTip(longestStream, [`${_rcDur(longestStream.totalDuration)} long`].concat(_tipCmp(cmp && cmp.longest, _rcDur)))}">
         <div class="rc-stat-val">${_rcDur(longest)}${_t(longest, 'longest', 'up')}</div><div class="rc-stat-lbl">Longest stream</div>
       </div>
       <div class="rc-stat" data-rctip="${_rcStreamTip(shortestStream, [`${_rcDur(shortestStream.totalDuration)} long`].concat(_tipCmp(cmp && cmp.shortest, _rcDur)))}">
-        <div class="rc-stat-val">${_rcDur(shortestStream.totalDuration)}${_t(shortestStream.totalDuration, 'shortest', 'neutral')}</div><div class="rc-stat-lbl">Shortest stream</div>
+        <div class="rc-stat-val">${_rcDur(shortestStream.totalDuration)}${_t(shortestStream.totalDuration, 'shortest', 'up')}</div><div class="rc-stat-lbl">Shortest stream</div>
       </div>
       <div class="rc-stat"${_statTip(_tipCmp(cmp && cmp.avgLen, _rcDur))}>
-        <div class="rc-stat-val">${_rcDur(avgLen)}${_t(avgLen, 'avgLen', 'neutral')}</div><div class="rc-stat-lbl">Average length</div>
+        <div class="rc-stat-val">${_rcDur(avgLen)}${_t(avgLen, 'avgLen', 'up')}</div><div class="rc-stat-lbl">Average length</div>
       </div>
       ${mostCatStream ? `
       <div class="rc-stat" data-rctip="${_rcStreamTip(mostCatStream, [`${mostCatCount} categories in one stream`])}">
