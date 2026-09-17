@@ -2352,94 +2352,158 @@
      Full-screen panel that sits under the two bars, same pattern the games
      use (spaceModal etc.): fixed, top:var(--bars-h), and the page's nav stays
      visible and clickable above it. Content is a centred column so it reads
-     well on ultrawide without stretching the cards to nonsense widths. */
+     well on ultrawide without stretching the cards to nonsense widths.
+
+     Site-wide --muted (#6b6b7a) reads too dark against this panel's near-
+     black background, so labels/subtext/notes here use brighter locals
+     instead of --muted directly. Card surfaces are lifted a step too so
+     they read as distinct panels rather than blending into --bg. */
   .rc-shell { display:none; position:fixed; top:var(--bars-h); left:0; right:0; bottom:0; z-index:9002;
-              background:var(--bg, #05070e); flex-direction:column; overflow:hidden; }
+              background:var(--bg, #05070e); flex-direction:column; overflow:hidden;
+              --rc-card: #24252f; --rc-card-border: rgba(255,255,255,0.12);
+              --rc-sub: #bcc1cc; --rc-lbl: #969db0; --rc-text: #f4f5f9; }
   .rc-shell.open { display:flex; }
 
   /* Ambient wash so the panel doesn't read as a flat black rectangle. */
   .rc-shell::before { content:''; position:absolute; inset:0; pointer-events:none;
     background:
-      radial-gradient(900px 420px at 15% -10%, rgba(52,211,153,0.10), transparent 70%),
-      radial-gradient(760px 380px at 92% 8%, rgba(96,165,250,0.08), transparent 72%); }
+      radial-gradient(900px 420px at 15% -10%, rgba(52,211,153,0.16), transparent 70%),
+      radial-gradient(760px 380px at 92% 8%, rgba(96,165,250,0.13), transparent 72%); }
 
   .rc-head { position:relative; z-index:1; flex-shrink:0; display:flex; align-items:center; gap:14px;
-             padding:16px 24px; border-bottom:1px solid var(--border);
-             background:rgba(8,10,20,0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+             padding:16px 24px; border-bottom:1px solid var(--rc-card-border);
+             background:rgba(18,20,30,0.88); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
   .rc-head-title { font-family:var(--mono); font-size:12px; font-weight:900; letter-spacing:2px;
-                   text-transform:uppercase; color:#34d399; white-space:nowrap; }
-  .rc-head-title span { color:var(--muted); }
+                   text-transform:uppercase; color:#4ee6ac; white-space:nowrap; }
+  .rc-head-title span { color:var(--rc-sub); }
 
   /* Month stepper lives in the header so it stays put while the body scrolls. */
   .rc-nav { display:flex; align-items:center; gap:6px; margin:0 auto; }
-  .rc-nav button { background:transparent; border:1px solid var(--border); color:var(--text);
+  .rc-nav button { background:var(--rc-card); border:1px solid var(--rc-card-border); color:var(--rc-text);
                    font-size:15px; width:30px; height:30px; border-radius:8px; cursor:pointer;
                    display:flex; align-items:center; justify-content:center; transition:all .15s; }
-  .rc-nav button:hover:not(:disabled) { border-color:#34d399; color:#34d399; background:rgba(52,211,153,0.1); }
-  .rc-nav button:disabled { opacity:.25; cursor:default; }
+  .rc-nav button:hover:not(:disabled) { border-color:#4ee6ac; color:#4ee6ac; background:rgba(52,211,153,0.16); }
+  .rc-nav button:disabled { opacity:.35; cursor:default; }
   .rc-month-label { font-family:var(--mono); font-weight:800; font-size:13px; letter-spacing:1px;
-                    min-width:190px; text-align:center; color:var(--text); }
-  .rc-close { background:transparent; border:1px solid var(--border); color:var(--muted); cursor:pointer;
+                    min-width:190px; text-align:center; color:var(--rc-text); }
+  .rc-close { background:var(--rc-card); border:1px solid var(--rc-card-border); color:var(--rc-sub); cursor:pointer;
               width:30px; height:30px; border-radius:8px; font-size:14px; line-height:1; transition:all .15s;
               display:flex; align-items:center; justify-content:center; }
-  .rc-close:hover { border-color:#ff6b6b; color:#ff6b6b; background:rgba(255,68,68,0.1); }
+  .rc-close:hover { border-color:#ff6b6b; color:#ff6b6b; background:rgba(255,68,68,0.16); }
 
   .rc-body { position:relative; z-index:1; flex:1; overflow-y:auto; overscroll-behavior:contain; padding:28px 24px 60px; }
   .rc-inner { max-width:1040px; margin:0 auto; }
 
   /* Hero: rating ring + headline numbers. */
   .rc-hero { display:flex; align-items:center; gap:28px; padding:22px 26px; margin-bottom:26px;
-             border:1px solid var(--border); border-radius:14px;
-             background:linear-gradient(135deg, rgba(52,211,153,0.07), rgba(255,255,255,0.015) 55%); }
+             border:1px solid var(--rc-card-border); border-radius:14px;
+             background:linear-gradient(135deg, rgba(52,211,153,0.14), rgba(255,255,255,0.04) 55%); }
   .rc-ring { --pct:0; position:relative; width:104px; height:104px; flex-shrink:0; border-radius:50%;
-             background:conic-gradient(#34d399 calc(var(--pct)*1%), rgba(255,255,255,0.07) 0);
+             background:conic-gradient(#4ee6ac calc(var(--pct)*1%), rgba(255,255,255,0.14) 0);
              display:flex; align-items:center; justify-content:center; }
-  .rc-ring::after { content:''; position:absolute; inset:8px; border-radius:50%; background:#0a0d16; }
+  .rc-ring::after { content:''; position:absolute; inset:8px; border-radius:50%; background:#161822; }
   .rc-ring-inner { position:relative; z-index:1; text-align:center; font-family:var(--mono); }
-  .rc-ring-num { font-size:32px; font-weight:900; line-height:1; color:#34d399; }
-  .rc-ring-den { font-size:11px; color:var(--muted); margin-top:2px; }
+  .rc-ring-num { font-size:32px; font-weight:900; line-height:1; color:#4ee6ac; }
+  .rc-ring-den { font-size:11px; color:var(--rc-sub); margin-top:2px; }
   .rc-hero-main { min-width:0; }
-  .rc-hero-h { font-family:var(--mono); font-size:26px; font-weight:900; letter-spacing:-0.5px; color:var(--text); line-height:1.15; }
-  .rc-hero-sub { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:7px; line-height:1.6; }
+  .rc-hero-h { font-family:var(--mono); font-size:26px; font-weight:900; letter-spacing:-0.5px; color:var(--rc-text); line-height:1.15; }
+  .rc-hero-sub { font-family:var(--mono); font-size:11px; color:var(--rc-sub); margin-top:7px; line-height:1.7; }
   .rc-hero-pills { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
   .rc-pill { font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.5px;
-             padding:5px 11px; border-radius:999px; border:1px solid var(--border);
-             background:var(--surface2); color:#c9cdd8; }
+             padding:5px 11px; border-radius:999px; border:1px solid var(--rc-card-border);
+             background:var(--rc-card); color:#e4e7ef; }
 
   .rc-section-title { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:10px;
-                      font-weight:900; letter-spacing:1.8px; color:var(--muted); text-transform:uppercase;
+                      font-weight:900; letter-spacing:1.8px; color:var(--rc-lbl); text-transform:uppercase;
                       margin:26px 0 12px; }
-  .rc-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+  .rc-section-title::after { content:''; flex:1; height:1px; background:var(--rc-card-border); }
 
   .rc-stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; }
-  .rc-stat { position:relative; background:var(--surface2); border:1px solid var(--border); border-radius:11px;
+  .rc-stat { position:relative; background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:11px;
              padding:16px 14px; transition:border-color .15s, transform .15s, background .15s; }
-  .rc-stat:hover { border-color:rgba(52,211,153,0.4); transform:translateY(-2px); }
-  .rc-stat-val { font-family:var(--mono); font-size:23px; font-weight:900; color:var(--text); line-height:1.1;
+  .rc-stat:hover { border-color:rgba(78,230,172,0.55); transform:translateY(-2px); }
+  .rc-stat-val { font-family:var(--mono); font-size:23px; font-weight:900; color:var(--rc-text); line-height:1.1;
                  letter-spacing:-0.5px; word-break:break-word; }
-  .rc-stat-lbl { font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1px; color:var(--muted);
+  .rc-stat-lbl { font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1px; color:var(--rc-lbl);
                  text-transform:uppercase; margin-top:7px; }
   /* Values still loading, or that will never exist for this month. */
-  .rc-stat.rc-dim .rc-stat-val { color:var(--muted); font-size:15px; }
-  .rc-stat.rc-dim:hover { transform:none; border-color:var(--border); }
+  .rc-stat.rc-dim .rc-stat-val { color:var(--rc-sub); font-size:15px; }
+  .rc-stat.rc-dim:hover { transform:none; border-color:var(--rc-card-border); }
 
   .rc-cats { display:flex; flex-direction:column; gap:11px; }
   .rc-cat-row { display:grid; grid-template-columns:168px 1fr 78px; align-items:center; gap:14px; }
-  .rc-cat-name { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text);
+  .rc-cat-name { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--rc-text);
                  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .rc-cat-bar-track { height:9px; background:rgba(255,255,255,0.05); border-radius:999px; overflow:hidden; }
+  .rc-cat-bar-track { height:9px; background:rgba(255,255,255,0.10); border-radius:999px; overflow:hidden; }
   .rc-cat-bar-fill { height:100%; border-radius:999px; min-width:3px; }
-  .rc-cat-time { font-family:var(--mono); font-size:11px; font-weight:700; color:var(--muted); text-align:right; white-space:nowrap; }
+  .rc-cat-time { font-family:var(--mono); font-size:11px; font-weight:700; color:var(--rc-sub); text-align:right; white-space:nowrap; }
 
-  .rc-empty { font-family:var(--mono); font-size:12px; color:var(--muted); text-align:center; line-height:1.7;
-              padding:44px 16px; border:1px dashed var(--border); border-radius:12px; }
+  .rc-empty { font-family:var(--mono); font-size:12px; color:var(--rc-sub); text-align:center; line-height:1.7;
+              padding:44px 16px; border:1px dashed var(--rc-card-border); border-radius:12px; }
   .rc-connect-btn { font-family:var(--mono); font-size:11px; font-weight:800; letter-spacing:0.5px;
-                    background:rgba(145,70,255,0.12); border:1px solid rgba(145,70,255,0.5); color:#a78bfa;
+                    background:rgba(167,139,250,0.18); border:1px solid rgba(167,139,250,0.6); color:#cfc2ff;
                     padding:9px 18px; border-radius:8px; cursor:pointer; transition:all .15s; }
-  .rc-connect-btn:hover { border-color:#a78bfa; background:rgba(145,70,255,0.22); }
-  .rc-note { font-family:var(--mono); font-size:10px; color:var(--muted); line-height:1.75; margin-top:26px;
-             padding:15px 17px; border-left:2px solid var(--border); background:rgba(255,255,255,0.015);
+  .rc-connect-btn:hover { border-color:#cfc2ff; background:rgba(167,139,250,0.3); }
+  .rc-note { font-family:var(--mono); font-size:10px; color:var(--rc-sub); line-height:1.8; margin-top:26px;
+             padding:15px 17px; border-left:2px solid rgba(78,230,172,0.55); background:rgba(255,255,255,0.045);
              border-radius:0 8px 8px 0; }
+
+  /* Highlights: best / quietest stream callouts, click through to the VOD */
+  .rc-highlight-cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:12px; }
+  .rc-highlight-card { display:flex; align-items:center; gap:14px; background:var(--rc-card);
+                        border:1px solid var(--rc-card-border); border-radius:12px; padding:16px;
+                        cursor:pointer; transition:all .15s; }
+  .rc-highlight-card:hover { border-color:rgba(78,230,172,0.55); transform:translateY(-2px); }
+  .rc-highlight-emoji { font-size:28px; flex-shrink:0; }
+  .rc-highlight-body { flex:1; min-width:0; }
+  .rc-highlight-lbl { font-family:var(--mono); font-size:9px; font-weight:800; letter-spacing:1px;
+                       text-transform:uppercase; color:var(--rc-lbl); }
+  .rc-highlight-date { font-family:var(--mono); font-size:15px; font-weight:800; color:var(--rc-text); margin-top:2px; }
+  .rc-highlight-stats { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;
+                         font-family:var(--mono); font-size:10px; color:var(--rc-sub); }
+  .rc-highlight-pts { font-family:var(--mono); font-weight:900; font-size:20px; color:#4ee6ac;
+                       text-align:right; flex-shrink:0; }
+  .rc-highlight-pts span { display:block; font-size:8px; font-weight:700; color:var(--rc-lbl);
+                            letter-spacing:1px; text-transform:uppercase; }
+
+  /* Daily breakdown: month calendar, colored by that stream's score */
+  .rc-cal-wrap { background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:12px; padding:16px; }
+  .rc-cal-wds { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:6px; }
+  .rc-cal-wds span { font-family:var(--mono); font-size:9px; font-weight:800; letter-spacing:1px;
+                      text-transform:uppercase; color:var(--rc-lbl); text-align:center; }
+  .rc-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+  .rc-cal-cell { position:relative; aspect-ratio:1; border-radius:7px; background:rgba(255,255,255,0.03);
+                 border:1px solid var(--rc-card-border); display:flex; align-items:flex-start; padding:5px;
+                 transition:transform .1s, border-color .1s; }
+  .rc-cal-cell.rc-cal-empty { border:none; background:transparent; }
+  .rc-cal-cell.rc-cal-active { cursor:pointer; border-color:rgba(255,255,255,0.06); }
+  .rc-cal-cell.rc-cal-active:hover { transform:scale(1.08); border-color:#4ee6ac; z-index:2; }
+  .rc-cal-cell.rc-cal-today { box-shadow:0 0 0 2px #4ee6ac inset; }
+  .rc-cal-daynum { font-family:var(--mono); font-size:10px; font-weight:700; color:var(--rc-sub); }
+  .rc-cal-active .rc-cal-daynum { color:#0c1410; font-weight:800; }
+  .rc-cal-legend { display:flex; align-items:center; gap:6px; margin-top:14px;
+                    font-family:var(--mono); font-size:9px; color:var(--rc-lbl);
+                    text-transform:uppercase; letter-spacing:0.6px; }
+  .rc-cal-swatch { width:13px; height:13px; border-radius:4px; border:1px solid var(--rc-card-border); }
+
+  /* Compared to last month: paired bars + delta arrow */
+  .rc-compare-wrap { display:flex; flex-direction:column; gap:12px; }
+  .rc-compare-row { display:grid; grid-template-columns:130px 1fr 74px; align-items:center; gap:16px;
+                     background:var(--rc-card); border:1px solid var(--rc-card-border); border-radius:11px;
+                     padding:14px 16px; }
+  .rc-compare-lbl { font-family:var(--mono); font-size:11px; font-weight:800; color:var(--rc-text); }
+  .rc-compare-bars { display:flex; flex-direction:column; gap:6px; }
+  .rc-compare-bar-line { display:grid; grid-template-columns:70px 1fr 60px; align-items:center; gap:8px; }
+  .rc-compare-bar-tag { font-family:var(--mono); font-size:9px; color:var(--rc-lbl); }
+  .rc-compare-bar-track { height:7px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden; }
+  .rc-compare-bar-fill { height:100%; border-radius:999px; min-width:2px; }
+  .rc-compare-cur { background:#4ee6ac; }
+  .rc-compare-prev { background:#5c8afc; }
+  .rc-compare-bar-val { font-family:var(--mono); font-size:10px; font-weight:700; color:var(--rc-sub); text-align:right; }
+  .rc-delta { font-family:var(--mono); font-size:13px; font-weight:900; text-align:right; white-space:nowrap; }
+  .rc-delta.rc-up { color:#4ee6ac; }
+  .rc-delta.rc-down { color:#ff6b6b; }
+  .rc-delta.rc-flat { color:var(--rc-lbl); }
 
   @media (max-width:820px) {
     .rc-hero { flex-direction:column; align-items:flex-start; gap:18px; padding:20px; }
@@ -2454,6 +2518,10 @@
     .rc-stat { padding:13px 11px; }
     .rc-stat-val { font-size:19px; }
     .rc-cat-row { grid-template-columns:96px 1fr 62px; gap:9px; }
+    .rc-highlight-cards { grid-template-columns:1fr; }
+    .rc-cal-daynum { font-size:9px; }
+    .rc-compare-row { grid-template-columns:1fr; gap:10px; }
+    .rc-delta { text-align:left; }
   }
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
@@ -18692,7 +18760,19 @@ async function _rcFetchViewerStats(monthStr) {
     const vals = snap.docs.map(d => d.data().viewer_count || 0);
     const avg = vals.reduce((a,b) => a+b, 0) / vals.length;
     const peak = Math.max(...vals);
-    return { avg: Math.round(avg), peak, samples: vals.length };
+    // Same samples, grouped by day — lets callers (the daily calendar,
+    // best/quietest-stream highlights) work with per-stream numbers instead
+    // of only the month-wide rollup.
+    const byDay = {};
+    snap.docs.forEach(d => {
+      const v = d.data();
+      (byDay[v.date] || (byDay[v.date] = [])).push(v.viewer_count || 0);
+    });
+    const perDay = {};
+    Object.entries(byDay).forEach(([day, arr]) => {
+      perDay[day] = { avg: Math.round(arr.reduce((a,b)=>a+b,0)/arr.length), peak: Math.max(...arr) };
+    });
+    return { avg: Math.round(avg), peak, samples: vals.length, perDay };
   } catch(e) { return null; }
 }
 
@@ -18712,12 +18792,14 @@ async function _rcFetchChatStats(monthStr) {
     if (snap.empty) return null;
     let messageCount = 0;
     const chatterSet = new Set();
+    const perDay = {};
     snap.docs.forEach(d => {
       const v = d.data();
       messageCount += v.messageCount || 0;
       (v.chatters || []).forEach(c => chatterSet.add(c));
+      perDay[v.day] = { messageCount: v.messageCount || 0, uniqueChatters: (v.chatters || []).length };
     });
-    return { messageCount, uniqueChatters: chatterSet.size };
+    return { messageCount, uniqueChatters: chatterSet.size, perDay };
   } catch(e) { return null; }
 }
 
@@ -18732,13 +18814,198 @@ function _rcDur(secs) {
   return `${m}m`;
 }
 
-function _rcRating({ hours, streamCount, daysInMonth, categoryCount }) {
+// Every target below (streams-per-elapsed-days, hours, category variety) is
+// meant for a FULL month. Grading a month that's only 10 days in against a
+// full month's targets makes every in-progress month look bad no matter how
+// well it's going, so daysElapsed lets the caller say "judge me against a
+// 10-day month, not a 30-day one" — for a month that's already over,
+// daysElapsed === daysInMonth and this is identical to the old behavior.
+function _rcRating({ hours, streamCount, daysInMonth, daysElapsed, categoryCount }) {
   if (!streamCount) return 0;
-  const consistency = Math.min(1, streamCount / (daysInMonth / 2));
-  const hoursScore = Math.min(1, hours / 60);
-  const varietyScore = Math.min(1, categoryCount / 5);
+  const elapsed = Math.max(1, Math.min(daysElapsed ?? daysInMonth, daysInMonth));
+  const scale = elapsed / daysInMonth;
+  const consistency = Math.min(1, streamCount / (elapsed / 2));
+  const hoursScore = Math.min(1, hours / (60 * scale));
+  const varietyScore = Math.min(1, categoryCount / Math.max(1, 5 * scale));
   const raw = consistency * 4 + hoursScore * 4 + varietyScore * 2;
   return Math.max(1, Math.min(10, Math.round(raw)));
+}
+
+// How many days of the selected month have actually happened. A past month
+// is fully elapsed; the current month is elapsed only through today.
+function _rcElapsedDays(y, m, daysInMonth) {
+  const today = new Date();
+  if (today.getFullYear() === y && today.getMonth() === m) return today.getDate();
+  return daysInMonth;
+}
+
+function _rcMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+// Per-stream "how good was this one" score, used by both the daily calendar
+// (cell color + tooltip) and the best/quietest-stream highlight cards.
+// Viewer data only exists from whenever the bot's analytics started, so when
+// nothing in the month has it yet, score on hours alone rather than treating
+// missing viewer data as zero (which would make every day look equally bad).
+function _rcBuildDayScores(streams, viewerPerDay, chatPerDay) {
+  const rows = streams.map(s => {
+    const v = viewerPerDay && viewerPerDay[s.day];
+    const c = chatPerDay && chatPerDay[s.day];
+    return {
+      day: s.day,
+      streamIdx: allStreams.indexOf(s),
+      hours: (s.totalDuration || 0) / 3600,
+      peak: v ? v.peak : null,
+      avgViewers: v ? v.avg : null,
+      messages: c ? c.messageCount : null,
+      chatters: c ? c.uniqueChatters : null,
+    };
+  });
+  const maxHours = Math.max(1, ...rows.map(r => r.hours));
+  const maxPeak = Math.max(1, ...rows.map(r => r.peak || 0));
+  const havePeakData = rows.some(r => r.peak != null);
+  rows.forEach(r => {
+    const hoursNorm = r.hours / maxHours;
+    const peakNorm = r.peak != null ? r.peak / maxPeak : 0;
+    r.scoreNorm = havePeakData ? (peakNorm * 0.65 + hoursNorm * 0.35) : hoursNorm;
+    r.points = Math.round(r.scoreNorm * 100);
+  });
+  let best = rows[0], worst = rows[0];
+  rows.forEach(r => {
+    if (r.scoreNorm > best.scoreNorm) best = r;
+    if (r.scoreNorm < worst.scoreNorm) worst = r;
+  });
+  return { rows, best, worst };
+}
+
+function _rcHighlightCard(label, emoji, row) {
+  const bits = [
+    row.peak != null ? `${row.peak.toLocaleString()} peak viewers` : null,
+    `${row.hours.toFixed(1)}h streamed`,
+    row.messages != null ? `${row.messages.toLocaleString()} messages` : null,
+  ].filter(Boolean);
+  return `
+    <div class="rc-highlight-card" onclick="closeStreamSummary();selectStream(${row.streamIdx})">
+      <div class="rc-highlight-emoji">${emoji}</div>
+      <div class="rc-highlight-body">
+        <div class="rc-highlight-lbl">${label}</div>
+        <div class="rc-highlight-date">${formatDay(row.day)}</div>
+        <div class="rc-highlight-stats">${bits.map(b => `<span>${b}</span>`).join('')}</div>
+      </div>
+      <div class="rc-highlight-pts">${row.points}<span>pts</span></div>
+    </div>`;
+}
+
+// Classic month-calendar layout (Monday-first, like the reference heatmap),
+// not a GitHub-style horizontal week strip — this recap is one month at a
+// time, so a calendar reads more naturally than a scrolling year of squares.
+function _rcRenderCalendar(y, m, daysInMonth, byDate) {
+  const startOffset = (new Date(y, m, 1).getDay() + 6) % 7; // Sun=0..Sat=6 -> Mon=0..Sun=6
+  const cells = [];
+  for (let i = 0; i < startOffset; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const todayStr = new Date().toISOString().slice(0,10);
+  const cellsHtml = cells.map(d => {
+    if (d === null) return `<div class="rc-cal-cell rc-cal-empty"></div>`;
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const info = byDate[dateStr];
+    const todayCls = dateStr === todayStr ? ' rc-cal-today' : '';
+    if (!info) {
+      return `<div class="rc-cal-cell${todayCls}"><span class="rc-cal-daynum">${d}</span></div>`;
+    }
+    const alpha = (0.18 + info.scoreNorm * 0.72).toFixed(2); // visible floor even for the lowest-scoring day
+    const tip = [
+      formatDay(dateStr),
+      `${info.points} pts`,
+      `${info.hours.toFixed(1)}h streamed`,
+      info.peak != null ? `${info.peak.toLocaleString()} peak viewers` : null,
+      info.messages != null ? `${info.messages.toLocaleString()} chat messages` : null,
+    ].filter(Boolean).join('|');
+    return `<div class="rc-cal-cell rc-cal-active${todayCls}" style="background:rgba(78,230,172,${alpha})" data-tip="${tip}" data-idx="${info.streamIdx}"><span class="rc-cal-daynum">${d}</span></div>`;
+  }).join('');
+
+  return `
+    <div class="rc-cal-wds">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(w => `<span>${w}</span>`).join('')}</div>
+    <div class="rc-cal-grid">${cellsHtml}</div>
+    <div class="rc-cal-legend">
+      <span>Less</span>
+      <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.18)"></span>
+      <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.40)"></span>
+      <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.62)"></span>
+      <span class="rc-cal-swatch" style="background:rgba(78,230,172,0.90)"></span>
+      <span>More</span>
+    </div>`;
+}
+
+// Hover tooltip + click-to-open for calendar cells, delegated on the wrap so
+// it survives the innerHTML swap that happens every time the month changes.
+function _rcSetupCalendarInteractions(container) {
+  let tip = document.getElementById('_rcTip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = '_rcTip';
+    tip.style.cssText = 'position:fixed;z-index:999999;pointer-events:none;background:rgba(10,12,20,0.97);border:1px solid rgba(78,230,172,0.5);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:11px;color:#eef0f6;line-height:1.7;box-shadow:0 8px 26px rgba(0,0,0,0.6);display:none;white-space:nowrap';
+    document.body.appendChild(tip);
+  }
+  container.addEventListener('mousemove', e => {
+    const cell = e.target.closest('.rc-cal-active');
+    if (!cell) { tip.style.display = 'none'; return; }
+    const parts = cell.dataset.tip.split('|');
+    tip.innerHTML = parts.map((p,i) => i===0
+      ? `<div style="color:#4ee6ac;font-weight:800;margin-bottom:3px">${p}</div>`
+      : `<div>${p}</div>`).join('');
+    tip.style.display = 'block';
+    tip.style.left = (e.clientX + 16) + 'px';
+    tip.style.top  = (e.clientY + 16) + 'px';
+  });
+  container.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  container.addEventListener('click', e => {
+    const cell = e.target.closest('.rc-cal-active');
+    const idx = cell ? parseInt(cell.dataset.idx, 10) : NaN;
+    if (Number.isNaN(idx) || idx < 0) return;
+    closeStreamSummary();
+    selectStream(idx);
+  });
+}
+
+// One "this month vs last month" row: paired bars sized relative to each
+// other, plus a percentage-change arrow. Handles either side being
+// unavailable (no data yet, or a metric that failed to load) as "n/a"
+// rather than pretending it's zero.
+function _rcCompareRow(label, cur, prev, fmt) {
+  const curKnown = cur != null, prevKnown = prev != null;
+  const max = Math.max(curKnown ? cur : 0, prevKnown ? prev : 0, 1);
+  const curPct = curKnown ? Math.round(cur / max * 100) : 0;
+  const prevPct = prevKnown ? Math.round(prev / max * 100) : 0;
+  let delta;
+  if (curKnown && prevKnown && prev > 0) {
+    const diff = cur - prev;
+    const pct = Math.round(Math.abs(diff) / prev * 100);
+    const flat = diff === 0, up = diff > 0;
+    const arrow = flat ? '→' : (up ? '↑' : '↓');
+    const cls = flat ? 'rc-flat' : (up ? 'rc-up' : 'rc-down');
+    delta = `<span class="rc-delta ${cls}">${arrow} ${flat ? 'No change' : pct + '%'}</span>`;
+  } else {
+    delta = `<span class="rc-delta rc-flat">n/a</span>`;
+  }
+  return `
+    <div class="rc-compare-row">
+      <div class="rc-compare-lbl">${label}</div>
+      <div class="rc-compare-bars">
+        <div class="rc-compare-bar-line">
+          <span class="rc-compare-bar-tag">This month</span>
+          <div class="rc-compare-bar-track"><div class="rc-compare-bar-fill rc-compare-cur" style="width:${curPct}%"></div></div>
+          <span class="rc-compare-bar-val">${curKnown ? fmt(cur) : 'n/a'}</span>
+        </div>
+        <div class="rc-compare-bar-line">
+          <span class="rc-compare-bar-tag">Last month</span>
+          <div class="rc-compare-bar-track"><div class="rc-compare-bar-fill rc-compare-prev" style="width:${prevPct}%"></div></div>
+          <span class="rc-compare-bar-val">${prevKnown ? fmt(prev) : 'n/a'}</span>
+        </div>
+      </div>
+      ${delta}
+    </div>`;
 }
 
 async function renderStreamSummary() {
@@ -18756,6 +19023,8 @@ async function renderStreamSummary() {
 
   const streams = allStreams.filter(s => s.day.startsWith(monthStr));
   const daysInMonth = new Date(y, m+1, 0).getDate();
+  const isCurrentMonth = monthStr === _rcMonthKey(new Date());
+  const daysElapsed = _rcElapsedDays(y, m, daysInMonth);
 
   if (!streams.length) {
     content.innerHTML = `<div class="rc-empty">No streams found for ${_rcMonth.toLocaleDateString('en-US',{month:'long',year:'numeric'})}.</div>`;
@@ -18774,7 +19043,16 @@ async function renderStreamSummary() {
   });
   const catList = Object.entries(catTotals).sort((a,b) => b[1]-a[1]);
 
-  const rating = _rcRating({ hours, streamCount: streams.length, daysInMonth, categoryCount: catList.length });
+  const rating = _rcRating({ hours, streamCount: streams.length, daysInMonth, daysElapsed, categoryCount: catList.length });
+
+  // Previous calendar month, for the "compared to last month" section —
+  // computed synchronously from what's already loaded (allStreams), same as
+  // the current month's stream/category stats above.
+  const prevDate = new Date(y, m - 1, 1);
+  const prevMonthStr = _rcMonthKey(prevDate);
+  const prevStreams = allStreams.filter(s => s.day.startsWith(prevMonthStr));
+  const prevTotalSeconds = prevStreams.reduce((s,v) => s + (v.totalDuration||0), 0);
+  const prevHours = prevTotalSeconds / 3600;
 
   // Kick off async broadcaster/viewer data — render sync stats first, then
   // patch in the async pieces once they resolve so the modal isn't blank
@@ -18783,7 +19061,7 @@ async function renderStreamSummary() {
 
   const monthName = _rcMonth.toLocaleDateString('en-US', { month:'long', year:'numeric' });
   const topCat = catList.length ? catList[0][0] : null;
-  const activeRate = Math.round(streams.length / daysInMonth * 100);
+  const activeRate = Math.round(streams.length / daysElapsed * 100);
 
   content.innerHTML = `
     <div class="rc-hero">
@@ -18797,10 +19075,10 @@ async function renderStreamSummary() {
         <div class="rc-hero-h">${monthName}</div>
         <div class="rc-hero-sub">
           ${hours.toFixed(1)} hours live across ${streams.length} ${streams.length === 1 ? 'day' : 'days'}${topCat ? ` · mostly ${topCat}` : ''}.
-          <br>Rating is a rough consistency + hours + variety score, just for fun.
+          <br>Rating is a rough consistency + hours + variety score, just for fun.${isCurrentMonth ? ' Scaled to how far the month has gotten so far, so it won\'t judge you against days that haven\'t happened yet.' : ''}
         </div>
         <div class="rc-hero-pills">
-          <span class="rc-pill">${activeRate}% of days live</span>
+          <span class="rc-pill">${activeRate}% of days live${isCurrentMonth ? ' so far' : ''}</span>
           <span class="rc-pill">${catList.length} ${catList.length === 1 ? 'category' : 'categories'}</span>
           <span class="rc-pill">Longest ${_rcDur(longest)}</span>
         </div>
@@ -18826,6 +19104,11 @@ async function renderStreamSummary() {
       <div class="rc-stat rc-dim" id="rcChattersStat"><div class="rc-stat-val">…</div><div class="rc-stat-lbl">Unique chatters</div></div>
     </div>
 
+    <div class="rc-section-title">Highlights</div>
+    <div id="rcHighlightsWrap" class="rc-highlight-cards">
+      <div class="rc-empty" style="grid-column:1/-1">Crunching the numbers…</div>
+    </div>
+
     <div class="rc-section-title">Categories played</div>
     <div class="rc-cats">
       ${catList.map(([label,secs],i) => `
@@ -18835,6 +19118,16 @@ async function renderStreamSummary() {
           <span class="rc-cat-time">${_rcDur(secs)}</span>
         </div>
       `).join('')}
+    </div>
+
+    <div class="rc-section-title">Daily breakdown</div>
+    <div id="rcCalendarWrap" class="rc-cal-wrap">
+      <div class="rc-empty">Crunching the numbers…</div>
+    </div>
+
+    <div class="rc-section-title">Compared to last month</div>
+    <div id="rcCompareWrap" class="rc-compare-wrap">
+      <div class="rc-empty">Crunching the numbers…</div>
     </div>
 
     ${!token ? `
@@ -18852,8 +19145,18 @@ async function renderStreamSummary() {
     </div>
   `;
 
-  // Async: viewer snapshot stats (always attempt — no login needed to read)
-  _rcFetchViewerStats(monthStr).then(stats => {
+  // Async: current-month viewer/chat data. Kept as their own promises (not
+  // awaited yet) so each patches its own stat cards the moment IT resolves —
+  // the highlights + calendar sections below then reuse these same promises
+  // instead of re-querying Firestore for data we're already fetching.
+  const viewerPromise = _rcFetchViewerStats(monthStr).catch(() => null);
+  const chatPromise   = _rcFetchChatStats(monthStr).catch(() => null);
+  // Previous month, for the comparison section — independent of the above,
+  // fetched in parallel rather than chained after.
+  const prevViewerPromise = _rcFetchViewerStats(prevMonthStr).catch(() => null);
+  const prevChatPromise   = _rcFetchChatStats(prevMonthStr).catch(() => null);
+
+  viewerPromise.then(stats => {
     const a = document.getElementById('rcAvgViewStat');
     const p = document.getElementById('rcPeakViewStat');
     if (!a || !p) return; // modal moved on to a different month/closed
@@ -18867,18 +19170,60 @@ async function renderStreamSummary() {
     }
   });
 
-  _rcFetchChatStats(monthStr).then(stats => {
-    const m = document.getElementById('rcMsgStat');
-    const c = document.getElementById('rcChattersStat');
-    if (!m || !c) return;
+  chatPromise.then(stats => {
+    const mEl = document.getElementById('rcMsgStat');
+    const cEl = document.getElementById('rcChattersStat');
+    if (!mEl || !cEl) return;
     if (stats) {
-      m.querySelector('.rc-stat-val').textContent = stats.messageCount.toLocaleString();
-      c.querySelector('.rc-stat-val').textContent = stats.uniqueChatters.toLocaleString();
-      m.classList.remove('rc-dim'); c.classList.remove('rc-dim');
+      mEl.querySelector('.rc-stat-val').textContent = stats.messageCount.toLocaleString();
+      cEl.querySelector('.rc-stat-val').textContent = stats.uniqueChatters.toLocaleString();
+      mEl.classList.remove('rc-dim'); cEl.classList.remove('rc-dim');
     } else {
-      m.querySelector('.rc-stat-val').textContent = 'n/a';
-      c.querySelector('.rc-stat-val').textContent = 'n/a';
+      mEl.querySelector('.rc-stat-val').textContent = 'n/a';
+      cEl.querySelector('.rc-stat-val').textContent = 'n/a';
     }
+  });
+
+  // Highlights (best/quietest stream) + the daily calendar both need the
+  // same per-day viewer/chat breakdown, so build it once both current-month
+  // fetches are in.
+  Promise.all([viewerPromise, chatPromise]).then(([curV, curC]) => {
+    const hlWrap = document.getElementById('rcHighlightsWrap');
+    const calWrap = document.getElementById('rcCalendarWrap');
+    if (!hlWrap && !calWrap) return; // moved on to a different month/closed
+
+    const { rows, best, worst } = _rcBuildDayScores(streams, curV && curV.perDay, curC && curC.perDay);
+
+    if (hlWrap) {
+      hlWrap.innerHTML = rows.length > 1
+        ? _rcHighlightCard('Best stream', '🏆', best) + _rcHighlightCard('Quietest stream', '🌙', worst)
+        : _rcHighlightCard("This month's stream", '🎬', best);
+    }
+    if (calWrap) {
+      const byDate = {};
+      rows.forEach(r => { byDate[r.day] = r; });
+      calWrap.innerHTML = _rcRenderCalendar(y, m, daysInMonth, byDate);
+      _rcSetupCalendarInteractions(calWrap);
+    }
+  });
+
+  // Compared to last month — waits on all four fetches (current + previous,
+  // viewer + chat) since every row in that section wants both months' data.
+  Promise.all([viewerPromise, chatPromise, prevViewerPromise, prevChatPromise]).then(([curV, curC, prevV, prevC]) => {
+    const wrap = document.getElementById('rcCompareWrap');
+    if (!wrap) return; // moved on to a different month/closed
+    if (!prevStreams.length) {
+      wrap.innerHTML = '<div class="rc-empty">Not enough data from last month to compare yet.</div>';
+      return;
+    }
+    wrap.innerHTML = [
+      _rcCompareRow('Hours streamed', hours, prevHours, v => v.toFixed(1) + 'h'),
+      _rcCompareRow('Days streamed', streams.length, prevStreams.length, v => String(Math.round(v))),
+      _rcCompareRow('Avg viewers', curV && curV.avg, prevV && prevV.avg, v => Math.round(v).toLocaleString()),
+      _rcCompareRow('Peak viewers', curV && curV.peak, prevV && prevV.peak, v => Math.round(v).toLocaleString()),
+      _rcCompareRow('Chat messages', curC && curC.messageCount, prevC && prevC.messageCount, v => Math.round(v).toLocaleString()),
+      _rcCompareRow('Unique chatters', curC && curC.uniqueChatters, prevC && prevC.uniqueChatters, v => Math.round(v).toLocaleString()),
+    ].join('');
   });
 
   // Async: broadcaster-only follows/subs
@@ -18889,7 +19234,6 @@ async function renderStreamSummary() {
       const count = list.filter(ts => ts && ts.startsWith(monthStr)).length;
       el.querySelector('.rc-stat-val').textContent = count;
     });
-    const isCurrentMonth = monthStr === `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
     _rcFetchOwnerMonthDelta(monthStr).then(delta => {
       const el = document.getElementById('rcSubStat');
       if (!el) return;
