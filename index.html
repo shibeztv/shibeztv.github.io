@@ -4937,7 +4937,15 @@ function translateGameLabel(label) {
 // template straight from Twitch — that's authoritative, unlike guessing.
 // Results (including "no box art exists for this name") are cached in
 // localStorage so we only ever look a given name up once, ever.
-const BOXART_CACHE_KEY = 'shibez_boxart_cache_v1';
+// Bumped v1→v2: every visitor's v1 cache had 401-driven "no art found" misses
+// baked in permanently from the Client-ID mismatch (see twitchClientId note
+// above) — those never self-heal, there's no expiry/recheck on box art like
+// there is on chapters. Bumping the key makes every returning browser treat
+// its old cache as gone and re-resolve everything fresh through the
+// now-fixed Helix calls, automatically, with no console command needed on
+// their end. Don't revert this bump even after art looks fixed everywhere —
+// it's just the mechanism that got it fixed, not something to undo.
+const BOXART_CACHE_KEY = 'shibez_boxart_cache_v2';
 let _boxArtCache = {};
 try { _boxArtCache = JSON.parse(localStorage.getItem(BOXART_CACHE_KEY) || '{}'); } catch(e) { _boxArtCache = {}; }
 // Twitch has TWO categories that both display as literally "Demon's Souls"
