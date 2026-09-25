@@ -513,6 +513,94 @@
     color: #c8c8d4;
   }
 
+  /* GAME FILTER DROPDOWN (small box-art icons next to each game) */
+  .game-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    max-width: 200px;
+    transition: border-color 0.15s;
+  }
+  .game-filter-btn:hover,
+  .game-filter-btn.open { border-color: var(--accent); }
+  .game-filter-btn span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    text-align: left;
+  }
+  .game-filter-caret {
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.15s;
+    flex-shrink: 0;
+  }
+  .game-filter-btn.open .game-filter-caret { transform: rotate(180deg); }
+  .game-filter-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 230px;
+    max-width: 280px;
+    max-height: 360px;
+    overflow-y: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    z-index: 500;
+    padding: 6px;
+  }
+  .game-filter-dropdown.open { display: block; }
+  .game-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 8px;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .game-filter-item:hover { background: rgba(124,92,252,0.12); }
+  .game-filter-item.active { background: rgba(124,92,252,0.18); color: var(--accent); }
+  .game-filter-item .gf-thumb {
+    /* deliberately small — this is a dropdown row icon, not a poster;
+       keeping it tiny is what stops the list from ballooning in height */
+    width: 16px; height: 21px;
+    border-radius: 2px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+  }
+  .game-filter-item .gf-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .game-filter-item .gf-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   /* TIMELINE BAR */
   .timeline-wrap {
     padding: 0 20px 0;
@@ -3280,10 +3368,11 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="7" y1="3" x2="7" y2="21"/><line x1="17" y1="3" x2="17" y2="21"/><line x1="2" y1="8" x2="7" y2="8"/><line x1="2" y1="16" x2="7" y2="16"/><line x1="17" y1="8" x2="22" y2="8"/><line x1="17" y1="16" x2="22" y2="16"/></svg> SHORTS
           </a>
           <div class="grid-search-wrap" style="position:relative;display:flex;align-items:center">
-            <select id="gameFilterSelect" onchange="selectGameFilter(this.value)" title="Browse by game"
-              style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 12px;border-radius:6px;cursor:pointer;max-width:200px">
-              <option value="">All games</option>
-            </select>
+            <button type="button" class="game-filter-btn" id="gameFilterBtn" onclick="toggleGameFilterDropdown(event)" title="Browse by game">
+              <span id="gameFilterBtnLabel">All games</span>
+              <span class="game-filter-caret">▾</span>
+            </button>
+            <div class="game-filter-dropdown" id="gameFilterDropdown"></div>
           </div>
           <div class="grid-search-wrap" style="position:relative;display:flex;align-items:center">
             <input type="text" id="streamSearch" placeholder="Search title, category…" autocomplete="off"
@@ -5369,16 +5458,67 @@ function applyFilters() {
 let _selectedGameFilter = '';
 function selectGameFilter(gameName) {
   _selectedGameFilter = gameName;
+  _updateGameFilterBtnLabel();
+  const dd = document.getElementById('gameFilterDropdown');
+  if (dd) {
+    dd.querySelectorAll('.game-filter-item').forEach(el => {
+      el.classList.toggle('active', (el.dataset.game || '') === gameName);
+    });
+  }
+  closeGameFilterDropdown();
   applyFilters();
 }
+
+// Called from a dropdown row's onclick — reads the game name back off the
+// button's dataset instead of inlining it into the onclick string, so game
+// names with quotes/apostrophes in them can't break the attribute.
+function handleGameFilterItemClick(btn) {
+  selectGameFilter(btn.dataset.game || '');
+}
+
+function _updateGameFilterBtnLabel() {
+  const lbl = document.getElementById('gameFilterBtnLabel');
+  if (!lbl) return;
+  lbl.textContent = _selectedGameFilter
+    ? `${_selectedGameFilter} (${_gameFilterCounts[_selectedGameFilter] || 0})`
+    : 'All games';
+}
+
+function toggleGameFilterDropdown(evt) {
+  if (evt) evt.stopPropagation();
+  const btn = document.getElementById('gameFilterBtn');
+  const dd = document.getElementById('gameFilterDropdown');
+  if (!btn || !dd) return;
+  if (dd.classList.contains('open')) closeGameFilterDropdown();
+  else {
+    dd.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+function closeGameFilterDropdown() {
+  const btn = document.getElementById('gameFilterBtn');
+  const dd = document.getElementById('gameFilterDropdown');
+  if (dd) dd.classList.remove('open');
+  if (btn) btn.classList.remove('open');
+}
+
+document.addEventListener('click', (e) => {
+  const btn = document.getElementById('gameFilterBtn');
+  const dd = document.getElementById('gameFilterDropdown');
+  if (dd && dd.classList.contains('open') && !dd.contains(e.target) && !(btn && btn.contains(e.target))) {
+    closeGameFilterDropdown();
+  }
+});
 
 // Builds the "All games" dropdown from whatever chapter data is currently
 // resolved. Chapters load in progressively (see enrichVisiblePageChapters),
 // so this is called from renderPage() — the same hub every chapter/box-art
 // resolution already funnels back through — and only actually rebuilds the
-// <select> when the resolved game list has changed, so it's cheap to call
+// dropdown when the resolved game list has changed, so it's cheap to call
 // on every render instead of needing its own separate trigger wiring.
 let _gameFilterBuiltKey = '';
+let _gameFilterCounts = {};
 function _populateGameFilterOptions() {
   if (typeof allStreams === 'undefined' || !allStreams.length) return;
   const counts = {};
@@ -5397,19 +5537,30 @@ function _populateGameFilterOptions() {
   const key = names.map(n => n + ':' + counts[n]).join('|');
   if (key === _gameFilterBuiltKey) return; // nothing new since last build
   _gameFilterBuiltKey = key;
+  _gameFilterCounts = counts;
 
-  const sel = document.getElementById('gameFilterSelect');
-  if (!sel) return;
-  const prevValue = sel.value;
-  sel.innerHTML = '<option value="">All games</option>' +
-    names.map(n => `<option value="${escHtml(n)}">${escHtml(n)} (${counts[n]})</option>`).join('');
-  // Restore the selection across a rebuild so background chapter loading
-  // doesn't silently reset whatever the person picked.
-  if (prevValue && names.includes(prevValue)) sel.value = prevValue;
-  else if (_selectedGameFilter && !names.includes(_selectedGameFilter)) {
-    _selectedGameFilter = ''; // the previously-picked game no longer resolves to anything — drop the stale filter rather than silently showing zero results forever
+  const dd = document.getElementById('gameFilterDropdown');
+  if (!dd) return;
+  // Small (16x21) box-art icon per row — same lookup/fallback the chapter
+  // dropdowns use, just at a much smaller size so a long game list doesn't
+  // turn the dropdown into a giant poster wall.
+  const itemHtml = (name, label) => {
+    const boxArtSrc = name ? chapterBoxArtSrc(name) : '';
+    const thumb = boxArtSrc ? `<img src="${boxArtSrc}" alt="" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(name).replace(/'/g,"\\'")}')">` : '';
+    const activeCls = _selectedGameFilter === name ? ' active' : '';
+    return `<button type="button" class="game-filter-item${activeCls}" data-game="${escHtml(name)}" onclick="handleGameFilterItemClick(this)">
+      <span class="gf-thumb">${thumb}</span>
+      <span class="gf-name">${escHtml(label)}</span>
+    </button>`;
+  };
+  dd.innerHTML = itemHtml('', 'All games') + names.map(n => itemHtml(n, `${n} (${counts[n]})`)).join('');
+
+  // Drop a stale filter that no longer resolves to anything, same as before.
+  if (_selectedGameFilter && !names.includes(_selectedGameFilter)) {
+    _selectedGameFilter = '';
     applyFilters();
   }
+  _updateGameFilterBtnLabel();
 }
 
 function clearDateFilter() {
