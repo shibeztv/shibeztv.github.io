@@ -4,6 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shibez VOD Archive</title>
+<meta name="description" content="Every Shibez Twitch VOD, browsable by date, game, or title — with per-category chapters so you can jump straight to the game you want.">
+<!-- Open Graph / Twitter card — controls the preview shown when this link is
+     shared in Discord, Twitter/X, etc. og:image uses the same Twitch profile
+     pic as the favicon, bumped to a larger CDN size (jtvnw supports resizing
+     via the filename suffix); swap for a proper 1200x630 banner if/when one
+     exists for a nicer wide preview instead of a square one. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Shibez VOD Archive">
+<meta property="og:title" content="Shibez VOD Archive">
+<meta property="og:description" content="Every Shibez Twitch VOD, browsable by date, game, or title — with per-category chapters so you can jump straight to the game you want.">
+<meta property="og:image" content="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-300x300.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Shibez VOD Archive">
+<meta name="twitter:description" content="Every Shibez Twitch VOD, browsable by date, game, or title.">
+<meta name="twitter:image" content="https://static-cdn.jtvnw.net/jtv_user_pictures/629b51ce-483d-4cf8-a1c4-c9a56074e6a7-profile_image-300x300.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600&family=DM+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -2704,13 +2719,13 @@
     style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#4ade80';this.style.color='#4ade80'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
-    🐦 FLAPPY SHIBEZ
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> FLAPPY SHIBEZ
   </button>
   <button onclick="openSpacebez()" id="spaceBtn"
     style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:0.5px;background:var(--surface2);border:1px solid var(--border);color:#c9cdd8;padding:10px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap"
     onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='#c9cdd8'">
-    🚀 SPACEBEZ
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> SPACEBEZ
   </button>
   <!-- RECAP button moved down to the grid controls row, left of SHORTS -->
   <div class="navbar-spacer"></div>
@@ -3235,7 +3250,7 @@
     <!-- Monthly Recap — full-screen panel under the bars, same as the games -->
     <div class="rc-shell" id="summaryModalOverlay">
       <div class="rc-head">
-        <span class="rc-head-title">📊 Recap <span>· shlbez</span></span>
+        <span class="rc-head-title" style="display:inline-flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="18" y1="20" x2="18" y2="14"/></svg>Recap <span>· shlbez</span></span>
         <div class="rc-nav">
           <button onclick="summaryShiftMonth(-1)" id="rcPrevBtn" title="Previous month">‹</button>
           <div class="rc-month-label" id="rcMonthLabel">—</div>
@@ -3256,14 +3271,20 @@
             style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(52,211,153,0.1);border:1.5px solid rgba(52,211,153,0.45);color:#34d399;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;box-shadow:0 0 10px rgba(52,211,153,0.08);white-space:nowrap"
             onmouseover="this.style.borderColor='#34d399';this.style.color='#6ee7b7';this.style.background='rgba(52,211,153,0.18)';this.style.boxShadow='0 0 14px rgba(52,211,153,0.2)'"
             onmouseout="this.style.borderColor='rgba(52,211,153,0.45)';this.style.color='#34d399';this.style.background='rgba(52,211,153,0.1)';this.style.boxShadow='0 0 10px rgba(52,211,153,0.08)'">
-            📊 RECAP
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="18" y1="20" x2="18" y2="14"/></svg> RECAP
           </button>
           <a href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" rel="noopener" onclick="if(typeof closeAllGameModals==='function')closeAllGameModals();openRandomShort();return false;" id="shortsBtn"
             style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(255,68,68,0.1);border:1.5px solid rgba(255,68,68,0.45);color:#ff7070;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;box-shadow:0 0 10px rgba(255,68,68,0.08);text-decoration:none"
             onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444';this.style.background='rgba(255,68,68,0.18)';this.style.boxShadow='0 0 14px rgba(255,68,68,0.2)'"
             onmouseout="this.style.borderColor='rgba(255,68,68,0.45)';this.style.color='#ff7070';this.style.background='rgba(255,68,68,0.1)';this.style.boxShadow='0 0 10px rgba(255,68,68,0.08)'">
-            😭 SHORTS
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="7" y1="3" x2="7" y2="21"/><line x1="17" y1="3" x2="17" y2="21"/><line x1="2" y1="8" x2="7" y2="8"/><line x1="2" y1="16" x2="7" y2="16"/><line x1="17" y1="8" x2="22" y2="8"/><line x1="17" y1="16" x2="22" y2="16"/></svg> SHORTS
           </a>
+          <div class="grid-search-wrap" style="position:relative;display:flex;align-items:center">
+            <select id="gameFilterSelect" onchange="selectGameFilter(this.value)" title="Browse by game"
+              style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 12px;border-radius:6px;cursor:pointer;max-width:200px">
+              <option value="">All games</option>
+            </select>
+          </div>
           <div class="grid-search-wrap" style="position:relative;display:flex;align-items:center">
             <input type="text" id="streamSearch" placeholder="Search title, category…" autocomplete="off"
               style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 30px 10px 12px;border-radius:6px;width:280px"
@@ -4123,15 +4144,7 @@ const DEFAULTS = {
   ytApiKey: 'AIzaSyCxM-VePCY9SuAx3NwoXvgILlC0zFvpTbk',
   twitch: 'shlbez',
   siteName: 'Shibez VOD Archive',
-  // NOTE: this MUST stay in sync with whatever client ID the bot uses to mint
-  // its app access token (see fetchTwitchToken() below) — Twitch 401s any
-  // Helix call where the Client-ID header doesn't match the token's own
-  // client. Was '61x4q55vai9w0lwsc1enqw9vktqzee' (a different, unrelated
-  // Twitch app — that's what broke every live-fetched category image while
-  // manually-seeded ones kept working); confirmed via
-  // https://id.twitch.tv/oauth2/validate against the bot's live token that
-  // it's actually minting under w7fs2vuwtwg664uka8shdfo2h7kdl9.
-  twitchClientId: 'w7fs2vuwtwg664uka8shdfo2h7kdl9',
+  twitchClientId: '61x4q55vai9w0lwsc1enqw9vktqzee',
   // NOTE: no twitchClientSecret here, deliberately. A secret in a static page
   // is readable by anyone who opens devtools. The bot (commands.js) mints the
   // app access token instead and publishes it to Firestore; fetchTwitchToken()
@@ -4937,15 +4950,7 @@ function translateGameLabel(label) {
 // template straight from Twitch — that's authoritative, unlike guessing.
 // Results (including "no box art exists for this name") are cached in
 // localStorage so we only ever look a given name up once, ever.
-// Bumped v1→v2: every visitor's v1 cache had 401-driven "no art found" misses
-// baked in permanently from the Client-ID mismatch (see twitchClientId note
-// above) — those never self-heal, there's no expiry/recheck on box art like
-// there is on chapters. Bumping the key makes every returning browser treat
-// its old cache as gone and re-resolve everything fresh through the
-// now-fixed Helix calls, automatically, with no console command needed on
-// their end. Don't revert this bump even after art looks fixed everywhere —
-// it's just the mechanism that got it fixed, not something to undo.
-const BOXART_CACHE_KEY = 'shibez_boxart_cache_v2';
+const BOXART_CACHE_KEY = 'shibez_boxart_cache_v1';
 let _boxArtCache = {};
 try { _boxArtCache = JSON.parse(localStorage.getItem(BOXART_CACHE_KEY) || '{}'); } catch(e) { _boxArtCache = {}; }
 // Twitch has TWO categories that both display as literally "Demon's Souls"
@@ -5194,6 +5199,7 @@ function goToPage(page) {
 }
 
 function renderPage() {
+  _populateGameFilterOptions();
   const grid = document.getElementById('streamGrid');
   const start = currentPage * PAGE_SIZE;
   const pageStreams = displayedStreams.slice(start, start + PAGE_SIZE);
@@ -5323,14 +5329,22 @@ function applyFilters() {
   const q    = _normalizeSearchText(qRaw);
   const dateClearBtn   = document.getElementById('dateFilterClear');
   const searchClearBtn = document.getElementById('searchClear');
+  const gameNorm = _normalizeSearchText(_selectedGameFilter);
 
   const filtered = allStreams.filter(s => {
     if (from && s.day < from) return false;
     if (to   && s.day > to)   return false;
+    const chapters = gameNorm || q ? getChapterList(s) : null; // same source as the grid card's game icon/chip
+    if (gameNorm) {
+      const hasGame = chapters.some(g =>
+        _normalizeSearchText(g.label) === gameNorm ||
+        _normalizeSearchText(translateGameLabel(g.label || '')) === gameNorm
+      );
+      if (!hasGame) return false;
+    }
     if (q) {
       const titleMatch = _normalizeSearchText(s.title).includes(q);
       const dateMatch  = _normalizeSearchText(s.day).includes(q);
-      const chapters   = getChapterList(s); // same source as the grid card's game icon/chip
       const gameMatch  = chapters.some(g => {
         const raw = _normalizeSearchText(g.label);
         const translated = _normalizeSearchText(translateGameLabel(g.label || ''));
@@ -5344,6 +5358,58 @@ function applyFilters() {
   if (dateClearBtn)   dateClearBtn.style.display   = (from || to) ? 'block' : 'none';
   if (searchClearBtn) searchClearBtn.style.display = qRaw ? 'block' : 'none';
   renderStreamList(filtered);
+}
+
+// Selecting a game from the dropdown is its own filter, independent of (and
+// combined with, AND logic) the free-text search box — picking "Outer
+// Wilds" here doesn't clear whatever the person already typed, and vice
+// versa. Reuses the exact same getChapterList()/translateGameLabel() source
+// the search box already matches against, just with an exact match instead
+// of substring, since the dropdown only ever offers real, exact labels.
+let _selectedGameFilter = '';
+function selectGameFilter(gameName) {
+  _selectedGameFilter = gameName;
+  applyFilters();
+}
+
+// Builds the "All games" dropdown from whatever chapter data is currently
+// resolved. Chapters load in progressively (see enrichVisiblePageChapters),
+// so this is called from renderPage() — the same hub every chapter/box-art
+// resolution already funnels back through — and only actually rebuilds the
+// <select> when the resolved game list has changed, so it's cheap to call
+// on every render instead of needing its own separate trigger wiring.
+let _gameFilterBuiltKey = '';
+function _populateGameFilterOptions() {
+  if (typeof allStreams === 'undefined' || !allStreams.length) return;
+  const counts = {};
+  allStreams.forEach(s => {
+    const entry = _lookupChapterEntry(s);
+    if (!entry || !entry.games) return;
+    const seenThisStream = new Set(); // count each game once per stream, not once per chapter segment
+    entry.games.forEach(g => {
+      const label = translateGameLabel(g.label || '');
+      if (!label || seenThisStream.has(label)) return;
+      seenThisStream.add(label);
+      counts[label] = (counts[label] || 0) + 1;
+    });
+  });
+  const names = Object.keys(counts).sort((a, b) => a.localeCompare(b));
+  const key = names.map(n => n + ':' + counts[n]).join('|');
+  if (key === _gameFilterBuiltKey) return; // nothing new since last build
+  _gameFilterBuiltKey = key;
+
+  const sel = document.getElementById('gameFilterSelect');
+  if (!sel) return;
+  const prevValue = sel.value;
+  sel.innerHTML = '<option value="">All games</option>' +
+    names.map(n => `<option value="${escHtml(n)}">${escHtml(n)} (${counts[n]})</option>`).join('');
+  // Restore the selection across a rebuild so background chapter loading
+  // doesn't silently reset whatever the person picked.
+  if (prevValue && names.includes(prevValue)) sel.value = prevValue;
+  else if (_selectedGameFilter && !names.includes(_selectedGameFilter)) {
+    _selectedGameFilter = ''; // the previously-picked game no longer resolves to anything — drop the stale filter rather than silently showing zero results forever
+    applyFilters();
+  }
 }
 
 function clearDateFilter() {
