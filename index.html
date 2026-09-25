@@ -3764,7 +3764,7 @@ function _lbRerenderAll(key){
 }
 // ─── USER PROFILE SYSTEM ────────────────────────────────────────────────────
 const _PROF_KEY = 'shibez_user_profile';
-const _PROF_TWITCH_CLIENT = '61x4q55vai9w0lwsc1enqw9vktqzee';
+const _PROF_TWITCH_CLIENT = 'w7fs2vuwtwg664uka8shdfo2h7kdl9';
 // The channel this whole site is about. Every Helix call that takes a
 // broadcaster_id uses this, so it lives in exactly one place — a wrong or
 // stale value here silently breaks follower/sub lookups everywhere at once
@@ -4233,7 +4233,7 @@ const DEFAULTS = {
   ytApiKey: 'AIzaSyCxM-VePCY9SuAx3NwoXvgILlC0zFvpTbk',
   twitch: 'shlbez',
   siteName: 'Shibez VOD Archive',
-  twitchClientId: '61x4q55vai9w0lwsc1enqw9vktqzee',
+  twitchClientId: 'w7fs2vuwtwg664uka8shdfo2h7kdl9',
   // NOTE: no twitchClientSecret here, deliberately. A secret in a static page
   // is readable by anyone who opens devtools. The bot (commands.js) mints the
   // app access token instead and publishes it to Firestore; fetchTwitchToken()
@@ -8043,7 +8043,7 @@ function shibleZoomToggle() {
 }
 
 // ── FOLLOWER CHECKER ────────────────────────────────────────────────────────
-const _FC_CLIENT = '61x4q55vai9w0lwsc1enqw9vktqzee';
+const _FC_CLIENT = 'w7fs2vuwtwg664uka8shdfo2h7kdl9';
 const _FC_WORKER = 'https://muddy-river-0109.shibezvods.workers.dev';
 // ── RANDOM SHORTS ─────────────────────────────────────────────────────────────
 // ── RANDOM SHORTS ─────────────────────────────────────────────────────────────
@@ -14387,7 +14387,7 @@ function _vqRenderMod(app) {
   if(_twitchToken) {
     // Verify token with Twitch API
     fetch('https://api.twitch.tv/helix/users', {
-      headers: { 'Authorization': `Bearer ${_twitchToken}`, 'Client-Id': '61x4q55vai9w0lwsc1enqw9vktqzee' }
+      headers: { 'Authorization': `Bearer ${_twitchToken}`, 'Client-Id': 'w7fs2vuwtwg664uka8shdfo2h7kdl9' }
     }).then(r=>r.json()).then(d=>{
       const username = (d.data?.[0]?.login||'').toLowerCase();
       if(_MOD_TWITCH_USERS.includes(username)) {
@@ -14405,7 +14405,7 @@ function _vqRenderMod(app) {
   if(_isAuthed()) { _renderModContent(); return; }
 
   // Login screen
-  const _twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=61x4q55vai9w0lwsc1enqw9vktqzee&redirect_uri=${encodeURIComponent(location.origin+location.pathname+'?queue')}&response_type=token&scope=user%3Aread%3Aemail`;
+  const _twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=w7fs2vuwtwg664uka8shdfo2h7kdl9&redirect_uri=${encodeURIComponent(location.origin+location.pathname+'?queue')}&response_type=token&scope=user%3Aread%3Aemail`;
 
   app.innerHTML = `
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0f">
