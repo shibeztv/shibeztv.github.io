@@ -581,8 +581,8 @@
   .game-filter-item.active { background: rgba(124,92,252,0.18); color: var(--accent); }
   .game-filter-item .gf-thumb {
     /* deliberately small — this is a dropdown row icon, not a poster;
-       keeping it tiny is what stops the list from ballooning in height */
-    width: 16px; height: 21px;
+       keeping it modest is what stops the list from ballooning in height */
+    width: 22px; height: 29px;
     border-radius: 2px;
     overflow: hidden;
     flex-shrink: 0;
@@ -5541,12 +5541,16 @@ function _populateGameFilterOptions() {
 
   const dd = document.getElementById('gameFilterDropdown');
   if (!dd) return;
-  // Small (16x21) box-art icon per row — same lookup/fallback the chapter
-  // dropdowns use, just at a much smaller size so a long game list doesn't
-  // turn the dropdown into a giant poster wall.
+  // Small box-art icon per row — same lookup/fallback the chapter dropdowns
+  // use, just sized down so a long game list doesn't turn into a giant
+  // poster wall. No loading="lazy" here on purpose: these sit inside a
+  // display:none dropdown until opened, and lazy-loaded images inside a
+  // hidden ancestor don't reliably fire their load/error cycle in every
+  // browser, which left some icons permanently blank — eager loading these
+  // small images is cheap enough that it isn't worth that risk.
   const itemHtml = (name, label) => {
     const boxArtSrc = name ? chapterBoxArtSrc(name) : '';
-    const thumb = boxArtSrc ? `<img src="${boxArtSrc}" alt="" loading="lazy" onerror="handleBoxArtError(this,'${escHtml(name).replace(/'/g,"\\'")}')">` : '';
+    const thumb = boxArtSrc ? `<img src="${boxArtSrc}" onerror="handleBoxArtError(this,'${escHtml(name).replace(/'/g,"\\'")}')" alt="">` : '';
     const activeCls = _selectedGameFilter === name ? ' active' : '';
     return `<button type="button" class="game-filter-item${activeCls}" data-game="${escHtml(name)}" onclick="handleGameFilterItemClick(this)">
       <span class="gf-thumb">${thumb}</span>
