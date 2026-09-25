@@ -4123,7 +4123,15 @@ const DEFAULTS = {
   ytApiKey: 'AIzaSyCxM-VePCY9SuAx3NwoXvgILlC0zFvpTbk',
   twitch: 'shlbez',
   siteName: 'Shibez VOD Archive',
-  twitchClientId: '61x4q55vai9w0lwsc1enqw9vktqzee',
+  // NOTE: this MUST stay in sync with whatever client ID the bot uses to mint
+  // its app access token (see fetchTwitchToken() below) — Twitch 401s any
+  // Helix call where the Client-ID header doesn't match the token's own
+  // client. Was '61x4q55vai9w0lwsc1enqw9vktqzee' (a different, unrelated
+  // Twitch app — that's what broke every live-fetched category image while
+  // manually-seeded ones kept working); confirmed via
+  // https://id.twitch.tv/oauth2/validate against the bot's live token that
+  // it's actually minting under w7fs2vuwtwg664uka8shdfo2h7kdl9.
+  twitchClientId: 'w7fs2vuwtwg664uka8shdfo2h7kdl9',
   // NOTE: no twitchClientSecret here, deliberately. A secret in a static page
   // is readable by anyone who opens devtools. The bot (commands.js) mints the
   // app access token instead and publishes it to Firestore; fetchTwitchToken()
