@@ -2603,39 +2603,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script>
-  // ── Shared status icons (replace ✅ / ❌ / 🏆 emoji with our own SVGs) ──────
-  // Stroke style matches the top-bar nav icons (currentColor, round caps).
-  const ICON_CHECK  = '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 5"/></svg>';
-  const ICON_CROSS  = '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
-  const ICON_TROPHY = '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5H5a2 2 0 0 0 0 4c.7 1.5 1.9 2.6 3.2 3.2"/><path d="M16 5h3a2 2 0 0 1 0 4c-.7 1.5-1.9 2.6-3.2 3.2"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 16h4l.6 3H9.4z"/></svg>';
-
-  // Same trophy glyph as a <canvas> path-drawer, since ctx.fillText can't
-  // render SVG/HTML. Draws a filled solid silhouette centered on (cx,cy);
-  // `size` is the overall icon height in px.
-  function drawTrophyIcon(ctx, cx, cy, size, color) {
-    ctx.save();
-    ctx.translate(cx, cy - size * 0.05);
-    const s = size / 22; // shape authored in a ~22px-tall box
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(-6 * s, -11 * s);
-    ctx.lineTo(6 * s, -11 * s);
-    ctx.lineTo(5 * s, -2 * s);
-    ctx.quadraticCurveTo(0, 1 * s, -5 * s, -2 * s);
-    ctx.closePath();
-    ctx.fill();
-    ctx.lineWidth = 1.6 * s;
-    ctx.strokeStyle = color;
-    ctx.beginPath(); ctx.arc(-8 * s, -8 * s, 3 * s, Math.PI * 0.15, Math.PI * 1.55); ctx.stroke();
-    ctx.beginPath(); ctx.arc(8 * s, -8 * s, 3 * s, Math.PI * 1.45, Math.PI * 2.85); ctx.stroke();
-    ctx.fillRect(-1 * s, -2 * s, 2 * s, 5 * s);
-    ctx.beginPath();
-    ctx.moveTo(-5 * s, 3 * s); ctx.lineTo(5 * s, 3 * s); ctx.lineTo(4 * s, 6 * s); ctx.lineTo(-4 * s, 6 * s);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
   const _fbConfig = {
     apiKey: "AIzaSyBmd08FRwGlO0S4L-kwGKq3rLVcbtEUjpI",
     authDomain: "shibezvods-4676a.firebaseapp.com",
@@ -2943,7 +2910,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:10px">
             <span id="egAttemptsBadge" style="font-family:var(--mono);font-size:14px;color:#f0f0f0;font-weight:800"></span>
-            <button onclick="egToggleLeaderboard()" title="Leaderboard" style="background:none;border:1px solid #555;color:#ffd700;cursor:pointer;font-size:14px;line-height:1;padding:6px 8px;border-radius:4px;display:inline-flex;align-items:center"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5H5a2 2 0 0 0 0 4c.7 1.5 1.9 2.6 3.2 3.2"/><path d="M16 5h3a2 2 0 0 1 0 4c-.7 1.5-1.9 2.6-3.2 3.2"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 16h4l.6 3H9.4z"/></svg></button>
+            <button onclick="egToggleLeaderboard()" title="Leaderboard" style="background:none;border:1px solid #555;color:#ffd700;cursor:pointer;font-size:14px;line-height:1;padding:6px 8px;border-radius:4px">🏆</button>
             <button onclick="closeEmoteGuesser()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
         </div>
@@ -2983,7 +2950,7 @@
         <!-- Leaderboard / Game Over overlay -->
         <div id="egLbOverlay" style="display:none;position:absolute;inset:0;background:rgba(8,8,16,0.97);backdrop-filter:blur(4px);flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;gap:10px;z-index:15">
           <div id="egLbTitleRow" style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:380px">
-            <span id="egLbTitleTxt" style="font-family:var(--mono);font-size:14px;font-weight:900;color:#ffd700;letter-spacing:1px;display:inline-flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5H5a2 2 0 0 0 0 4c.7 1.5 1.9 2.6 3.2 3.2"/><path d="M16 5h3a2 2 0 0 1 0 4c-.7 1.5-1.9 2.6-3.2 3.2"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 16h4l.6 3H9.4z"/></svg>LEADERBOARD</span>
+            <span id="egLbTitleTxt" style="font-family:var(--mono);font-size:14px;font-weight:900;color:#ffd700;letter-spacing:1px">🏆 LEADERBOARD</span>
             <button id="egLbCloseBtn" onclick="egToggleLeaderboard()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px">✕</button>
           </div>
           <div id="egLbFinalScore" style="display:none;font-family:var(--mono);font-size:22px;font-weight:900;color:#eee;text-align:center"></div>
@@ -3038,7 +3005,7 @@
             </div>
             <!-- Big checkmark overlay — shown in center on correct guess -->
             <div id="holCheckmark" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;pointer-events:none;z-index:5">
-              <div style="line-height:1;filter:drop-shadow(0 0 24px #4ade80);animation:holCheckPop 0.18s ease-out;color:#4ade80"><svg viewBox="0 0 24 24" width="96" height="96" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 5"/></svg></div>
+              <div style="font-size:96px;line-height:1;filter:drop-shadow(0 0 24px #4ade80);animation:holCheckPop 0.18s ease-out">✅</div>
             </div>
           </div>
           <!-- Buttons -->
@@ -4004,7 +3971,7 @@ function shibezProfileOpen() {
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1a1a1a">
       <span style="font-size:16px;width:20px">${icon}</span>
       <span style="font-family:var(--mono,monospace);font-size:11px;color:#aaa;flex:1">${name}</span>
-      <span style="font-family:var(--mono,monospace);font-size:11px;color:#ffd700;display:inline-flex;align-items:center;gap:4px">${ICON_TROPHY} ${s.best}</span>
+      <span style="font-family:var(--mono,monospace);font-size:11px;color:#ffd700">🏆 ${s.best}</span>
       <span style="font-family:var(--mono,monospace);font-size:10px;color:#bbb">${s.plays} plays</span>
     </div>`;
   };
@@ -4177,7 +4144,15 @@ const DEFAULTS = {
   ytApiKey: 'AIzaSyCxM-VePCY9SuAx3NwoXvgILlC0zFvpTbk',
   twitch: 'shlbez',
   siteName: 'Shibez VOD Archive',
-  twitchClientId: '61x4q55vai9w0lwsc1enqw9vktqzee',
+  // NOTE: this MUST stay in sync with whatever client ID the bot uses to mint
+  // its app access token (see fetchTwitchToken() below) — Twitch 401s any
+  // Helix call where the Client-ID header doesn't match the token's own
+  // client. Was '61x4q55vai9w0lwsc1enqw9vktqzee' (a different, unrelated
+  // Twitch app — that's what broke every live-fetched category image while
+  // manually-seeded ones kept working); confirmed via
+  // https://id.twitch.tv/oauth2/validate against the bot's live token that
+  // it's actually minting under w7fs2vuwtwg664uka8shdfo2h7kdl9.
+  twitchClientId: 'w7fs2vuwtwg664uka8shdfo2h7kdl9',
   // NOTE: no twitchClientSecret here, deliberately. A secret in a static page
   // is readable by anyone who opens devtools. The bot (commands.js) mints the
   // app access token instead and publishes it to Firestore; fetchTwitchToken()
@@ -4983,7 +4958,15 @@ function translateGameLabel(label) {
 // template straight from Twitch — that's authoritative, unlike guessing.
 // Results (including "no box art exists for this name") are cached in
 // localStorage so we only ever look a given name up once, ever.
-const BOXART_CACHE_KEY = 'shibez_boxart_cache_v1';
+// Bumped v1→v2: every visitor's v1 cache had 401-driven "no art found" misses
+// baked in permanently from the Client-ID mismatch (see twitchClientId note
+// above) — those never self-heal, there's no expiry/recheck on box art like
+// there is on chapters. Bumping the key makes every returning browser treat
+// its old cache as gone and re-resolve everything fresh through the
+// now-fixed Helix calls, automatically, with no console command needed on
+// their end. Don't revert this bump even after art looks fixed everywhere —
+// it's just the mechanism that got it fixed, not something to undo.
+const BOXART_CACHE_KEY = 'shibez_boxart_cache_v2';
 let _boxArtCache = {};
 try { _boxArtCache = JSON.parse(localStorage.getItem(BOXART_CACHE_KEY) || '{}'); } catch(e) { _boxArtCache = {}; }
 // Twitch has TWO categories that both display as literally "Demon's Souls"
@@ -8224,7 +8207,7 @@ function submitShibleGuess() {
     const streamIdx = allStreams.indexOf(_shibleStream);
     const vodLink = document.getElementById('shibleVodLink');
     if (streamIdx >= 0) vodLink.onclick = () => { closeShible(); selectStream(streamIdx); return false; };
-    document.getElementById('shibleGuessCount').innerHTML = correct ? '✓ Solved in ' + _shibleGuesses + (_shibleGuesses === 1 ? ' guess' : ' guesses') : ICON_CROSS + ' Out of guesses';
+    document.getElementById('shibleGuessCount').textContent = correct ? '✓ Solved in ' + _shibleGuesses + (_shibleGuesses === 1 ? ' guess' : ' guesses') : '❌ Out of guesses';
   } else {
     document.getElementById('shibleGuessCount').textContent = guessLeft + (guessLeft === 1 ? ' guess left' : ' guesses left');
   }
@@ -8706,7 +8689,7 @@ function startFlappy() {
     div.onclick = function(e){ if(e.target===div){ div.remove(); resetGame(); } };
     div.innerHTML = `
       <div onclick="event.stopPropagation()" style="background:rgba(8,8,20,0.97);border:1px solid #2a2a4a;border-radius:10px;padding:22px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px;cursor:default">
-        <div style="font-family:var(--mono,monospace);font-size:19px;font-weight:900;color:#ffd700;text-align:center;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:8px"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5H5a2 2 0 0 0 0 4c.7 1.5 1.9 2.6 3.2 3.2"/><path d="M16 5h3a2 2 0 0 1 0 4c-.7 1.5-1.9 2.6-3.2 3.2"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 16h4l.6 3H9.4z"/></svg>LEADERBOARD<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5H5a2 2 0 0 0 0 4c.7 1.5 1.9 2.6 3.2 3.2"/><path d="M16 5h3a2 2 0 0 1 0 4c-.7 1.5-1.9 2.6-3.2 3.2"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 16h4l.6 3H9.4z"/></svg></div>
+        <div style="font-family:var(--mono,monospace);font-size:19px;font-weight:900;color:#ffd700;text-align:center;letter-spacing:1px">🏆 LEADERBOARD 🏆</div>
         <div style="font-family:var(--mono,monospace);font-size:13px;color:#eee;font-weight:700;text-align:center">Score: <span style="color:#ffd700;font-weight:900">${finalScore}</span> · Click outside to play again without submitting</div>
         <div style="display:flex;gap:6px">
           <input id="flappyLbName" placeholder="Enter your name" maxlength="20" required
@@ -8778,8 +8761,7 @@ function startFlappy() {
       ctx.font = 'bold 24px monospace'; ctx.fillStyle = '#fc5c7d';
       ctx.fillText('GAME OVER', W/2, 52);
       ctx.font = 'bold 18px monospace'; ctx.fillStyle = '#fff';
-      { const _scoreTxt = 'Score: ' + score; ctx.fillText(_scoreTxt, W/2, 80);
-        if (score >= best) { const _tw = ctx.measureText(_scoreTxt).width; drawTrophyIcon(ctx, W/2 + _tw/2 + 14, 80, 18, '#ffd700'); } }
+      ctx.fillText('Score: ' + score + (score>=best?' 🏆':''), W/2, 80);
       ctx.textAlign = 'left';
       if(!canvas._lbShown){ canvas._lbShown=true; _showFlappyLb(score); }
     }
@@ -9214,7 +9196,7 @@ function egSubmitGuess() {
   row.className = 'egHistRow';
   const _rowLabel = raw.length === 0 ? 'skipped' : raw;
   row.style.cssText = `display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:4px;background:${isCorrect?'rgba(74,222,128,0.08)':raw.length===0?'rgba(167,139,250,0.06)':'rgba(252,92,125,0.06)'};border:1px solid ${isCorrect?'rgba(74,222,128,0.5)':raw.length===0?'rgba(167,139,250,0.4)':'#333'}`;
-  row.innerHTML = `<span style="font-family:var(--mono);font-size:11px;color:${isCorrect?'#4ade80':raw.length===0?'#a78bfa':'#fc5c7d'};display:inline-flex;align-items:center">${isCorrect?ICON_CHECK:raw.length===0?'⏭':ICON_CROSS}</span><span style="font-family:var(--mono);font-size:12px;color:${raw.length===0?'#a78bfa':'#ddd'}">${_rowLabel}</span>`;
+  row.innerHTML = `<span style="font-family:var(--mono);font-size:11px;color:${isCorrect?'#4ade80':raw.length===0?'#a78bfa':'#fc5c7d'}">${isCorrect?'✅':raw.length===0?'⏭':'❌'}</span><span style="font-family:var(--mono);font-size:12px;color:${raw.length===0?'#a78bfa':'#ddd'}">${_rowLabel}</span>`;
   hist.appendChild(row);
 
   _egAttempts++;
@@ -9261,10 +9243,10 @@ function _egShowResult(won) {
   resultEl.style.animation = 'egFadeIn .35s ease';
   const _link = `<a href="https://7tv.app/emotes/${_egCurrentEmote.id}" target="_blank" style="color:inherit;text-decoration:underline;cursor:pointer">${_egCurrentEmote.name}</a>`;
   if (won) {
-    resultEl.innerHTML = `${ICON_CHECK} Correct! It was ${_link} (${_egAttempts} ${_egAttempts===1?'try':'tries'} · +${_egLastPoints} pts)`;
+    resultEl.innerHTML = `✅ Correct! It was ${_link} (${_egAttempts} ${_egAttempts===1?'try':'tries'} · +${_egLastPoints} pts)`;
     resultEl.style.color = '#7fd99a';
   } else {
-    resultEl.innerHTML = `${ICON_CROSS} The answer was: <span style="color:#e879f9;font-weight:900">${_link}</span>`;
+    resultEl.innerHTML = `❌ The answer was: <span style="color:#e879f9;font-weight:900">${_link}</span>`;
     resultEl.style.color = '#e0899a';
   }
   document.getElementById('egInputRow').style.display = 'none';
@@ -9321,7 +9303,7 @@ function egPlayAgain() {
   const overlay = document.getElementById('egLbOverlay');
   if (overlay) overlay.style.display = 'none';
   const titleEl = document.getElementById('egLbTitleTxt');
-  if (titleEl) titleEl.innerHTML = ICON_TROPHY + ' LEADERBOARD';
+  if (titleEl) titleEl.textContent = '🏆 LEADERBOARD';
   const closeBtn = document.getElementById('egLbCloseBtn');
   if (closeBtn) closeBtn.style.display = '';
   const titleRow = document.getElementById('egLbTitleRow');
@@ -9349,7 +9331,7 @@ async function openEmoteGuesser() {
   const lbOverlay = document.getElementById('egLbOverlay');
   if (lbOverlay) lbOverlay.style.display = 'none';
   const egLbTitleTxt = document.getElementById('egLbTitleTxt');
-  if (egLbTitleTxt) egLbTitleTxt.innerHTML = ICON_TROPHY + ' LEADERBOARD';
+  if (egLbTitleTxt) egLbTitleTxt.textContent = '🏆 LEADERBOARD';
   const egLbCloseBtn = document.getElementById('egLbCloseBtn');
   if (egLbCloseBtn) egLbCloseBtn.style.display = '';
   const egLbTitleRow = document.getElementById('egLbTitleRow');
@@ -9400,7 +9382,7 @@ function egToggleLeaderboard() {
   // Manual "peek" open (trophy button) always shows the plain leaderboard view —
   // not the Game Over state, even if a previous run ended in Game Over.
   const titleEl = document.getElementById('egLbTitleTxt');
-  if (titleEl) titleEl.innerHTML = ICON_TROPHY + ' LEADERBOARD';
+  if (titleEl) titleEl.textContent = '🏆 LEADERBOARD';
   const closeBtn = document.getElementById('egLbCloseBtn');
   if (closeBtn) closeBtn.style.display = '';
   const titleRow = document.getElementById('egLbTitleRow');
@@ -9634,7 +9616,7 @@ function _holHandleGuess(correct) {
 
   if (correct) {
     _holScore++;
-    resultEl.innerHTML = ICON_CHECK + ' CORRECT!';
+    resultEl.textContent = '✅ CORRECT!';
     resultEl.style.color = '#4ade80';
     resultEl.style.fontSize = '26px';
     resultEl.style.textShadow = '0 0 20px #4ade80, 0 0 40px #4ade8088';
@@ -9676,7 +9658,7 @@ function _holHandleGuess(correct) {
       window._holAnimating = false;
     }, 1100);
   } else {
-    resultEl.innerHTML = ICON_CROSS + ' Wrong!';
+    resultEl.textContent = '❌ Wrong!';
     resultEl.style.color = '#fc5c7d';
     resultEl.style.fontSize = '';
     resultEl.style.textShadow = '';
@@ -10138,7 +10120,7 @@ function _renderSpaceLbPanel(canvas) {
     }).join('');
   })();
   div.innerHTML = `
-    <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:900;color:#a78bfa;margin-bottom:8px;letter-spacing:1px;display:flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5H5a2 2 0 0 0 0 4c.7 1.5 1.9 2.6 3.2 3.2"/><path d="M16 5h3a2 2 0 0 1 0 4c-.7 1.5-1.9 2.6-3.2 3.2"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 16h4l.6 3H9.4z"/></svg>TOP SCORES</div>
+    <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:900;color:#a78bfa;margin-bottom:8px;letter-spacing:1px">🏆 TOP SCORES</div>
     <div id="spaceLbCompactRows" style="display:flex;flex-direction:column;gap:2px">
       ${_compactRows}
     </div>`;
@@ -10161,7 +10143,7 @@ function _showSpaceLbDeath(finalScore, finalFrames, canvas) {
   // Full-height right panel — matches the red rectangle position in the screenshot
   div.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:360px;max-width:70vw;background:rgba(4,4,16,0.97);border-left:1px solid #3a2a6a;display:flex;flex-direction:column;padding:16px 14px;box-sizing:border-box;pointer-events:auto;z-index:20;gap:10px';
   div.innerHTML = `
-    <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:900;color:#a78bfa;letter-spacing:1px;display:flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5H5a2 2 0 0 0 0 4c.7 1.5 1.9 2.6 3.2 3.2"/><path d="M16 5h3a2 2 0 0 1 0 4c-.7 1.5-1.9 2.6-3.2 3.2"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 16h4l.6 3H9.4z"/></svg>LEADERBOARD</div>
+    <div style="font-family:var(--mono,monospace);font-size:13px;font-weight:900;color:#a78bfa;letter-spacing:1px">🏆 LEADERBOARD</div>
     <div style="font-family:var(--mono,monospace);font-size:12px;color:#aaa">
       Your run: <span style="color:#ffd700;font-weight:700">${finalScore} pts</span> · <span style="color:#aaa">⏱ ${timeStr}</span>
     </div>
@@ -13967,11 +13949,7 @@ function startSpace() {
           ctx.font=`${Math.floor(W*0.018)}px monospace`;ctx.fillStyle='#ffd700';
           const earnedCoins=Math.floor(score/10);const keptCoins=Math.floor(coins/2)+earnedCoins;const finalSecs=Math.floor(survivalFrames/60);const finalTime=Math.floor(finalSecs/60)+':'+(finalSecs%60<10?'0':'')+(finalSecs%60);ctx.fillText('🪙 '+keptCoins+' coins next run  ·  ⏱ '+finalTime,W/2,H/2+W*0.09);
           const best2=parseInt(localStorage.getItem('spaceBest')||'0');
-          if(score>best2){localStorage.setItem('spaceBest',score);ctx.globalAlpha=sf;ctx.fillStyle='#4ade80';ctx.font=`bold ${scoreFontPx}px monospace`;
-            const _bestTxt='NEW BEST!';const _btw=ctx.measureText(_bestTxt).width;const _by=H/2+W*0.125;
-            ctx.fillText(_bestTxt,W/2,_by);
-            drawTrophyIcon(ctx,W/2-_btw/2-14,_by-scoreFontPx*0.32,scoreFontPx*0.9,'#4ade80');
-          }
+          if(score>best2){localStorage.setItem('spaceBest',score);ctx.globalAlpha=sf;ctx.fillStyle='#4ade80';ctx.font=`bold ${scoreFontPx}px monospace`;ctx.fillText('🏆 NEW BEST!',W/2,H/2+W*0.125);}
           if(!canvas._spaceLbDeathShown){ canvas._spaceLbDeathShown=true; if(!_isMobile){ canvas._spaceLbDeathTimeout=setTimeout(()=>_showSpaceLbDeath(score,survivalFrames,canvas), 100); } }
         }
         ctx.globalAlpha=1;ctx.textAlign='left';
@@ -14194,15 +14172,15 @@ window.vqSubmit = async function() {
   msg.style.color = '#aaa'; msg.textContent = '';
 
   const parsed = vqParseUrl(url);
-  if(!parsed){ msg.style.color='#fc5c7d'; msg.innerHTML=ICON_CROSS+' Not a valid YouTube Shorts or TikTok URL.'; return; }
+  if(!parsed){ msg.style.color='#fc5c7d'; msg.textContent='❌ Not a valid YouTube Shorts or TikTok URL.'; return; }
 
   // Safety check
-  if(!vqIsSafe('', url)){ msg.style.color='#fc5c7d'; msg.innerHTML=ICON_CROSS+' This URL was blocked by content filters.'; return; }
+  if(!vqIsSafe('', url)){ msg.style.color='#fc5c7d'; msg.textContent='❌ This URL was blocked by content filters.'; return; }
 
   btn.disabled = true; btn.textContent = 'Checking…';
   const title = await vqFetchTitle(parsed);
 
-  if(!vqIsSafe(title, url)){ msg.style.color='#fc5c7d'; msg.innerHTML=ICON_CROSS+' Video blocked by content filters.'; btn.disabled=false; btn.textContent='SUBMIT FOR REVIEW'; return; }
+  if(!vqIsSafe(title, url)){ msg.style.color='#fc5c7d'; msg.textContent='❌ Video blocked by content filters.'; btn.disabled=false; btn.textContent='SUBMIT FOR REVIEW'; return; }
 
   // Check duplicate
   const q = vqLoad();
@@ -14279,7 +14257,7 @@ function _vqRenderMod(app) {
         history.replaceState(null,'',location.pathname+'?queue');
         _renderModContent();
       } else {
-        app.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0f;font-family:var(--mono,monospace);color:#fc5c7d;font-size:14px;gap:8px">${ICON_CROSS} Twitch account <b>${username}</b> is not authorised.</div>`;
+        app.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0f;font-family:var(--mono,monospace);color:#fc5c7d;font-size:14px">❌ Twitch account <b>${username}</b> is not authorised.</div>`;
       }
     }).catch(()=>{});
     return;
@@ -14665,7 +14643,7 @@ function aionGuess(choice){
   const sub=document.getElementById('aionResultSub');
   res.style.display='flex';
   if(correct){
-    icon.innerHTML=ICON_CHECK;
+    icon.textContent='✅';
     text.textContent=`Correct! It was ${entry.label==='ai'?'🤖 AI':'📸 REAL'}`;
     text.style.color='#4ade80';
     const _lensUrl1=`https://lens.google.com/search?p=&url=${encodeURIComponent(entry.url)}&re=df&ep=gisbubl&hl=en`;
@@ -14679,7 +14657,7 @@ function aionGuess(choice){
     _aionIdx++;
     setTimeout(()=>{ _aionLoadCard(); }, 1200);
   } else {
-    icon.innerHTML=ICON_CROSS;
+    icon.textContent='❌';
     text.textContent=`Wrong! It was ${entry.label==='ai'?'🤖 AI':'📸 REAL'}`;
     text.style.color='#ef4444';
     const _lensUrl2=`https://lens.google.com/search?p=&url=${encodeURIComponent(entry.url)}&re=df&ep=gisbubl&hl=en`;
@@ -15770,7 +15748,7 @@ const WM_RARITIES = [
   '#eb4b4b', // covert red
   '#e4b84d', // rare special gold
 ];
-const WM_ICONS = ['⚔️','🛡️','💣','🔫','🎯',ICON_TROPHY,'💀','🔥','⚡','🌊','🎲','🗡️','💎','🎰','🌀'];
+const WM_ICONS = ['⚔️','🛡️','💣','🔫','🎯','🏆','💀','🔥','⚡','🌊','🎲','🗡️','💎','🎰','🌀'];
 
 // ── Weighted % chance system ──────────────────────────────────────────────
 // Items can have a manually-locked % (item.chanceLocked = true, item.chance = number).
@@ -16672,7 +16650,7 @@ async function _wmAutoPinNow() {
       wheels: _wm.wheels, activeId: _wm.activeId,
       pinnedBy: _profUser?.login || 'shlbez', updatedAt: Date.now()
     });
-    _wmFlashSyncStatus(ICON_CHECK + ' Synced live just now', '#4ade80', 'rgba(74,222,128,0.1)', 'rgba(74,222,128,0.3)');
+    _wmFlashSyncStatus('✅ Synced live just now', '#4ade80', 'rgba(74,222,128,0.1)', 'rgba(74,222,128,0.3)');
   } catch(e) {
     console.warn('[wm] auto-pin failed:', e);
     _wmFlashSyncStatus('⚠ Sync failed — edits saved locally only (see console)', '#ff7070', 'rgba(255,96,96,0.1)', 'rgba(255,96,96,0.3)');
@@ -16684,7 +16662,7 @@ function _wmFlashSyncStatus(text, color, bg, border) {
   if (!status) return;
   status.style.display = 'block';
   status.style.color = color; status.style.background = bg; status.style.border = '1px solid ' + border;
-  status.innerHTML = text;
+  status.textContent = text;
   clearTimeout(_wmFlashTimer);
   _wmFlashTimer = setTimeout(_wmUpdatePinBtn, 3000);
 }
@@ -17612,9 +17590,8 @@ function _wmRenderWheelFrame(angle, hovIdx) {
 
     // Icon
     const icon   = item.icon;
-    const isUrl    = icon && (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/'));
-    const isVector = icon && icon.startsWith('<svg'); // our own icon kit (e.g. ICON_TROPHY) — can't fillText an SVG string
-    const isEmoji  = icon && !isUrl && !isVector;
+    const isUrl   = icon && (icon.startsWith('http') || icon.startsWith('data:') || icon.startsWith('/'));
+    const isEmoji = icon && !isUrl;
     const eSz = Math.max(12, Math.min(26, (arcLen * 0.45) | 0));
     const iconOff = -(fontSize * 0.6 + eSz * 0.55 + 4); // y-offset above label centre
 
@@ -17622,8 +17599,6 @@ function _wmRenderWheelFrame(angle, hovIdx) {
       if (isUrl) {
         // URL icons handled by DOM overlay (_wmUpdateIconOverlay) — canvas drawImage
         // only ever snapshots a static frame, so animated WebP/GIF must use real <img>.
-      } else if (isVector) {
-        drawTrophyIcon(ctx, 0, iconOff, eSz, '#ffd700');
       } else if (isEmoji) {
         ctx.font = `${eSz}px serif`;
         ctx.textAlign    = 'center';
@@ -18069,7 +18044,7 @@ async function wmPinWheel() {
       });
 
       if (btn) {
-        btn.innerHTML = ICON_CHECK + ' Pinned for everyone!';
+        btn.textContent = '✅ Pinned for everyone!';
         btn.disabled = false;
         setTimeout(() => { btn.textContent = '📌 Pin Wheel to Site'; }, 2500);
       }
@@ -18088,7 +18063,7 @@ async function wmPinWheel() {
       const userKey = 'wm_personal_' + (_profUser.login || 'user').toLowerCase();
       localStorage.setItem(userKey, JSON.stringify({wheels:_wm.wheels, activeId:_wm.activeId}));
       if (btn) {
-        btn.innerHTML = ICON_CHECK + ' Saved as your wheel!';
+        btn.textContent = '✅ Saved as your wheel!';
         setTimeout(() => { btn.textContent = '📌 Save as My Wheel'; }, 2500);
       }
     } catch(e) {
@@ -18114,7 +18089,7 @@ function _wmUpdatePinBtn() {
       status.style.background = 'rgba(74,222,128,0.1)';
       status.style.border = '1px solid rgba(74,222,128,0.3)';
       status.style.color = '#4ade80';
-      status.innerHTML = ICON_CHECK + ' Logged in as ' + _profUser.login + ' — every edit auto-saves live for everyone, no button needed.';
+      status.textContent = '✅ Logged in as ' + _profUser.login + ' — every edit auto-saves live for everyone, no button needed.';
     } else if (loggedIn) {
       status.style.background = 'rgba(228,184,77,0.1)';
       status.style.border = '1px solid rgba(228,184,77,0.3)';
@@ -19812,7 +19787,7 @@ async function renderStreamSummary() {
 
     if (hlWrap) {
       hlWrap.innerHTML = rows.length > 1
-        ? _rcHighlightCard('Best stream', ICON_TROPHY, best, true, havePeakData) + _rcHighlightCard('Quietest stream', '🌙', worst, false, havePeakData)
+        ? _rcHighlightCard('Best stream', '🏆', best, true, havePeakData) + _rcHighlightCard('Quietest stream', '🌙', worst, false, havePeakData)
         : _rcHighlightCard("This month's stream", '🎬', best, true, havePeakData);
     }
     if (calWrap) {
