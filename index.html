@@ -5049,6 +5049,15 @@ try { _boxArtCache = JSON.parse(localStorage.getItem(BOXART_CACHE_KEY) || '{}');
 // apart, so it's pinned here by the remake's real Twitch game ID (988100999)
 // instead of trusting whichever one the name search happens to return.
 _boxArtCache["demon's souls"] = 'https://static-cdn.jtvnw.net/ttv-boxart/988100999_IGDB-144x192.jpg';
+// 'No Category' (streamed live with no Twitch category set — see
+// fetchTwitchChapters) and 'Unknown' (chapter data missing/unresolved) are
+// synthetic labels we generate ourselves, not real Twitch categories, so a
+// Helix lookup for either can only ever come back empty. Pre-seeding them
+// as a permanent cached miss (null) means chapterBoxArtSrc/requestBoxArt
+// skip straight to "no art" — no guessed CDN URL, no 404, no wasted Helix
+// call — for every stream that has one of these instead of a real game.
+_boxArtCache['no category'] = null;
+_boxArtCache['unknown'] = null;
 function _saveBoxArtCache() {
   try { localStorage.setItem(BOXART_CACHE_KEY, JSON.stringify(_boxArtCache)); } catch(e) {
     console.warn('Box art cache save failed (localStorage full?):', e.message);
@@ -6390,10 +6399,30 @@ async function fetchTwitchChapters(vodId) {
       // Shape 1: moments.edges
       const edges = video?.moments?.edges || video?.moments?.nodes?.map(n=>({node:n})) || [];
       if (edges.length) {
-        return edges.map(e => ({
-          label: e.node?.details?.game?.displayName || e.node?.game?.displayName || e.node?.description || 'Unknown',
-          t: Math.floor((e.node?.positionMilliseconds || 0) / 1000),
-        })).filter(c => c.label !== 'Unknown' || c.t > 0);
+        return edges.map(e => {
+          const gameDisplay = e.node?.details?.game?.displayName || e.node?.game?.displayName;
+          let label;
+          if (gameDisplay) {
+            label = gameDisplay;
+          } else if (e.node?.type === 'GAME_CHANGE' && e.node?.description === '') {
+            // Twitch DOES still emit a GAME_CHANGE moment when the broadcaster
+            // is live with no category selected at all — it just comes back
+            // with an explicitly empty description (confirmed via the raw GQL
+            // response: {"type":"GAME_CHANGE","description":""}), as opposed
+            // to a missing/undefined description, which means we just don't
+            // have data for this moment at all. That distinction is what lets
+            // us tell "really was streaming with no category" apart from
+            // "failed to fetch" — the former becomes its own real label
+            // instead of being lumped into the generic 'Unknown' bucket below.
+            label = 'No Category';
+          } else {
+            label = e.node?.description || 'Unknown';
+          }
+          return {
+            label,
+            t: Math.floor((e.node?.positionMilliseconds || 0) / 1000),
+          };
+        }).filter(c => (c.label !== 'Unknown' && c.label !== 'No Category') || c.t > 0);
       }
 
       // Shape 2: game directly on video
