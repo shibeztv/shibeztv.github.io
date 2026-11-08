@@ -75,6 +75,7 @@ A Vampire Survivors-style bullet-hell game using 7TV emotes as enemies, with a f
 - **Chat emotes:** channel 7TV set loads first, then global 7TV, then BTTV globals as fallback
 
 - clearChapterCache('2026-09-16')
+- addManualChapters('2026-11-05', [[0, 'League of Legends']]);
 - **Game categories:** fetched from Twitch GQL chapters using a persisted query; falls back to description timestamp parsing if no Twitch VOD is matched. Multi-part streams fetch chapters per-part and merge them with correct cumulative offsets
 
 ---
