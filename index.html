@@ -2710,6 +2710,46 @@
 .ac-time[readonly]{opacity:0.55}
 .ac-del{background:none;border:1px solid rgba(255,255,255,0.15);color:#ff7070;border-radius:5px;cursor:pointer}
 .ac-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+/* pen on each VOD card (admin only) */
+.grid-card-edit-btn{display:none;position:absolute;top:5px;left:5px;z-index:3;width:30px;height:30px;align-items:center;justify-content:center;padding:0;border-radius:6px;cursor:pointer;background:rgba(15,12,30,0.88);border:1.5px solid rgba(167,139,250,0.7);color:#c4b5fd;transition:background .15s,transform .1s}
+.grid-card-edit-btn:hover{background:rgba(167,139,250,0.95);color:#fff;transform:scale(1.08)}
+body.is-admin .grid-card-edit-btn{display:flex}
+body.is-admin .grid-card-parts{left:41px}
+/* category editor v2 */
+.ac2-title{font-size:14px;margin-bottom:6px}
+.ac2-tl{display:flex;height:26px;border-radius:6px;overflow:hidden;margin:4px 0 14px;background:#222;gap:2px}
+.ac2-seg{min-width:3px;overflow:hidden;display:flex;align-items:center;padding:0 6px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.ac2-seg span{overflow:hidden;text-overflow:ellipsis}
+.ac2-cols,.ac2-row{display:grid;grid-template-columns:26px 168px minmax(0,1fr) 62px 32px;gap:8px;align-items:center}
+.ac2-cols{font-size:11px;color:var(--muted,#999);margin-bottom:4px}
+.ac2-row{position:relative;padding:5px 4px;margin-bottom:4px;border-radius:7px;background:rgba(255,255,255,0.03);border:1px solid transparent}
+.ac2-row.ac2-bad{border-color:#ff7070}
+.ac2-grip{background:none;border:none;color:var(--muted,#999);font-size:18px;line-height:1;cursor:grab;touch-action:none;padding:4px 0;user-select:none}
+.ac2-grip:hover{color:#c4b5fd}
+.ac2-dragging{z-index:5;background:#241f3a;border-color:#a78bfa;box-shadow:0 8px 24px rgba(0,0,0,0.55);opacity:.95;pointer-events:none}
+.ac2-dragging .ac2-grip{cursor:grabbing}
+.ac2-drop-before{box-shadow:0 -3px 0 0 #a78bfa}
+.ac2-drop-after{box-shadow:0 3px 0 0 #a78bfa}
+.ac2-time{display:flex;align-items:center;gap:3px;color:var(--muted,#999)}
+.ac2-time.locked{opacity:.55}
+.ac2-n{width:48px;text-align:center;font-family:inherit;font-size:14px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.15);color:var(--text,#eee);padding:7px 2px;border-radius:5px;-moz-appearance:textfield;appearance:textfield}
+.ac2-n::-webkit-inner-spin-button,.ac2-n::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.ac2-n:focus,.ac2-game:focus{outline:none;border-color:#a78bfa;box-shadow:0 0 0 2px rgba(167,139,250,0.25)}
+.ac2-combo{display:flex;align-items:center;gap:8px;min-width:0}
+.ac2-art{width:24px;height:32px;object-fit:cover;border-radius:3px;flex-shrink:0;background:#1a1a2e}
+.ac2-game{flex:1;min-width:0;font-family:inherit;font-size:13px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.15);color:var(--text,#eee);padding:8px 10px;border-radius:5px}
+.ac2-dur{font-size:11px;color:var(--muted,#999);text-align:right;white-space:nowrap}
+.ac2-del{height:30px}
+#acComboList{display:none;position:fixed;z-index:100001;overflow-y:auto;background:#14141c;border:1px solid #a78bfa;border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,0.65);font-family:var(--mono);font-size:13px;color:var(--text,#eee)}
+.ac2-opt{display:flex;align-items:center;gap:10px;padding:6px 10px;cursor:pointer}
+.ac2-opt img{width:22px;height:30px;object-fit:cover;border-radius:3px;flex-shrink:0;background:#1a1a2e}
+.ac2-opt.on,.ac2-opt:hover{background:rgba(167,139,250,0.2)}
+.ac2-new{color:#c4b5fd;font-weight:700}
+@media (max-width:600px){
+  .ac2-cols{display:none}
+  .ac2-row{grid-template-columns:26px minmax(0,1fr) 32px;grid-template-areas:"g c d" ". t u"}
+  .ac2-grip{grid-area:g}.ac2-combo{grid-area:c}.ac2-del{grid-area:d}.ac2-time{grid-area:t}.ac2-dur{grid-area:u}
+}
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
 
@@ -3387,10 +3427,6 @@
             onmouseover="this.style.borderColor='#34d399';this.style.color='#6ee7b7';this.style.background='rgba(52,211,153,0.18)';this.style.boxShadow='0 0 14px rgba(52,211,153,0.2)'"
             onmouseout="this.style.borderColor='rgba(52,211,153,0.45)';this.style.color='#34d399';this.style.background='rgba(52,211,153,0.1)';this.style.boxShadow='0 0 10px rgba(52,211,153,0.08)'">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="18" y1="20" x2="18" y2="14"/></svg> RECAP
-          </button>
-          <button onclick="adminChapOpen()" id="adminChapPanelBtn" title="Admin: edit stream categories"
-            style="display:none;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(167,139,250,0.1);border:1.5px solid rgba(167,139,250,0.45);color:#a78bfa;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;white-space:nowrap">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> CATEGORIES
           </button>
           <a href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" rel="noopener" onclick="if(typeof closeAllGameModals==='function')closeAllGameModals();openRandomShort();return false;" id="shortsBtn"
             style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(255,68,68,0.1);border:1.5px solid rgba(255,68,68,0.45);color:#ff7070;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;box-shadow:0 0 10px rgba(255,68,68,0.08);text-decoration:none"
@@ -4446,6 +4482,23 @@ async function fetchTwitchToken() {
       if (d.expires_at && d.expires_at < Date.now()) {
         throw new Error('Twitch token expired — the bot has not refreshed it (is it running?)');
       }
+      // Check the token with Twitch once before caching it. One that's been
+      // revoked (client secret rotated) or minted for a different client id
+      // looks perfectly fine in Firestore but 401s on every Helix call, which
+      // is a very confusing thing to debug from the network tab alone.
+      let verdictErr = null;
+      try {
+        const vr = await fetch('https://id.twitch.tv/oauth2/validate', { headers: { 'Authorization': 'OAuth ' + d.access_token } });
+        if (vr.status === 401) {
+          verdictErr = 'Twitch rejected the app token the bot published (revoked — was the client secret rotated?). Restart the bot so it publishes a fresh one.';
+        } else if (vr.ok) {
+          const vd = await vr.json();
+          if (vd.client_id !== DEFAULTS.twitchClientId) {
+            verdictErr = `The bot's app token belongs to client id ${vd.client_id}, but this site uses ${DEFAULTS.twitchClientId}. Set the bot's TWITCH_CLIENT_ID to the site's id.`;
+          }
+        }
+      } catch (e) { /* network blip on the check itself — don't block on it */ }
+      if (verdictErr) throw new Error('Twitch token unavailable: ' + verdictErr);
       try { sessionStorage.setItem(_TWITCH_TOKEN_CACHE_KEY, JSON.stringify(d)); } catch (e) {}
       return d.access_token;
     })().catch(e => {
@@ -5419,6 +5472,7 @@ function renderPage() {
       <div class="grid-card-thumb">
         <img src="${s.thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="thumb-fallback" style="display:none">📺</div>
+        <button type="button" class="grid-card-edit-btn" title="Edit categories" aria-label="Edit categories" onclick="event.preventDefault();event.stopPropagation();adminChapOpen('${s.day}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
         <span class="grid-card-date-badge">${date}</span>
         <span class="grid-card-dur">${formatDuration(s.totalDuration)}</span>
         ${parts}
@@ -6139,8 +6193,7 @@ let _acFilter = 'attention';  // 'attention' | 'all'
 
 function _adminChapRefreshVisibility() {
   const on = typeof _wmIsShibez === 'function' && _wmIsShibez();
-  const btn = document.getElementById('adminChapPanelBtn');
-  if (btn) btn.style.display = on ? 'flex' : 'none';
+  document.body.classList.toggle('is-admin', !!on);
   const bar = document.getElementById('adminChapBar');
   if (bar) bar.style.display = on ? 'block' : 'none';
 }
@@ -6215,6 +6268,7 @@ function adminChapOpen(day) {
   _acRender();
 }
 function adminChapClose() {
+  if (typeof _acComboHide === 'function') _acComboHide();
   const m = document.getElementById('adminChapModal');
   if (m) m.style.display = 'none';
 }
@@ -6259,12 +6313,100 @@ function _acRenderList(body) {
     </div>`;
 }
 
-function _acRowHtml(t, label, first) {
-  return `<div class="ac-edit-row">
-    <input class="ac-time" value="${first ? '0:00:00' : escHtml(_acFmt(t))}" ${first ? 'readonly title="First chapter always starts at 0:00:00"' : ''} spellcheck="false" autocomplete="off">
-    <input class="ac-game" list="adminChapGames" value="${escHtml(label)}" placeholder="Game / category" spellcheck="false" autocomplete="off">
-    ${first ? '<span class="ac-del-spacer"></span>' : '<button class="ac-del" title="Remove" onclick="this.parentElement.remove()">✕</button>'}
+// ── Category editor v2: pen icon on each card → this editor ─────────────────
+// Rows live in _acRows (state), the DOM is rendered from it. Features:
+//  • H / M / S number boxes per row (arrow keys + mouse wheel step the value)
+//  • searchable category picker with box art, most-used games first
+//  • drag the ⠿ handle to reorder (mouse or touch); each category keeps its
+//    length and the start times are recalculated
+//  • live colour timeline of the whole stream
+let _acRows = [];        // [{id, t, label}] always ordered by t
+let _acNextId = 1;
+let _acTotalSec = 0;     // stream length (YouTube or Twitch, whichever is longer)
+
+function _acHMS(sec) { sec = Math.max(0, Math.round(sec || 0)); return { h: Math.floor(sec / 3600), m: Math.floor((sec % 3600) / 60), s: sec % 60 }; }
+function _acShort(sec) {
+  const { h, m, s } = _acHMS(sec);
+  if (h) return h + 'h ' + String(m).padStart(2, '0') + 'm';
+  if (m) return m + 'm' + (s ? ' ' + String(s).padStart(2, '0') + 's' : '');
+  return s + 's';
+}
+function _acEffTotal() {
+  const last = _acRows.length ? _acRows[_acRows.length - 1].t : 0;
+  return Math.max(_acTotalSec, last + 60);
+}
+function _acHue(label) {
+  let h = 0; const str = String(label || '').toLowerCase();
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 360;
+  return h;
+}
+// Known categories, most used first (so the picker opens with your usual games).
+function _acKnownGamesRanked() {
+  const counts = { 'Just Chatting': 0, 'No Category': 0 };
+  Object.values(_chapterCache).forEach(e => (e && e.games || []).forEach(g => {
+    const l = translateGameLabel(g.label || '');
+    if (l && l !== 'Unknown') counts[l] = (counts[l] || 0) + 1;
+  }));
+  return Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+}
+
+function _acRowHtml(r, i) {
+  const { h, m, s } = _acHMS(r.t);
+  const first = i === 0;
+  const art = r.label ? chapterBoxArtSrc(r.label) : '';
+  return `<div class="ac2-row" data-id="${r.id}">
+    <button type="button" class="ac2-grip" title="Drag to reorder" aria-label="Drag to reorder" onpointerdown="_acDragStart(event,${r.id})">⠿</button>
+    <div class="ac2-time${first ? ' locked' : ''}" ${first ? 'title="The first category always starts at 0:00:00"' : ''}>
+      <input type="number" class="ac2-n" data-k="h" min="0" max="99" value="${h}" ${first ? 'disabled' : ''} inputmode="numeric" aria-label="Hours" onchange="_acTimeChange(${r.id},this)">
+      <span>:</span>
+      <input type="number" class="ac2-n" data-k="m" min="0" max="59" value="${m}" ${first ? 'disabled' : ''} inputmode="numeric" aria-label="Minutes" onchange="_acTimeChange(${r.id},this)">
+      <span>:</span>
+      <input type="number" class="ac2-n" data-k="s" min="0" max="59" value="${s}" ${first ? 'disabled' : ''} inputmode="numeric" aria-label="Seconds" onchange="_acTimeChange(${r.id},this)">
+    </div>
+    <div class="ac2-combo">
+      <img class="ac2-art" src="${art ? escHtml(art) : ''}" alt="" style="${art ? '' : 'visibility:hidden'}" onerror="this.style.visibility='hidden'">
+      <input type="text" class="ac2-game" value="${escHtml(r.label)}" placeholder="Search category…" spellcheck="false" autocomplete="off" aria-label="Category">
+    </div>
+    <div class="ac2-dur"></div>
+    ${rowsRemovable() ? `<button type="button" class="ac-del ac2-del" title="Remove this chapter" onclick="_acRemove(${r.id})">✕</button>` : '<span></span>'}
   </div>`;
+  function rowsRemovable() { return !first; }
+}
+
+function _acRenderRows() {
+  const wrap = document.getElementById('adminChapRows');
+  if (!wrap) return;
+  wrap.innerHTML = _acRows.map(_acRowHtml).join('');
+  _acUpdateDurs();
+}
+
+function _acUpdateDurs() {
+  const wrap = document.getElementById('adminChapRows');
+  if (!wrap) return;
+  const els = wrap.querySelectorAll('.ac2-row');
+  const total = _acTotalSec;
+  _acRows.forEach((r, i) => {
+    const el = els[i]; if (!el) return;
+    const next = i < _acRows.length - 1 ? _acRows[i + 1].t : (total > r.t ? total : null);
+    const d = el.querySelector('.ac2-dur');
+    if (d) d.textContent = next === null ? '' : _acShort(next - r.t);
+    const dup = i > 0 && r.t === _acRows[i - 1].t;
+    el.classList.toggle('ac2-bad', dup);
+    if (dup) el.title = 'Same start time as the row above'; else el.removeAttribute('title');
+  });
+}
+
+function _acUpdateTimeline() {
+  const tl = document.getElementById('adminChapTimeline');
+  if (!tl) return;
+  const total = _acEffTotal();
+  tl.innerHTML = _acRows.map((r, i) => {
+    const end = i < _acRows.length - 1 ? _acRows[i + 1].t : total;
+    const dur = Math.max(end - r.t, 0);
+    const bg = r.label ? `hsl(${_acHue(r.label)} 55% 40%)` : '#444';
+    const tip = `${r.label || '(no category)'} · ${_acFmt(r.t)} – ${_acFmt(end)}`;
+    return `<div class="ac2-seg" style="flex:${Math.max(dur, 1)} 1 0;background:${bg}" title="${escHtml(tip)}"><span>${escHtml(r.label || '')}</span></div>`;
+  }).join('');
 }
 
 function _acRenderEditor(body) {
@@ -6272,63 +6414,289 @@ function _acRenderEditor(body) {
   if (!s) { _acDay = null; _acRenderList(body); return; }
   const e = _lookupChapterEntry(s);
   const vodId = twitchVodMap[s.day] || null;
+  const vodSec = vodId ? _vodDurationSec(vodId) : 0;
   let rows = e ? e.games.slice().sort((a, b) => a.t - b.t).map(g => ({ t: g.t, label: translateGameLabel(g.label) })) : [];
   if (!rows.length) rows = [{ t: 0, label: 'Just Chatting' }];
+  _acRows = rows.map(r => ({ id: _acNextId++, t: r.t, label: r.label }));
+  _acRows[0].t = 0;
+  _acTotalSec = Math.max(s.totalDuration || 0, vodSec || 0);
   const st = _adminChapStatus(s);
-  const vodSec = vodId ? _vodDurationSec(vodId) : 0;
   const srcText = !e ? 'none' : e.source === 'manual' ? 'manual' : e.source === 'live-tracked' ? 'live-tracked' : 'Twitch';
   body.innerHTML = `
-    <div class="ac-edit-head">
-      <button class="ac-btn" onclick="adminChapShowList()">← Back</button>
-      <div class="ac-edit-title"><b>${escHtml(formatDay(s.day))}</b> · ${escHtml(s.title || 'Stream')}</div>
-    </div>
+    <div class="ac2-title"><b>${escHtml(formatDay(s.day))}</b> · ${escHtml(s.title || 'Stream')}</div>
     <div class="ac-info">
       Current data: <b>${escHtml(srcText)}</b> · ${escHtml(st.text)}
       ${vodId ? ` · Twitch VOD ${escHtml(String(vodId))}${vodSec ? ' (' + _acFmt(vodSec) + ' long)' : ''}` : ' · no Twitch VOD found for this day'}
       ${s.totalDuration ? ' · YouTube length ' + _acFmt(s.totalDuration) : ''}
     </div>
-    <div class="ac-edit-cols"><span>Starts at (H:MM:SS)</span><span>Game / category</span></div>
-    <div id="adminChapRows">${rows.map((r, i) => _acRowHtml(r.t, r.label, i === 0)).join('')}</div>
-    <datalist id="adminChapGames">${_acKnownGames().map(g => `<option value="${escHtml(g)}"></option>`).join('')}</datalist>
+    <div id="adminChapTimeline" class="ac2-tl"></div>
+    <div class="ac2-cols"><span></span><span>Starts at (H : M : S)</span><span>Category</span><span>Length</span><span></span></div>
+    <div id="adminChapRows"></div>
     <div class="ac-actions">
       <button class="ac-btn" onclick="adminChapAddRow()">+ Add chapter</button>
       <button class="ac-btn ac-primary" data-day="${escHtml(s.day)}" onclick="adminChapSave(this.dataset.day)">Save for everyone</button>
       <button class="ac-btn" data-day="${escHtml(s.day)}" onclick="adminChapRefetch(this.dataset.day, this)" ${vodId ? '' : 'disabled title="No Twitch VOD to fetch from"'}>Re-fetch from Twitch</button>
     </div>
-    <div class="ac-hint">Each row means "from this time on, this game". Use <b>No Category</b> for a stretch with no category set.</div>`;
+    <div class="ac-hint">Each row means “from this time on, this category”. Drag <b>⠿</b> to reorder — every category keeps its length and the start times shift to match. Use <b>No Category</b> for a stretch with nothing set.</div>`;
+  _acEnsureComboEls();
+  _acRenderRows();
+  _acUpdateTimeline();
+}
+
+function _acSuggestTime() {
+  const last = _acRows[_acRows.length - 1];
+  const total = _acTotalSec;
+  let t = last.t + 600;
+  if (total && t >= total - 30) t = Math.floor((last.t + total) / 2);
+  if (t <= last.t) t = last.t + 60;
+  return t;
 }
 
 function adminChapAddRow() {
+  if (!_acRows.length) return;
+  _acRows.push({ id: _acNextId++, t: _acSuggestTime(), label: '' });
+  _acRenderRows(); _acUpdateTimeline();
+  const inputs = document.querySelectorAll('#adminChapRows .ac2-game');
+  const inp = inputs[inputs.length - 1];
+  if (inp) { inp.focus(); inp.scrollIntoView({ block: 'nearest' }); }
+}
+
+function _acRemove(id) {
+  const i = _acRows.findIndex(r => r.id === id);
+  if (i <= 0) return;
+  _acRows.splice(i, 1);
+  _acRenderRows(); _acUpdateTimeline();
+}
+
+function _acTimeChange(id, el) {
+  const rowEl = el.closest('.ac2-row');
+  const r = _acRows.find(x => x.id === id);
+  if (!rowEl || !r) return;
+  const get = (k, max) => {
+    const inp = rowEl.querySelector(`.ac2-n[data-k="${k}"]`);
+    let v = parseInt(inp.value, 10); if (isNaN(v) || v < 0) v = 0; if (v > max) v = max;
+    inp.value = v; return v;
+  };
+  r.t = get('h', 99) * 3600 + get('m', 59) * 60 + get('s', 59);
+  const order = new Map(_acRows.map((x, i) => [x, i]));
+  const sorted = _acRows.slice().sort((a, b) => a.t - b.t || order.get(a) - order.get(b));
+  if (sorted.some((x, i) => x !== _acRows[i])) { _acRows = sorted; _acRenderRows(); }
+  else _acUpdateDurs();
+  _acUpdateTimeline();
+}
+
+// Move a row; categories keep their LENGTH, start times are recalculated.
+function _acMove(from, to) {
+  const n = _acRows.length;
+  if (from === to || from < 0 || to < 0 || from >= n || to >= n) return;
+  const total = _acEffTotal();
+  const items = _acRows.map((r, i) => ({ id: r.id, label: r.label, dur: i < n - 1 ? _acRows[i + 1].t - r.t : Math.max(total - r.t, 60) }));
+  const [it] = items.splice(from, 1);
+  items.splice(to, 0, it);
+  let t = 0;
+  _acRows = items.map(x => { const row = { id: x.id, t, label: x.label }; t += x.dur; return row; });
+  _acRenderRows(); _acUpdateTimeline();
+  _acMsg('Reordered — each category kept its length, start times were recalculated.', '#4ade80');
+}
+
+function _acDragStart(ev, id) {
+  if (ev.button !== undefined && ev.button !== 0) return;
+  ev.preventDefault();
   const wrap = document.getElementById('adminChapRows');
-  if (!wrap) return;
-  const tmp = document.createElement('div');
-  tmp.innerHTML = _acRowHtml(0, '', false).replace('value="0:00:00"', 'value=""');
-  const row = tmp.firstElementChild;
-  wrap.appendChild(row);
-  row.querySelector('.ac-time').focus();
+  const body = document.getElementById('adminChapBody');
+  const rowEls = [...wrap.querySelectorAll('.ac2-row')];
+  const from = rowEls.findIndex(el => +el.dataset.id === id);
+  if (from < 0 || rowEls.length < 2) return;
+  const dragEl = rowEls[from];
+  const others = rowEls.filter((_, i) => i !== from);
+  const grip = ev.currentTarget;
+  const startY = ev.clientY, startScroll = body.scrollTop;
+  let to = from, lastY = startY;
+  dragEl.classList.add('ac2-dragging');
+  try { grip.setPointerCapture(ev.pointerId); } catch (e) {}
+  const clear = () => others.forEach(el => el.classList.remove('ac2-drop-before', 'ac2-drop-after'));
+  const update = () => {
+    dragEl.style.transform = `translateY(${lastY - startY + (body.scrollTop - startScroll)}px)`;
+    const count = others.filter(el => { const r = el.getBoundingClientRect(); return r.top + r.height / 2 < lastY; }).length;
+    to = count;
+    clear();
+    if (count < others.length) others[count].classList.add('ac2-drop-before');
+    else others[others.length - 1].classList.add('ac2-drop-after');
+  };
+  let raf = 0;
+  const tick = () => {
+    const br = body.getBoundingClientRect();
+    if (lastY < br.top + 40) body.scrollTop -= 12; else if (lastY > br.bottom - 40) body.scrollTop += 12;
+    update(); raf = requestAnimationFrame(tick);
+  };
+  const move = e => { lastY = e.clientY; };
+  const up = () => {
+    cancelAnimationFrame(raf);
+    grip.removeEventListener('pointermove', move);
+    grip.removeEventListener('pointerup', up);
+    grip.removeEventListener('pointercancel', up);
+    dragEl.classList.remove('ac2-dragging'); dragEl.style.transform = '';
+    clear();
+    _acMove(from, to);
+  };
+  grip.addEventListener('pointermove', move);
+  grip.addEventListener('pointerup', up);
+  grip.addEventListener('pointercancel', up);
+  raf = requestAnimationFrame(tick);
+}
+
+// ── Category picker (shared floating list) ──
+let _acComboInput = null, _acComboIdx = 0, _acComboVals = [];
+function _acEnsureComboEls() {
+  const shell = document.querySelector('#adminChapModal .ac-shell');
+  if (shell && !document.getElementById('acComboList')) {
+    const d = document.createElement('div');
+    d.id = 'acComboList';
+    d.addEventListener('pointerdown', e => e.preventDefault()); // keep focus in the input
+    d.addEventListener('click', e => {
+      const o = e.target.closest('.ac2-opt');
+      if (o) _acComboPick(o.dataset.v);
+    });
+    shell.appendChild(d);
+  }
+  const body = document.getElementById('adminChapBody');
+  if (body && !body._acBound) {
+    body._acBound = true;
+    body.addEventListener('focusin', e => {
+      if (e.target.matches('.ac2-game')) { _acComboInput = e.target; e.target.select(); _acComboFill(true); }
+      else if (e.target.matches('.ac2-n')) e.target.select();
+    });
+    body.addEventListener('focusout', e => {
+      if (e.target.matches('.ac2-game')) {
+        _acComboHide();
+        const row = e.target.closest('.ac2-row'), r = row && _acRows.find(x => x.id === +row.dataset.id);
+        if (r) {
+          const known = _acKnownGamesRanked().find(g => g.toLowerCase() === r.label.trim().toLowerCase());
+          if (known) { r.label = known; e.target.value = known; }
+          _acSyncArt(row, r.label); _acUpdateTimeline();
+        }
+      }
+    });
+    body.addEventListener('input', e => {
+      if (!e.target.matches('.ac2-game')) return;
+      const row = e.target.closest('.ac2-row'), r = _acRows.find(x => x.id === +row.dataset.id);
+      if (r) r.label = e.target.value.replace(/\s+/g, ' ');
+      _acComboInput = e.target; _acComboFill(false); _acUpdateTimeline();
+    });
+    body.addEventListener('keydown', e => {
+      if (!e.target.matches('.ac2-game')) return;
+      const list = document.getElementById('acComboList');
+      const open = list && list.style.display === 'block';
+      if (e.key === 'Escape' && open) { e.stopPropagation(); _acComboHide(); return; }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!open) { _acComboFill(true); return; }
+        _acComboIdx = Math.max(0, Math.min(_acComboVals.length - 1, _acComboIdx + (e.key === 'ArrowDown' ? 1 : -1)));
+        _acComboHighlight();
+      } else if (e.key === 'Enter' && open && _acComboVals.length) {
+        e.preventDefault(); _acComboPick(_acComboVals[_acComboIdx]);
+      }
+    });
+    body.addEventListener('wheel', e => {
+      const n = e.target.closest && e.target.closest('.ac2-n');
+      if (!n || document.activeElement !== n || n.disabled) return;
+      e.preventDefault();
+      const step = (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 5 : 1);
+      n.value = Math.max(+n.min, Math.min(+n.max, (parseInt(n.value, 10) || 0) + step));
+      n.dispatchEvent(new Event('change', { bubbles: true }));
+    }, { passive: false });
+    body.addEventListener('scroll', () => { if (_acComboInput) _acComboPos(); });
+  }
+}
+function _acSyncArt(rowEl, label) {
+  const img = rowEl.querySelector('.ac2-art');
+  if (!img) return;
+  const src = label ? chapterBoxArtSrc(label) : '';
+  if (src) { img.style.visibility = ''; if (img.getAttribute('src') !== src) img.src = src; }
+  else img.style.visibility = 'hidden';
+}
+function _acNorm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function _acComboFill(showAll) {
+  const list = document.getElementById('acComboList');
+  if (!list || !_acComboInput) return;
+  const raw = _acComboInput.value.trim();
+  const q = _acNorm(raw);
+  const all = _acKnownGamesRanked();
+  let hits = (showAll || !q) ? all : [
+    ...all.filter(g => _acNorm(g).startsWith(q)),
+    ...all.filter(g => !_acNorm(g).startsWith(q) && _acNorm(g).includes(q))
+  ];
+  hits = hits.slice(0, 50);
+  const exact = all.some(g => g.toLowerCase() === raw.toLowerCase());
+  const vals = hits.slice();
+  let html = hits.map(g => {
+    const art = chapterBoxArtSrc(g);
+    return `<div class="ac2-opt" data-v="${escHtml(g)}"><img src="${escHtml(art || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${escHtml(g)}</span></div>`;
+  }).join('');
+  if (raw && !exact) {
+    vals.push(raw);
+    html += `<div class="ac2-opt ac2-new" data-v="${escHtml(raw)}"><span>＋ Use “${escHtml(raw)}” as a new category</span></div>`;
+  }
+  if (!vals.length) { _acComboHide(); return; }
+  _acComboVals = vals;
+  _acComboIdx = 0;
+  list.innerHTML = html;
+  list.style.display = 'block';
+  _acComboHighlight();
+  _acComboPos();
+}
+function _acComboHighlight() {
+  const list = document.getElementById('acComboList');
+  if (!list) return;
+  [...list.children].forEach((el, i) => el.classList.toggle('on', i === _acComboIdx));
+  const on = list.children[_acComboIdx];
+  if (on) on.scrollIntoView({ block: 'nearest' });
+}
+function _acComboPos() {
+  const list = document.getElementById('acComboList');
+  if (!list || !_acComboInput || list.style.display !== 'block') return;
+  const r = _acComboInput.getBoundingClientRect();
+  const below = window.innerHeight - r.bottom - 10, above = r.top - 10;
+  list.style.left = r.left + 'px';
+  list.style.width = Math.max(r.width, 220) + 'px';
+  if (below < 170 && above > below) {
+    list.style.top = 'auto'; list.style.bottom = (window.innerHeight - r.top + 4) + 'px';
+    list.style.maxHeight = Math.min(280, above) + 'px';
+  } else {
+    list.style.bottom = 'auto'; list.style.top = (r.bottom + 4) + 'px';
+    list.style.maxHeight = Math.min(280, below) + 'px';
+  }
+}
+function _acComboHide() {
+  const list = document.getElementById('acComboList');
+  if (list) list.style.display = 'none';
+}
+function _acComboPick(value) {
+  const inp = _acComboInput;
+  if (!inp) return;
+  const row = inp.closest('.ac2-row'), r = _acRows.find(x => x.id === +row.dataset.id);
+  const known = _acKnownGamesRanked().find(g => g.toLowerCase() === String(value).toLowerCase());
+  const label = known || String(value).replace(/\s+/g, ' ').trim();
+  if (r) r.label = label;
+  inp.value = label;
+  _acSyncArt(row, label);
+  _acComboHide();
+  _acUpdateTimeline();
 }
 
 function adminChapSave(day) {
   const s = (allStreams || []).find(x => x.day === day);
-  const wrap = document.getElementById('adminChapRows');
-  if (!s || !wrap) return;
+  if (!s || !_acRows.length) return;
   const known = {};
-  _acKnownGames().forEach(g => { known[g.toLowerCase()] = g; });
-  const rows = [];
-  for (const el of wrap.querySelectorAll('.ac-edit-row')) {
-    const timeRaw = el.querySelector('.ac-time').value;
-    const t = _acParse(timeRaw);
-    let label = el.querySelector('.ac-game').value.replace(/\s+/g, ' ').trim();
-    if (isNaN(t)) { _acMsg(`"${timeRaw}" isn't a valid time — use H:MM:SS like 2:18:12.`, '#ff7070'); return; }
-    if (!label) { _acMsg('Every row needs a game name.', '#ff7070'); return; }
-    label = known[label.toLowerCase()] || label; // match the casing already used elsewhere on the site
-    rows.push({ t, label });
-  }
-  if (!rows.length) { _acMsg('Add at least one chapter.', '#ff7070'); return; }
+  _acKnownGamesRanked().forEach(g => { known[g.toLowerCase()] = g; });
+  const rows = _acRows.map((r, i) => {
+    const label = String(r.label || '').replace(/\s+/g, ' ').trim();
+    return { t: i === 0 ? 0 : r.t, label: known[label.toLowerCase()] || label };
+  });
+  if (rows.some(r => !r.label)) { _acMsg('Every row needs a category — pick one from the list or type a new name.', '#ff7070'); return; }
   rows.sort((a, b) => a.t - b.t);
-  if (rows[0].t !== 0) { _acMsg('The first chapter must start at 0:00:00.', '#ff7070'); return; }
   for (let i = 1; i < rows.length; i++) {
-    if (rows[i].t === rows[i - 1].t) { _acMsg(`Two chapters start at ${_acFmt(rows[i].t)}.`, '#ff7070'); return; }
+    if (rows[i].t === rows[i - 1].t) { _acMsg(`Two chapters start at ${_acFmt(rows[i].t)} — change one of the times.`, '#ff7070'); return; }
   }
   const vodSec = _vodDurationSec(twitchVodMap[day]);
   const maxLen = Math.max(s.totalDuration || 0, vodSec || 0);
@@ -6337,7 +6705,6 @@ function adminChapSave(day) {
   }
   const entry = addManualChapters(day, rows.map(r => [r.t, r.label]));
   if (!entry) { _acMsg('Save failed — see the console.', '#ff7070'); return; }
-  // If this stream is open in the player right now, refresh its chapter bar.
   if (typeof currentStream !== 'undefined' && currentStream && currentStream.day === day) {
     currentStream.games = entry.games.map(g => ({ label: g.label, t: g.t, partIdx: 0 }));
     try { renderSegments(currentStream); } catch (e) {}
@@ -20473,6 +20840,7 @@ async function renderStreamSummary() {
 </div>
 <script>
 setInterval(function(){ if (typeof _adminChapRefreshVisibility === 'function') _adminChapRefreshVisibility(); }, 1500);
+setTimeout(function(){ if (typeof _adminChapRefreshVisibility === 'function') _adminChapRefreshVisibility(); }, 300);
 </script>
 
 </body>
