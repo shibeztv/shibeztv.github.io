@@ -2683,6 +2683,33 @@
     .rc-compare-row { grid-template-columns:1fr; gap:var(--rc-sp-2); }
     .rc-delta { text-align:left; }
   }
+
+/* ── Admin chapter editor ── */
+#adminChapModal{display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.78);align-items:center;justify-content:center;padding:16px}
+.ac-shell{background:var(--bg2,#14141c);border:1px solid rgba(167,139,250,0.4);border-radius:10px;width:min(760px,100%);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+.ac-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.08);font-family:var(--mono);font-weight:700;letter-spacing:1px;color:#a78bfa}
+.ac-x{background:none;border:none;color:var(--muted,#999);font-size:20px;cursor:pointer}
+#adminChapBody{padding:14px 18px 18px;overflow-y:auto;font-family:var(--mono);font-size:13px;color:var(--text,#eee)}
+#adminChapMsg{display:none;margin:0 18px 14px;font-size:12px}
+.ac-diag,.ac-info,.ac-hint{font-size:12px;margin-bottom:12px;line-height:1.5}
+.ac-hint{color:var(--muted,#999);margin-top:10px}
+.ac-tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.ac-tab,.ac-btn{font-family:inherit;font-size:12px;font-weight:700;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:var(--text,#eee);padding:6px 12px;border-radius:5px;cursor:pointer}
+.ac-tab.on,.ac-primary{background:rgba(167,139,250,0.2);border-color:#a78bfa;color:#c4b5fd}
+.ac-btn:disabled{opacity:0.4;cursor:not-allowed}
+.ac-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.ac-row-main{flex:1;min-width:0}
+.ac-row-date{font-weight:700}
+.ac-row-title{color:var(--muted,#999);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-chip{font-size:11px;border:1px solid;border-radius:20px;padding:2px 10px;white-space:nowrap}
+.ac-empty{color:var(--muted,#999);padding:14px 0;text-align:center}
+.ac-edit-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ac-edit-cols{display:grid;grid-template-columns:130px 1fr 32px;gap:8px;font-size:11px;color:var(--muted,#999);margin-bottom:4px}
+.ac-edit-row{display:grid;grid-template-columns:130px 1fr 32px;gap:8px;margin-bottom:6px}
+.ac-time,.ac-game{font-family:inherit;font-size:13px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.15);color:var(--text,#eee);padding:7px 9px;border-radius:5px;min-width:0}
+.ac-time[readonly]{opacity:0.55}
+.ac-del{background:none;border:1px solid rgba(255,255,255,0.15);color:#ff7070;border-radius:5px;cursor:pointer}
+.ac-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
 
@@ -3360,6 +3387,10 @@
             onmouseover="this.style.borderColor='#34d399';this.style.color='#6ee7b7';this.style.background='rgba(52,211,153,0.18)';this.style.boxShadow='0 0 14px rgba(52,211,153,0.2)'"
             onmouseout="this.style.borderColor='rgba(52,211,153,0.45)';this.style.color='#34d399';this.style.background='rgba(52,211,153,0.1)';this.style.boxShadow='0 0 10px rgba(52,211,153,0.08)'">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="18" y1="20" x2="18" y2="14"/></svg> RECAP
+          </button>
+          <button onclick="adminChapOpen()" id="adminChapPanelBtn" title="Admin: edit stream categories"
+            style="display:none;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(167,139,250,0.1);border:1.5px solid rgba(167,139,250,0.45);color:#a78bfa;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;white-space:nowrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> CATEGORIES
           </button>
           <a href="https://www.youtube.com/@ShibezYT/shorts" target="_blank" rel="noopener" onclick="if(typeof closeAllGameModals==='function')closeAllGameModals();openRandomShort();return false;" id="shortsBtn"
             style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.8px;background:rgba(255,68,68,0.1);border:1.5px solid rgba(255,68,68,0.45);color:#ff7070;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s;box-shadow:0 0 10px rgba(255,68,68,0.08);text-decoration:none"
@@ -4895,18 +4926,53 @@ function getChapterList(stream) {
 // re-renders just that page once new data comes in — no visible reload/flicker
 // for cards that already had data.
 let _enrichToken = 0;
+// How long after a stream we keep re-fetching its chapters from Twitch on
+// every visit, in case an earlier fetch caught Twitch mid-processing. Shared
+// by getChaptersForVod and the enrich pass below.
+const CHAPTER_RECHECK_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+
+// Helix gives each VOD's length as "3h25m12s".
+function _vodDurationSec(vodId) {
+  const d = twitchVodDetails[vodId]?.duration;
+  if (!d) return 0;
+  const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/.exec(d);
+  if (!m) return 0;
+  return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0);
+}
+// True when a saved Twitch entry stops well short of the VOD's real length —
+// i.e. Twitch had only processed the first part of the stream when we fetched
+// it. Such an entry keeps getting re-checked no matter how old the stream is
+// (as long as the VOD still exists on Twitch).
+function _entryLooksIncomplete(entry, vodId) {
+  if (!entry || entry.source === 'manual' || entry.source === 'live-tracked') return false;
+  const vodSec = _vodDurationSec(vodId);
+  if (!vodSec || !entry.coveredSec) return false;
+  return entry.coveredSec < vodSec * 0.97 - 60;
+}
+
 async function enrichVisiblePageChapters() {
   const myToken = ++_enrichToken;
   const start = currentPage * PAGE_SIZE;
   const pageStreams = displayedStreams.slice(start, start + PAGE_SIZE);
-  const RECHECK_WINDOW_MS = 4 * 24 * 60 * 60 * 1000; // keep in sync with getChaptersForVod
-  const targets = pageStreams.filter(s => {
+  const RECHECK_WINDOW_MS = CHAPTER_RECHECK_WINDOW_MS;
+  // The newest streams anywhere in the list get checked too, not only the
+  // page on screen — the point is to grab correct chapters while Twitch still
+  // has the VOD, whether or not anyone scrolled to it.
+  const recentStreams = (typeof allStreams !== 'undefined' ? allStreams : [])
+    .filter(s => Date.now() - new Date(s.day + 'T00:00:00Z').getTime() < RECHECK_WINDOW_MS)
+    .sort((a, b) => b.day.localeCompare(a.day))
+    .slice(0, 30);
+  const _seenDays = new Set();
+  const candidates = [...pageStreams, ...recentStreams].filter(s => !_seenDays.has(s.day) && _seenDays.add(s.day));
+  const targets = candidates.filter(s => {
     const vodId = twitchVodMap[s.day];
     if (!vodId) return false;
     const entry = _lookupChapterEntry(s);
     if (!entry) return true; // no data yet — always worth a fetch
+    if (entry.source === 'manual') return false; // hand-entered fix — a recheck must never touch it
     if (_recheckedThisSession.has(vodId)) return false; // already rechecked once this page load — don't loop forever
     if (entry.source === 'live-tracked') return true; // live-tracked timestamps are only a guess — always worth reconciling against Twitch's real chapter data, however old
+    if (_entryLooksIncomplete(entry, vodId)) return true; // Twitch data stops short of the VOD's length
     const dayAgeMs = Date.now() - new Date(s.day + 'T00:00:00Z').getTime();
     return dayAgeMs < RECHECK_WINDOW_MS; // recent stream — recheck even though cache isn't empty, in case the first fetch caught Twitch mid-processing
   });
@@ -5039,7 +5105,9 @@ function translateGameLabel(label) {
 // template straight from Twitch — that's authoritative, unlike guessing.
 // Results (including "no box art exists for this name") are cached in
 // localStorage so we only ever look a given name up once, ever.
-const BOXART_CACHE_KEY = 'shibez_boxart_cache_v1';
+// v2: every visitor's v1 cache had "no art" misses baked in from the old
+// Client-ID mismatch; a new key makes each browser re-resolve them once.
+const BOXART_CACHE_KEY = 'shibez_boxart_cache_v2';
 let _boxArtCache = {};
 try { _boxArtCache = JSON.parse(localStorage.getItem(BOXART_CACHE_KEY) || '{}'); } catch(e) { _boxArtCache = {}; }
 // Twitch has TWO categories that both display as literally "Demon's Souls"
@@ -5643,6 +5711,7 @@ function closeAllGameModals() {
     ['profileModal', 'shibezProfileClose'],
     ['wmModal',      'closeWheelSpin'],
     ['summaryModalOverlay', 'closeStreamSummary'],
+    ['adminChapModal', 'adminChapClose'],
   ];
   registry.forEach(([modalId, closeFnName]) => {
     const m = document.getElementById(modalId);
@@ -5666,6 +5735,7 @@ document.addEventListener('keydown', e => {
     ['wmModal',      'closeWheelSpin'],
     ['profileModal', 'shibezProfileClose'],
     ['summaryModalOverlay', 'closeStreamSummary'],
+    ['adminChapModal', 'adminChapClose'],
   ];
   for (const [modalId, closeFnName] of fallbackRegistry) {
     const m = document.getElementById(modalId);
@@ -5980,13 +6050,34 @@ async function _chapterCloudPush(vodId, entry) {
 // visitor with zero manual steps — once one browser fetches a VOD's chapters
 // it's in the cloud, and every future page load (yours or anyone else's)
 // pulls it back down automatically.
+// Is entry `a` a better record of a stream's chapters than `b`? Used to decide
+// whether Firestore's copy should replace what's already in this browser.
+// Before this, the pull only ever filled in MISSING entries, so a bad copy
+// saved once in a browser stayed there for good (new browser = correct
+// chapters, old browser = stale ones) and a fix made in Firestore never
+// reached anyone who had already visited.
+function _chapterEntryIsBetter(a, b) {
+  const has = e => !!(e && e.games && e.games.length);
+  if (!has(b)) return has(a);
+  if (!has(a)) return false;
+  const aMan = a.source === 'manual', bMan = b.source === 'manual';
+  if (aMan !== bMan) return aMan;                                   // hand-entered beats automatic
+  if (aMan && bMan) return (a.fetchedAt || 0) > (b.fetchedAt || 0); // newest manual edit wins
+  if (a.games.length !== b.games.length) return a.games.length > b.games.length;
+  const aLive = a.source === 'live-tracked', bLive = b.source === 'live-tracked';
+  if (aLive !== bLive) return bLive;                                // same size: Twitch's timestamps beat a live-tracked guess
+  return (a.fetchedAt || 0) > (b.fetchedAt || 0);
+}
+
 async function _chapterCloudPull() {
   if (typeof _wmDb === 'undefined') return;
   try {
     const snap = await _wmDb.collection(CHAPTER_CLOUD_COLLECTION).get();
     let added = 0;
     snap.forEach(doc => {
-      if (!_chapterCache[doc.id]) { _chapterCache[doc.id] = doc.data(); added++; }
+      const cloud = doc.data();
+      const local = _chapterCache[doc.id];
+      if (!local || _chapterEntryIsBetter(cloud, local)) { _chapterCache[doc.id] = cloud; added++; }
     });
     if (added) {
       _saveChapterCache();
@@ -6034,6 +6125,240 @@ _chapterCloudPull();
 //     ['0:42:10', 'Elden Ring'],
 //     ['2:15:30', 'Just Chatting']
 //   ]);
+// ─── ADMIN CHAPTER EDITOR (shows only when logged in as shlbez) ─────────────
+// Replaces the console commands: list of streams that need attention, plus a
+// per-stream editor (time + game rows). Saving goes through the same
+// addManualChapters() path, so it is stored locally, pushed to Firestore, and
+// (because manual entries beat automatic ones — see _chapterEntryIsBetter)
+// reaches every visitor's browser, including ones holding a stale copy.
+// NOTE: this only HIDES the controls from other visitors. Firestore itself is
+// still open for anonymous writes (that's how leaderboards work); locking
+// chapter writes properly needs a Firestore rule, not page code.
+let _acDay = null;            // day of the stream open in the editor, null = list view
+let _acFilter = 'attention';  // 'attention' | 'all'
+
+function _adminChapRefreshVisibility() {
+  const on = typeof _wmIsShibez === 'function' && _wmIsShibez();
+  const btn = document.getElementById('adminChapPanelBtn');
+  if (btn) btn.style.display = on ? 'flex' : 'none';
+  const bar = document.getElementById('adminChapBar');
+  if (bar) bar.style.display = on ? 'block' : 'none';
+}
+
+function _acFmt(sec) {
+  sec = Math.max(0, Math.round(sec || 0));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+// "2:18:12", "18:12" or plain seconds. Anything else (e.g. "2:18:012") is NaN.
+function _acParse(str) {
+  const t = String(str || '').trim();
+  if (!/^\d+(:\d{1,2}){0,2}$/.test(t)) return NaN;
+  const parts = t.split(':').map(Number);
+  if (parts.slice(1).some(n => n > 59)) return NaN;
+  return parts.reduce((acc, n) => acc * 60 + n, 0);
+}
+
+// Why a stream is (or isn't) flagged. attention = shows in "Needs attention".
+function _adminChapStatus(s) {
+  const e = _lookupChapterEntry(s);
+  const vodId = twitchVodMap[s.day] || null;
+  if (!e) return { key: 'none', text: vodId ? 'No chapters' : 'No chapters (no Twitch VOD)', attention: true };
+  const labels = e.games.map(g => translateGameLabel(g.label));
+  if (e.source === 'manual') return { key: 'manual', text: 'Manual', attention: false };
+  if (labels.every(l => l === 'Unknown' || l === 'No Category')) {
+    return labels[0] === 'No Category'
+      ? { key: 'nocat', text: 'No Category', attention: false }
+      : { key: 'unknown', text: 'Unknown only', attention: true };
+  }
+  if (e.source === 'live-tracked') return { key: 'live', text: 'Live-tracked, not checked against Twitch', attention: true };
+  if (vodId && _entryLooksIncomplete(e, vodId)) {
+    return { key: 'partial', text: `Twitch data stops at ${_acFmt(e.coveredSec)} of ${_acFmt(_vodDurationSec(vodId))}`, attention: true };
+  }
+  if (e.games.length === 1 && labels[0] === 'Just Chatting' && (s.totalDuration || 0) > 2 * 3600) {
+    return { key: 'jc', text: 'Only Just Chatting — check', attention: true };
+  }
+  return { key: 'ok', text: 'OK', attention: false };
+}
+
+function _acDiagHtml() {
+  const d = _chapterDiag.last;
+  if (!d) return '<span style="color:var(--muted)">Twitch chapter API: no fetch attempted yet this visit.</span>';
+  const when = new Date(d.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  if (d.edges) return `<span style="color:#4ade80">Twitch chapter API working</span> <span style="color:var(--muted)">— last fetch ${escHtml(when)}: ${d.edges} chapter(s) via ${escHtml(d.via)}</span>`;
+  return `<span style="color:#fbbf24">Last Twitch fetch returned nothing</span> <span style="color:var(--muted)">(${escHtml(when)}, last tried: ${escHtml(d.via)}${d.error ? ', error: ' + escHtml(d.error) : ', no error — Twitch had no chapters for that VOD yet'})</span>`;
+}
+
+function _acKnownGames() {
+  const set = new Set(['Just Chatting', 'No Category']);
+  Object.values(_chapterCache).forEach(e => (e && e.games || []).forEach(g => {
+    const l = translateGameLabel(g.label || '');
+    if (l && l !== 'Unknown') set.add(l);
+  }));
+  return [...set].sort((a, b) => a.localeCompare(b));
+}
+
+function _acMsg(text, color) {
+  const el = document.getElementById('adminChapMsg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.style.color = color || 'var(--muted)';
+  el.style.display = text ? 'block' : 'none';
+}
+
+function adminChapOpen(day) {
+  if (typeof _wmIsShibez === 'function' && !_wmIsShibez()) return;
+  if (typeof closeAllGameModals === 'function') closeAllGameModals();
+  document.getElementById('adminChapModal').style.display = 'flex';
+  _acDay = day || null;
+  _acMsg('');
+  _acRender();
+}
+function adminChapClose() {
+  const m = document.getElementById('adminChapModal');
+  if (m) m.style.display = 'none';
+}
+function adminChapShowList() { _acDay = null; _acMsg(''); _acRender(); }
+function adminChapSetFilter(f) { _acFilter = f; _acRender(); }
+function adminChapEdit(day) { _acDay = day; _acMsg(''); _acRender(); }
+
+function _acRender() {
+  const body = document.getElementById('adminChapBody');
+  if (!body) return;
+  if (_acDay) _acRenderEditor(body); else _acRenderList(body);
+}
+
+function _acRenderList(body) {
+  const now = Date.now();
+  const streams = (allStreams || []).slice().sort((a, b) => b.day.localeCompare(a.day));
+  const rows = streams.map(s => ({ s, st: _adminChapStatus(s) })).filter(r =>
+    _acFilter === 'all' || (r.st.attention && now - new Date(r.s.day + 'T00:00:00Z').getTime() < 60 * 86400000));
+  const total = rows.length;
+  const shown = rows.slice(0, 120);
+  const chip = st => {
+    const c = st.attention ? ['#fbbf24', 'rgba(251,191,36,0.12)'] : st.key === 'manual' ? ['#a78bfa', 'rgba(167,139,250,0.12)'] : ['#4ade80', 'rgba(74,222,128,0.1)'];
+    return `<span class="ac-chip" style="color:${c[0]};background:${c[1]};border-color:${c[0]}55">${escHtml(st.text)}</span>`;
+  };
+  body.innerHTML = `
+    <div class="ac-diag">${_acDiagHtml()}</div>
+    <div class="ac-tabs">
+      <button class="ac-tab ${_acFilter === 'attention' ? 'on' : ''}" onclick="adminChapSetFilter('attention')">Needs attention (last 60 days)</button>
+      <button class="ac-tab ${_acFilter === 'all' ? 'on' : ''}" onclick="adminChapSetFilter('all')">All streams</button>
+    </div>
+    <div class="ac-list">
+      ${shown.length ? shown.map(({ s, st }) => `
+        <div class="ac-row">
+          <div class="ac-row-main">
+            <div class="ac-row-date">${escHtml(formatDay(s.day))}</div>
+            <div class="ac-row-title">${escHtml(s.title || 'Stream')}</div>
+          </div>
+          ${chip(st)}
+          <button class="ac-btn" data-day="${escHtml(s.day)}" onclick="adminChapEdit(this.dataset.day)">Edit</button>
+        </div>`).join('') : '<div class="ac-empty">Nothing needs attention.</div>'}
+      ${total > shown.length ? `<div class="ac-empty">Showing ${shown.length} of ${total}.</div>` : ''}
+    </div>`;
+}
+
+function _acRowHtml(t, label, first) {
+  return `<div class="ac-edit-row">
+    <input class="ac-time" value="${first ? '0:00:00' : escHtml(_acFmt(t))}" ${first ? 'readonly title="First chapter always starts at 0:00:00"' : ''} spellcheck="false" autocomplete="off">
+    <input class="ac-game" list="adminChapGames" value="${escHtml(label)}" placeholder="Game / category" spellcheck="false" autocomplete="off">
+    ${first ? '<span class="ac-del-spacer"></span>' : '<button class="ac-del" title="Remove" onclick="this.parentElement.remove()">✕</button>'}
+  </div>`;
+}
+
+function _acRenderEditor(body) {
+  const s = (allStreams || []).find(x => x.day === _acDay);
+  if (!s) { _acDay = null; _acRenderList(body); return; }
+  const e = _lookupChapterEntry(s);
+  const vodId = twitchVodMap[s.day] || null;
+  let rows = e ? e.games.slice().sort((a, b) => a.t - b.t).map(g => ({ t: g.t, label: translateGameLabel(g.label) })) : [];
+  if (!rows.length) rows = [{ t: 0, label: 'Just Chatting' }];
+  const st = _adminChapStatus(s);
+  const vodSec = vodId ? _vodDurationSec(vodId) : 0;
+  const srcText = !e ? 'none' : e.source === 'manual' ? 'manual' : e.source === 'live-tracked' ? 'live-tracked' : 'Twitch';
+  body.innerHTML = `
+    <div class="ac-edit-head">
+      <button class="ac-btn" onclick="adminChapShowList()">← Back</button>
+      <div class="ac-edit-title"><b>${escHtml(formatDay(s.day))}</b> · ${escHtml(s.title || 'Stream')}</div>
+    </div>
+    <div class="ac-info">
+      Current data: <b>${escHtml(srcText)}</b> · ${escHtml(st.text)}
+      ${vodId ? ` · Twitch VOD ${escHtml(String(vodId))}${vodSec ? ' (' + _acFmt(vodSec) + ' long)' : ''}` : ' · no Twitch VOD found for this day'}
+      ${s.totalDuration ? ' · YouTube length ' + _acFmt(s.totalDuration) : ''}
+    </div>
+    <div class="ac-edit-cols"><span>Starts at (H:MM:SS)</span><span>Game / category</span></div>
+    <div id="adminChapRows">${rows.map((r, i) => _acRowHtml(r.t, r.label, i === 0)).join('')}</div>
+    <datalist id="adminChapGames">${_acKnownGames().map(g => `<option value="${escHtml(g)}"></option>`).join('')}</datalist>
+    <div class="ac-actions">
+      <button class="ac-btn" onclick="adminChapAddRow()">+ Add chapter</button>
+      <button class="ac-btn ac-primary" data-day="${escHtml(s.day)}" onclick="adminChapSave(this.dataset.day)">Save for everyone</button>
+      <button class="ac-btn" data-day="${escHtml(s.day)}" onclick="adminChapRefetch(this.dataset.day, this)" ${vodId ? '' : 'disabled title="No Twitch VOD to fetch from"'}>Re-fetch from Twitch</button>
+    </div>
+    <div class="ac-hint">Each row means "from this time on, this game". Use <b>No Category</b> for a stretch with no category set.</div>`;
+}
+
+function adminChapAddRow() {
+  const wrap = document.getElementById('adminChapRows');
+  if (!wrap) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = _acRowHtml(0, '', false).replace('value="0:00:00"', 'value=""');
+  const row = tmp.firstElementChild;
+  wrap.appendChild(row);
+  row.querySelector('.ac-time').focus();
+}
+
+function adminChapSave(day) {
+  const s = (allStreams || []).find(x => x.day === day);
+  const wrap = document.getElementById('adminChapRows');
+  if (!s || !wrap) return;
+  const known = {};
+  _acKnownGames().forEach(g => { known[g.toLowerCase()] = g; });
+  const rows = [];
+  for (const el of wrap.querySelectorAll('.ac-edit-row')) {
+    const timeRaw = el.querySelector('.ac-time').value;
+    const t = _acParse(timeRaw);
+    let label = el.querySelector('.ac-game').value.replace(/\s+/g, ' ').trim();
+    if (isNaN(t)) { _acMsg(`"${timeRaw}" isn't a valid time — use H:MM:SS like 2:18:12.`, '#ff7070'); return; }
+    if (!label) { _acMsg('Every row needs a game name.', '#ff7070'); return; }
+    label = known[label.toLowerCase()] || label; // match the casing already used elsewhere on the site
+    rows.push({ t, label });
+  }
+  if (!rows.length) { _acMsg('Add at least one chapter.', '#ff7070'); return; }
+  rows.sort((a, b) => a.t - b.t);
+  if (rows[0].t !== 0) { _acMsg('The first chapter must start at 0:00:00.', '#ff7070'); return; }
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i].t === rows[i - 1].t) { _acMsg(`Two chapters start at ${_acFmt(rows[i].t)}.`, '#ff7070'); return; }
+  }
+  const vodSec = _vodDurationSec(twitchVodMap[day]);
+  const maxLen = Math.max(s.totalDuration || 0, vodSec || 0);
+  if (maxLen && rows[rows.length - 1].t > maxLen + 300) {
+    if (!confirm(`The last chapter starts at ${_acFmt(rows[rows.length - 1].t)}, but the stream is only ${_acFmt(maxLen)} long. Save anyway?`)) return;
+  }
+  const entry = addManualChapters(day, rows.map(r => [r.t, r.label]));
+  if (!entry) { _acMsg('Save failed — see the console.', '#ff7070'); return; }
+  // If this stream is open in the player right now, refresh its chapter bar.
+  if (typeof currentStream !== 'undefined' && currentStream && currentStream.day === day) {
+    currentStream.games = entry.games.map(g => ({ label: g.label, t: g.t, partIdx: 0 }));
+    try { renderSegments(currentStream); } catch (e) {}
+  }
+  _acMsg(`Saved ${rows.length} chapter${rows.length === 1 ? '' : 's'} for ${formatDay(day)} — everyone gets it on their next visit.`, '#4ade80');
+  _acRender();
+}
+
+async function adminChapRefetch(day, btn) {
+  const s = (allStreams || []).find(x => x.day === day);
+  const e = s ? _lookupChapterEntry(s) : null;
+  const wasManual = !!(e && e.source === 'manual');
+  if (wasManual && !confirm('This removes your manual chapters for this stream and replaces them with whatever Twitch has. Continue?')) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Fetching…'; }
+  _acMsg('Asking Twitch…');
+  const r = await clearChapterCache(day, { cloud: wasManual });
+  if (r && r.found) _acMsg(`Twitch returned ${r.found} chapter(s) — saved.`, '#4ade80');
+  else _acMsg(`Twitch returned nothing${r && r.diag && r.diag.error ? ' (' + r.diag.error + ')' : ''}. Add the chapters by hand.`, '#fbbf24');
+  _acRender();
+}
+
 // First arg is either a stream "day" (YYYY-MM-DD, matched via twitchVodMap)
 // or a raw Twitch VOD id directly. Second arg is a list of [timestamp, game]
 // pairs — timestamp can be "H:MM:SS", "MM:SS", or a plain number of seconds.
@@ -6090,15 +6415,24 @@ window.addManualChapters = function(dayOrVodId, gamesInput) {
 // cache → pulls the good data from Firestore) while an old browser keeps
 // showing the bad ones forever until that one entry is cleared.
 // Run in console: clearChapterCache('2024-03-15')  (day string or VOD id)
-window.clearChapterCache = async function(dayOrVodId){
+// opts.cloud = true also deletes the shared Firestore copies (admin editor
+// uses it when removing a manual override — otherwise the pull would just
+// bring the old entry back).
+window.clearChapterCache = async function(dayOrVodId, opts){
   const vodId = twitchVodMap[dayOrVodId] || dayOrVodId;
   const keysToDelete = [dayOrVodId, vodId].filter((k, i, arr) => k && arr.indexOf(k) === i);
   let removed = 0;
   keysToDelete.forEach(k => { if (_chapterCache[k]) { delete _chapterCache[k]; removed++; } });
   if (removed) _saveChapterCache();
   console.log(`Cleared ${removed} local cache entr${removed === 1 ? 'y' : 'ies'} for key(s): ${keysToDelete.join(', ')}`);
+  if (opts && opts.cloud && typeof _wmDb !== 'undefined') {
+    try {
+      await _ensureWmAuth();
+      await Promise.all(keysToDelete.map(k => _wmDb.collection(CHAPTER_CLOUD_COLLECTION).doc(k).delete()));
+    } catch (e) { console.warn('[chapterCache] cloud delete failed:', e.code || e.message || e); }
+  }
 
-  if (!vodId) { console.warn('No VOD id resolved — cache cleared but nothing to re-fetch.'); return; }
+  if (!vodId) { console.warn('No VOD id resolved — cache cleared but nothing to re-fetch.'); return { found: 0, diag: null }; }
   try {
     const games = await getChaptersForVod(vodId, dayOrVodId); // re-fetches live + saves + pushes to Firestore
     console.log(games.length
@@ -6108,6 +6442,8 @@ window.clearChapterCache = async function(dayOrVodId){
     console.error('Re-fetch failed:', e.message || e);
   }
   if (typeof allStreams !== 'undefined' && allStreams.length && document.getElementById('streamGrid')?.children.length) renderPage();
+  const got = _chapterCache[vodId]?.games?.length || 0;
+  return { found: got, diag: _chapterDiag.byVod[vodId] || null };
 };
 
 // Bulk-import stream/game data exported as CSV from SullyGnome (or any
@@ -6245,9 +6581,16 @@ window.backfillAllChapters = async function() {
 // the app should call.
 async function getChaptersForVod(vodId, day) {
   const cached = _chapterCache[vodId];
-  const RECHECK_WINDOW_MS = 4 * 24 * 60 * 60 * 1000; // Twitch usually finishes processing VOD chapters well within this
+  const RECHECK_WINDOW_MS = CHAPTER_RECHECK_WINDOW_MS;
   const dayAgeMs = day ? (Date.now() - new Date(day + 'T00:00:00Z').getTime()) : Infinity;
-  const isRecentStream = dayAgeMs < RECHECK_WINDOW_MS;
+  const isRecentStream = dayAgeMs < RECHECK_WINDOW_MS || _entryLooksIncomplete(cached, vodId);
+
+  // Hand-entered chapters (addManualChapters / the admin editor) are
+  // deliberate corrections — never overwrite them with a re-fetch.
+  if (cached && cached.source === 'manual' && cached.games && cached.games.length) {
+    _mirrorChapterEntryToDay(vodId, day);
+    return cached.games;
+  }
 
   if (cached && cached.games && cached.games.length) {
     // Trust the cache as final once the stream is old enough that Twitch's
@@ -6271,7 +6614,7 @@ async function getChaptersForVod(vodId, day) {
       _mirrorChapterEntryToDay(vodId, day);
       return cached.games;
     }
-    const entry = { games, fetchedAt: Date.now() };
+    const entry = { games, fetchedAt: Date.now(), coveredSec: games.coveredSec || 0 };
     _chapterCache[vodId] = entry;
     _saveChapterCache();
     _chapterCloudPush(vodId, entry); // fire-and-forget — saves it for every visitor, permanently
@@ -6313,10 +6656,21 @@ async function getChaptersForVod(vodId, day) {
 function _mirrorChapterEntryToDay(vodId, day, entryOverride) {
   if (!day || day === vodId) return;
   const existingDay = _chapterCache[day];
-  const dayIsReal = existingDay && existingDay.games && existingDay.games.length && existingDay.source !== 'live-tracked';
-  if (dayIsReal) return; // already has real (non-live-tracked) data — don't clobber it
   const entry = entryOverride || _chapterCache[vodId];
   if (!entry || !entry.games || !entry.games.length) return;
+  // The day-keyed copy is what survives after Twitch deletes the VOD. It used
+  // to be written once (first fetch) and then locked, so if that first fetch
+  // was a partial one (e.g. only "Just Chatting"), the better data fetched
+  // later never reached it — and the stream showed the partial data forever
+  // once the VOD aged out. Now a day copy is replaced whenever the new entry
+  // is at least as complete; it is only kept when it is manual, or has MORE
+  // chapters (never regress).
+  if (existingDay && existingDay.games && existingDay.games.length) {
+    if (existingDay.source === 'manual' && entry.source !== 'manual') return;
+    if (entry.games.length < existingDay.games.length) return;
+    if (existingDay === entry) return;
+    if (existingDay.fetchedAt && existingDay.fetchedAt === entry.fetchedAt) return; // same entry, already mirrored
+  }
   _chapterCache[day] = entry;
   _saveChapterCache();
   _chapterCloudPush(day, entry);
@@ -6370,71 +6724,112 @@ window.healChapterCacheKeys = function() {
   return { healed, alreadyFine, noVodId, noData, healedDays };
 };
 
-// Fetch Twitch VOD chapters via GQL (game categories with timestamps)
+// ── Twitch chapter fetch (GQL) ──────────────────────────────────────────────
+// Diagnostics for the last fetch attempts, so a failure explains itself
+// (shown in the admin chapter panel) instead of silently producing "no
+// chapters". byVod[vodId] = { at, via, httpStatus, error, edges, coveredSec }.
+const _chapterDiag = { byVod: {}, last: null };
+function _chapterDiagNote(vodId, note) {
+  note.at = Date.now();
+  _chapterDiag.byVod[vodId] = note;
+  _chapterDiag.last = Object.assign({ vodId }, note);
+}
+
+// Same fields Twitch's own player asks for, as a plain (non-persisted) query.
+// Fallback for when the persisted-query hash below stops working (Twitch
+// rotates those without notice, and when it does every fetch comes back
+// "PersistedQueryNotFound" — i.e. every NEW VOD silently gets no chapters
+// while old, already-cached ones keep working).
+const _CHAPTER_FULL_QUERY = 'query($id: ID!) { video(id: $id) { id moments(momentRequestType: VIDEO_CHAPTER_MARKERS) { edges { node { id type description subDescription positionMilliseconds durationMilliseconds details { ... on GameChangeMomentDetails { game { id displayName } } } } } } } }';
+
+async function _gqlChapterRequest(body) {
+  const resp = await fetch('https://gql.twitch.tv/gql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Client-Id': 'kimne78kx3ncx6brgo4mv6wki5h1ko' },
+    body: JSON.stringify([body])
+  });
+  let data = null;
+  try { data = await resp.json(); } catch (e) { /* non-JSON body — handled as an error below */ }
+  return { httpStatus: resp.status, data };
+}
+
+// Turns a GQL video object into [{label, t}] (+ .coveredSec on the array:
+// how far into the VOD the last chapter reaches, used to spot partial data).
+function _parseChapterVideo(video) {
+  const edges = video?.moments?.edges || video?.moments?.nodes?.map(n => ({ node: n })) || [];
+  const nodes = edges.map(e => e.node).filter(Boolean)
+    // Only real category changes — other moment types would otherwise show up
+    // as junk "Unknown" chapters. (No type at all = older response shape, keep.)
+    .filter(n => !n.type || n.type === 'GAME_CHANGE');
+  let coveredSec = 0;
+  const games = nodes.map(n => {
+    const gameDisplay = n.details?.game?.displayName || n.game?.displayName;
+    let label;
+    if (gameDisplay) {
+      label = gameDisplay;
+    } else if (n.type === 'GAME_CHANGE' && n.description === '') {
+      // Best guess, NOT verified against a real no-category VOD yet: an
+      // explicitly empty description on a category-change moment is treated as
+      // "streamed with no category set". A missing description stays 'Unknown'
+      // (= no data), so the two are never mixed up.
+      label = 'No Category';
+    } else {
+      label = n.description || 'Unknown';
+    }
+    const t = Math.floor((n.positionMilliseconds || 0) / 1000);
+    const end = t + Math.floor((n.durationMilliseconds || 0) / 1000);
+    if (end > coveredSec) coveredSec = end;
+    return { label, t };
+  }).filter(c => (c.label !== 'Unknown' && c.label !== 'No Category') || c.t > 0)
+    .sort((a, b) => a.t - b.t);
+  games.coveredSec = coveredSec;
+  return games;
+}
+
+// Fetch Twitch VOD chapters via GQL (game categories with timestamps).
+// Tries the persisted query first, then the plain query; both attempts are
+// recorded in _chapterDiag.
 async function fetchTwitchChapters(vodId) {
-  // Try GQL persisted query for chapters
-  const queries = [
-    // VideoPlayer_ChapterSelectButtonVideo — moments/chapters come back nested
-    // inside this response's video.moments field, there's no separate query.
-    // Hash verified current against yt-dlp's twitch.py (2026-08).
-    { operationName: 'VideoPlayer_ChapterSelectButtonVideo',
-      variables: { includePrivate: false, videoID: vodId },
-      extensions: { persistedQuery: { version: 1, sha256Hash: '71835d5ef425e154bf282453a926d99b328cdc5e32f36d3a209d0f4778b41203' } } },
+  const attempts = [
+    // Hash from yt-dlp's twitch.py (checked 2026-08). Rotates occasionally.
+    { via: 'persisted', body: { operationName: 'VideoPlayer_ChapterSelectButtonVideo',
+        variables: { includePrivate: false, videoID: vodId },
+        extensions: { persistedQuery: { version: 1, sha256Hash: '71835d5ef425e154bf282453a926d99b328cdc5e32f36d3a209d0f4778b41203' } } } },
+    { via: 'full-query', body: { query: _CHAPTER_FULL_QUERY, variables: { id: vodId } } },
   ];
 
-  for (const query of queries) {
+  let lastNote = null;
+  for (const a of attempts) {
     try {
-      const resp = await fetch('https://gql.twitch.tv/gql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Client-Id': 'kimne78kx3ncx6brgo4mv6wki5h1ko' },
-        body: JSON.stringify([query])
-      });
-      const data = await resp.json();
-      console.log('Chapters GQL response for', query.operationName, ':', JSON.stringify(data).slice(0, 300));
-
-      // Try various response shapes
-      const video = data?.[0]?.data?.video;
-      if (!video) continue;
-
-      // Shape 1: moments.edges
-      const edges = video?.moments?.edges || video?.moments?.nodes?.map(n=>({node:n})) || [];
-      if (edges.length) {
-        return edges.map(e => {
-          const gameDisplay = e.node?.details?.game?.displayName || e.node?.game?.displayName;
-          let label;
-          if (gameDisplay) {
-            label = gameDisplay;
-          } else if (e.node?.type === 'GAME_CHANGE' && e.node?.description === '') {
-            // Twitch DOES still emit a GAME_CHANGE moment when the broadcaster
-            // is live with no category selected at all — it just comes back
-            // with an explicitly empty description (confirmed via the raw GQL
-            // response: {"type":"GAME_CHANGE","description":""}), as opposed
-            // to a missing/undefined description, which means we just don't
-            // have data for this moment at all. That distinction is what lets
-            // us tell "really was streaming with no category" apart from
-            // "failed to fetch" — the former becomes its own real label
-            // instead of being lumped into the generic 'Unknown' bucket below.
-            label = 'No Category';
-          } else {
-            label = e.node?.description || 'Unknown';
-          }
-          return {
-            label,
-            t: Math.floor((e.node?.positionMilliseconds || 0) / 1000),
-          };
-        }).filter(c => (c.label !== 'Unknown' && c.label !== 'No Category') || c.t > 0);
+      const { httpStatus, data } = await _gqlChapterRequest(a.body);
+      const first = Array.isArray(data) ? data[0] : data;
+      const errMsg = first?.errors?.[0]?.message || (httpStatus >= 400 ? ('HTTP ' + httpStatus) : null);
+      const video = first?.data?.video;
+      const games = video ? _parseChapterVideo(video) : [];
+      lastNote = { via: a.via, httpStatus, error: errMsg, edges: games.length, coveredSec: games.coveredSec || 0 };
+      console.log('[chapters]', vodId, a.via, '→', games.length, 'chapter(s)', errMsg ? '| error: ' + errMsg : '');
+      if (games.length) {
+        _chapterDiagNote(vodId, lastNote);
+        return games;
       }
-
-      // Shape 2: game directly on video
+      // Shape 2: game directly on the video object
       if (video?.game?.displayName) {
-        return [{ label: video.game.displayName, t: 0 }];
+        const g = [{ label: video.game.displayName, t: 0 }];
+        g.coveredSec = 0;
+        lastNote.edges = 1;
+        _chapterDiagNote(vodId, lastNote);
+        return g;
       }
-    } catch(e) {
-      console.warn('Chapter query failed:', query.operationName, e.message);
+    } catch (e) {
+      lastNote = { via: a.via, httpStatus: 0, error: e.message || String(e), edges: 0, coveredSec: 0 };
+      console.warn('[chapters] query failed:', a.via, e.message);
     }
   }
+  if (lastNote) _chapterDiagNote(vodId, lastNote);
   console.warn('No chapters found for VOD', vodId);
-  return [];
+  const none = [];
+  none.coveredSec = 0;
+  return none;
 }
 
 // Cancellation token — incremented each time a new VOD is opened so stale
@@ -7789,7 +8184,7 @@ function _liveDayFromStartedAt(startedAt) {
 
 function _trackLiveCategory(stream) {
   const day = _liveDayFromStartedAt(stream.started_at);
-  const game = stream.game_name || 'Just Chatting';
+  const game = stream.game_name || 'No Category'; // Helix returns '' when no category is set
 
   if (!_liveSession || _liveSession.day !== day) {
     // New stream (or first poll after a page reload) — start a fresh
@@ -20067,6 +20462,17 @@ async function renderStreamSummary() {
   if (token) _rcHandleOAuthCallback(token);
   else sessionStorage.removeItem('shibez_bcast_login_pending');
 })();
+</script>
+
+<div id="adminChapModal" onclick="if(event.target===this)adminChapClose()">
+  <div class="ac-shell">
+    <div class="ac-head"><span>EDIT CATEGORIES</span><button class="ac-x" onclick="adminChapClose()" aria-label="Close">✕</button></div>
+    <div id="adminChapBody"></div>
+    <div id="adminChapMsg"></div>
+  </div>
+</div>
+<script>
+setInterval(function(){ if (typeof _adminChapRefreshVisibility === 'function') _adminChapRefreshVisibility(); }, 1500);
 </script>
 
 </body>
