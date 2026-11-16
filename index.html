@@ -2748,6 +2748,40 @@ body.is-admin .grid-card-parts{left:41px}
   .ac2-row{grid-template-columns:26px minmax(0,1fr) 32px;grid-template-areas:"g c d" ". t u"}
   .ac2-grip{grid-area:g}.ac2-combo{grid-area:c}.ac2-del{grid-area:d}.ac2-time{grid-area:t}.ac2-dur{grid-area:u}
 }
+/* ── polish: pen + category editor ── */
+.grid-card-edit-btn{width:28px;height:28px;border-radius:8px;background:rgba(18,14,34,0.72);border:1px solid rgba(196,181,253,0.45);color:#ddd6fe;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,0.4);opacity:.82;transition:opacity .15s,background .15s,transform .15s,border-color .15s}
+.grid-card:hover .grid-card-edit-btn{opacity:1}
+.grid-card-edit-btn:hover{background:#7c5cfc;border-color:#a78bfa;color:#fff;transform:scale(1.1)}
+body.is-admin .grid-card-parts{left:40px}
+#adminChapModal{background:rgba(6,5,14,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.ac-shell{border-radius:16px;border:1px solid rgba(167,139,250,0.28);background:linear-gradient(180deg,#191625 0%,#12101b 100%);box-shadow:0 24px 70px rgba(0,0,0,0.65)}
+.ac-head{padding:16px 22px;font-size:13px;letter-spacing:2px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.ac-x{width:30px;height:30px;border-radius:8px;font-size:16px;line-height:1;transition:background .15s,color .15s}
+.ac-x:hover{background:rgba(255,255,255,0.08);color:#fff}
+#adminChapBody{padding:18px 22px 22px}
+.ac2-title{font-size:16px;margin-bottom:4px}
+.ac-info{color:var(--muted,#999);font-size:11.5px;margin-bottom:14px}
+.ac2-tl{height:30px;border-radius:8px;gap:3px;margin:6px 0 18px;background:transparent}
+.ac2-seg{border-radius:5px;font-size:11px;font-weight:600;padding:0 8px}
+.ac2-cols{padding:0 4px;text-transform:uppercase;letter-spacing:.8px;font-size:10px;margin-bottom:6px}
+.ac2-row{padding:7px 6px;margin-bottom:6px;border-radius:10px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.05);transition:background .15s,border-color .15s}
+.ac2-row:hover{background:rgba(255,255,255,0.06);border-color:rgba(167,139,250,0.25)}
+.ac2-grip{border-radius:6px;transition:background .15s,color .15s}
+.ac2-grip:hover{background:rgba(167,139,250,0.15)}
+.ac2-n,.ac2-game{border-radius:8px;background:rgba(0,0,0,0.3);border-color:rgba(255,255,255,0.1)}
+.ac2-n{font-variant-numeric:tabular-nums}
+.ac2-art{border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.5)}
+.ac2-del{border-radius:8px;border-color:transparent;background:transparent;color:#a78a8a;transition:background .15s,color .15s}
+.ac2-del:hover{background:rgba(255,112,112,0.15);color:#ff8f8f}
+.ac-actions{margin-top:18px;gap:10px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06)}
+.ac-btn{border-radius:8px;padding:8px 14px;transition:background .15s,border-color .15s,transform .1s}
+.ac-btn:hover:not(:disabled){background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.28)}
+.ac-primary{background:#7c5cfc;border-color:#7c5cfc;color:#fff;margin-left:auto}
+.ac-primary:hover:not(:disabled){background:#8f73ff;border-color:#8f73ff}
+.ac-hint{font-size:11.5px;line-height:1.6;margin-top:14px}
+#adminChapMsg{margin:0 22px 18px;padding:9px 12px;border-radius:8px;background:rgba(255,255,255,0.05)}
+#acComboList{border-radius:10px;border-color:rgba(167,139,250,0.5);background:#17142200;background:#171422}
+.ac2-opt{padding:7px 12px}
 </style>
 <script src="https://www.youtube.com/iframe_api"></script>
 
